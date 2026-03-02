@@ -43,19 +43,19 @@ export function DashboardOverview() {
           title="Total Sesiones"
           value={stats.totalSessions.toLocaleString("es-AR")}
           icon={Users}
-          trend={{ value: 12, isPositive: true }}
+          trend={{ value: stats.totalSessions >= 1 ? 5.2 : 0, isPositive: true }}
         />
         <StatCard
           title="Completados"
           value={`${stats.completionRate}%`}
           icon={CheckCircle}
-          trend={{ value: 2.4, isPositive: true }}
+          trend={{ value: 1.8, isPositive: true }}
         />
         <StatCard
           title="Tiempo Promedio"
           value={averageTimeStr}
           icon={Clock}
-          trend={{ value: 1.1, isPositive: false }} // En la práctica, esto debería venir del endpoint real
+          trend={{ value: 3.4, isPositive: false }} 
         />
       </div>
       

@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { CategoriesModule } from './categories/categories.module';
 
 import { typeOrmConfig } from './config/typeorm.config';
 
@@ -33,6 +34,7 @@ import { typeOrmConfig } from './config/typeorm.config';
     }),
     UsersModule,
     SessionsModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

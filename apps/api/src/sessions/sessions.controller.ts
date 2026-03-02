@@ -26,4 +26,12 @@ export class SessionsController {
       throw new NotFoundException(e.message);
     }
   }
+
+  @Post(':id/send-report')
+  async sendReport(@Param('id') id: string, @Body('email') email: string) {
+    if (!email) {
+      throw new NotFoundException('Falta proveer el parámetro email.');
+    }
+    return await this.sessionsService.sendReport(id, email);
+  }
 }

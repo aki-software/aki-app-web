@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 import { Session } from '../sessions/entities/session.entity';
 import { SessionResult } from '../sessions/entities/session-result.entity';
 import { SessionSwipe } from '../sessions/entities/session-swipe.entity';
+import { VocationalCategory } from '../categories/entities/vocational-category.entity';
 
 // Cargar .env manualmente si se ejecuta desde TypeORM CLI
 dotenv.config();
@@ -16,7 +17,7 @@ export const typeOrmConfig: PostgresConnectionOptions = {
   username: process.env.DATABASE_USER || 'test_user',
   password: process.env.DATABASE_PASSWORD || 'test_password',
   database: process.env.DATABASE_NAME || 'akit_db',
-  entities: [Session, SessionResult, SessionSwipe],
+  entities: [Session, SessionResult, SessionSwipe, VocationalCategory],
   migrations: ['dist/migrations/*.js'],
   synchronize: false,
 };
