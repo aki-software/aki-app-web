@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "docker-expert": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "d18feeb0276b89df2c7e57ad36be879633e43e9c505e6f8110abe6e89972abc9"
+    },
+    "nestjs-expert": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "4ca569d223c19a87ec09473d40ccc5239d1cc6c65d53656b533a5fd28ef6eb43"
+    },
+    "tailwind-design-system": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "c88178d861802fa836be54e377e82bb67899b6c378807679a1feecd21bf63cb8"
+    },
+    "turborepo": {
+      "source": "vercel/turborepo",
+      "sourceType": "github",
+      "computedHash": "83ce74afa0559216ec25beb63de962df8b24d61b5182c7ea5ad3a5adf0f633b1"
+    }
+  }
+}
