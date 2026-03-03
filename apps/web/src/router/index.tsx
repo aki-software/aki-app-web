@@ -1,42 +1,59 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { DashboardLayout } from "../features/dashboard/layouts/DashboardLayout";
 import { DashboardOverview } from "../features/dashboard/views/DashboardOverview";
 import { DashboardResults } from "../features/dashboard/views/DashboardResults";
 import { DashboardUsers } from "../features/dashboard/views/DashboardUsers";
 import { DashboardSettings } from "../features/dashboard/views/DashboardSettings";
 import { NotFoundFeature } from "../features/dashboard/views/NotFoundFeature";
+import { LoginPage } from "../features/auth/views/LoginPage";
+import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
+    /* Ruta raíz: redirigir al dashboard (ProtectedRoute se encargará del guard) */
     path: "/",
-    element: <div className="p-10"><h1>A.kit Test - (Página Principal/Test UI)</h1></div>,
-    errorElement: <NotFoundFeature />, /* Fallback global por si se falla en raíz */
+    element: <Navigate to="/dashboard" replace />,
   },
   {
-    path: "/dashboard",
-    element: <DashboardLayout />,
-    errorElement: <NotFoundFeature />, /* Fallback local con layout 404 opcional, acá lo pisamos por toda la app */
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    /* Rutas protegidas: solo accesibles si el usuario está autenticado */
+    element: <ProtectedRoute />,
+    errorElement: <NotFoundFeature />,
     children: [
       {
-        index: true,
-        element: <DashboardOverview />,
+        path: "/dashboard",
+        element: <DashboardLayout />,
+        errorElement: <NotFoundFeature />,
+        children: [
+          {
+            index: true,
+            element: <DashboardOverview />,
+          },
+          {
+            path: "results",
+            element: <DashboardResults />,
+          },
+          {
+            path: "users",
+            element: <DashboardUsers />,
+          },
+          {
+            path: "settings",
+            element: <DashboardSettings />,
+          },
+          {
+            path: "*",
+            element: <NotFoundFeature />,
+          },
+        ],
       },
-      {
-        path: "results",
-        element: <DashboardResults />,
-      },
-      {
-        path: "users",
-        element: <DashboardUsers />,
-      },
-      {
-        path: "settings",
-        element: <DashboardSettings />,
-      },
-      {
-        path: "*",
-        element: <NotFoundFeature />
-      }
     ],
+  },
+  {
+    path: "*",
+    element: <NotFoundFeature />,
   },
 ]);

@@ -1,6 +1,16 @@
-import { Controller, Post, Body, Get, Param, Query, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Query,
+  NotFoundException,
+  UseGuards,
+} from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('sessions')
 export class SessionsController {
@@ -11,6 +21,7 @@ export class SessionsController {
     return this.sessionsService.create(createSessionDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
     const parsedPage = page ? parseInt(page, 10) : 1;
@@ -18,6 +29,7 @@ export class SessionsController {
     return this.sessionsService.findAll(parsedPage, parsedLimit);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {

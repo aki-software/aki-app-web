@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+dist/
+
+# Variables de entorno — NUNCA commitear el .env real
+.env
+.env.local
+.env.production
+.env.staging
+
+# Turbo
+.turbo/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Build artifacts
+build/

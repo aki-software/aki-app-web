@@ -1,8 +1,16 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Users, Settings, LogOut, ChartPie } from "lucide-react";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 export function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
 
   const navItems = [
     { name: "Overview", path: "/dashboard", icon: LayoutDashboard },
@@ -51,13 +59,13 @@ export function DashboardLayout() {
         </div>
 
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <Link
-            to="/"
-            className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white transition-colors"
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center px-3 py-2.5 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white transition-colors"
           >
             <LogOut className="flex-shrink-0 w-5 h-5 mr-3 text-gray-400" />
-            Salir al Test
-          </Link>
+            Cerrar sesión
+          </button>
         </div>
       </aside>
 

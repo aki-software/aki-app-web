@@ -1,15 +1,18 @@
 import { DashboardStatsResponse } from "@akit/contracts";
 
-/**
- * Servicio proxy que simula la respuesta que entregará el Backend.
- * Cuando el backend esté listo, reemplazaremos este mock por un simple fetch:
- * 
- * const response = await fetch('/api/sessions/dashboard');
- * return await response.json();
- */
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+
+/** Lee el JWT almacenado por AuthContext y devuelve el encabezado Authorization */
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem('akit_access_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
   try {
-    const response = await fetch('http://localhost:3000/sessions');
+    const response = await fetch(`${API_URL}/sessions`, {
+      headers: getAuthHeaders(),
+    });
     if (!response.ok) throw new Error('Failed to fetch API data');
     const responseData = await response.json();
     const sessions = responseData.data || [];
@@ -70,7 +73,9 @@ export interface SessionData {
 
 export async function fetchSessionsList(): Promise<any[]> {
   try {
-    const response = await fetch('http://localhost:3000/sessions');
+    const response = await fetch(`${API_URL}/sessions`, {
+      headers: getAuthHeaders(),
+    });
     if (!response.ok) throw new Error('Failed to fetch API data');
     const responseData = await response.json();
     return responseData.data || [];
@@ -82,7 +87,8 @@ export async function fetchSessionsList(): Promise<any[]> {
 
 export async function fetchCategories(): Promise<any[]> {
   try {
-    const response = await fetch('http://localhost:3000/categories');
+    // GET /categories es público (Android lo usa sin auth)
+    const response = await fetch(`${API_URL}/categories`);
     if (!response.ok) throw new Error('Failed to fetch categories');
     return await response.json();
   } catch (error) {
@@ -93,9 +99,9 @@ export async function fetchCategories(): Promise<any[]> {
 
 export async function updateCategory(categoryId: string, data: { title: string; description: string }): Promise<boolean> {
   try {
-    const response = await fetch(`http://localhost:3000/categories/${categoryId}`, {
+    const response = await fetch(`${API_URL}/categories/${categoryId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(data)
     });
     return response.ok;

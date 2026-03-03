@@ -6,8 +6,9 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { CategoriesModule } from './categories/categories.module';
-
+import { AuthModule } from './auth/auth.module';
 import { typeOrmConfig } from './config/typeorm.config';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -28,13 +29,13 @@ import { typeOrmConfig } from './config/typeorm.config';
           typeOrmConfig.password,
         database:
           configService.get<string>('DATABASE_NAME') || typeOrmConfig.database,
-        synchronize: false,
-        autoLoadEntities: true,
       }),
     }),
     UsersModule,
     SessionsModule,
     CategoriesModule,
+    MailModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

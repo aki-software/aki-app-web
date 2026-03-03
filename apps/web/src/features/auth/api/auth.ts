@@ -1,0 +1,64 @@
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken?: string;
+}
+
+export interface LoginResponse {
+  user: AuthUser;
+  tokens: AuthTokens;
+}
+
+/**
+ * Llama al endpoint POST /auth/login del backend.
+ * Cuando el módulo de autenticación del backend esté listo,
+ * este servicio ya está integrado sin necesidad de cambios.
+ *
+ *  @throws {Error} con mensaje legible si las credenciales son incorrectas o hay un error de red.
+ */
+export async function loginRequest(credentials: LoginCredentials): Promise<LoginResponse> {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Credenciales incorrectas. Verificá tu email y contraseña.');
+    }
+    throw new Error(`Error del servidor (${response.status}). Intentá de nuevo más tarde.`);
+  }
+
+  return response.json() as Promise<LoginResponse>;
+}
+
+/**
+ * Invalida la sesión del usuario en el servidor.
+ */
+export async function logoutRequest(accessToken: string): Promise<void> {
+  try {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  } catch {
+    // Si falla el logout remoto, continuamos igual (limpiamos local storage)
+  }
+}

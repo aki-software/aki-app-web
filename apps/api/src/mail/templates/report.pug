@@ -1,0 +1,96 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="utf-8")
+    title Resultados Vocacionales
+    style.
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 40px 20px;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+      .header {
+        text-align: center;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+      }
+      .header h2 {
+        color: #4f46e5;
+        margin: 0;
+        font-size: 24px;
+      }
+      .greeting {
+        font-size: 16px;
+        line-height: 1.5;
+        margin-bottom: 30px;
+      }
+      .category-box {
+        background-color: #f3f4f6;
+        border-left: 4px solid #4f46e5;
+        padding: 15px 20px;
+        margin-bottom: 24px;
+        border-radius: 4px;
+      }
+      .category-title {
+        color: #111827;
+        margin-top: 0;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .percentage {
+        color: #6b7280;
+        font-weight: normal;
+        font-size: 14px;
+      }
+      .category-desc {
+        color: #4b5563;
+        line-height: 1.6;
+        margin: 0;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        color: #6b7280;
+        font-size: 13px;
+      }
+      .copyright {
+        color: #9ca3af;
+        font-size: 12px;
+        margin-top: 10px;
+      }
+
+  body
+    .container
+      .header
+        h2 ¡Tus Resultados Están Listos!
+      
+      .greeting
+        p Hola #[strong #{patientName}],
+        p Gracias por completar tu exploración vocacional en A.kit. Aquí te presentamos un resumen integral de tus perfiles más fuertes según la tipología RIASEC extendida:
+
+      //- Iteramos sobre los topResults que pasamos al renderizar la plantilla
+      each res in topResults
+        .category-box
+          h3.category-title
+            span 🔹 #{res.title}
+            span.percentage #{res.percentage}%
+          p.category-desc #{res.description}
+
+      .footer
+        p Este reporte es un documento orientativo. Conservá este correo para tu información o para presentarlo ante tu mentor/a escolar o profesional a cargo.
+        p.copyright © #{new Date().getFullYear()} A.kit Platform

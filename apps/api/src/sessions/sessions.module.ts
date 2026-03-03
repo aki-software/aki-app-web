@@ -6,11 +6,13 @@ import { Session } from './entities/session.entity';
 import { SessionResult } from './entities/session-result.entity';
 import { SessionSwipe } from './entities/session-swipe.entity';
 import { CategoriesModule } from '../categories/categories.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Session, SessionResult, SessionSwipe]),
-    CategoriesModule
+    CategoriesModule,
+    MailModule,
   ],
   controllers: [SessionsController],
   providers: [SessionsService],

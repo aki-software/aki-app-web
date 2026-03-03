@@ -7,7 +7,6 @@ import { SessionResult } from '../sessions/entities/session-result.entity';
 import { SessionSwipe } from '../sessions/entities/session-swipe.entity';
 import { VocationalCategory } from '../categories/entities/vocational-category.entity';
 
-// Cargar .env manualmente si se ejecuta desde TypeORM CLI
 dotenv.config();
 
 export const typeOrmConfig: PostgresConnectionOptions = {
