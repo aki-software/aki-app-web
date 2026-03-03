@@ -39,16 +39,23 @@ export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
       categoryId: k,
       name: categories[k].name,
       count: categories[k].count,
-    }));
+    })).sort((a, b) => b.count - a.count);
 
     return {
       totalSessions: sessions.length || 0,
       completionRate: sessions.length > 0 ? 100 : 0, 
       averageTimeSeconds,
       sessionsActivity: [
-        { date: "Reciente", count: sessions.length }
+        { date: "Hoy", count: sessions.length }
       ],
-      resultsDistribution,
+      resultsDistribution: resultsDistribution.length > 0 ? resultsDistribution : [
+        { categoryId: 'R', name: 'Realista', count: 0 },
+        { categoryId: 'I', name: 'Investigador', count: 0 },
+        { categoryId: 'A', name: 'Artístico', count: 0 },
+        { categoryId: 'S', name: 'Social', count: 0 },
+        { categoryId: 'E', name: 'Emprendedor', count: 0 },
+        { categoryId: 'C', name: 'Convencional', count: 0 },
+      ],
     };
   } catch(e) {
     console.error("Backend offline, returning zeroes.", e);
@@ -71,14 +78,33 @@ export interface SessionData {
   results?: { categoryId: string; percentage: number }[];
 }
 
-export async function fetchSessionsList(): Promise<any[]> {
+export async function fetchSessionsList(): Promise<SessionData[]> {
   try {
     const response = await fetch(`${API_URL}/sessions`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) throw new Error('Failed to fetch API data');
     const responseData = await response.json();
-    return responseData.data || [];
+    const sessions = responseData.data || [];
+
+    // Transformamos la data cruda del backend al formato SessionData que el frontend espera
+    return sessions.map((s: any) => {
+      // Calculamos el código Holland (ej: "RIA") tomando las 3 iniciales de las categorías con mayor porcentaje
+      const topResults = (s.results || [])
+        .sort((a: any, b: any) => b.percentage - a.percentage)
+        .slice(0, 3);
+      
+      const hollandCode = topResults.map((r: any) => r.categoryId.charAt(0).toUpperCase()).join('');
+
+      return {
+        id: s.id,
+        patientName: s.patientName,
+        hollandCode: hollandCode || 'N/A',
+        sessionDate: s.createdAt || new Date(),
+        totalTimeMs: Number(s.totalTimeMs || 0),
+        results: s.results
+      };
+    });
   } catch (error) {
     console.error('Error fetching sessions list:', error);
     return [];

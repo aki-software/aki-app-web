@@ -6,6 +6,7 @@ import { Session } from '../sessions/entities/session.entity';
 import { SessionResult } from '../sessions/entities/session-result.entity';
 import { SessionSwipe } from '../sessions/entities/session-swipe.entity';
 import { VocationalCategory } from '../categories/entities/vocational-category.entity';
+import { User } from '../users/entities/user.entity';
 
 dotenv.config();
 
@@ -16,9 +17,10 @@ export const typeOrmConfig: PostgresConnectionOptions = {
   username: process.env.DATABASE_USER || 'test_user',
   password: process.env.DATABASE_PASSWORD || 'test_password',
   database: process.env.DATABASE_NAME || 'akit_db',
-  entities: [Session, SessionResult, SessionSwipe, VocationalCategory],
+  entities: [Session, SessionResult, SessionSwipe, VocationalCategory, User],
   migrations: ['dist/migrations/*.js'],
   synchronize: false,
+  ssl: process.env.DATABASE_HOST !== 'localhost' ? { rejectUnauthorized: false } : false,
 };
 
 export default new DataSource(typeOrmConfig);
