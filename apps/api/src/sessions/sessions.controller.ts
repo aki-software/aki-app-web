@@ -11,6 +11,7 @@ import {
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { SendReportDto } from './dto/send-report.dto';
 
 @Controller('sessions')
 export class SessionsController {
@@ -39,11 +40,12 @@ export class SessionsController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post(':id/send-report')
-  async sendReport(@Param('id') id: string, @Body('email') email: string) {
-    if (!email) {
-      throw new NotFoundException('Falta proveer el parámetro email.');
-    }
-    return await this.sessionsService.sendReport(id, email);
+  async sendReport(
+    @Param('id') id: string,
+    @Body() sendReportDto: SendReportDto,
+  ) {
+    return await this.sessionsService.sendReport(id, sendReportDto.email);
   }
 }

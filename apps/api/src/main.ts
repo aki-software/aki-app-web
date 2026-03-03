@@ -5,8 +5,13 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Habilitamos CORS para la App Web (Vite React Dashboard)
-  app.enableCors();
+  // Habilitamos CORS restrictivo (VULN-06 Fix)
+  const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173'];
+  app.enableCors({
+    origin: allowedOrigins,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
 
   // Habilitamos validación DTO global y removemos exceso de campos (whitelist: true)
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

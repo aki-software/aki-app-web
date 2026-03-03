@@ -1,14 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async login(loginDto: LoginDto) {
-    const adminEmail = process.env.ADMIN_USER || 'admin@akit.app';
-    const adminPass = process.env.ADMIN_PASS || 'admin123';
+    const adminEmail = this.configService.get<string>('ADMIN_USER') || 'admin@akit.app';
+    const adminPass = this.configService.get<string>('ADMIN_PASS') || 'admin123';
 
     if (loginDto.email !== adminEmail || loginDto.password !== adminPass) {
       throw new UnauthorizedException('Credenciales inválidas');
@@ -17,7 +21,6 @@ export class AuthService {
     const payload = { email: adminEmail, sub: 1, role: 'admin' };
     const accessToken = this.jwtService.sign(payload);
 
-    // Respuesta compatible con el AuthContext del Frontend
     return {
       user: {
         id: '1',
