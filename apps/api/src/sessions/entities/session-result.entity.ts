@@ -29,6 +29,12 @@ export class SessionResult {
   @Column({ name: 'total_possible', type: 'int' })
   totalPossible: number;
 
-  @Column({ type: 'int' })
+  @Column({ name: 'percentage', type: 'int' })
   percentage: number;
+
+  @Column({ name: 'suggested_careers', type: 'json', nullable: true })
+  suggestedCareers?: string[];
+
+  @Column({ name: 'material_snippet', type: 'text', nullable: true })
+  materialSnippet?: string;
 }

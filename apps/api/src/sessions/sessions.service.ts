@@ -57,12 +57,26 @@ export class SessionsService {
 
     const formattedResults: CategoryResult[] = topResults.map((res) => {
       const catInfo = categories.find((c) => c.categoryId === res.categoryId);
+      const description = catInfo ? catInfo.description : 'Información no disponible.';
+      
+      const parsedBlocks = description.split('\n\n').map(b => b.trim()).filter(Boolean).map(b => {
+        let subtitle = '';
+        let content = b;
+        const colonIndex = b.indexOf(':');
+        if (colonIndex > 0 && colonIndex < 80) {
+          subtitle = b.slice(0, colonIndex).trim();
+          content = b.slice(colonIndex + 1).trim();
+        }
+        return { subtitle, content };
+      });
+
       return {
         title: catInfo ? catInfo.title : res.categoryId,
         percentage: res.percentage,
-        description: catInfo
-          ? catInfo.description
-          : 'Información no disponible.',
+        description,
+        parsedBlocks,
+        suggestedCareers: res.suggestedCareers,
+        materialSnippet: res.materialSnippet,
       };
     });
 

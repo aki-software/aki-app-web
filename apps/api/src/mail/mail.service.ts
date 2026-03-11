@@ -6,7 +6,9 @@ export interface CategoryResult {
   title: string;
   percentage: number;
   description: string;
+  parsedBlocks?: { subtitle?: string; content: string }[];
   materialSnippet?: string;
+  suggestedCareers?: string[];
 }
 
 @Injectable()

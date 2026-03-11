@@ -191,6 +191,22 @@ html(lang="es")
         margin-bottom: 20px;
         line-height: 1.7;
       }
+      .material-subtitle {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-top: 16px;
+        margin-bottom: 8px;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 4px;
+        display: inline-block;
+      }
+      .material-content {
+        font-size: 15px;
+        color: #475569;
+        margin-bottom: 20px;
+        line-height: 1.7;
+      }
       /* Material Snippet */
       .material-snippet {
         background: #f8fafc;
@@ -271,21 +287,16 @@ html(lang="es")
       .header
         .logo-container
           //- Uso del icono mock con fondo oscuro para simular app marca
-          img.logo-image(src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/compass.svg" style="width: 56px; background: #0f172a; padding: 12px; border-radius: 16px;" alt="A.kit Logo")
+          img.logo-image(src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/compass.svg" style="width: 56px; background: #0f172a; padding: 12px; border-radius: 16px;" alt="Orient A.ki Logo")
         h1 Tu Informe Vocacional
         p Hola #[strong #{patientName}], aquí está tu análisis.
       
-      if hollandCode
-        .holland-section
-          .holland-label Código Holland
-          .holland-code #{hollandCode}
-
       .body
         p.greeting
-          | Completaste tu exploración vocacional en #[strong A.kit]. 
+          | Completaste tu exploración vocacional en #[strong Orient A.ki]. 
           br
           | A continuación te presentamos tus perfiles de mayor afinidad 
-          | según el modelo RIASEC extendido:
+          | según el modelo vocacional extendido:
 
         .section-title Áreas de Mayor Afinidad
 
@@ -298,7 +309,23 @@ html(lang="es")
               span.cat-pct #{res.percentage}%
             .progress-track
               .progress-fill(style=`width:${res.percentage}%`)
-            p.cat-desc #{res.description}
+            if res.parsedBlocks && res.parsedBlocks.length > 0
+              each block in res.parsedBlocks
+                if block.subtitle
+                  h4.material-subtitle #{block.subtitle}
+                  p.material-content #{block.content}
+                else
+                  p.material-content #{block.content}
+            else
+              p.cat-desc #{res.description}
+            
+            if res.suggestedCareers && res.suggestedCareers.length > 0
+              .material-snippet
+                strong 💼 Carreras Recomendadas:
+                ul(style="margin-top: 8px; margin-left: 16px;")
+                  each career in res.suggestedCareers
+                    li 
+                      strong #{career}
             
             if res.materialSnippet
               .material-snippet
@@ -308,13 +335,13 @@ html(lang="es")
         .divider
 
         p.footer-note
-          | Este reporte es un documento orientativo generado por la plataforma A.kit. 
+          | Este reporte es un documento orientativo generado por Orient A.ki. 
           | Te sugerimos revisarlo junto a un orientador o mentor vocacional.
 
       .footer
         .footer-contact
           | ¿Necesitas ayuda o tienes dudas?
           br
-          a(href="mailto:soporte@akit.app") Escríbenos a soporte@akit.app
-        .footer-brand A.kit Platform
+          a(href="mailto:soporte@orientaki.app") Escríbenos a soporte@orientaki.app
+        .footer-brand Orient A.ki
         .footer-copyright &copy; #{new Date().getFullYear()} Todos los derechos reservados.

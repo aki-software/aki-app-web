@@ -37,6 +37,15 @@ export class CreateSessionResultDto {
 
   @IsNumber()
   percentage: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  suggestedCareers?: string[];
+
+  @IsOptional()
+  @IsString()
+  materialSnippet?: string;
 }
 
 export class CreateSessionDto {
