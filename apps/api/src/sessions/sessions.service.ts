@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Session } from './entities/session.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CategoriesService } from '../categories/categories.service';
-import { MailService } from '../mail/mail.service';
+import { MailService, CategoryResult } from '../mail/mail.service';
 
 @Injectable()
 export class SessionsService {
@@ -55,7 +55,7 @@ export class SessionsService {
       .sort((a, b) => b.percentage - a.percentage)
       .slice(0, 3);
 
-    const formattedResults = topResults.map((res) => {
+    const formattedResults: CategoryResult[] = topResults.map((res) => {
       const catInfo = categories.find((c) => c.categoryId === res.categoryId);
       return {
         title: catInfo ? catInfo.title : res.categoryId,
@@ -70,6 +70,7 @@ export class SessionsService {
       targetEmail,
       session.patientName,
       formattedResults,
+      session.hollandCode ?? undefined,
     );
 
     if (!sent) {

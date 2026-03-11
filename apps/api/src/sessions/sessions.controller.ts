@@ -40,7 +40,6 @@ export class SessionsController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post(':id/send-report')
   async sendReport(
     @Param('id') id: string,

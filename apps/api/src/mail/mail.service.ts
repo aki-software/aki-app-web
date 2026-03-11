@@ -2,6 +2,13 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as pug from 'pug';
 
+export interface CategoryResult {
+  title: string;
+  percentage: number;
+  description: string;
+  materialSnippet?: string;
+}
+
 @Injectable()
 export class MailService {
   private transporter: nodemailer.Transporter;
@@ -20,11 +27,8 @@ export class MailService {
   async sendVocationalReport(
     targetEmail: string,
     patientName: string,
-    formattedResults: {
-      title: string;
-      percentage: number;
-      description: string;
-    }[],
+    formattedResults: CategoryResult[],
+    hollandCode?: string,
   ): Promise<boolean> {
     const templatePath = process.cwd() + '/src/mail/templates/report.pug';
     let htmlContent: string;
@@ -33,6 +37,7 @@ export class MailService {
       htmlContent = pug.renderFile(templatePath, {
         patientName,
         topResults: formattedResults,
+        hollandCode: hollandCode || null,
       });
     } catch (err) {
       console.error('❌ Error rendering Pug template in MailService:', err);
@@ -53,7 +58,7 @@ export class MailService {
       await this.transporter.sendMail({
         from: `A.kit Test Vocacional <${process.env.SMTP_FROM || 'reportes@akit.app'}>`,
         to: targetEmail,
-        subject: `📊 Resultados Vocacionales: ${patientName}`,
+        subject: `📊 Tu Informe Vocacional${hollandCode ? ` — Código ${hollandCode}` : ''}`,
         html: htmlContent,
       });
 

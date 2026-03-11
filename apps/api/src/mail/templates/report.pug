@@ -2,95 +2,224 @@ doctype html
 html(lang="es")
   head
     meta(charset="utf-8")
-    title Resultados Vocacionales
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Informe Vocacional — A.kit
     style.
+      * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
-        font-family: Arial, sans-serif;
-        background-color: #f9fafb;
-        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #0f0a1e;
         padding: 40px 20px;
-        color: #333;
+        color: #e2e8f0;
       }
-      .container {
+      .wrapper {
         max-width: 600px;
         margin: 0 auto;
-        background-color: #ffffff;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
       }
+      /* Header */
       .header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        border-radius: 16px 16px 0 0;
+        padding: 36px 32px 28px;
         text-align: center;
-        border-bottom: 2px solid #e5e7eb;
-        padding-bottom: 20px;
-        margin-bottom: 30px;
       }
-      .header h2 {
-        color: #4f46e5;
-        margin: 0;
-        font-size: 24px;
+      .logo-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.15);
+        border-radius: 12px;
+        padding: 6px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #e0d9ff;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+      .header h1 {
+        color: #ffffff;
+        font-size: 26px;
+        font-weight: 800;
+        line-height: 1.3;
+        margin-bottom: 8px;
+      }
+      .header p {
+        color: rgba(255,255,255,0.75);
+        font-size: 15px;
+      }
+      /* Holland Code Banner */
+      .holland-banner {
+        background: #1e1535;
+        border: 1px solid rgba(124, 58, 237, 0.4);
+        padding: 20px 32px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .holland-label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #a78bfa;
+        min-width: 90px;
+      }
+      .holland-code {
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: 6px;
+        background: linear-gradient(90deg, #818cf8, #a78bfa, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      /* Body */
+      .body {
+        background: #1a1030;
+        padding: 32px;
+        border-left: 1px solid rgba(124, 58, 237, 0.2);
+        border-right: 1px solid rgba(124, 58, 237, 0.2);
       }
       .greeting {
         font-size: 16px;
-        line-height: 1.5;
-        margin-bottom: 30px;
+        line-height: 1.7;
+        color: #cbd5e1;
+        margin-bottom: 28px;
       }
-      .category-box {
-        background-color: #f3f4f6;
-        border-left: 4px solid #4f46e5;
-        padding: 15px 20px;
-        margin-bottom: 24px;
-        border-radius: 4px;
+      .greeting strong {
+        color: #f1f5f9;
       }
-      .category-title {
-        color: #111827;
-        margin-top: 0;
-        margin-bottom: 8px;
+      .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #8b5cf6;
+        margin-bottom: 16px;
+      }
+      /* Category Cards */
+      .category-card {
+        background: #251b3e;
+        border: 1px solid rgba(124, 58, 237, 0.2);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+        position: relative;
+        overflow: hidden;
+      }
+      .category-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #4f46e5, #7c3aed);
+      }
+      .cat-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
+        margin-bottom: 10px;
+        gap: 12px;
       }
-      .percentage {
-        color: #6b7280;
-        font-weight: normal;
+      .cat-rank {
+        font-size: 11px;
+        font-weight: 700;
+        color: #6d28d9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        min-width: fit-content;
+      }
+      .cat-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #f1f5f9;
+        flex: 1;
+      }
+      .cat-pct {
+        font-size: 24px;
+        font-weight: 800;
+        color: #a78bfa;
+        min-width: fit-content;
+      }
+      /* Progress Bar */
+      .progress-track {
+        background: rgba(255,255,255,0.08);
+        border-radius: 4px;
+        height: 6px;
+        margin-bottom: 14px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 6px;
+        background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        border-radius: 4px;
+      }
+      .cat-desc {
         font-size: 14px;
+        line-height: 1.65;
+        color: #94a3b8;
       }
-      .category-desc {
-        color: #4b5563;
-        line-height: 1.6;
-        margin: 0;
-      }
+      /* Footer */
       .footer {
+        background: #13102a;
+        border: 1px solid rgba(124, 58, 237, 0.2);
+        border-top: none;
+        border-radius: 0 0 16px 16px;
+        padding: 28px 32px;
         text-align: center;
-        margin-top: 40px;
-        padding-top: 20px;
-        border-top: 1px solid #e5e7eb;
-        color: #6b7280;
-        font-size: 13px;
       }
-      .copyright {
-        color: #9ca3af;
+      .footer-note {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 12px;
+      }
+      .footer-brand {
         font-size: 12px;
-        margin-top: 10px;
+        color: #4f46e5;
+        font-weight: 600;
+        letter-spacing: 1px;
       }
 
   body
-    .container
+    .wrapper
       .header
-        h2 ¡Tus Resultados Están Listos!
+        .logo-badge A.kit Platform
+        h1 ✦ Tu Informe Vocacional
+        p Hola #[strong #{patientName}], aquí está tu análisis completo.
       
-      .greeting
-        p Hola #[strong #{patientName}],
-        p Gracias por completar tu exploración vocacional en A.kit. Aquí te presentamos un resumen integral de tus perfiles más fuertes según la tipología RIASEC extendida:
+      if hollandCode
+        .holland-banner
+          .holland-label Tu Código Holland
+          .holland-code #{hollandCode}
 
-      //- Iteramos sobre los topResults que pasamos al renderizar la plantilla
-      each res in topResults
-        .category-box
-          h3.category-title
-            span 🔹 #{res.title}
-            span.percentage #{res.percentage}%
-          p.category-desc #{res.description}
+      .body
+        p.greeting
+          | Completaste tu exploración vocacional en #[strong A.kit]. 
+          | A continuación te presentamos tus tres perfiles de mayor afinidad 
+          | según el modelo RIASEC extendido:
+
+        p.section-title 🔹 Áreas de Mayor Afinidad
+
+        each res, index in topResults
+          .category-card
+            .cat-header
+              span.cat-rank
+                if index === 0
+                  | 🥇 #1 Perfil Dominante
+                else if index === 1
+                  | 🥈 #2 Perfil Secundario
+                else
+                  | 🥉 #3 Perfil de Apoyo
+              span.cat-title #{res.title}
+              span.cat-pct #{res.percentage}%
+            .progress-track
+              .progress-fill(style=`width:${res.percentage}%`)
+            p.cat-desc #{res.description}
 
       .footer
-        p Este reporte es un documento orientativo. Conservá este correo para tu información o para presentarlo ante tu mentor/a escolar o profesional a cargo.
-        p.copyright © #{new Date().getFullYear()} A.kit Platform
+        p.footer-note
+          | Este reporte es un documento orientativo generado por la plataforma A.kit. 
+          | Guardá este correo para compartirlo con tu orientador/a vocacional o mentor/a escolar.
+        p.footer-brand © #{new Date().getFullYear()} A.kit Platform · akit.app
