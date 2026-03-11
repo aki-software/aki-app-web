@@ -7,219 +7,314 @@ html(lang="es")
     style.
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background-color: #0f0a1e;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #1e293b; /* Fondo exterior notablemente más oscuro, color pizarra */
         padding: 40px 20px;
-        color: #e2e8f0;
+        color: #334155;
+        line-height: 1.6;
       }
       .wrapper {
         max-width: 600px;
         margin: 0 auto;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); /* Sombra mucho más fuerte para contrastar contra el fondo oscuro */
+        overflow: hidden;
       }
       /* Header */
       .header {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        border-radius: 16px 16px 0 0;
-        padding: 36px 32px 28px;
+        background: #ffffff;
+        padding: 40px 32px 32px;
         text-align: center;
+        border-bottom: 2px solid #f1f5f9; /* Separador sutil */
       }
-      .logo-badge {
-        display: inline-block;
-        background: rgba(255,255,255,0.15);
-        border-radius: 12px;
-        padding: 6px 16px;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        color: #e0d9ff;
-        text-transform: uppercase;
-        margin-bottom: 16px;
+      .logo-container {
+        margin-bottom: 24px;
+      }
+      .logo-image {
+        max-width: 140px;
+        height: auto;
       }
       .header h1 {
-        color: #ffffff;
-        font-size: 26px;
+        color: #0f172a;
+        font-size: 28px;
         font-weight: 800;
-        line-height: 1.3;
-        margin-bottom: 8px;
+        line-height: 1.2;
+        margin-bottom: 12px;
       }
       .header p {
-        color: rgba(255,255,255,0.75);
-        font-size: 15px;
+        color: #64748b;
+        font-size: 16px;
       }
-      /* Holland Code Banner */
-      .holland-banner {
-        background: #1e1535;
-        border: 1px solid rgba(124, 58, 237, 0.4);
-        padding: 20px 32px;
+      /* Holland Code Section */
+      .holland-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+        padding: 28px 32px;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 16px;
+        border-bottom: 2px solid #e2e8f0;
       }
       .holland-label {
         font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        color: #a78bfa;
-        min-width: 90px;
-      }
-      .holland-code {
-        font-size: 28px;
-        font-weight: 900;
-        letter-spacing: 6px;
-        background: linear-gradient(90deg, #818cf8, #a78bfa, #c084fc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      /* Body */
-      .body {
-        background: #1a1030;
-        padding: 32px;
-        border-left: 1px solid rgba(124, 58, 237, 0.2);
-        border-right: 1px solid rgba(124, 58, 237, 0.2);
-      }
-      .greeting {
-        font-size: 16px;
-        line-height: 1.7;
-        color: #cbd5e1;
-        margin-bottom: 28px;
-      }
-      .greeting strong {
-        color: #f1f5f9;
-      }
-      .section-title {
-        font-size: 11px;
         font-weight: 700;
         letter-spacing: 2px;
         text-transform: uppercase;
-        color: #8b5cf6;
-        margin-bottom: 16px;
+        color: #475569;
+        margin-bottom: 10px;
+      }
+      .holland-code {
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: 12px;
+        color: #4338ca;
+        text-shadow: 0 2px 10px rgba(67, 56, 202, 0.2); 
+      }
+      /* Body */
+      .body {
+        padding: 40px 32px;
+        background-color: #fafafc; /* Ligerisimo fondo gris off-white para el area central para contrastar aun mas las tarjetas blancas */
+      }
+      .greeting {
+        font-size: 16px;
+        color: #475569;
+        margin-bottom: 36px;
+        text-align: center;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+      }
+      .greeting strong {
+        color: #0f172a;
+      }
+      .section-title {
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #334155;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .section-title::after {
+        content: "";
+        flex: 1;
+        height: 2px;
+        background-color: #cbd5e1;
+        border-radius: 2px;
       }
       /* Category Cards */
       .category-card {
-        background: #251b3e;
-        border: 1px solid rgba(124, 58, 237, 0.2);
-        border-radius: 12px;
-        padding: 20px 24px;
-        margin-bottom: 16px;
+        background: #ffffff;
+        border: 2px solid #e2e8f0; /* Borde notable */
+        border-radius: 16px;
+        padding: 28px 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); /* Sombra base para resaltar del fondo off-white */
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
         position: relative;
         overflow: hidden;
       }
-      .category-card::before {
+      /* Barra decorativa lateral para la tarjeta #1 */
+      .category-card.is-top {
+        border-color: #bfdbfe;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.1);
+      }
+      .category-card.is-top::before {
         content: '';
         position: absolute;
-        top: 0;
         left: 0;
+        top: 0;
+        bottom: 0;
         width: 4px;
-        height: 100%;
-        background: linear-gradient(180deg, #4f46e5, #7c3aed);
+        background: #4f46e5;
+      }
+      .category-card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        transform: translateY(-3px);
+        border-color: #cbd5e1;
       }
       .cat-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 10px;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+      }
+      .cat-rank-title-group {
+        display: flex;
+        align-items: center;
         gap: 12px;
       }
       .cat-rank {
-        font-size: 11px;
-        font-weight: 700;
-        color: #6d28d9;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        min-width: fit-content;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #4f46e5;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 800;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
       }
       .cat-title {
-        font-size: 17px;
-        font-weight: 700;
-        color: #f1f5f9;
-        flex: 1;
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f172a;
       }
       .cat-pct {
-        font-size: 24px;
-        font-weight: 800;
-        color: #a78bfa;
-        min-width: fit-content;
+        font-size: 22px;
+        font-weight: 900;
+        color: #4338ca;
       }
       /* Progress Bar */
       .progress-track {
-        background: rgba(255,255,255,0.08);
-        border-radius: 4px;
-        height: 6px;
-        margin-bottom: 14px;
+        background: #e2e8f0;
+        border-radius: 8px;
+        height: 8px;
+        margin-bottom: 20px;
         overflow: hidden;
       }
       .progress-fill {
-        height: 6px;
-        background: linear-gradient(90deg, #4f46e5, #7c3aed);
-        border-radius: 4px;
+        height: 100%;
+        background: linear-gradient(90deg, #4f46e5, #818cf8); /* Gradiente más vibrante */
+        border-radius: 8px;
       }
       .cat-desc {
+        font-size: 15px;
+        color: #475569;
+        margin-bottom: 20px;
+        line-height: 1.7;
+      }
+      /* Material Snippet */
+      .material-snippet {
+        background: #f8fafc;
+        border-left: 4px solid #6366f1;
+        padding: 16px 20px;
+        border-radius: 0 8px 8px 0;
         font-size: 14px;
-        line-height: 1.65;
-        color: #94a3b8;
+        color: #334155;
+        border-top: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .material-snippet strong {
+        color: #0f172a;
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      /* Divider */
+      .divider {
+        height: 1px;
+        background-color: #cbd5e1;
+        margin: 40px 0 24px;
       }
       /* Footer */
       .footer {
-        background: #13102a;
-        border: 1px solid rgba(124, 58, 237, 0.2);
-        border-top: none;
-        border-radius: 0 0 16px 16px;
-        padding: 28px 32px;
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0;
+        padding: 32px;
         text-align: center;
       }
       .footer-note {
         font-size: 13px;
         color: #64748b;
-        line-height: 1.6;
-        margin-bottom: 12px;
+        margin-bottom: 24px;
+        max-width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+        background: #f8fafc;
+        padding: 16px;
+        border-radius: 8px;
+      }
+      .footer-contact {
+        font-size: 14px;
+        color: #475569;
+        margin-bottom: 24px;
+      }
+      .footer-contact a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 8px 16px;
+        background: #eff6ff;
+        border-radius: 20px;
+        display: inline-block;
+        margin-top: 8px;
+        transition: background 0.2s;
+      }
+      .footer-contact a:hover {
+        background: #dbeafe;
       }
       .footer-brand {
-        font-size: 12px;
-        color: #4f46e5;
-        font-weight: 600;
-        letter-spacing: 1px;
+        font-size: 15px;
+        color: #0f172a;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+      }
+      .footer-copyright {
+        font-size: 13px;
+        color: #94a3b8;
       }
 
   body
     .wrapper
       .header
-        .logo-badge A.kit Platform
-        h1 ✦ Tu Informe Vocacional
-        p Hola #[strong #{patientName}], aquí está tu análisis completo.
+        .logo-container
+          //- Uso del icono mock con fondo oscuro para simular app marca
+          img.logo-image(src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/compass.svg" style="width: 56px; background: #0f172a; padding: 12px; border-radius: 16px;" alt="A.kit Logo")
+        h1 Tu Informe Vocacional
+        p Hola #[strong #{patientName}], aquí está tu análisis.
       
       if hollandCode
-        .holland-banner
-          .holland-label Tu Código Holland
+        .holland-section
+          .holland-label Código Holland
           .holland-code #{hollandCode}
 
       .body
         p.greeting
           | Completaste tu exploración vocacional en #[strong A.kit]. 
-          | A continuación te presentamos tus tres perfiles de mayor afinidad 
+          br
+          | A continuación te presentamos tus perfiles de mayor afinidad 
           | según el modelo RIASEC extendido:
 
-        p.section-title 🔹 Áreas de Mayor Afinidad
+        .section-title Áreas de Mayor Afinidad
 
         each res, index in topResults
-          .category-card
+          .category-card(class=index === 0 ? "is-top" : "")
             .cat-header
-              span.cat-rank
-                if index === 0
-                  | 🥇 #1 Perfil Dominante
-                else if index === 1
-                  | 🥈 #2 Perfil Secundario
-                else
-                  | 🥉 #3 Perfil de Apoyo
-              span.cat-title #{res.title}
+              .cat-rank-title-group
+                span.cat-rank #{index + 1}
+                span.cat-title #{res.title}
               span.cat-pct #{res.percentage}%
             .progress-track
               .progress-fill(style=`width:${res.percentage}%`)
             p.cat-desc #{res.description}
+            
+            if res.materialSnippet
+              .material-snippet
+                strong 💡 Para explorar:
+                | #{res.materialSnippet}
 
-      .footer
+        .divider
+
         p.footer-note
           | Este reporte es un documento orientativo generado por la plataforma A.kit. 
-          | Guardá este correo para compartirlo con tu orientador/a vocacional o mentor/a escolar.
-        p.footer-brand © #{new Date().getFullYear()} A.kit Platform · akit.app
+          | Te sugerimos revisarlo junto a un orientador o mentor vocacional.
+
+      .footer
+        .footer-contact
+          | ¿Necesitas ayuda o tienes dudas?
+          br
+          a(href="mailto:soporte@akit.app") Escríbenos a soporte@akit.app
+        .footer-brand A.kit Platform
+        .footer-copyright &copy; #{new Date().getFullYear()} Todos los derechos reservados.
