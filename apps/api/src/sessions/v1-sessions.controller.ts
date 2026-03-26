@@ -1,6 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { SessionsService } from './sessions.service';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { SessionsService } from './sessions.service';
 
 @Controller('sessions')
 export class V1SessionsController {
@@ -8,6 +8,14 @@ export class V1SessionsController {
     private readonly sessionsService: SessionsService,
     private readonly usersService: UsersService,
   ) {}
+
+  @Get()
+  async findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
+  ) {
+    return this.sessionsService.findAll(parseInt(page), parseInt(limit));
+  }
 
   @Post('complete')
   async complete(@Body() payload: any) {
@@ -25,7 +33,10 @@ export class V1SessionsController {
       patientName: realName,
       sessionDate: new Date(payload.startedAt || new Date()),
       hollandCode: payload.resultPayload?.hollandCode,
-      totalTimeMs: this.calculateDuration(payload.startedAt, payload.finishedAt),
+      totalTimeMs: this.calculateDuration(
+        payload.startedAt,
+        payload.finishedAt,
+      ),
       results: (payload.resultPayload?.radar || []).map((r: any) => ({
         categoryId: r.categoryId,
         score: r.likes || r.score || 0,

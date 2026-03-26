@@ -6,6 +6,9 @@ import { CreateSessionDto } from './dto/create-session.dto';
 import { CategoriesService } from '../categories/categories.service';
 import { MailService, CategoryResult } from '../mail/mail.service';
 
+import { PdfService } from '../common/services/pdf.service';
+import { StorageService } from '../common/services/storage.service';
+
 @Injectable()
 export class SessionsService {
   constructor(
@@ -13,6 +16,8 @@ export class SessionsService {
     private sessionRepository: Repository<Session>,
     private categoriesService: CategoriesService,
     private mailService: MailService,
+    private pdfService: PdfService,
+    private storageService: StorageService,
   ) {}
 
   async create(createSessionDto: CreateSessionDto): Promise<Session> {
@@ -80,11 +85,34 @@ export class SessionsService {
       };
     });
 
+    const htmlContent = this.mailService.renderReportTemplate(
+      session.patientName,
+      formattedResults,
+      session.hollandCode ?? undefined,
+    );
+
+    let pdfBuffer: Buffer | undefined;
+    try {
+      pdfBuffer = await this.pdfService.generateFromHtml(htmlContent);
+      
+      const fileName = `report_${sessionId}_${Date.now()}.pdf`;
+      const reportUrl = await this.storageService.uploadFile(pdfBuffer, fileName);
+      
+      // Persistir la URL en la sesión solo si se generó (S3 configurado)
+      if (reportUrl) {
+        session.reportUrl = reportUrl;
+        await this.sessionRepository.save(session);
+      }
+    } catch (err) {
+      console.error('⚠️ Falló la generación o subida del PDF, se enviará solo HTML:', err);
+    }
+
     const sent = await this.mailService.sendVocationalReport(
       targetEmail,
       session.patientName,
       formattedResults,
       session.hollandCode ?? undefined,
+      pdfBuffer,
     );
 
     if (!sent) {

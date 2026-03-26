@@ -9,6 +9,7 @@ import { SessionSwipe } from './entities/session-swipe.entity';
 import { CategoriesModule } from '../categories/categories.module';
 import { MailModule } from '../mail/mail.module';
 import { UsersModule } from '../users/users.module';
+import { CommonModule } from '../common/common.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UsersModule } from '../users/users.module';
     CategoriesModule,
     MailModule,
     UsersModule,
+    CommonModule,
   ],
   controllers: [SessionsController, V1SessionsController],
   providers: [SessionsService],

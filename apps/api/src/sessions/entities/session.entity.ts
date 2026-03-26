@@ -31,6 +31,9 @@ export class Session {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @Column({ name: 'report_url', type: 'text', nullable: true })
+  reportUrl: string;
+
   @OneToMany('SessionResult', (result: any) => result.session, {
     cascade: true,
   })
