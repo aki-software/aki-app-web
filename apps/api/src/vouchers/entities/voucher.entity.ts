@@ -1,13 +1,17 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { Institution } from '../../institutions/entities/institution.entity';
 import { User } from '../../users/entities/user.entity';
-
-export enum VoucherStatus {
-  AVAILABLE = 'AVAILABLE',
-  REDEEMED = 'REDEEMED',
-  EXPIRED = 'EXPIRED',
-  REVOKED = 'REVOKED',
-}
+import { Session } from '../../sessions/entities/session.entity';
+import { VoucherBatch } from './voucher-batch.entity';
+import { VoucherOwnerType, VoucherStatus } from './voucher.enums';
 
 @Entity('vouchers')
 export class Voucher {
@@ -18,19 +22,33 @@ export class Voucher {
   @Column({ length: 12, unique: true })
   code: string;
 
-  @Column({ name: 'institution_id', type: 'uuid' })
-  institutionId: string;
+  @Column({ name: 'batch_id', type: 'uuid' })
+  batchId: string;
 
-  @ManyToOne(() => Institution)
-  @JoinColumn({ name: 'institution_id' })
-  institution: Institution;
+  @ManyToOne(() => VoucherBatch)
+  @JoinColumn({ name: 'batch_id' })
+  batch: VoucherBatch;
 
-  @Column({ name: 'patient_id', type: 'uuid', nullable: true })
-  patientId: string;
+  @Column({
+    name: 'owner_type',
+    type: 'enum',
+    enum: VoucherOwnerType,
+  })
+  ownerType: VoucherOwnerType;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'patient_id' })
-  patient: User;
+  @Column({ name: 'owner_user_id', type: 'uuid', nullable: true })
+  ownerUserId: string | null;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'owner_user_id' })
+  ownerUser?: User | null;
+
+  @Column({ name: 'owner_institution_id', type: 'uuid', nullable: true })
+  ownerInstitutionId: string | null;
+
+  @ManyToOne(() => Institution, { nullable: true })
+  @JoinColumn({ name: 'owner_institution_id' })
+  ownerInstitution?: Institution | null;
 
   @Column({
     type: 'enum',
@@ -39,15 +57,28 @@ export class Voucher {
   })
   status: VoucherStatus = VoucherStatus.AVAILABLE;
 
-  @Column({ name: 'report_id', type: 'uuid', nullable: true })
-  reportId: string;
+  @Column({ name: 'assigned_patient_name', type: 'varchar', length: 255, nullable: true })
+  assignedPatientName: string | null;
+
+  @Column({ name: 'assigned_patient_email', type: 'varchar', length: 255, nullable: true })
+  assignedPatientEmail: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @Column({ name: 'sent_at', type: 'timestamp', nullable: true })
+  sentAt: Date | null;
+
+  @Column({ name: 'redeemed_session_id', type: 'uuid', nullable: true })
+  redeemedSessionId: string | null;
+
+  @ManyToOne(() => Session, { nullable: true })
+  @JoinColumn({ name: 'redeemed_session_id' })
+  redeemedSession?: Session | null;
+
   @Column({ name: 'redeemed_at', type: 'timestamp', nullable: true })
-  redeemedAt: Date;
+  redeemedAt: Date | null;
 
   @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
-  expiresAt: Date;
+  expiresAt: Date | null;
 }

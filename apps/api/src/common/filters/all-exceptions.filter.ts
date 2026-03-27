@@ -26,10 +26,24 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    const exceptionResponse =
+      exception instanceof HttpException ? exception.getResponse() : null;
+    const message =
+      typeof exceptionResponse === 'string'
+        ? exceptionResponse
+        : typeof exceptionResponse === 'object' &&
+            exceptionResponse &&
+            'message' in exceptionResponse
+          ? exceptionResponse.message
+          : exception instanceof Error
+            ? exception.message
+            : 'Internal server error';
+
     const responseBody = {
       statusCode: httpStatus,
       timestamp: new Date().toISOString(),
       path: httpAdapter.getRequestUrl(ctx.getRequest()),
+      message,
     };
 
     // Logueamos el error con contexto completo para Pino

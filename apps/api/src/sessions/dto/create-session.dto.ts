@@ -7,8 +7,10 @@ import {
   ValidateNested,
   IsOptional,
   IsUUID,
+  IsEnum,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { SessionPaymentStatus } from '../entities/session.entity';
 
 export class CreateSessionSwipeDto {
   @IsString()
@@ -54,8 +56,24 @@ export class CreateSessionDto {
   id?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
+  therapistUserId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  institutionId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  voucherId?: string;
+
+  @IsOptional()
+  @IsUUID()
   patientId?: string;
+
+  @IsOptional()
+  @IsEnum(SessionPaymentStatus)
+  paymentStatus?: SessionPaymentStatus;
 
   @IsString()
   patientName: string;

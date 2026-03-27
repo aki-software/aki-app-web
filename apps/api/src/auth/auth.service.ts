@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { UserRole } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +19,12 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const payload = { email: adminEmail, sub: 1, role: 'admin' };
+    const payload = {
+      email: adminEmail,
+      sub: '1',
+      role: UserRole.ADMIN,
+      institutionId: null,
+    };
     const accessToken = this.jwtService.sign(payload);
 
     return {
@@ -26,7 +32,7 @@ export class AuthService {
         id: '1',
         email: adminEmail,
         name: 'Administrador',
-        role: 'admin',
+        role: UserRole.ADMIN,
       },
       tokens: {
         accessToken,

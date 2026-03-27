@@ -98,7 +98,7 @@ const seedDatabase = async () => {
 
     // 2. Crear una Sesión Inicial
     const session = sessionRepo.create({
-      patientId: 'patient-demo-123',
+      patientId: null,
       patientName: 'Demo Patient',
       sessionDate: new Date(),
       hollandCode: 'IRE', // Investigador, Realista, Emprendedor

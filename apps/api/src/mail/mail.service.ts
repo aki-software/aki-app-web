@@ -21,11 +21,17 @@ export class MailService {
   }
 
   private initTransporter() {
-    const transportType = this.configService.get<string>('MAIL_TRANSPORT_TYPE', 'smtp');
+    const transportType = this.configService.get<string>(
+      'MAIL_TRANSPORT_TYPE',
+      'smtp',
+    );
 
     if (transportType === 'smtp') {
       this.transporter = nodemailer.createTransport({
-        host: this.configService.get<string>('SMTP_HOST', 'sandbox.smtp.mailtrap.io'),
+        host: this.configService.get<string>(
+          'SMTP_HOST',
+          'sandbox.smtp.mailtrap.io',
+        ),
         port: Number(this.configService.get<number>('SMTP_PORT', 2525)),
         auth: {
           user: this.configService.get<string>('SMTP_USER'),
@@ -46,9 +52,6 @@ export class MailService {
     }
   }
 
-  /**
-   * Genera el HTML a partir de los resultados para ser usado por el PdfService o el Mailer
-   */
   renderReportTemplate(
     patientName: string,
     formattedResults: CategoryResult[],
@@ -69,11 +72,18 @@ export class MailService {
     hollandCode?: string,
     pdfAttachment?: Buffer,
   ): Promise<boolean> {
-    const htmlContent = this.renderReportTemplate(patientName, formattedResults, hollandCode);
+    const htmlContent = this.renderReportTemplate(
+      patientName,
+      formattedResults,
+      hollandCode,
+    );
 
     try {
-      const from = this.configService.get<string>('SMTP_FROM', 'reportes@akit.app');
-      
+      const from = this.configService.get<string>(
+        'SMTP_FROM',
+        'reportes@akit.app',
+      );
+
       const mailOptions: nodemailer.SendMailOptions = {
         from: `A.kit Test Vocacional <${from}>`,
         to: targetEmail,

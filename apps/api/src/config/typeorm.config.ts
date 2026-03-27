@@ -9,6 +9,7 @@ import { VocationalCategory } from '../categories/entities/vocational-category.e
 import { User } from '../users/entities/user.entity';
 import { Institution } from '../institutions/entities/institution.entity';
 import { Voucher } from '../vouchers/entities/voucher.entity';
+import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity';
 
 dotenv.config();
 
@@ -19,7 +20,16 @@ export const typeOrmConfig: PostgresConnectionOptions = {
   username: process.env.DATABASE_USER || 'test_user',
   password: process.env.DATABASE_PASSWORD || 'test_password',
   database: process.env.DATABASE_NAME || 'akit_db',
-  entities: [Session, SessionResult, SessionSwipe, VocationalCategory, User, Institution, Voucher],
+  entities: [
+    Session,
+    SessionResult,
+    SessionSwipe,
+    VocationalCategory,
+    User,
+    Institution,
+    Voucher,
+    VoucherBatch,
+  ],
   migrations: ['dist/migrations/*.js'],
   synchronize: false,
   ssl: process.env.DATABASE_HOST !== 'localhost' ? { rejectUnauthorized: false } : false,
