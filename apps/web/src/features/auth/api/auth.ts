@@ -10,6 +10,7 @@ export interface AuthUser {
   email: string;
   name: string;
   role: string;
+  institutionId?: string | null;
 }
 
 export interface AuthTokens {
@@ -20,6 +21,13 @@ export interface AuthTokens {
 export interface LoginResponse {
   user: AuthUser;
   tokens: AuthTokens;
+}
+
+export interface ResolveSetupTokenResponse {
+  user: AuthUser & {
+    institutionName?: string | null;
+  };
+  expiresAt: string;
 }
 
 /**
@@ -61,4 +69,37 @@ export async function logoutRequest(accessToken: string): Promise<void> {
   } catch {
     // Si falla el logout remoto, continuamos igual (limpiamos local storage)
   }
+}
+
+export async function resolveSetupTokenRequest(
+  token: string
+): Promise<ResolveSetupTokenResponse> {
+  const response = await fetch(`${API_URL}/auth/resolve-setup-token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+
+  if (!response.ok) {
+    throw new Error("El enlace de activación no es válido o ya expiró.");
+  }
+
+  return response.json() as Promise<ResolveSetupTokenResponse>;
+}
+
+export async function setupPasswordRequest(input: {
+  token: string;
+  password: string;
+}): Promise<LoginResponse> {
+  const response = await fetch(`${API_URL}/auth/setup-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo activar la cuenta.");
+  }
+
+  return response.json() as Promise<LoginResponse>;
 }

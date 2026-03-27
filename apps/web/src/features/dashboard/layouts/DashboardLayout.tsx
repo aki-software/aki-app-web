@@ -1,11 +1,11 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Settings, LogOut, ChartPie } from "lucide-react";
+import { LayoutDashboard, Users, Settings, LogOut, ChartPie, Ticket } from "lucide-react";
 import { useAuth } from "../../auth/hooks/useAuth";
 
 export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -13,11 +13,28 @@ export function DashboardLayout() {
   };
 
   const navItems = [
-    { name: "Overview", path: "/dashboard", icon: LayoutDashboard },
+    { name: "Resumen", path: "/dashboard", icon: LayoutDashboard },
     { name: "Resultados", path: "/dashboard/results", icon: ChartPie },
-    { name: "Usuarios", path: "/dashboard/users", icon: Users },
-    { name: "Ajustes", path: "/dashboard/settings", icon: Settings },
+    { name: "Vouchers", path: "/dashboard/vouchers", icon: Ticket },
+    { name: "Instituciones y terapeutas", path: "/dashboard/users", icon: Users },
+    { name: "Material teórico", path: "/dashboard/settings", icon: Settings },
   ];
+
+  const currentItem = navItems.find((item) => location.pathname === item.path);
+  const headerTitle = currentItem?.name ?? "Dashboard";
+  const roleLabel =
+    user?.role === "ADMIN"
+      ? "Administrador plataforma"
+      : user?.institutionId
+        ? "Owner institucional"
+        : "Usuario autenticado";
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join("")
+    : "AK";
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
@@ -27,7 +44,7 @@ export function DashboardLayout() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
             <span className="text-white font-bold text-xl">A</span>
           </div>
-          <span className="text-gray-900 dark:text-white text-xl font-bold tracking-tight">A.kit Admin</span>
+          <span className="text-gray-900 dark:text-white text-xl font-bold tracking-tight">A.kit Panel MVP</span>
         </div>
 
         <div className="flex-1 px-4 py-6 overflow-y-auto">
@@ -72,10 +89,17 @@ export function DashboardLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 z-10">
-          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Dashboard Overview</h1>
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-white">{headerTitle}</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{roleLabel}</p>
+          </div>
           <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <div className="text-sm font-medium text-gray-900 dark:text-white">{user?.name ?? "Usuario"}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{user?.email ?? "Sin email"}</div>
+            </div>
             <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 font-medium border border-blue-200 dark:border-blue-800">
-              AD
+              {initials}
             </div>
           </div>
         </header>

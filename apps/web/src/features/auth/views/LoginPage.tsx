@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -91,14 +91,9 @@ export function LoginPage() {
                 <label htmlFor="login-password" className="block text-sm font-medium text-slate-300">
                   Contraseña
                 </label>
-                {/* Placeholder para "Olvidé mi contraseña" cuando el backend lo soporte */}
-                <Link
-                  to="/forgot-password"
-                  className="text-xs text-blue-400 transition-colors hover:text-blue-300"
-                  tabIndex={-1}
-                >
-                  ¿Olvidaste tu contraseña?
-                </Link>
+                <span className="text-xs text-slate-500">
+                  Usuarios nuevos: activan su cuenta por enlace
+                </span>
               </div>
               <div className="relative">
                 <input
