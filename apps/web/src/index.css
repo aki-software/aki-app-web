@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+@theme {
+  --animate-in: animate-in 0.2s ease-out;
+}
+
+@keyframes animate-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: var(--animate-in);
+}

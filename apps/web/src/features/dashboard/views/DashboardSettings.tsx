@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { BookOpen, Edit2, Save, X, Check } from "lucide-react";
-import { fetchCategories, updateCategory } from "../api/dashboard";
+import {
+  fetchCategories,
+  updateCategory,
+  type CategoryData,
+} from "../api/dashboard";
 
 export function DashboardSettings() {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "" });
@@ -20,7 +24,7 @@ export function DashboardSettings() {
     setLoading(false);
   };
 
-  const handleEdit = (cat: any) => {
+  const handleEdit = (cat: CategoryData) => {
     setEditingId(cat.categoryId);
     setEditForm({ title: cat.title, description: cat.description });
   };
