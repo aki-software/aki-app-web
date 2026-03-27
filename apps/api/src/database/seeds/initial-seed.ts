@@ -1,8 +1,5 @@
 import { DataSource } from 'typeorm';
 import { typeOrmConfig } from '../../config/typeorm.config';
-import { Session } from '../../sessions/entities/session.entity';
-import { SessionResult } from '../../sessions/entities/session-result.entity';
-import { SessionSwipe } from '../../sessions/entities/session-swipe.entity';
 import { VocationalCategory } from '../../categories/entities/vocational-category.entity';
 
 const seedDatabase = async () => {
@@ -13,9 +10,6 @@ const seedDatabase = async () => {
     console.log('🌱 Initializing Seeding Process...');
     await dataSource.initialize();
 
-    const sessionRepo = dataSource.getRepository(Session);
-    const resultRepo = dataSource.getRepository(SessionResult);
-    const swipeRepo = dataSource.getRepository(SessionSwipe);
     const catRepo = dataSource.getRepository(VocationalCategory);
 
     console.log('📚 Loading Vocational Categories from text payload...');
@@ -95,79 +89,6 @@ const seedDatabase = async () => {
       }
     }
     console.log('✅ Vocational Categories saved!');
-
-    // 2. Crear una Sesión Inicial
-    const session = sessionRepo.create({
-      patientId: null,
-      patientName: 'Demo Patient',
-      sessionDate: new Date(),
-      hollandCode: 'IRE', // Investigador, Realista, Emprendedor
-      totalTimeMs: 150000,
-    });
-    const savedSession = await sessionRepo.save(session);
-    console.log(`✅ Session created with ID: ${savedSession.id}`);
-
-    // 3. Insertar Resultados Holland Extendido (12 Categorías)
-    const resultsData = [
-      { categoryId: 'ART', score: 12, totalPossible: 15, percentage: 80 },
-      { categoryId: 'HUM', score: 14, totalPossible: 15, percentage: 93 },
-      { categoryId: 'SERV', score: 5, totalPossible: 15, percentage: 33 },
-      { categoryId: 'PROT', score: 8, totalPossible: 15, percentage: 53 },
-      { categoryId: 'PHYS', score: 10, totalPossible: 15, percentage: 66 },
-      { categoryId: 'IND', score: 7, totalPossible: 15, percentage: 46 },
-      { categoryId: 'MECH', score: 9, totalPossible: 15, percentage: 60 },
-      { categoryId: 'NAT', score: 13, totalPossible: 15, percentage: 86 },
-      { categoryId: 'LEAD', score: 15, totalPossible: 15, percentage: 100 },
-      { categoryId: 'SCI', score: 11, totalPossible: 15, percentage: 73 },
-      { categoryId: 'SAL', score: 6, totalPossible: 15, percentage: 40 },
-      { categoryId: 'BUS', score: 4, totalPossible: 15, percentage: 26 },
-    ];
-
-    const results = resultsData.map((res) =>
-      resultRepo.create({ ...res, session: savedSession }),
-    );
-    await resultRepo.save(results);
-    console.log('✅ Holland Results created');
-
-    // 4. Insertar algunos Swipes representativos
-    const swipesData = [
-      {
-        cardId: 'card-001',
-        categoryId: 'R',
-        isLiked: true,
-        timestamp: new Date(Date.now() - 120000),
-      },
-      {
-        cardId: 'card-002',
-        categoryId: 'I',
-        isLiked: true,
-        timestamp: new Date(Date.now() - 110000),
-      },
-      {
-        cardId: 'card-003',
-        categoryId: 'A',
-        isLiked: false,
-        timestamp: new Date(Date.now() - 100000),
-      },
-      {
-        cardId: 'card-004',
-        categoryId: 'S',
-        isLiked: false,
-        timestamp: new Date(Date.now() - 90000),
-      },
-      {
-        cardId: 'card-005',
-        categoryId: 'E',
-        isLiked: true,
-        timestamp: new Date(Date.now() - 80000),
-      },
-    ];
-
-    const swipes = swipesData.map((swipe) =>
-      swipeRepo.create({ ...swipe, session: savedSession }),
-    );
-    await swipeRepo.save(swipes);
-    console.log('✅ Swipes created');
 
     console.log('🏁 Seeding finished successfully!');
   } catch (error) {

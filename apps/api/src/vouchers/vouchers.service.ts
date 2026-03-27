@@ -3,8 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Voucher } from './entities/voucher.entity';
 import { VoucherBatch } from './entities/voucher-batch.entity';
 import {
@@ -14,6 +15,12 @@ import {
 } from './entities/voucher.enums';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { UsersService } from '../users/users.service';
+
+type VoucherScope = {
+  role?: string;
+  ownerUserId?: string;
+  ownerInstitutionId?: string | null;
+};
 
 @Injectable()
 export class VouchersService {
@@ -25,7 +32,15 @@ export class VouchersService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(createVoucherDto: CreateVoucherDto): Promise<Voucher> {
+  async create(createVoucherDto: CreateVoucherDto): Promise<{
+    batchId: string;
+    createdCount: number;
+    codes: string[];
+    ownerType: VoucherOwnerType;
+    ownerUserId: string | null;
+    ownerInstitutionId: string | null;
+    expiresAt: Date | null;
+  }> {
     const normalizedOwnership = await this.normalizeOwner(
       createVoucherDto.ownerType,
       createVoucherDto.ownerUserId,
@@ -33,6 +48,12 @@ export class VouchersService {
     );
 
     const quantity = createVoucherDto.quantity ?? 1;
+    if (quantity > 1 && createVoucherDto.code) {
+      throw new BadRequestException(
+        'No se puede definir un código manual cuando se crea un lote',
+      );
+    }
+
     const batch = await this.voucherBatchRepository.save(
       this.voucherBatchRepository.create({
         ownerType: normalizedOwnership.ownerType,
@@ -46,21 +67,40 @@ export class VouchersService {
       }),
     );
 
-    const voucher = this.voucherRepository.create({
-      code: this.normalizeCode(createVoucherDto.code ?? this.generateVoucherCode()),
+    const expiresAt = createVoucherDto.expiresAt
+      ? new Date(createVoucherDto.expiresAt)
+      : null;
+    const vouchersToCreate: Voucher[] = [];
+
+    for (let index = 0; index < quantity; index++) {
+      vouchersToCreate.push(
+        this.voucherRepository.create({
+          code: this.normalizeCode(
+            createVoucherDto.code ?? (await this.generateVoucherCode()),
+          ),
+          batchId: batch.id,
+          ownerType: normalizedOwnership.ownerType,
+          ownerUserId: normalizedOwnership.ownerUserId,
+          ownerInstitutionId: normalizedOwnership.ownerInstitutionId,
+          status: VoucherStatus.AVAILABLE,
+          assignedPatientName: createVoucherDto.assignedPatientName ?? null,
+          assignedPatientEmail: createVoucherDto.assignedPatientEmail ?? null,
+          expiresAt,
+        }),
+      );
+    }
+
+    const savedVouchers = await this.voucherRepository.save(vouchersToCreate);
+
+    return {
       batchId: batch.id,
+      createdCount: savedVouchers.length,
+      codes: savedVouchers.map((voucher) => voucher.code),
       ownerType: normalizedOwnership.ownerType,
       ownerUserId: normalizedOwnership.ownerUserId,
       ownerInstitutionId: normalizedOwnership.ownerInstitutionId,
-      status: VoucherStatus.AVAILABLE,
-      assignedPatientName: createVoucherDto.assignedPatientName ?? null,
-      assignedPatientEmail: createVoucherDto.assignedPatientEmail ?? null,
-      expiresAt: createVoucherDto.expiresAt
-        ? new Date(createVoucherDto.expiresAt)
-        : null,
-    });
-
-    return await this.voucherRepository.save(voucher);
+      expiresAt,
+    };
   }
 
   async resolveAvailableVoucher(code: string): Promise<Voucher> {
@@ -84,6 +124,18 @@ export class VouchersService {
     }
 
     return await this.voucherRepository.save(voucher);
+  }
+
+  async findAll(scope?: VoucherScope): Promise<{ data: Voucher[]; count: number }> {
+    const where = this.buildScopedWhere(scope);
+
+    const [data, count] = await this.voucherRepository.findAndCount({
+      where,
+      relations: ['ownerUser', 'ownerInstitution', 'redeemedSession'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return { data, count };
   }
 
   async findByCode(code: string): Promise<Voucher> {
@@ -156,7 +208,44 @@ export class VouchersService {
     return code.trim().toUpperCase();
   }
 
-  private generateVoucherCode(): string {
-    return Math.random().toString(36).slice(2, 10).toUpperCase();
+  private async generateVoucherCode(): Promise<string> {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const raw = randomBytes(6).toString('base64url').toUpperCase();
+      const code = raw.replace(/[^A-Z0-9]/g, '').slice(0, 10);
+      if (code.length < 8) {
+        continue;
+      }
+
+      const existing = await this.voucherRepository.findOne({
+        where: { code },
+      });
+      if (!existing) {
+        return code;
+      }
+    }
+
+    throw new BadRequestException(
+      'No se pudo generar un código de voucher único',
+    );
+  }
+
+  private buildScopedWhere(
+    scope?: VoucherScope,
+  ): FindOptionsWhere<Voucher> | undefined {
+    const normalizedRole = scope?.role?.toUpperCase();
+
+    if (normalizedRole === 'ADMIN') {
+      return undefined;
+    }
+
+    if (scope?.ownerInstitutionId) {
+      return { ownerInstitutionId: scope.ownerInstitutionId };
+    }
+
+    if (scope?.ownerUserId) {
+      return { ownerUserId: scope.ownerUserId };
+    }
+
+    return { id: '__forbidden__' };
   }
 }

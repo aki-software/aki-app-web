@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, IsNull, Repository } from 'typeorm';
 import { Session } from './entities/session.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CategoriesService } from '../categories/categories.service';
@@ -40,7 +40,7 @@ export class SessionsService {
     const where = this.buildScopedWhere(scope);
 
     const [data, count] = await this.sessionRepository.findAndCount({
-      relations: ['results'],
+      relations: ['results', 'institution', 'therapist', 'voucher'],
       where,
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
@@ -52,7 +52,7 @@ export class SessionsService {
   async findOne(id: string, scope?: SessionScope): Promise<Session> {
     const session = await this.sessionRepository.findOne({
       where: this.buildScopedWhere(scope, id),
-      relations: ['results', 'swipes'],
+      relations: ['results', 'swipes', 'institution', 'therapist', 'voucher'],
     });
     if (!session) {
       throw new NotFoundException('Session not found');
@@ -155,7 +155,10 @@ export class SessionsService {
     const normalizedRole = scope?.role?.toUpperCase();
 
     if (normalizedRole === 'ADMIN') {
-      return sessionId ? { id: sessionId } : undefined;
+      const adminScope: FindOptionsWhere<Session> = {
+        voucherId: IsNull(),
+      };
+      return sessionId ? { ...adminScope, id: sessionId } : adminScope;
     }
 
     const scopedWhere =

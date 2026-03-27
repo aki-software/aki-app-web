@@ -30,6 +30,20 @@ export class User {
   passwordHash: string;
 
   @Column({
+    name: 'password_setup_token',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  passwordSetupToken: string | null;
+
+  @Column({ name: 'password_setup_expires_at', type: 'timestamp', nullable: true })
+  passwordSetupExpiresAt: Date | null;
+
+  @Column({ name: 'password_set_at', type: 'timestamp', nullable: true })
+  passwordSetAt: Date | null;
+
+  @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.THERAPIST,

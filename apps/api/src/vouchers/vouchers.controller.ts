@@ -18,6 +18,8 @@ import { UserRole } from '../users/entities/user.entity';
 type AuthenticatedRequest = Request & {
   user?: {
     role?: string;
+    userId?: string;
+    institutionId?: string | null;
   };
 };
 
@@ -51,6 +53,16 @@ export class VouchersController {
       expiresAt: voucher.expiresAt,
       status: voucher.status,
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async findAll(@Req() req?: AuthenticatedRequest) {
+    return await this.vouchersService.findAll({
+      role: req?.user?.role,
+      ownerUserId: req?.user?.userId,
+      ownerInstitutionId: req?.user?.institutionId,
+    });
   }
 
   @UseGuards(JwtAuthGuard)

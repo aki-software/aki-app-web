@@ -109,4 +109,50 @@ export class MailService {
       return false;
     }
   }
+
+  async sendAccountActivation(
+    targetEmail: string,
+    name: string,
+    activationLink: string,
+    institutionName?: string | null,
+  ): Promise<boolean> {
+    try {
+      const from = this.configService.get<string>(
+        'SMTP_FROM',
+        'reportes@akit.app',
+      );
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.6;">
+          <h2 style="margin-bottom: 8px;">Activá tu cuenta de A.kit</h2>
+          <p>Hola ${name},</p>
+          <p>Te dimos acceso a A.kit${
+            institutionName ? ` para <strong>${institutionName}</strong>` : ''
+          }.</p>
+          <p>Para definir tu contraseña inicial y entrar al panel, usá este enlace:</p>
+          <p>
+            <a href="${activationLink}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:8px;">
+              Activar cuenta
+            </a>
+          </p>
+          <p>Si el botón no funciona, copiá este enlace en tu navegador:</p>
+          <p style="word-break: break-all;">${activationLink}</p>
+          <p>Este enlace vence en 72 horas.</p>
+        </div>
+      `;
+
+      await this.transporter.sendMail({
+        from: `A.kit <${from}>`,
+        to: targetEmail,
+        subject: 'Activá tu cuenta de A.kit',
+        html,
+      });
+
+      console.log(`✅ Activation email dispatched to: ${targetEmail}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Error dispatching activation email:`, error);
+      return false;
+    }
+  }
 }

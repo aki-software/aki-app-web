@@ -22,7 +22,9 @@
     "typeorm": "node ./node_modules/typeorm/cli.js",
     "migration:generate": "pnpm build && node ./node_modules/typeorm/cli.js migration:generate -d dist/config/typeorm.config.js src/migrations/",
     "migration:run": "pnpm build && node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js",
-    "seed": "pnpm build && node dist/database/seeds/initial-seed.js"
+    "seed": "pnpm build && node dist/database/seeds/initial-seed.js && node dist/database/seeds/mvp-scenarios-seed.js",
+    "seed:base": "pnpm build && node dist/database/seeds/initial-seed.js",
+    "seed:mvp": "pnpm build && node dist/database/seeds/mvp-scenarios-seed.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1014.0",
