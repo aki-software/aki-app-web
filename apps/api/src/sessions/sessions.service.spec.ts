@@ -89,6 +89,11 @@ describe('SessionsService', () => {
   });
 
   describe('findOne scope', () => {
+    beforeEach(() => {
+      // Resetear el mock entre tests para evitar contaminación de llamadas
+      mockSessionRepository.findOne.mockReset();
+    });
+
     it('should allow admin to access any session', async () => {
       mockSessionRepository.findOne.mockResolvedValueOnce({
         id: 'session-1',
@@ -103,10 +108,19 @@ describe('SessionsService', () => {
         id: 'session-1',
         patientName: 'Paciente',
       });
-      expect(mockSessionRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'session-1' },
-        relations: ['results', 'swipes'],
-      });
+      // El servicio actual añade voucherId: IsNull() para ADMIN y expande relaciones
+      expect(mockSessionRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ id: 'session-1' }),
+          relations: expect.arrayContaining([
+            'results',
+            'swipes',
+            'institution',
+            'therapist',
+            'voucher',
+          ]),
+        }),
+      );
     });
 
     it('should scope patient access by patientId', async () => {
@@ -120,10 +134,15 @@ describe('SessionsService', () => {
         patientId: 'patient-1',
       });
 
-      expect(mockSessionRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'session-2', patientId: 'patient-1' },
-        relations: ['results', 'swipes'],
-      });
+      expect(mockSessionRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: 'session-2',
+            patientId: 'patient-1',
+          }),
+          relations: expect.arrayContaining(['results', 'swipes']),
+        }),
+      );
     });
 
     it('should reject access when scope does not match', async () => {
@@ -136,10 +155,14 @@ describe('SessionsService', () => {
         }),
       ).rejects.toBeInstanceOf(NotFoundException);
 
-      expect(mockSessionRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'session-3', therapistUserId: 'therapist-1' },
-        relations: ['results', 'swipes'],
-      });
+      expect(mockSessionRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: 'session-3',
+            therapistUserId: 'therapist-1',
+          }),
+        }),
+      );
     });
   });
 });
