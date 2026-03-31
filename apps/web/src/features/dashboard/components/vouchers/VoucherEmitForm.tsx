@@ -1,6 +1,6 @@
+import { Loader2, Send } from "lucide-react";
 import { type FormEvent, useMemo } from "react";
 import type { InstitutionOption, TherapistOption } from "../../api/dashboard";
-import { Loader2, Send } from "lucide-react";
 
 export type OwnerType = "INSTITUTION" | "THERAPIST";
 
@@ -48,7 +48,7 @@ export function VoucherEmitForm({
     return therapists.filter((therapist) =>
       formState.ownerInstitutionId
         ? therapist.institutionId === formState.ownerInstitutionId
-        : true
+        : true,
     );
   }, [formState.ownerInstitutionId, formState.ownerType, therapists]);
 
@@ -77,7 +77,7 @@ export function VoucherEmitForm({
               onChange={(event) =>
                 handleOwnerTypeChange(event.target.value as OwnerType)
               }
-              className="w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary focus:ring-2 focus:ring-app-primary/20 transition-all outline-none appearance-none cursor-pointer"
+              className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary focus:ring-2 focus:ring-app-primary/20 transition-all outline-none appearance-none cursor-pointer"
             >
               <option value="INSTITUTION">Institución</option>
               <option value="THERAPIST">Terapeuta</option>
@@ -89,8 +89,10 @@ export function VoucherEmitForm({
               <span className="app-label opacity-60">Asignar Institución</span>
               <select
                 value={formState.ownerInstitutionId}
-                onChange={(event) => updateForm("ownerInstitutionId", event.target.value)}
-                className="w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer"
+                onChange={(event) =>
+                  updateForm("ownerInstitutionId", event.target.value)
+                }
+                className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer"
               >
                 <option value="">Seleccionar institución...</option>
                 {institutions.map((institution) => (
@@ -105,14 +107,18 @@ export function VoucherEmitForm({
               <span className="app-label opacity-60">Asignar Terapeuta</span>
               <select
                 value={formState.ownerUserId}
-                onChange={(event) => updateForm("ownerUserId", event.target.value)}
-                className="w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer"
+                onChange={(event) =>
+                  updateForm("ownerUserId", event.target.value)
+                }
+                className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer"
               >
                 <option value="">Seleccionar terapeuta...</option>
                 {therapistOptions.map((therapist) => (
                   <option key={therapist.id} value={therapist.id}>
                     {therapist.name}
-                    {therapist.institutionName ? ` (${therapist.institutionName})` : ""}
+                    {therapist.institutionName
+                      ? ` (${therapist.institutionName})`
+                      : ""}
                   </option>
                 ))}
               </select>
@@ -145,16 +151,20 @@ export function VoucherEmitForm({
           <div className="flex-1">
             {errorMessage && (
               <div className="flex items-center gap-3 text-rose-500 bg-rose-500/5 px-6 py-4 rounded-2xl border border-rose-500/10">
-                 <span className="text-xs font-black uppercase tracking-widest">{errorMessage}</span>
+                <span className="text-xs font-black uppercase tracking-widest">
+                  {errorMessage}
+                </span>
               </div>
             )}
             {successMessage && (
-               <div className="flex items-center gap-3 text-emerald-500 bg-emerald-500/5 px-6 py-4 rounded-2xl border border-emerald-500/10">
-                 <span className="text-xs font-black uppercase tracking-widest">{successMessage}</span>
-               </div>
+              <div className="flex items-center gap-3 text-emerald-500 bg-emerald-500/5 px-6 py-4 rounded-2xl border border-emerald-500/10">
+                <span className="text-xs font-black uppercase tracking-widest">
+                  {successMessage}
+                </span>
+              </div>
             )}
           </div>
-          
+
           <button
             type="submit"
             disabled={saving}

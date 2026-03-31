@@ -1,23 +1,24 @@
 import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  Param,
-  Query,
-  NotFoundException,
-  UseGuards,
-  Req,
+    Body,
+    Controller,
+    Get,
+    NotFoundException,
+    Param,
+    Post,
+    Query,
+    Req,
+    UnauthorizedException,
+    UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { SessionsService } from './sessions.service';
-import { CreateSessionDto } from './dto/create-session.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { SendReportDto } from './dto/send-report.dto';
-import { UsersService } from '../users/users.service';
 import { UserRole } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 import { VouchersService } from '../vouchers/vouchers.service';
+import { CreateSessionDto } from './dto/create-session.dto';
+import { SendReportDto } from './dto/send-report.dto';
 import { SessionPaymentStatus } from './entities/session.entity';
+import { SessionsService } from './sessions.service';
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -55,7 +56,8 @@ export class SessionsController {
     const voucher = payloadVoucherCode
       ? await this.vouchersService.resolveAvailableVoucher(payloadVoucherCode)
       : null;
-    const inferredPatientName = payload.patientName || user?.name || 'Usuario App';
+    const inferredPatientName =
+      payload.patientName || user?.name || 'Usuario App';
     const isTherapistUser =
       user?.role === UserRole.THERAPIST || user?.role === UserRole.ADMIN;
     const isPatientUser = user?.role === UserRole.PATIENT;
@@ -66,7 +68,9 @@ export class SessionsController {
       (!user || isPatientUser)
         ? await this.usersService.getOrCreateIndividualTestsOwner()
         : null;
-    const enrichedResultsByCategory = this.indexResultsMetadata(payload.resultPayload);
+    const enrichedResultsByCategory = this.indexResultsMetadata(
+      payload.resultPayload,
+    );
 
     const adaptedDto = {
       therapistUserId:
@@ -85,7 +89,10 @@ export class SessionsController {
       patientName: inferredPatientName,
       sessionDate: new Date(payload.startedAt || new Date()),
       hollandCode: payload.resultPayload?.hollandCode,
-      totalTimeMs: this.calculateDuration(payload.startedAt, payload.finishedAt),
+      totalTimeMs: this.calculateDuration(
+        payload.startedAt,
+        payload.finishedAt,
+      ),
       voucherId: voucher?.id || payloadVoucherId || null,
       paymentStatus: voucher
         ? SessionPaymentStatus.VOUCHER_REDEEMED
@@ -97,9 +104,11 @@ export class SessionsController {
         totalPossible: r.total || 0,
         percentage: r.affinity || 0,
         suggestedCareers:
-          enrichedResultsByCategory.get(r.categoryId)?.suggestedCareers ?? undefined,
+          enrichedResultsByCategory.get(r.categoryId)?.suggestedCareers ??
+          undefined,
         materialSnippet:
-          enrichedResultsByCategory.get(r.categoryId)?.materialSnippet ?? undefined,
+          enrichedResultsByCategory.get(r.categoryId)?.materialSnippet ??
+          undefined,
       })),
       swipes: (payload.swipes || []).map((s: any) => ({
         cardId: s.cardId,
@@ -137,6 +146,24 @@ export class SessionsController {
       patientId: req?.user?.userId,
       institutionId: req?.user?.institutionId,
     });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/overview')
+  async getAdminOverview(@Req() req?: AuthenticatedRequest) {
+    this.assertAdmin(req);
+    return await this.sessionsService.getAdminOverview();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/activity')
+  async getAdminActivity(
+    @Req() req?: AuthenticatedRequest,
+    @Query('limit') limit?: string,
+  ) {
+    this.assertAdmin(req);
+    const parsedLimit = limit ? parseInt(limit, 10) : 50;
+    return await this.sessionsService.getAdminActivity(parsedLimit);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -193,10 +220,9 @@ export class SessionsController {
     }
   }
 
-  private indexResultsMetadata(payload: any): Map<
-    string,
-    { suggestedCareers?: string[]; materialSnippet?: string }
-  > {
+  private indexResultsMetadata(
+    payload: any,
+  ): Map<string, { suggestedCareers?: string[]; materialSnippet?: string }> {
     const map = new Map<
       string,
       { suggestedCareers?: string[]; materialSnippet?: string }
@@ -231,5 +257,11 @@ export class SessionsController {
 
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private assertAdmin(req?: AuthenticatedRequest) {
+    if (req?.user?.role?.toUpperCase() !== UserRole.ADMIN) {
+      throw new UnauthorizedException('Se requiere usuario administrador');
+    }
   }
 }

@@ -1,4 +1,12 @@
-import { Calendar, ChevronDown, ChevronRight, Clock, Building2, UserRound, CreditCard } from "lucide-react";
+import {
+    Building2,
+    Calendar,
+    ChevronDown,
+    ChevronRight,
+    Clock,
+    CreditCard,
+    UserRound,
+} from "lucide-react";
 import type { SessionData } from "../../api/dashboard";
 
 function formatDate(dateValue: string | number | Date) {
@@ -28,6 +36,18 @@ function paymentLabel(status: string) {
   }
 }
 
+function sourceLabel(session: SessionData): string {
+  if (session.institutionName) return session.institutionName;
+  if (session.therapistName) return `Terapeuta: ${session.therapistName}`;
+  return "Sin asignación";
+}
+
+function voucherUsageLabel(session: SessionData): string {
+  return session.voucherCode
+    ? `Con voucher (${session.voucherCode})`
+    : "Sin voucher";
+}
+
 interface Props {
   userName: string;
   userSessions: SessionData[];
@@ -46,7 +66,9 @@ export function UserSessionGroup({
   const lastSession = userSessions[0];
 
   return (
-    <div className={`app-card overflow-hidden transition-all duration-500 mb-6 p-0 group ${isExpanded ? 'ring-2 ring-app-primary/20 shadow-2xl scale-[1.005]' : 'shadow-lg hover:shadow-2xl hover:scale-[1.002]'}`}>
+    <div
+      className={`app-card overflow-hidden transition-all duration-500 mb-6 p-0 group ${isExpanded ? "ring-2 ring-app-primary/20 shadow-2xl scale-[1.005]" : "shadow-lg hover:shadow-2xl hover:scale-[1.002]"}`}
+    >
       <div
         onClick={onToggle}
         className="flex cursor-pointer items-center px-10 py-8 transition-colors hover:bg-app-bg/10 select-none"
@@ -62,9 +84,10 @@ export function UserSessionGroup({
             </div>
             {/* Sistema Maestro de Etiqueta */}
             <div className="app-label mt-2 opacity-60">
-              {lastSession.paymentStatus === "PAID" && !lastSession.institutionName 
-                ? "Cliente Sin Derivación" 
-                : lastSession.institutionName || "Profesional Independiente"}
+              {lastSession.paymentStatus === "PAID" &&
+              !lastSession.institutionName
+                ? "Pago individual / Sin asignación"
+                : sourceLabel(lastSession)}
             </div>
           </div>
         </div>
@@ -80,11 +103,13 @@ export function UserSessionGroup({
         </div>
 
         <div className="flex w-12 justify-end">
-          <div className={`rounded-xl p-3 transition-all ${isExpanded ? 'bg-app-primary text-white shadow-lg' : 'text-app-text-muted group-hover:bg-app-bg'}`}>
+          <div
+            className={`rounded-xl p-3 transition-all ${isExpanded ? "bg-app-primary text-white shadow-lg" : "text-app-text-muted group-hover:bg-app-bg"}`}
+          >
             {isExpanded ? (
-                <ChevronDown className="h-5 w-5" />
+              <ChevronDown className="h-5 w-5" />
             ) : (
-                <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-5 w-5" />
             )}
           </div>
         </div>
@@ -103,7 +128,7 @@ export function UserSessionGroup({
                     <span className="app-label opacity-40">
                       Ronda {userSessions.length - idx}
                     </span>
-                    
+
                     <span className="flex items-center text-xs font-bold text-app-text-main group-hover/session:text-app-primary transition-colors">
                       <Calendar className="mr-3 h-4 w-4 text-app-text-muted" />
                       {formatDate(session.sessionDate)}
@@ -112,31 +137,54 @@ export function UserSessionGroup({
                       <Clock className="mr-3 h-4 w-4 text-app-text-muted" />
                       {formatTime(session.totalTimeMs)}
                     </span>
-                    
+
                     {/* Código Holland como TAG Lux 3.0 */}
-                    <span className="app-tag !bg-app-text-main !text-app-surface !border-none !px-4 !py-1.5 shadow-lg shadow-app-text-main/10 scale-110">
+                    <span className="app-tag !bg-app-surface !text-app-text-main !border-app-border !px-4 !py-1.5 shadow-sm scale-105">
                       {session.hollandCode}
                     </span>
-                    
-                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
-                        session.paymentStatus === 'PAID' ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5' : 'text-app-primary border-app-primary/20 bg-app-primary/5'
-                    }`}>
+
+                    <span
+                      className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
+                        session.paymentStatus === "PAID"
+                          ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5"
+                          : "text-app-primary border-app-primary/20 bg-app-primary/5"
+                      }`}
+                    >
                       {paymentLabel(session.paymentStatus)}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap gap-8">
                     {[
-                      { icon: Building2, label: "Origen", val: session.institutionName ?? "Venta A.kit" },
-                      { icon: UserRound, label: "Terapeuta", val: session.therapistName ?? "Soporte Técnico" },
-                      { icon: CreditCard, label: "Cupón", val: session.voucherCode ?? "N/A" }
+                      {
+                        icon: Building2,
+                        label: "Origen",
+                        val: sourceLabel(session),
+                      },
+                      {
+                        icon: UserRound,
+                        label: "Profesional",
+                        val: session.therapistName ?? "Sin terapeuta",
+                      },
+                      {
+                        icon: CreditCard,
+                        label: "Voucher",
+                        val: voucherUsageLabel(session),
+                      },
                     ].map((info, i) => (
-                      <div key={i} className="flex items-center gap-2 group/info">
-                         <info.icon className="h-4 w-4 text-app-text-muted opacity-40 group-hover/info:text-app-primary transition-colors" />
-                         <div className="flex flex-col">
-                            <span className="app-label !text-[8px] opacity-40 mb-1">{info.label}</span>
-                            <span className="text-[10px] font-bold text-app-text-main uppercase tracking-wider">{info.val}</span>
-                         </div>
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 group/info"
+                      >
+                        <info.icon className="h-4 w-4 text-app-text-muted opacity-40 group-hover/info:text-app-primary transition-colors" />
+                        <div className="flex flex-col">
+                          <span className="app-label !text-[8px] opacity-40 mb-1">
+                            {info.label}
+                          </span>
+                          <span className="text-[10px] font-bold text-app-text-main uppercase tracking-wider">
+                            {info.val}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -147,7 +195,7 @@ export function UserSessionGroup({
                     event.stopPropagation();
                     onOpenDetail(session.id);
                   }}
-                  className="flex items-center justify-center rounded-2xl bg-app-text-main px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-app-surface transition-all hover:bg-app-primary hover:shadow-2xl hover:shadow-app-primary/20 hover:scale-105 active:scale-95"
+                  className="app-button-primary inline-flex items-center justify-center rounded-2xl px-8 py-4 text-[10px] font-black uppercase tracking-[0.16em] hover:shadow-2xl hover:shadow-app-primary/20 hover:scale-105 active:scale-95"
                 >
                   Analizar Perfil Clínico
                   <ChevronRight className="ml-3 h-4 w-4" />

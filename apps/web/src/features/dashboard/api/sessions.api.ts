@@ -11,6 +11,7 @@ export type SessionApi = {
   createdAt?: string | Date | number;
   totalTimeMs?: string | number;
   paymentStatus?: string;
+  reportUnlockedAt?: string | null;
   results?: SessionResultApi[];
   institution?: { name?: string | null } | null;
   therapist?: { name?: string | null } | null;
@@ -27,13 +28,14 @@ export interface SessionData {
   institutionName: string | null;
   therapistName: string | null;
   voucherCode: string | null;
+  reportUnlockedAt?: string | null;
   results?: { categoryId: string; percentage: number }[];
 }
 
 export interface SessionDetailData extends SessionData {
-  swipes?: { 
-    cardId: string; 
-    categoryId: string; 
+  swipes?: {
+    cardId: string;
+    categoryId: string;
     isLiked: boolean;
     timestamp?: string | Date;
   }[];
@@ -69,6 +71,7 @@ export async function fetchSessionsList(): Promise<SessionData[]> {
         institutionName: session.institution?.name ?? null,
         therapistName: session.therapist?.name ?? null,
         voucherCode: session.voucher?.code ?? null,
+        reportUnlockedAt: session.reportUnlockedAt ?? null,
         results: session.results,
       };
     });
@@ -79,7 +82,7 @@ export async function fetchSessionsList(): Promise<SessionData[]> {
 }
 
 export async function fetchSessionDetail(
-  sessionId: string
+  sessionId: string,
 ): Promise<SessionDetailData | null> {
   try {
     const response = await fetch(`${API_URL}/sessions/${sessionId}`, {
@@ -109,10 +112,10 @@ export async function fetchSessionDetail(
       institutionName: session.institution?.name ?? null,
       therapistName: session.therapist?.name ?? null,
       voucherCode: session.voucher?.code ?? null,
+      reportUnlockedAt: session.reportUnlockedAt ?? null,
       results: session.results,
       swipes: session.swipes,
       reportUrl: session.reportUrl ?? null,
-      reportUnlockedAt: session.reportUnlockedAt ?? null,
     };
   } catch (error) {
     console.error("Error fetching session detail:", error);

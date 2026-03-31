@@ -1,6 +1,6 @@
-import { CATEGORY_COLORS } from "../../constants/category-colors";
+import { Award, Info, Target, TrendingUp } from "lucide-react";
 import type { CategoryData } from "../../api/dashboard";
-import { Award, Target, TrendingUp, Info } from "lucide-react";
+import { CATEGORY_COLORS } from "../../constants/category-colors";
 
 interface Props {
   top3: { cat: string; pct: number }[];
@@ -10,51 +10,65 @@ interface Props {
 
 export function SessionTopAreas({ top3, bottom3, categoriesMap }: Props) {
   return (
-    <div className="space-y-12">
+    <div className="space-y-10">
       {/* ─── Afinidades Dominantes Lux 3.0 ───────────────────────────── */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-            <div className="p-2 bg-app-primary/10 rounded-lg">
-                <Award className="h-5 w-5 text-app-primary" />
-            </div>
-            <h2 className="app-label !text-xs tracking-[0.3em]">Afinidades Dominantes</h2>
+      <div className="space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg bg-app-primary/10 p-2">
+            <Award className="h-5 w-5 text-app-primary" />
+          </div>
+          <h2 className="app-label !text-[10px] tracking-[0.24em]">
+            AFINIDADES DOMINANTES
+          </h2>
         </div>
-        
-        <div className="grid gap-8 md:grid-cols-3">
+
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {top3.map(({ cat, pct }, i) => {
             const label = categoriesMap[cat]?.title ?? cat;
-            const colorInfo = CATEGORY_COLORS[cat] ?? { color: "var(--color-app-text-muted)" };
+            const colorInfo = CATEGORY_COLORS[cat] ?? {
+              color: "var(--color-app-text-muted)",
+            };
             const rankIcons = [Target, TrendingUp, Info];
             const Icon = rankIcons[i] || Info;
 
             return (
-              <div 
-                key={cat} 
-                className="app-card-interactive relative overflow-hidden !p-10 group"
+              <div
+                key={cat}
+                className="app-card-interactive group relative overflow-hidden !p-7 lg:!p-8"
               >
                 {/* Indicador de Rango Lux */}
-                <div className="absolute -right-6 -top-6 flex h-24 w-24 items-center justify-center rounded-full bg-app-bg text-4xl font-black text-app-text-muted/5 transition-all group-hover:text-app-primary/10 group-hover:scale-110">
+                <div className="absolute -right-4 -top-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-bg text-2xl font-black text-app-text-muted/10 transition-all group-hover:text-app-primary/20">
                   {i + 1}
                 </div>
 
-                <div className="relative space-y-8">
-                  <div className="rounded-2xl bg-app-bg p-4 w-fit border border-app-border transition-transform group-hover:rotate-12 group-hover:border-app-primary/30">
-                    <Icon className="h-6 w-6 text-app-text-muted group-hover:text-app-primary transition-colors" />
+                <div className="relative flex h-full flex-col gap-6">
+                  <div className="w-fit rounded-2xl border border-app-border bg-app-bg p-3 transition-transform group-hover:rotate-6 group-hover:border-app-primary/30">
+                    <Icon className="h-5 w-5 text-app-text-muted transition-colors group-hover:text-app-primary" />
                   </div>
-                  
-                  <div>
-                    <h3 className="text-xl font-black text-app-text-main group-hover:text-app-primary transition-colors tracking-tight leading-none">
-                        {label}
+
+                  <div className="space-y-4">
+                    <h3 className="min-h-[2.75rem] text-lg font-black leading-tight tracking-tight text-app-text-main transition-colors group-hover:text-app-primary">
+                      {label}
                     </h3>
-                    
-                    <div className="mt-6 flex items-baseline gap-2">
-                        <span className="app-value !text-4xl">{pct}</span>
-                        <span className="app-label opacity-40">coincidencia</span>
+
+                    <div className="flex items-end gap-2">
+                      <span className="app-value !text-3xl sm:!text-4xl">
+                        {pct}
+                      </span>
+                      <span className="app-label mb-1 opacity-50">
+                        % coincidencia
+                      </span>
                     </div>
                   </div>
 
                   {/* Barra de Color Técnica */}
-                  <div className="h-2 w-12 rounded-full shadow-lg" style={{ backgroundColor: colorInfo.color, boxShadow: `0 4px 12px ${colorInfo.color}40` }} />
+                  <div
+                    className="mt-auto h-2 w-16 rounded-full shadow-lg"
+                    style={{
+                      backgroundColor: colorInfo.color,
+                      boxShadow: `0 4px 12px ${colorInfo.color}40`,
+                    }}
+                  />
                 </div>
               </div>
             );
@@ -63,22 +77,28 @@ export function SessionTopAreas({ top3, bottom3, categoriesMap }: Props) {
       </div>
 
       {/* ─── Indicadores de menor inclinación Lux 3.0 ────────────────── */}
-      <div className="app-card !p-10 border-app-border bg-app-bg/30 shadow-none">
-        <div className="flex items-center gap-3 mb-10">
-            <div className="h-1.5 w-6 bg-app-text-muted/20 rounded-full"></div>
-            <h2 className="app-label opacity-50">Zonas de Menor Inflexión</h2>
+      <div className="app-card border-app-border bg-app-bg/30 !p-8 shadow-none lg:!p-9">
+        <div className="mb-8 flex items-center gap-3">
+          <div className="h-1.5 w-6 rounded-full bg-app-text-muted/20"></div>
+          <h2 className="app-label opacity-50">ZONAS DE MENOR INCLINACION</h2>
         </div>
-        
-        <div className="grid gap-12 md:grid-cols-3">
+
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {bottom3.map(({ cat, pct }) => {
             const label = categoriesMap[cat]?.title ?? cat;
             return (
-              <div key={cat} className="flex flex-col gap-4 border-l-4 border-app-border pl-8 transition-colors hover:border-app-primary/30 group">
-                <span className="app-label !text-[9px] opacity-40 group-hover:opacity-100 transition-opacity">
+              <div
+                key={cat}
+                className="group flex min-w-0 flex-col gap-2 rounded-2xl border border-app-border/70 bg-app-surface p-4 transition-colors hover:border-app-primary/30"
+              >
+                <span className="app-label !text-[9px] opacity-50 transition-opacity group-hover:opacity-100">
                   {label}
                 </span>
-                <span className="text-xl font-black text-app-text-main tabular-nums tracking-tighter">
-                  {pct}% <span className="app-label !text-[8ppx] ml-2 opacity-30">Matching</span>
+                <span className="text-xl font-black tabular-nums tracking-tighter text-app-text-main">
+                  {pct}%{" "}
+                  <span className="ml-2 app-label !text-[8px] opacity-40">
+                    Matching
+                  </span>
                 </span>
               </div>
             );

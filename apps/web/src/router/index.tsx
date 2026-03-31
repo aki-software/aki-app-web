@@ -1,14 +1,15 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { DashboardLayout } from "../features/dashboard/layouts/DashboardLayout";
-import { DashboardOverview } from "../features/dashboard/views/DashboardOverview";
-import { DashboardResults } from "../features/dashboard/views/DashboardResults";
-import { DashboardVouchers } from "../features/dashboard/views/DashboardVouchers";
-import { DashboardUsers } from "../features/dashboard/views/DashboardUsers";
-import { DashboardSettings } from "../features/dashboard/views/DashboardSettings";
-import { NotFoundFeature } from "../features/dashboard/views/NotFoundFeature";
+import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
 import { LoginPage } from "../features/auth/views/LoginPage";
 import { SetupPasswordPage } from "../features/auth/views/SetupPasswordPage";
-import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
+import { DashboardLayout } from "../features/dashboard/layouts/DashboardLayout";
+import { DashboardActivity } from "../features/dashboard/views/DashboardActivity";
+import { DashboardOverview } from "../features/dashboard/views/DashboardOverview";
+import { DashboardResults } from "../features/dashboard/views/DashboardResults";
+import { DashboardSettings } from "../features/dashboard/views/DashboardSettings";
+import { DashboardUsers } from "../features/dashboard/views/DashboardUsers";
+import { DashboardVouchers } from "../features/dashboard/views/DashboardVouchers";
+import { NotFoundFeature } from "../features/dashboard/views/NotFoundFeature";
 import { SessionDetailPage } from "../features/dashboard/views/SessionDetailPage";
 
 export const router = createBrowserRouter([
@@ -58,6 +59,10 @@ export const router = createBrowserRouter([
           {
             path: "settings",
             element: <DashboardSettings />,
+          },
+          {
+            path: "activity",
+            element: <DashboardActivity />,
           },
           {
             path: "*",

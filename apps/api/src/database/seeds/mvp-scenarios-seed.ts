@@ -281,13 +281,13 @@ async function ensureUser(
 ): Promise<User> {
   const existing = await repo.findOne({ where: { email } });
   const hash = hashPassword('seed-password');
-  
+
   if (existing) {
     existing.name = name;
     existing.role = role;
     existing.institutionId = institutionId;
     existing.passwordHash = hash;
-    existing.passwordSetAt = new Date(); 
+    existing.passwordSetAt = new Date();
     existing.passwordSetupToken = null;
     existing.passwordSetupExpiresAt = null;
     return await repo.save(existing);
@@ -299,7 +299,7 @@ async function ensureUser(
       role,
       institutionId,
       passwordHash: hash,
-      passwordSetAt: new Date(), 
+      passwordSetAt: new Date(),
       passwordSetupToken: null,
       passwordSetupExpiresAt: null,
     }),

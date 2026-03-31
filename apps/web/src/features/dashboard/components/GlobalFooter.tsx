@@ -1,63 +1,87 @@
-import { ShieldCheck, Cpu, Globe, Heart } from "lucide-react";
+import { Cpu, Globe, Heart, ShieldCheck } from "lucide-react";
+import type { ReactNode } from "react";
 
 export function GlobalFooter() {
   const currentYear = new Date().getFullYear();
-  
+
   return (
-    <footer className="mt-20 pt-10 pb-16 border-t border-app-border/40">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 opacity-60 hover:opacity-100 transition-opacity duration-500">
-        
-        {/* Info de Marca & Copyright */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]" />
-            <span className="app-label !text-[10px]">A.kit Platform v3.5.2</span>
+    <footer className="-mx-8 mt-4 border-t border-app-border/50 pt-3 md:-mx-10 lg:-mx-12">
+      <div className="px-8 md:px-10 lg:px-12">
+        <div className="grid gap-4 py-3 lg:grid-cols-[1.1fr_1.4fr_auto] lg:items-center">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-app-primary shadow-[0_0_12px_rgba(163,184,117,0.45)]" />
+              <span className="text-[11px] font-semibold tracking-[0.1em] text-app-text-muted uppercase">
+                A.kit Platform v3.5.2
+              </span>
+            </div>
+            <p className="max-w-xl text-xs leading-relaxed text-app-text-muted/90">
+              © {currentYear} A.kit Intelligence. Monitoreo operativo de
+              vouchers, informes y sesiones.
+            </p>
           </div>
-          <p className="text-[11px] font-medium text-app-text-muted">
-            © {currentYear} A.kit Intelligence. Todos los derechos reservados. 
-            <br />
-            Tecnología de diagnóstico vocacional de alto rendimiento.
-          </p>
-        </div>
 
-        {/* Status del Sistema */}
-        <div className="flex items-center gap-8 bg-app-bg px-6 py-4 rounded-2xl border border-app-border shadow-sm">
-            <div className="flex flex-col gap-1">
-                <span className="app-label !text-[8px] opacity-40">ESTADO RED</span>
-                <div className="flex items-center gap-2">
-                    <Globe className="h-3 w-3 text-app-primary" />
-                    <span className="text-[10px] font-black text-app-text-main uppercase">Operativo</span>
-                </div>
-            </div>
-            <div className="h-8 w-[1px] bg-app-border" />
-            <div className="flex flex-col gap-1">
-                <span className="app-label !text-[8px] opacity-40">SEGURIDAD</span>
-                <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-3 w-3 text-emerald-500" />
-                    <span className="text-[10px] font-black text-app-text-main uppercase">Encriptado</span>
-                </div>
-            </div>
-            <div className="h-8 w-[1px] bg-app-border" />
-            <div className="flex flex-col gap-1">
-                <span className="app-label !text-[8px] opacity-40">MOTOR</span>
-                <div className="flex items-center gap-2">
-                    <Cpu className="h-3 w-3 text-app-primary" />
-                    <span className="text-[10px] font-black text-app-text-main uppercase">Lux 5.0</span>
-                </div>
-            </div>
-        </div>
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+            <StatusPill
+              icon={<Globe className="h-4 w-4 text-app-primary" />}
+              label="Plataforma"
+              value="Operativa"
+            />
+            <StatusPill
+              icon={<ShieldCheck className="h-4 w-4 text-emerald-400" />}
+              label="Seguridad"
+              value="TLS activo"
+            />
+            <StatusPill
+              icon={<Cpu className="h-4 w-4 text-app-primary" />}
+              label="Motor"
+              value="Lux 5.0"
+            />
+          </div>
 
-        {/* Links Rápidos */}
-        <div className="flex items-center gap-6">
-            <button className="app-label !text-[10px] hover:text-app-primary transition-colors cursor-pointer">Soporte</button>
-            <button className="app-label !text-[10px] hover:text-app-primary transition-colors cursor-pointer">Privacidad</button>
-            <div className="flex items-center gap-2 text-[10px] font-black text-app-text-muted opacity-40">
-                <span>CON</span>
-                <Heart className="h-3 w-3 text-rose-500 fill-rose-500" />
-                <span>EN ARG</span>
+          <div className="flex flex-wrap items-center gap-2 sm:justify-start lg:justify-end">
+            <FooterLink label="Soporte" />
+            <FooterLink label="Privacidad" />
+            <div className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-app-border/70 bg-black/20 px-3 py-1 text-[11px] text-app-text-muted">
+              <span>Hecho en ARG</span>
+              <Heart className="h-3.5 w-3.5 text-rose-400 fill-rose-400" />
             </div>
+          </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function StatusPill({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-app-border/70 bg-black/15 px-3 py-1.5">
+      <div className="mb-1 flex items-center gap-2">
+        {icon}
+        <span className="text-[10px] font-medium text-app-text-muted">
+          {label}
+        </span>
+      </div>
+      <p className="text-[13px] font-semibold text-app-text-main">{value}</p>
+    </div>
+  );
+}
+
+function FooterLink({ label }: { label: string }) {
+  return (
+    <button
+      type="button"
+      className="rounded-full border border-app-border/80 bg-black/20 px-3 py-1 text-[11px] font-medium text-app-text-muted transition-colors hover:border-app-primary/50 hover:text-app-text-main"
+    >
+      {label}
+    </button>
   );
 }

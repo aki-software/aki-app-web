@@ -1,20 +1,20 @@
 import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Req,
-  UnauthorizedException,
-  UseGuards,
-  Query,
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Query,
+    Req,
+    UnauthorizedException,
+    UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UserRole } from '../users/entities/user.entity';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ResolveVoucherDto } from './dto/resolve-voucher.dto';
 import { VouchersService } from './vouchers.service';
-import { UserRole } from '../users/entities/user.entity';
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -69,24 +69,36 @@ export class VouchersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(@Query('institutionId') institutionId?: string, @Req() req?: AuthenticatedRequest) {
+  async findAll(
+    @Query('institutionId') institutionId?: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
     const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
     return await this.vouchersService.findAll({
       role: req?.user?.role,
       ownerUserId: req?.user?.userId,
-      ownerInstitutionId: (isAdmin && institutionId) ? institutionId : req?.user?.institutionId,
+      ownerInstitutionId: isAdmin
+        ? institutionId || undefined
+        : req?.user?.institutionId,
     });
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':code')
-  async findOne(@Param('code') code: string, @Req() req?: AuthenticatedRequest) {
+  async findOne(
+    @Param('code') code: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
     const voucher = await this.vouchersService.findByCode(code);
     const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
-    const isOwner = voucher.ownerInstitutionId && req?.user?.institutionId === voucher.ownerInstitutionId;
-    
+    const isOwner =
+      voucher.ownerInstitutionId &&
+      req?.user?.institutionId === voucher.ownerInstitutionId;
+
     if (!isAdmin && !isOwner) {
-      throw new UnauthorizedException('No tienes permisos para acceder a este voucher');
+      throw new UnauthorizedException(
+        'No tienes permisos para acceder a este voucher',
+      );
     }
 
     return voucher;

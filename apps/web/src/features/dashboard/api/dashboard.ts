@@ -1,74 +1,90 @@
+import { AdminActivityEvent, DashboardStatsResponse } from "@akit/contracts";
 import { API_URL, getAuthHeaders } from "./client";
-import type { SessionApi } from "./sessions.api";
 
-export * from "./sessions.api";
-export * from "./vouchers.api";
-export * from "./institutions.api";
-export * from "./users.api";
 export * from "./categories.api";
+export * from "./institutions.api";
+export * from "./sessions.api";
+export * from "./users.api";
+export * from "./vouchers.api";
 
-export async function fetchDashboardStats() {
+export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
   try {
-    const response = await fetch(`${API_URL}/sessions`, {
+    const response = await fetch(`${API_URL}/sessions/admin/overview`, {
       headers: getAuthHeaders(),
     });
-    if (!response.ok) throw new Error("Failed to fetch API data");
-    const responseData = await response.json();
-    const sessions: SessionApi[] = responseData.data || [];
-
-    const sumTimeMs = sessions.reduce(
-      (acc, session) => acc + Number(session.totalTimeMs || 0),
-      0
-    );
-    const averageTimeSeconds =
-      sessions.length > 0 ? Math.floor(sumTimeMs / sessions.length / 1000) : 0;
-
-    const categories: Record<string, { count: number; name: string }> = {};
-    sessions.forEach((session) => {
-      session.results?.forEach((result) => {
-        if (!categories[result.categoryId]) {
-          categories[result.categoryId] = {
-            count: 0,
-            name: `Categoría ${result.categoryId}`,
-          };
-        }
-        categories[result.categoryId].count++;
-      });
-    });
-
-    const resultsDistribution = Object.keys(categories)
-      .map((categoryId) => ({
-        categoryId,
-        name: categories[categoryId].name,
-        count: categories[categoryId].count,
-      }))
-      .sort((a, b) => b.count - a.count);
+    if (!response.ok) throw new Error("Failed to fetch admin overview");
+    const data = (await response.json()) as Partial<DashboardStatsResponse>;
 
     return {
-      totalSessions: sessions.length || 0,
-      completionRate: sessions.length > 0 ? 100 : 0,
-      averageTimeSeconds,
-      sessionsActivity: [{ date: "Hoy", count: sessions.length }],
-      resultsDistribution:
-        resultsDistribution.length > 0
-          ? resultsDistribution
-          : [
-              { categoryId: "R", name: "Realista", count: 0 },
-              { categoryId: "I", name: "Investigador", count: 0 },
-              { categoryId: "A", name: "Artístico", count: 0 },
-              { categoryId: "S", name: "Social", count: 0 },
-              { categoryId: "E", name: "Emprendedor", count: 0 },
-              { categoryId: "C", name: "Convencional", count: 0 },
-            ],
+      totalSessions: Number(data.totalSessions ?? 0),
+      completionRate: Number(data.completionRate ?? 0),
+      averageTimeSeconds: Number(data.averageTimeSeconds ?? 0),
+      availableVouchers: Number(data.availableVouchers ?? 0),
+      redeemedVouchers: Number(data.redeemedVouchers ?? 0),
+      periodDays: Number(data.periodDays ?? 7),
+      periodLabel: data.periodLabel ?? "Ultimos 7 dias",
+      testsStartedPeriod: Number(data.testsStartedPeriod ?? 0),
+      testsCompletedPeriod: Number(data.testsCompletedPeriod ?? 0),
+      voucherRedemptionRatePeriod: Number(
+        data.voucherRedemptionRatePeriod ?? 0,
+      ),
+      channelBreakdown: data.channelBreakdown ?? {
+        voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
+        individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+      },
+      sessionsActivity: data.sessionsActivity ?? [],
+      resultsDistribution: data.resultsDistribution ?? [],
+      alerts: data.alerts ?? [],
+      activity: data.activity ?? [],
     };
   } catch (error) {
-    console.error("Backend offline, returning zeroes.", error);
+    console.error("Admin overview unavailable, returning zeroes.", error);
     return {
       totalSessions: 0,
       completionRate: 0,
       averageTimeSeconds: 0,
+      availableVouchers: 0,
+      redeemedVouchers: 0,
+      periodDays: 7,
+      periodLabel: "Ultimos 7 dias",
+      testsStartedPeriod: 0,
+      testsCompletedPeriod: 0,
+      voucherRedemptionRatePeriod: 0,
+      channelBreakdown: {
+        voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
+        individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+      },
       sessionsActivity: [],
       resultsDistribution: [],
+      alerts: [],
+      activity: [],
     };
+  }
+}
+
+export async function fetchAdminActivityHistory(
+  limit: number = 50,
+): Promise<AdminActivityEvent[]> {
+  try {
+    const normalizedLimit = Number.isFinite(limit)
+      ? Math.min(Math.max(Math.floor(limit), 1), 200)
+      : 50;
+
+    const response = await fetch(
+      `${API_URL}/sessions/admin/activity?limit=${normalizedLimit}`,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch admin activity history");
+    }
+
+    const data = (await response.json()) as AdminActivityEvent[];
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Admin activity history unavailable.", error);
+    return [];
   }
 }

@@ -1,5 +1,5 @@
+import { AlertTriangle, CheckCircle, Loader2, Mail } from "lucide-react";
 import { useState } from "react";
-import { Mail, Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 
 interface Props {
   sessionId: string;
@@ -9,7 +9,9 @@ export function SessionReportButton({ sessionId }: Props) {
   const [reportEmail, setReportEmail] = useState("");
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [sendingReport, setSendingReport] = useState(false);
-  const [reportStatus, setReportStatus] = useState<"idle" | "success" | "error">("idle");
+  const [reportStatus, setReportStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
 
   const handleSendReport = async () => {
     if (!sessionId || !reportEmail.trim()) return;
@@ -39,24 +41,24 @@ export function SessionReportButton({ sessionId }: Props) {
       {!showEmailInput ? (
         <button
           onClick={() => setShowEmailInput(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+          className="app-button-primary inline-flex items-center gap-2"
         >
           <Mail className="h-4 w-4" />
           Enviar informe
         </button>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <input
             type="email"
             value={reportEmail}
             onChange={(e) => setReportEmail(e.target.value)}
             placeholder="email@destino.com"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="w-full rounded-lg border border-app-border bg-app-bg/70 px-3 py-2 text-sm text-app-text-main placeholder:text-app-text-muted focus:border-app-primary focus:outline-none focus:ring-2 focus:ring-app-primary/35"
           />
           <button
             onClick={handleSendReport}
             disabled={sendingReport || !reportEmail.trim()}
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+            className="app-button-primary inline-flex min-w-24 items-center justify-center rounded-lg px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             {sendingReport ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -69,7 +71,7 @@ export function SessionReportButton({ sessionId }: Props) {
               setShowEmailInput(false);
               setReportStatus("idle");
             }}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+            className="rounded-lg border border-app-border bg-app-surface px-3 py-2 text-sm font-medium text-app-text-muted transition hover:border-app-primary/45 hover:text-app-text-main"
           >
             Cancelar
           </button>
@@ -82,7 +84,8 @@ export function SessionReportButton({ sessionId }: Props) {
       )}
       {reportStatus === "error" && (
         <p className="flex items-center gap-1.5 text-xs font-medium text-red-600">
-          <AlertTriangle className="h-3.5 w-3.5" /> Error al enviar. Intentá de nuevo.
+          <AlertTriangle className="h-3.5 w-3.5" /> Error al enviar. Intentá de
+          nuevo.
         </p>
       )}
     </div>

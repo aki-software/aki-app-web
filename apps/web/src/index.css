@@ -1,87 +1,140 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Sora:wght@700;800&display=swap");
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
 @theme {
-  /* Tipografía Maestro Lux 3.0 */
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  
-  /* Sistema de Colores Lux Final (Contraste Blindado) */
-  --color-app-primary: #4f46e5; 
-  --color-app-primary-hover: #4338ca;
-  
-  /* Variables de Contraste - Modo Claro (Default) */
-  --color-app-bg: #f8fafc; 
-  --color-app-surface: #ffffff; 
-  --color-app-border: #e2e8f0;
-  --color-app-text-main: #0f172a;
-  --color-app-text-muted: #64748b;
-  
-  /* Sidebar Semántico Dinámico (Lux 2.0) */
-  --color-sidebar-bg: #ffffff; 
-  --color-sidebar-text: #64748b;
-  --color-sidebar-border: #f1f5f9;
-  --color-sidebar-hover: #f1f5f9;
-  --color-sidebar-active-bg: #f8fafc;
-  --color-sidebar-active-text: #4f46e5;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-app-primary: #a3b875;
+  --color-app-primary-hover: #93a967;
+  --color-app-glow: rgba(163, 184, 117, 0.24);
+
+  --color-app-bg: #0a0a0c;
+  --color-app-surface: rgba(255, 255, 255, 0.03);
+  --color-app-border: rgba(255, 255, 255, 0.08);
+  --color-app-text-main: #ffffff;
+  --color-app-text-muted: rgba(255, 255, 255, 0.6);
+
+  --color-sidebar-bg: rgba(255, 255, 255, 0.03);
+  --color-sidebar-text: rgba(255, 255, 255, 0.72);
+  --color-sidebar-border: rgba(255, 255, 255, 0.08);
+  --color-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --color-sidebar-active-bg: rgba(163, 184, 117, 0.14);
+  --color-sidebar-active-text: #d6e2b8;
 }
 
 @layer base {
-  :root { color-scheme: light; }
+  :root {
+    color-scheme: dark;
+  }
 
-  /* 🌓 MODO OSCURO (CONTRASTE EXTREMO) */
   .dark {
     color-scheme: dark;
-    --color-app-bg: #020617; 
-    --color-app-surface: #0f172a; 
-    --color-app-border: #1e293b; 
-    --color-app-text-main: #f8fafc;
-    --color-app-text-muted: #94a3b8;
-    --color-app-primary: #818cf8; 
-    
-    /* Sidebar en Dark Mode */
-    --color-sidebar-bg: #020617;
-    --color-sidebar-text: #94a3b8;
-    --color-sidebar-border: #0f172a;
-    --color-sidebar-hover: #0f172a;
-    --color-sidebar-active-bg: #0f172a;
-    --color-sidebar-active-text: #ffffff;
   }
 
   body {
-    @apply bg-app-bg text-app-text-main font-sans transition-colors duration-500 antialiased;
+    @apply bg-app-bg text-app-text-main font-sans antialiased;
+    background-image:
+      radial-gradient(
+        circle at 16% 0%,
+        rgba(17, 22, 46, 0.6) 0%,
+        rgba(10, 10, 12, 0) 46%
+      ),
+      radial-gradient(
+        circle at 84% 0%,
+        rgba(19, 28, 54, 0.48) 0%,
+        rgba(10, 10, 12, 0) 45%
+      );
+    background-attachment: fixed;
   }
 }
 
-/* ─── UTILIDADES LUX FINAL (MAESTRAS) ────────────────────────── */
+@layer utilities {
+  .app-card {
+    @apply rounded-[24px] border border-app-border p-8;
+    background: var(--color-app-surface);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 18px 36px -20px rgba(0, 0, 0, 0.8);
+  }
 
-@utility .app-card {
-  @apply rounded-[2.5rem] border border-app-border bg-app-surface p-8 transition-all duration-500;
-  box-shadow: 0 15px 40px -12px rgba(0, 0, 0, 0.08);
-  @apply dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)];
+  .app-card-interactive {
+    @apply rounded-[24px] border border-app-border p-8 cursor-pointer transition-all duration-300;
+    background: var(--color-app-surface);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 18px 36px -20px rgba(0, 0, 0, 0.8);
+  }
+
+  .app-card-interactive:hover {
+    border-color: rgba(163, 184, 117, 0.42);
+    box-shadow: 0 0 18px rgba(163, 184, 117, 0.16);
+    transform: translateY(-2px);
+  }
+
+  .app-label {
+    @apply text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-[0.18em] text-app-text-muted leading-tight whitespace-normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .app-value {
+    @apply text-3xl font-display font-bold text-app-text-main tracking-tight leading-tight;
+  }
+
+  .app-desc {
+    @apply text-sm font-medium text-app-text-muted leading-relaxed;
+  }
+
+  .app-tag {
+    @apply text-[10px] font-semibold uppercase tracking-[0.16em] px-3 py-1.5 rounded-xl border transition-all;
+    @apply bg-white/[0.04] border-app-border text-app-text-main;
+  }
+
+  .app-tech-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+  }
+
+  .app-button-primary {
+    @apply rounded-xl border px-4 py-2.5 text-sm font-semibold text-black transition-all duration-200;
+    border-color: rgba(163, 184, 117, 0.58);
+    background: linear-gradient(180deg, #b8c99a 0%, #a3b875 100%);
+    box-shadow: 0 0 16px rgba(163, 184, 117, 0.18);
+  }
+
+  .app-button-primary:hover {
+    background: linear-gradient(180deg, #c2d2a8 0%, #aec185 100%);
+    box-shadow: 0 0 18px rgba(163, 184, 117, 0.24);
+  }
+
+  .app-data {
+    @apply font-mono text-xs tracking-wide;
+  }
+
+  .app-select {
+    color-scheme: dark;
+  }
+
+  .app-select option {
+    background-color: #0f1014;
+    color: var(--color-app-text-main);
+  }
 }
 
-@utility .app-card-interactive {
-  @apply app-card cursor-pointer hover:border-app-primary/40 hover:scale-[1.01];
-  @apply hover:shadow-[0_30px_70px_-15px_rgba(79,70,229,0.15)];
-  @apply dark:hover:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.9)];
+@keyframes app-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Punto de Equilibrio Lux (11px + No Wrap) */
-@utility .app-label {
-  @apply text-[11px] font-black uppercase tracking-[0.2em] text-app-text-muted leading-tight whitespace-nowrap;
+.animate-in {
+  animation: app-fade-in-up 550ms ease-out both;
 }
-
-@utility .app-value {
-  @apply text-3xl font-black text-app-text-main tracking-tighter leading-tight;
-}
-
-@utility .app-desc {
-  @apply text-sm font-medium text-app-text-muted leading-relaxed opacity-80;
-}
-
-@utility .app-tag {
-  @apply text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl border transition-all;
-  @apply bg-app-bg border-app-border text-app-text-main;
-}
-
-.animate-in { @apply animate-in duration-700 slide-in-from-bottom-6; }
