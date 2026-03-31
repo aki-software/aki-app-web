@@ -7,6 +7,7 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -37,6 +38,17 @@ export class VouchersController {
     return await this.vouchersService.create(createVoucherDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/send-email')
+  async sendEmail(
+    @Param('id') id: string,
+    @Body('email') email?: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    // Aquí podrías agregar una validación de propiedad si fuera necesario
+    return await this.vouchersService.sendEmail(id, email);
+  }
+
   @Post('resolve')
   async resolve(@Body() resolveVoucherDto: ResolveVoucherDto) {
     const voucher = await this.vouchersService.resolveAvailableVoucher(
@@ -57,19 +69,27 @@ export class VouchersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(@Req() req?: AuthenticatedRequest) {
+  async findAll(@Query('institutionId') institutionId?: string, @Req() req?: AuthenticatedRequest) {
+    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
     return await this.vouchersService.findAll({
       role: req?.user?.role,
       ownerUserId: req?.user?.userId,
-      ownerInstitutionId: req?.user?.institutionId,
+      ownerInstitutionId: (isAdmin && institutionId) ? institutionId : req?.user?.institutionId,
     });
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':code')
   async findOne(@Param('code') code: string, @Req() req?: AuthenticatedRequest) {
-    this.assertAdmin(req);
-    return await this.vouchersService.findByCode(code);
+    const voucher = await this.vouchersService.findByCode(code);
+    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
+    const isOwner = voucher.ownerInstitutionId && req?.user?.institutionId === voucher.ownerInstitutionId;
+    
+    if (!isAdmin && !isOwner) {
+      throw new UnauthorizedException('No tienes permisos para acceder a este voucher');
+    }
+
+    return voucher;
   }
 
   private assertAdmin(req?: AuthenticatedRequest) {

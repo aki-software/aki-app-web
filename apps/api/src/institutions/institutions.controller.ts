@@ -6,6 +6,7 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  Param,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -17,6 +18,7 @@ import { MailService } from '../mail/mail.service';
 type AuthenticatedRequest = Request & {
   user?: {
     role?: string;
+    institutionId?: string;
   };
 };
 
@@ -106,6 +108,23 @@ export class InstitutionsController {
       responsibleTherapistName: institution.responsibleTherapist?.name ?? null,
       activationEmailSent,
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/stats')
+  async getStats(
+    @Param('id') id: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    const isOwnerOrAdmin =
+      req?.user?.role?.toUpperCase() === UserRole.ADMIN ||
+      req?.user?.institutionId === id;
+      
+    if (!isOwnerOrAdmin) {
+      throw new UnauthorizedException('No tienes permisos para ver las estadísticas de esta institución');
+    }
+
+    return await this.institutionsService.getStats(id);
   }
 
   private assertAdmin(req?: AuthenticatedRequest) {

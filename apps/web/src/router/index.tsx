@@ -9,6 +9,7 @@ import { NotFoundFeature } from "../features/dashboard/views/NotFoundFeature";
 import { LoginPage } from "../features/auth/views/LoginPage";
 import { SetupPasswordPage } from "../features/auth/views/SetupPasswordPage";
 import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
+import { SessionDetailPage } from "../features/dashboard/views/SessionDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +42,10 @@ export const router = createBrowserRouter([
           {
             path: "results",
             element: <DashboardResults />,
+          },
+          {
+            path: "sessions/:id",
+            element: <SessionDetailPage />,
           },
           {
             path: "vouchers",

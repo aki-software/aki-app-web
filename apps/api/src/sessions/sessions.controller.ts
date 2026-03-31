@@ -154,6 +154,28 @@ export class SessionsController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/result')
+  async findResult(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
+    try {
+      const session = await this.sessionsService.findOne(id, {
+        role: req?.user?.role,
+        therapistUserId: req?.user?.userId,
+        patientId: req?.user?.userId,
+        institutionId: req?.user?.institutionId,
+      });
+      return {
+        sessionId: session.id,
+        results: session.results || [],
+        hollandCode: session.hollandCode,
+        totalTimeMs: session.totalTimeMs,
+        startedAt: session.createdAt,
+      };
+    } catch (e) {
+      throw new NotFoundException(e.message);
+    }
+  }
+
   @Post(':id/send-report')
   async sendReport(
     @Param('id') id: string,

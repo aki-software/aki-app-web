@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Edit2, Save, X, Check } from "lucide-react";
+import { BookOpen, Edit2, Save, X, Check, Lock } from "lucide-react";
+import { useAuth } from "../../auth/hooks/useAuth";
 import {
   fetchCategories,
   updateCategory,
@@ -7,11 +8,14 @@ import {
 } from "../api/dashboard";
 
 export function DashboardSettings() {
+  const { user } = useAuth();
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "" });
   const [saving, setSaving] = useState(false);
+
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
 
   useEffect(() => {
     loadCategories();
@@ -25,11 +29,13 @@ export function DashboardSettings() {
   };
 
   const handleEdit = (cat: CategoryData) => {
+    if (!isAdmin) return;
     setEditingId(cat.categoryId);
     setEditForm({ title: cat.title, description: cat.description });
   };
 
   const handleSave = async (categoryId: string) => {
+    if (!isAdmin) return;
     setSaving(true);
     const ok = await updateCategory(categoryId, editForm);
     if (ok) {
@@ -51,12 +57,20 @@ export function DashboardSettings() {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Material Teórico (CMS)</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Configura las 12 dimensiones devueltas al paciente al finalizar el test</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            Material Teórico (CMS)
+            {!isAdmin && <Lock className="w-5 h-5 text-gray-400" />}
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            {isAdmin 
+              ? "Configura las 12 dimensiones devueltas al paciente al finalizar el test"
+              : "Consulta las 12 dimensiones que se presentan al paciente al finalizar el test"
+            }
+          </p>
         </div>
-        <div className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-sm font-medium">
+        <div className="inline-flex items-center self-start px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-sm font-medium">
           <Check className="w-4 h-4 mr-1"/> Sincronizado con Android
         </div>
       </div>
@@ -126,17 +140,19 @@ export function DashboardSettings() {
                           {cat.categoryId}
                         </span>
                       </div>
-                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line line-clamp-2 leading-relaxed">
+                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line leading-relaxed">
                         {cat.description}
                       </p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => handleEdit(cat)}
-                    className="flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-lg mt-1 transition-colors"
-                  >
-                    <Edit2 className="w-4 h-4 mr-1.5"/> Editar
-                  </button>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => handleEdit(cat)}
+                      className="flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-lg mt-1 transition-colors"
+                    >
+                      <Edit2 className="w-4 h-4 mr-1.5"/> Editar
+                    </button>
+                  )}
                 </div>
               </div>
             )}

@@ -1,8 +1,6 @@
 import { createContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { loginRequest, logoutRequest, type AuthUser, type LoginCredentials } from '../api/auth';
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-
 export interface AuthContextValue {
   user: AuthUser | null;
   accessToken: string | null;
@@ -12,16 +10,10 @@ export interface AuthContextValue {
   logout: () => Promise<void>;
 }
 
-// ─── Constantes de localStorage ───────────────────────────────────────────────
-
 const TOKEN_KEY = 'akit_access_token';
 const USER_KEY = 'akit_user';
 
-// ─── Contexto ─────────────────────────────────────────────────────────────────
-
 export const AuthContext = createContext<AuthContextValue | null>(null);
-
-// ─── Provider ─────────────────────────────────────────────────────────────────
 
 interface AuthProviderProps {
   children: ReactNode;

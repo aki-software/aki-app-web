@@ -19,7 +19,7 @@ export class Voucher {
   id: string;
 
   @Index({ unique: true })
-  @Column({ length: 12, unique: true })
+  @Column({ length: 8, unique: true })
   code: string;
 
   @Column({ name: 'batch_id', type: 'uuid' })
@@ -81,4 +81,37 @@ export class Voucher {
 
   @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
   expiresAt: Date | null;
+
+  // Domain Methods for Encapsulation
+  assignToPatient(patientName: string, patientEmail: string) {
+    if (this.status !== VoucherStatus.AVAILABLE) {
+      throw new Error('Voucher is not available to be assigned.');
+    }
+    this.assignedPatientName = patientName;
+    this.assignedPatientEmail = patientEmail;
+    this.status = VoucherStatus.SENT;
+    this.sentAt = new Date();
+  }
+
+  redeem(sessionId: string) {
+    if (this.status !== VoucherStatus.AVAILABLE && this.status !== VoucherStatus.SENT) {
+      throw new Error(`Voucher cannot be redeemed. Current status: ${this.status}`);
+    }
+    if (this.expiresAt && new Date() > this.expiresAt) {
+      this.status = VoucherStatus.EXPIRED;
+      throw new Error('Voucher has expired.');
+    }
+    this.status = VoucherStatus.USED;
+    this.redeemedSessionId = sessionId;
+    this.redeemedAt = new Date();
+  }
+
+  revoke() {
+    if (this.status === VoucherStatus.USED) {
+      throw new Error('Cannot revoke an already used voucher.');
+    }
+    this.status = VoucherStatus.REVOKED;
+    this.assignedPatientName = null;
+    this.assignedPatientEmail = null;
+  }
 }

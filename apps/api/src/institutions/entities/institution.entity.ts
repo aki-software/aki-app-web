@@ -39,4 +39,20 @@ export class Institution {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  // Domain Methods for Encapsulation
+  deactivate() {
+    this.isActive = false;
+  }
+
+  activate() {
+    this.isActive = true;
+  }
+
+  updateBillingEmail(email: string) {
+    if (!email.includes('@')) {
+      throw new Error('Invalid email format for billing.');
+    }
+    this.billingEmail = email;
+  }
 }

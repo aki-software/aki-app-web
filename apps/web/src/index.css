@@ -1,20 +1,87 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
 @theme {
-  --animate-in: animate-in 0.2s ease-out;
+  /* Tipografía Maestro Lux 3.0 */
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  
+  /* Sistema de Colores Lux Final (Contraste Blindado) */
+  --color-app-primary: #4f46e5; 
+  --color-app-primary-hover: #4338ca;
+  
+  /* Variables de Contraste - Modo Claro (Default) */
+  --color-app-bg: #f8fafc; 
+  --color-app-surface: #ffffff; 
+  --color-app-border: #e2e8f0;
+  --color-app-text-main: #0f172a;
+  --color-app-text-muted: #64748b;
+  
+  /* Sidebar Semántico Dinámico (Lux 2.0) */
+  --color-sidebar-bg: #ffffff; 
+  --color-sidebar-text: #64748b;
+  --color-sidebar-border: #f1f5f9;
+  --color-sidebar-hover: #f1f5f9;
+  --color-sidebar-active-bg: #f8fafc;
+  --color-sidebar-active-text: #4f46e5;
 }
 
-@keyframes animate-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
+@layer base {
+  :root { color-scheme: light; }
+
+  /* 🌓 MODO OSCURO (CONTRASTE EXTREMO) */
+  .dark {
+    color-scheme: dark;
+    --color-app-bg: #020617; 
+    --color-app-surface: #0f172a; 
+    --color-app-border: #1e293b; 
+    --color-app-text-main: #f8fafc;
+    --color-app-text-muted: #94a3b8;
+    --color-app-primary: #818cf8; 
+    
+    /* Sidebar en Dark Mode */
+    --color-sidebar-bg: #020617;
+    --color-sidebar-text: #94a3b8;
+    --color-sidebar-border: #0f172a;
+    --color-sidebar-hover: #0f172a;
+    --color-sidebar-active-bg: #0f172a;
+    --color-sidebar-active-text: #ffffff;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  body {
+    @apply bg-app-bg text-app-text-main font-sans transition-colors duration-500 antialiased;
   }
 }
 
-.animate-in {
-  animation: var(--animate-in);
+/* ─── UTILIDADES LUX FINAL (MAESTRAS) ────────────────────────── */
+
+@utility .app-card {
+  @apply rounded-[2.5rem] border border-app-border bg-app-surface p-8 transition-all duration-500;
+  box-shadow: 0 15px 40px -12px rgba(0, 0, 0, 0.08);
+  @apply dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)];
 }
+
+@utility .app-card-interactive {
+  @apply app-card cursor-pointer hover:border-app-primary/40 hover:scale-[1.01];
+  @apply hover:shadow-[0_30px_70px_-15px_rgba(79,70,229,0.15)];
+  @apply dark:hover:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.9)];
+}
+
+/* Punto de Equilibrio Lux (11px + No Wrap) */
+@utility .app-label {
+  @apply text-[11px] font-black uppercase tracking-[0.2em] text-app-text-muted leading-tight whitespace-nowrap;
+}
+
+@utility .app-value {
+  @apply text-3xl font-black text-app-text-main tracking-tighter leading-tight;
+}
+
+@utility .app-desc {
+  @apply text-sm font-medium text-app-text-muted leading-relaxed opacity-80;
+}
+
+@utility .app-tag {
+  @apply text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl border transition-all;
+  @apply bg-app-bg border-app-border text-app-text-main;
+}
+
+.animate-in { @apply animate-in duration-700 slide-in-from-bottom-6; }

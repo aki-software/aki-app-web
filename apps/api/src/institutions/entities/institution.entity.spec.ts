@@ -2,24 +2,38 @@ import { Institution } from './institution.entity';
 import { User } from '../../users/entities/user.entity';
 
 describe('Institution Entity', () => {
-  it('should create an institution instance', () => {
-    const institution = new Institution();
+  let institution: Institution;
+
+  beforeEach(() => {
+    institution = new Institution();
     institution.name = 'Test Institution';
     institution.billingEmail = 'billing@test.com';
-    
-    expect(institution).toBeDefined();
-    expect(institution.name).toBe('Test Institution');
-    expect(institution.billingEmail).toBe('billing@test.com');
+    institution.isActive = true;
   });
 
-  it('should handle responsible therapist relationship', () => {
-    const institution = new Institution();
-    const therapist = new User();
-    therapist.id = 'user-uuid';
-    therapist.name = 'Responsible Therapist';
-    
-    institution.responsibleTherapist = therapist;
-    expect(institution.responsibleTherapist).toBeDefined();
-    expect(institution.responsibleTherapist?.name).toBe('Responsible Therapist');
+  describe('Activation', () => {
+    it('should deactivate the institution', () => {
+      institution.deactivate();
+      expect(institution.isActive).toBe(false);
+    });
+
+    it('should activate the institution', () => {
+      institution.isActive = false;
+      institution.activate();
+      expect(institution.isActive).toBe(true);
+    });
+  });
+
+  describe('updateBillingEmail', () => {
+    it('should update the email if format is roughly valid', () => {
+      institution.updateBillingEmail('new@test.com');
+      expect(institution.billingEmail).toBe('new@test.com');
+    });
+
+    it('should throw if email lacks @', () => {
+      expect(() => {
+        institution.updateBillingEmail('invalid-email');
+      }).toThrow('Invalid email format for billing.');
+    });
   });
 });

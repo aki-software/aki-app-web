@@ -66,4 +66,22 @@ export class VoucherBatch {
 
   @Column({ name: 'paid_at', type: 'timestamp', nullable: true })
   paidAt: Date | null;
+
+  // Domain Methods for Encapsulation
+  markAsPaid(paymentProvider: string, paymentReference: string) {
+    if (this.status === VoucherBatchStatus.CANCELLED) {
+      throw new Error('Cannot pay for a cancelled batch.');
+    }
+    this.status = VoucherBatchStatus.PAID;
+    this.paidAt = new Date();
+    this.paymentProvider = paymentProvider;
+    this.paymentReference = paymentReference;
+  }
+
+  cancel() {
+    if (this.status === VoucherBatchStatus.PAID) {
+      throw new Error('Cannot cancel an already paid batch.');
+    }
+    this.status = VoucherBatchStatus.CANCELLED;
+  }
 }

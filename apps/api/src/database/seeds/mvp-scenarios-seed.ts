@@ -1,4 +1,5 @@
 import { DataSource, Repository } from 'typeorm';
+import { randomBytes, scryptSync } from 'crypto';
 import { typeOrmConfig } from '../../config/typeorm.config';
 import { Institution } from '../../institutions/entities/institution.entity';
 import {
@@ -38,6 +39,15 @@ type SessionSeedInput = {
   reportUnlockedAt: Date | null;
   paidAt: Date | null;
 };
+
+/**
+ * Replicamos la lógica de hash de UsersService para el seed
+ */
+function hashPassword(plainPassword: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(plainPassword, salt, 64).toString('hex');
+  return `scrypt$${salt}$${hash}`;
+}
 
 async function seedMvpScenarios() {
   const seedConfig = { ...typeOrmConfig, migrations: [] };
@@ -94,7 +104,7 @@ async function seedMvpScenarios() {
       userRepo,
       'Owner Plataforma',
       'owner@akit.app',
-      UserRole.THERAPIST,
+      UserRole.ADMIN,
       platformInstitution.id,
     );
     platformInstitution.responsibleTherapistUserId = platformOwner.id;
@@ -137,15 +147,16 @@ async function seedMvpScenarios() {
       'seed-batch-private',
     );
 
+    // Códigos de 8 caracteres siguiendo la restricción de la migración
     const institutionAvailable = await ensureVoucher(voucherRepo, {
-      code: 'INST-0001',
+      code: 'INST0001',
       batchId: institutionBatch.id,
       ownerInstitutionId: ownerInstitution.id,
       ownerUserId: institutionTherapist.id,
       status: VoucherStatus.AVAILABLE,
     });
     const institutionUsed = await ensureVoucher(voucherRepo, {
-      code: 'INST-0002',
+      code: 'INST0002',
       batchId: institutionBatch.id,
       ownerInstitutionId: ownerInstitution.id,
       ownerUserId: institutionTherapist.id,
@@ -154,14 +165,14 @@ async function seedMvpScenarios() {
       assignedPatientEmail: patientInstitutional.email,
     });
     const privateAvailable = await ensureVoucher(voucherRepo, {
-      code: 'PRIV-0001',
+      code: 'PRIV0001',
       batchId: privateBatch.id,
       ownerInstitutionId: privateInstitution.id,
       ownerUserId: privateTherapist.id,
       status: VoucherStatus.AVAILABLE,
     });
     const privateUsed = await ensureVoucher(voucherRepo, {
-      code: 'PRIV-0002',
+      code: 'PRIV0002',
       batchId: privateBatch.id,
       ownerInstitutionId: privateInstitution.id,
       ownerUserId: privateTherapist.id,
@@ -237,9 +248,6 @@ async function seedMvpScenarios() {
     await voucherRepo.save([institutionUsed, privateUsed]);
 
     console.log('✅ MVP scenario seed ready');
-    console.log(
-      `   vouchers: ${institutionAvailable.code}, ${institutionUsed.code}, ${privateAvailable.code}, ${privateUsed.code}`,
-    );
   } catch (error) {
     console.error('❌ Error seeding MVP scenarios:', error);
     process.exitCode = 1;
@@ -272,10 +280,16 @@ async function ensureUser(
   institutionId: string | null,
 ): Promise<User> {
   const existing = await repo.findOne({ where: { email } });
+  const hash = hashPassword('seed-password');
+  
   if (existing) {
     existing.name = name;
     existing.role = role;
     existing.institutionId = institutionId;
+    existing.passwordHash = hash;
+    existing.passwordSetAt = new Date(); 
+    existing.passwordSetupToken = null;
+    existing.passwordSetupExpiresAt = null;
     return await repo.save(existing);
   }
   return await repo.save(
@@ -284,7 +298,10 @@ async function ensureUser(
       email,
       role,
       institutionId,
-      passwordHash: 'seed-password',
+      passwordHash: hash,
+      passwordSetAt: new Date(), 
+      passwordSetupToken: null,
+      passwordSetupExpiresAt: null,
     }),
   );
 }
