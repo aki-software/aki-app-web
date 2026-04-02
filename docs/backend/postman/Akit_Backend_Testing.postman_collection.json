@@ -1,0 +1,290 @@
+{
+  "info": {
+    "_postman_id": "8f4f8e2e-bb7a-4d4d-9e4a-akit-backend-testing",
+    "name": "Akit Backend Testing",
+    "description": "Coleccion para validar autenticacion, test individual y test con voucher/codigo.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "adminEmail", "value": "admin@akit.app" },
+    { "key": "adminPassword", "value": "admin123" },
+    { "key": "accessToken", "value": "" },
+    { "key": "patientUserId", "value": "" },
+    { "key": "individualSessionId", "value": "" },
+    { "key": "therapistUserId", "value": "" },
+    { "key": "voucherPatientUserId", "value": "" },
+    { "key": "voucherSessionId", "value": "" },
+    { "key": "voucherCode", "value": "THERA001" }
+  ],
+  "item": [
+    {
+      "name": "01 Auth",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status ok', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json?.tokens?.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.tokens.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Obtiene el JWT del admin y lo guarda en accessToken."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Test Individual",
+      "item": [
+        {
+          "name": "Registrar Paciente Individual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status ok', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json?.user_id) {",
+                  "  pm.collectionVariables.set('patientUserId', json.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Paciente Individual Uno\",\n  \"role\": \"PATIENT\",\n  \"email\": \"paciente.individual@test.com\"\n}"
+            },
+            "url": "{{baseUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Completar Test Individual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status ok', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json?.id) {",
+                  "  pm.collectionVariables.set('individualSessionId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{patientUserId}}\",\n  \"patientName\": \"Paciente Individual Uno\",\n  \"catalogVersion\": \"assets-v1\",\n  \"startedAt\": \"2026-03-26T13:00:00.000Z\",\n  \"finishedAt\": \"2026-03-26T13:08:30.000Z\",\n  \"swipes\": [\n    {\n      \"cardId\": \"art-001\",\n      \"categoryId\": \"ART\",\n      \"liked\": true,\n      \"timestamp\": \"2026-03-26T13:00:30.000Z\"\n    },\n    {\n      \"cardId\": \"hum-001\",\n      \"categoryId\": \"HUM\",\n      \"liked\": true,\n      \"timestamp\": \"2026-03-26T13:01:00.000Z\"\n    },\n    {\n      \"cardId\": \"bus-001\",\n      \"categoryId\": \"BUS\",\n      \"liked\": false,\n      \"timestamp\": \"2026-03-26T13:01:30.000Z\"\n    }\n  ],\n  \"resultPayload\": {\n    \"hollandCode\": \"HUMART\",\n    \"radar\": [\n      {\n        \"categoryId\": \"HUM\",\n        \"likes\": 12,\n        \"total\": 15,\n        \"affinity\": 80\n      },\n      {\n        \"categoryId\": \"ART\",\n        \"likes\": 10,\n        \"total\": 15,\n        \"affinity\": 67\n      },\n      {\n        \"categoryId\": \"BUS\",\n        \"likes\": 2,\n        \"total\": 15,\n        \"affinity\": 13\n      }\n    ],\n    \"top3\": [\n      {\n        \"categoryId\": \"HUM\",\n        \"percentage\": 80,\n        \"score\": 12,\n        \"totalPossible\": 15,\n        \"suggestedCareers\": [\"Psicología\", \"Trabajo Social\"],\n        \"materialSnippet\": \"Perfil con fuerte orientación al cuidado.\"\n      }\n    ],\n    \"bottom3\": [\n      {\n        \"categoryId\": \"BUS\",\n        \"percentage\": 13,\n        \"score\": 2,\n        \"totalPossible\": 15,\n        \"suggestedCareers\": [],\n        \"materialSnippet\": \"Baja afinidad por tareas administrativas.\"\n      }\n    ]\n  }\n}"
+            },
+            "url": "{{baseUrl}}/sessions/complete"
+          }
+        },
+        {
+          "name": "Listar Sesiones Admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/sessions",
+            "description": "Verificar que exista individualSessionId y que tenga voucherId null."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Voucher Terapeuta",
+      "item": [
+        {
+          "name": "Registrar Terapeuta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status ok', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json?.user_id) {",
+                  "  pm.collectionVariables.set('therapistUserId', json.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Terapeuta Demo\",\n  \"role\": \"THERAPIST\",\n  \"email\": \"terapeuta.demo@test.com\"\n}"
+            },
+            "url": "{{baseUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Crear Voucher Terapeuta",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{voucherCode}}\",\n  \"purchaserType\": \"THERAPIST\",\n  \"purchaserUserId\": \"{{therapistUserId}}\",\n  \"assignedPatientName\": \"Paciente Voucher Uno\",\n  \"assignedPatientEmail\": \"paciente.voucher@test.com\"\n}"
+            },
+            "url": "{{baseUrl}}/vouchers"
+          }
+        },
+        {
+          "name": "Resolver Voucher Disponible",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{voucherCode}}\"\n}"
+            },
+            "url": "{{baseUrl}}/vouchers/resolve"
+          }
+        },
+        {
+          "name": "Registrar Paciente Voucher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status ok', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json?.user_id) {",
+                  "  pm.collectionVariables.set('voucherPatientUserId', json.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Paciente Voucher Uno\",\n  \"role\": \"PATIENT\",\n  \"email\": \"paciente.voucher@test.com\"\n}"
+            },
+            "url": "{{baseUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Completar Test Con Voucher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status ok', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json?.id) {",
+                  "  pm.collectionVariables.set('voucherSessionId', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{voucherPatientUserId}}\",\n  \"patientName\": \"Paciente Voucher Uno\",\n  \"voucherCode\": \"{{voucherCode}}\",\n  \"catalogVersion\": \"assets-v1\",\n  \"startedAt\": \"2026-03-26T14:00:00.000Z\",\n  \"finishedAt\": \"2026-03-26T14:09:00.000Z\",\n  \"swipes\": [\n    {\n      \"cardId\": \"hum-010\",\n      \"categoryId\": \"HUM\",\n      \"liked\": true,\n      \"timestamp\": \"2026-03-26T14:00:20.000Z\"\n    },\n    {\n      \"cardId\": \"lead-010\",\n      \"categoryId\": \"LEAD\",\n      \"liked\": true,\n      \"timestamp\": \"2026-03-26T14:00:50.000Z\"\n    },\n    {\n      \"cardId\": \"bus-010\",\n      \"categoryId\": \"BUS\",\n      \"liked\": false,\n      \"timestamp\": \"2026-03-26T14:01:20.000Z\"\n    }\n  ],\n  \"resultPayload\": {\n    \"hollandCode\": \"HUMLEA\",\n    \"radar\": [\n      {\n        \"categoryId\": \"HUM\",\n        \"likes\": 13,\n        \"total\": 15,\n        \"affinity\": 87\n      },\n      {\n        \"categoryId\": \"LEAD\",\n        \"likes\": 11,\n        \"total\": 15,\n        \"affinity\": 73\n      },\n      {\n        \"categoryId\": \"BUS\",\n        \"likes\": 1,\n        \"total\": 15,\n        \"affinity\": 7\n      }\n    ],\n    \"top3\": [\n      {\n        \"categoryId\": \"HUM\",\n        \"percentage\": 87,\n        \"score\": 13,\n        \"totalPossible\": 15,\n        \"suggestedCareers\": [\"Psicopedagogía\", \"Acompañamiento Terapéutico\"],\n        \"materialSnippet\": \"Alta afinidad por asistencia y cuidado.\"\n      }\n    ],\n    \"bottom3\": [\n      {\n        \"categoryId\": \"BUS\",\n        \"percentage\": 7,\n        \"score\": 1,\n        \"totalPossible\": 15,\n        \"suggestedCareers\": [],\n        \"materialSnippet\": \"Bajo interés en detalle administrativo.\"\n      }\n    ]\n  }\n}"
+            },
+            "url": "{{baseUrl}}/sessions/complete"
+          }
+        },
+        {
+          "name": "Resolver Voucher Usado",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{voucherCode}}\"\n}"
+            },
+            "url": "{{baseUrl}}/vouchers/resolve",
+            "description": "Debe fallar porque el voucher ya fue usado."
+          }
+        },
+        {
+          "name": "Listar Sesiones Admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": "{{baseUrl}}/sessions",
+            "description": "Verificar que voucherSessionId tenga voucherId no nulo y therapistUserId = therapistUserId."
+          }
+        }
+      ]
+    }
+  ]
+}

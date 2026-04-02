@@ -1,38 +1,204 @@
-import { ShieldAlert, Users as UsersIcon } from "lucide-react";
+import { Building2, Users as UsersIcon } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import {
+    createInstitution,
+    createTherapist,
+    fetchInstitutions,
+    fetchTherapists,
+    resendActivationInvitation,
+    type InstitutionOption,
+    type TherapistOption,
+} from "../api/dashboard";
+import {
+    CreateEntityForm,
+    initialFormState,
+    type EntityFormState,
+} from "../components/users/CreateEntityForm";
+import { InstitutionCard } from "../components/users/InstitutionCard";
+import { TherapistCard } from "../components/users/TherapistCard";
 
 export function DashboardUsers() {
+  const [institutions, setInstitutions] = useState<InstitutionOption[]>([]);
+  const [therapists, setTherapists] = useState<TherapistOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [resendingUserId, setResendingUserId] = useState<string | null>(null);
+  const [formState, setFormState] = useState<EntityFormState>(initialFormState);
+  const [message, setMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const loadData = async () => {
+    const [institutionsData, therapistsData] = await Promise.all([
+      fetchInstitutions(),
+      fetchTherapists(),
+    ]);
+    setInstitutions(institutionsData);
+    setTherapists(therapistsData);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const resetMessages = () => {
+    setMessage(null);
+    setErrorMessage(null);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    resetMessages();
+
+    if (!formState.name.trim()) {
+      setErrorMessage("Ingresá un nombre.");
+      return;
+    }
+
+    setSaving(true);
+
+    if (formState.entityType === "INSTITUTION") {
+      if (
+        !formState.responsibleName.trim() ||
+        !formState.responsibleEmail.trim()
+      ) {
+        setSaving(false);
+        setErrorMessage(
+          "Ingresá nombre y email del responsable institucional.",
+        );
+        return;
+      }
+
+      const created = await createInstitution({
+        name: formState.name,
+        billingEmail: formState.email || undefined,
+        responsibleName: formState.responsibleName || undefined,
+        responsibleEmail: formState.responsibleEmail || undefined,
+      });
+      setSaving(false);
+
+      if (!created) {
+        setErrorMessage("No se pudo crear la institución.");
+        return;
+      }
+
+      setFormState(initialFormState);
+      await loadData();
+      setMessage(
+        created.activationEmailSent
+          ? `Institución ${created.name} creada. Se envió activación al responsable.`
+          : `Institución ${created.name} creada, pero no se pudo enviar el mail al responsable.`,
+      );
+      return;
+    }
+
+    const created = await createTherapist({
+      name: formState.name,
+      email: formState.email || undefined,
+      institutionId: formState.institutionId || undefined,
+    });
+    setSaving(false);
+
+    if (!created) {
+      setErrorMessage("No se pudo crear el terapeuta.");
+      return;
+    }
+
+    setFormState(initialFormState);
+    await loadData();
+    setMessage(
+      created.activationEmailSent
+        ? `Terapeuta ${created.name} creado. Se envió un mail de activación a la dirección informada.`
+        : `Terapeuta ${created.name} creado, pero no se pudo enviar el mail de activación.`,
+    );
+  };
+
+  const handleResend = async (therapist: TherapistOption) => {
+    resetMessages();
+    setResendingUserId(therapist.id);
+    const sent = await resendActivationInvitation(therapist.id);
+    setResendingUserId(null);
+
+    if (!sent) {
+      setErrorMessage(`No se pudo reenviar la invitación a ${therapist.name}.`);
+      return;
+    }
+
+    setMessage(`Invitación reenviada a ${therapist.name}.`);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-        <div className="flex items-center mb-2">
-          <UsersIcon className="w-6 h-6 text-blue-600 mr-2" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Administración de Usuarios</h2>
-        </div>
-        <p className="text-gray-600 dark:text-gray-400">
-          Gestor de accesos para Colegios, Psicopedagogos y Administradores del sistema A.kit.
+      <div>
+        <h2 className="text-2xl font-display font-bold text-app-text-main tracking-tight">
+          Instituciones y terapeutas
+        </h2>
+        <p className="mt-1 text-sm text-app-text-muted">
+          Alta mínima de owners operativos. Cada institución se crea junto con
+          su usuario responsable, que recibe activación por mail.
         </p>
-        
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Psicopedagogos</h3>
-            <p className="text-sm text-gray-500">12 activos</p>
+      </div>
+
+      {message && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+          <div>{message}</div>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+          {errorMessage}
+        </div>
+      )}
+
+      <CreateEntityForm
+        formState={formState}
+        setFormState={setFormState}
+        institutions={institutions}
+        saving={saving}
+        onSubmit={handleSubmit}
+        resetMessages={resetMessages}
+      />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="app-card !p-6">
+          <div className="mb-4 flex items-center">
+            <Building2 className="mr-2 h-5 w-5 text-app-primary" />
+            <h3 className="font-semibold text-app-text-main">Instituciones</h3>
           </div>
-          <div className="p-4 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Instituciones</h3>
-            <p className="text-sm text-gray-500">4 registradas</p>
-          </div>
-          <div className="p-4 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Estudiantes</h3>
-            <p className="text-sm text-gray-500">1,248 app test users</p>
-          </div>
+          {loading ? (
+            <p className="text-sm text-app-text-muted">Cargando...</p>
+          ) : (
+            <div className="space-y-3">
+              {institutions.map((institution) => (
+                <InstitutionCard
+                  key={institution.id}
+                  institution={institution}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="mt-6 flex items-center p-4 text-sm text-yellow-800 border border-yellow-300 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300 dark:border-yellow-800" role="alert">
-          <ShieldAlert className="flex-shrink-0 inline w-4 h-4 mr-3" />
-          <span className="sr-only">Info</span>
-          <div>
-            <span className="font-medium">Work in Progress!</span> La gestión de roles (RBAC) está pauteada para desarrollarse tras estabilizar la sincronía de la App Móvil.
+        <div className="app-card !p-6">
+          <div className="mb-4 flex items-center">
+            <UsersIcon className="mr-2 h-5 w-5 text-app-primary" />
+            <h3 className="font-semibold text-app-text-main">Terapeutas</h3>
           </div>
+          {loading ? (
+            <p className="text-sm text-app-text-muted">Cargando...</p>
+          ) : (
+            <div className="space-y-3">
+              {therapists.map((therapist) => (
+                <TherapistCard
+                  key={therapist.id}
+                  therapist={therapist}
+                  onResend={handleResend}
+                  isResending={resendingUserId === therapist.id}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "AKIT Postgres",
+      "Group": "AKIT",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "akit_db",
+      "Username": "admin",
+      "SSLMode": "prefer"
+    }
+  }
+}

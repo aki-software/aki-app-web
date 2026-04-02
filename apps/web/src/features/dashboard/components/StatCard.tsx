@@ -12,31 +12,41 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, trend }: StatCardProps) {
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow-md">
+    <div className="app-card border-none hover:shadow-2xl hover:shadow-app-primary/10 transition-all duration-500 group">
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{value}</p>
+        <div className="min-w-0">
+          {/* Clase Maestra de Etiqueta */}
+          <h3 className="app-label transition-colors group-hover:text-app-primary">
+            {title}
+          </h3>
+          {/* Clase Maestra de Valor */}
+          <p className="app-value mt-4">
+            {value}
+          </p>
         </div>
-        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400">
+        <div className="p-5 bg-app-bg border border-app-border rounded-2xl text-app-primary shadow-sm group-hover:shadow-app-primary/20 transition-all">
           <Icon className="w-6 h-6" />
         </div>
       </div>
+      
       {trend && (
-        <div className={`mt-4 flex items-center text-sm font-medium ${trend.isPositive ? "text-green-600 dark:text-green-400" : "text-emerald-600 dark:text-emerald-400"}`}>
-          <span className="flex items-center">
+        <div className={`mt-6 flex items-center ${
+          trend.isPositive ? "text-emerald-500" : "text-rose-500"
+        }`}>
+          <div className="app-tag flex items-center px-2 py-1 bg-emerald-500/5 border-emerald-500/20 text-emerald-500 lowercase tracking-normal font-black">
             {trend.isPositive ? (
-              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             ) : (
-              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
+              <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
               </svg>
             )}
             {Math.abs(trend.value)}%
-          </span>
-          <span className="text-gray-500 dark:text-gray-400 ml-2 font-normal">esta semana</span>
+          </div>
+          {/* Clase Maestra de Subtítulo */}
+          <span className="app-desc ml-3 text-[10px] font-black uppercase tracking-widest opacity-60">semanal</span>
         </div>
       )}
     </div>

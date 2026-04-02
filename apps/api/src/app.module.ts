@@ -9,9 +9,19 @@ import { CategoriesModule } from './categories/categories.module';
 import { AuthModule } from './auth/auth.module';
 import { typeOrmConfig } from './config/typeorm.config';
 import { MailModule } from './mail/mail.module';
+import { LoggerModule } from 'nestjs-pino';
+import { InstitutionsModule } from './institutions/institutions.module';
+import { VouchersModule } from './vouchers/vouchers.module';
 
 @Module({
   imports: [
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: process.env.NODE_ENV !== 'production'
+          ? { target: 'pino-pretty', options: { colorize: true } }
+          : undefined,
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -36,6 +46,8 @@ import { MailModule } from './mail/mail.module';
     CategoriesModule,
     MailModule,
     AuthModule,
+    InstitutionsModule,
+    VouchersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

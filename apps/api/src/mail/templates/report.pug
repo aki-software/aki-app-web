@@ -5,343 +5,166 @@ html(lang="es")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title Informe Vocacional — A.kit
     style.
+      /* --- Estilo Minimalista A.kit --- */
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        background-color: #1e293b; /* Fondo exterior notablemente más oscuro, color pizarra */
-        padding: 40px 20px;
-        color: #334155;
-        line-height: 1.6;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #fafafa;
+        color: #18181b;
+        line-height: 1.5;
+        padding: 40px 10px;
       }
-      .wrapper {
+      .container {
         max-width: 600px;
         margin: 0 auto;
         background: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); /* Sombra mucho más fuerte para contrastar contra el fondo oscuro */
+        border-radius: 8px;
+        border: 1px solid #e4e4e7;
         overflow: hidden;
       }
-      /* Header */
       .header {
-        background: #ffffff;
-        padding: 40px 32px 32px;
-        text-align: center;
-        border-bottom: 2px solid #f1f5f9; /* Separador sutil */
+        padding: 40px 32px 24px;
+        text-align: left;
       }
-      .logo-container {
-        margin-bottom: 24px;
-      }
-      .logo-image {
-        max-width: 140px;
-        height: auto;
-      }
-      .header h1 {
-        color: #0f172a;
-        font-size: 28px;
-        font-weight: 800;
-        line-height: 1.2;
-        margin-bottom: 12px;
-      }
-      .header p {
-        color: #64748b;
-        font-size: 16px;
-      }
-      /* Holland Code Section */
-      .holland-section {
-        background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
-        padding: 28px 32px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border-bottom: 2px solid #e2e8f0;
-      }
-      .holland-label {
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: #475569;
-        margin-bottom: 10px;
-      }
-      .holland-code {
-        font-size: 38px;
-        font-weight: 900;
-        letter-spacing: 12px;
-        color: #4338ca;
-        text-shadow: 0 2px 10px rgba(67, 56, 202, 0.2); 
-      }
-      /* Body */
-      .body {
-        padding: 40px 32px;
-        background-color: #fafafc; /* Ligerisimo fondo gris off-white para el area central para contrastar aun mas las tarjetas blancas */
-      }
-      .greeting {
-        font-size: 16px;
-        color: #475569;
-        margin-bottom: 36px;
-        text-align: center;
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-      }
-      .greeting strong {
-        color: #0f172a;
-      }
-      .section-title {
-        font-size: 14px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        color: #334155;
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .section-title::after {
-        content: "";
-        flex: 1;
-        height: 2px;
-        background-color: #cbd5e1;
-        border-radius: 2px;
-      }
-      /* Category Cards */
-      .category-card {
-        background: #ffffff;
-        border: 2px solid #e2e8f0; /* Borde notable */
-        border-radius: 16px;
-        padding: 28px 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); /* Sombra base para resaltar del fondo off-white */
-        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-        position: relative;
-        overflow: hidden;
-      }
-      /* Barra decorativa lateral para la tarjeta #1 */
-      .category-card.is-top {
-        border-color: #bfdbfe;
-        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.1);
-      }
-      .category-card.is-top::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
+      .logo {
+        width: 44px;
+        height: 44px;
         background: #4f46e5;
-      }
-      .category-card:hover {
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        transform: translateY(-3px);
-        border-color: #cbd5e1;
-      }
-      .cat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-        gap: 12px;
-      }
-      .cat-rank-title-group {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .cat-rank {
-        display: flex;
+        border-radius: 10px;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #4f46e5;
-        color: #ffffff;
-        font-size: 14px;
-        font-weight: 800;
-        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+        margin-bottom: 24px;
+      }
+      .logo img { 
+        width: 24px; 
+        filter: brightness(0) invert(1);
+        display: block;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+        color: #09090b;
+      }
+      .subtitle {
+        font-size: 16px;
+        color: #71717a;
+        margin-bottom: 32px;
+      }
+      .holland-badge {
+        display: inline-block;
+        background: #f4f4f5;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #52525b;
+        margin-bottom: 40px;
+      }
+      .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #a1a1aa;
+        margin-bottom: 16px;
+        display: block;
+      }
+      .content-area { padding: 0 32px 40px; }
+      .category-item {
+        margin-bottom: 32px;
+        border-bottom: 1px solid #f4f4f5;
+        padding-bottom: 32px;
+      }
+      .category-item:last-child { border: none; }
+      .cat-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
       }
       .cat-title {
-        font-size: 20px;
-        font-weight: 800;
-        color: #0f172a;
+        font-size: 18px;
+        font-weight: 600;
+        color: #18181b;
       }
       .cat-pct {
-        font-size: 22px;
-        font-weight: 900;
-        color: #4338ca;
-      }
-      /* Progress Bar */
-      .progress-track {
-        background: #e2e8f0;
-        border-radius: 8px;
-        height: 8px;
-        margin-bottom: 20px;
-        overflow: hidden;
-      }
-      .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #4f46e5, #818cf8); /* Gradiente más vibrante */
-        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #4f46e5;
       }
       .cat-desc {
-        font-size: 15px;
-        color: #475569;
-        margin-bottom: 20px;
-        line-height: 1.7;
-      }
-      .material-subtitle {
-        font-size: 16px;
-        font-weight: 700;
-        color: #1e293b;
-        margin-top: 16px;
-        margin-bottom: 8px;
-        border-bottom: 2px solid #e2e8f0;
-        padding-bottom: 4px;
-        display: inline-block;
-      }
-      .material-content {
-        font-size: 15px;
-        color: #475569;
-        margin-bottom: 20px;
-        line-height: 1.7;
-      }
-      /* Material Snippet */
-      .material-snippet {
-        background: #f8fafc;
-        border-left: 4px solid #6366f1;
-        padding: 16px 20px;
-        border-radius: 0 8px 8px 0;
         font-size: 14px;
-        color: #334155;
-        border-top: 1px solid #e2e8f0;
-        border-right: 1px solid #e2e8f0;
-        border-bottom: 1px solid #e2e8f0;
+        color: #52525b;
+        margin-bottom: 16px;
       }
-      .material-snippet strong {
-        color: #0f172a;
+      .career-tags {
         display: block;
+        margin-top: 12px;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        background: #eef2ff;
+        color: #4338ca;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-right: 6px;
         margin-bottom: 6px;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
       }
-      /* Divider */
-      .divider {
-        height: 1px;
-        background-color: #cbd5e1;
-        margin: 40px 0 24px;
-      }
-      /* Footer */
       .footer {
-        background: #ffffff;
-        border-top: 1px solid #e2e8f0;
+        background: #f9fafb;
         padding: 32px;
         text-align: center;
+        border-top: 1px solid #f3f4f6;
       }
-      .footer-note {
+      .footer-text {
         font-size: 13px;
-        color: #64748b;
-        margin-bottom: 24px;
-        max-width: 80%;
-        margin-left: auto;
-        margin-right: auto;
-        background: #f8fafc;
-        padding: 16px;
-        border-radius: 8px;
+        color: #9ca3af;
+        margin-bottom: 16px;
       }
-      .footer-contact {
+      .contact-btn {
+        display: inline-block;
         font-size: 14px;
-        color: #475569;
-        margin-bottom: 24px;
-      }
-      .footer-contact a {
         color: #4f46e5;
         text-decoration: none;
         font-weight: 600;
-        padding: 8px 16px;
-        background: #eff6ff;
-        border-radius: 20px;
-        display: inline-block;
-        margin-top: 8px;
-        transition: background 0.2s;
       }
-      .footer-contact a:hover {
-        background: #dbeafe;
-      }
-      .footer-brand {
-        font-size: 15px;
-        color: #0f172a;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        margin-bottom: 8px;
-      }
-      .footer-copyright {
-        font-size: 13px;
-        color: #94a3b8;
+      @media print {
+        body { background: white; padding: 0; }
+        .container { border: none; max-width: 100%; box-shadow: none; }
       }
 
   body
-    .wrapper
+    .container
       .header
-        .logo-container
-          //- Uso del icono mock con fondo oscuro para simular app marca
-          img.logo-image(src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/compass.svg" style="width: 56px; background: #0f172a; padding: 12px; border-radius: 16px;" alt="Orient A.ki Logo")
-        h1 Tu Informe Vocacional
-        p Hola #[strong #{patientName}], aquí está tu análisis.
+        .logo
+          img(src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/compass.svg" alt="A")
+        h1 Informe de Resultados
+        p.subtitle Hola #[strong #{patientName}], aquí tienes los detalles de tu exploración vocacional.
+        if hollandCode
+          span.holland-badge Código Holland: #{hollandCode}
       
-      .body
-        p.greeting
-          | Completaste tu exploración vocacional en #[strong Orient A.ki]. 
-          br
-          | A continuación te presentamos tus perfiles de mayor afinidad 
-          | según el modelo vocacional extendido:
-
-        .section-title Áreas de Mayor Afinidad
-
+      .content-area
+        span.section-label Áreas de Afinidad
+        
         each res, index in topResults
-          .category-card(class=index === 0 ? "is-top" : "")
-            .cat-header
-              .cat-rank-title-group
-                span.cat-rank #{index + 1}
-                span.cat-title #{res.title}
+          .category-item
+            .cat-top
+              span.cat-title #{res.title}
               span.cat-pct #{res.percentage}%
-            .progress-track
-              .progress-fill(style=`width:${res.percentage}%`)
-            if res.parsedBlocks && res.parsedBlocks.length > 0
-              each block in res.parsedBlocks
-                if block.subtitle
-                  h4.material-subtitle #{block.subtitle}
-                  p.material-content #{block.content}
-                else
-                  p.material-content #{block.content}
-            else
-              p.cat-desc #{res.description}
+            p.cat-desc #{res.description}
             
             if res.suggestedCareers && res.suggestedCareers.length > 0
-              .material-snippet
-                strong 💼 Carreras Recomendadas:
-                ul(style="margin-top: 8px; margin-left: 16px;")
-                  each career in res.suggestedCareers
-                    li 
-                      strong #{career}
-            
-            if res.materialSnippet
-              .material-snippet
-                strong 💡 Para explorar:
-                | #{res.materialSnippet}
-
-        .divider
-
-        p.footer-note
-          | Este reporte es un documento orientativo generado por Orient A.ki. 
-          | Te sugerimos revisarlo junto a un orientador o mentor vocacional.
+              .career-tags
+                each career in res.suggestedCareers
+                  span.tag #{career}
 
       .footer
-        .footer-contact
-          | ¿Necesitas ayuda o tienes dudas?
-          br
-          a(href="mailto:soporte@orientaki.app") Escríbenos a soporte@orientaki.app
-        .footer-brand Orient A.ki
-        .footer-copyright &copy; #{new Date().getFullYear()} Todos los derechos reservados.
+        p.footer-text Enviado automáticamente por Orient A.ki. Documento reservado para fines orientativos.
+        a.contact-btn(href="mailto:soporte@orientaki.app") Soporte Técnico

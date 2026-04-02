@@ -1,138 +1,90 @@
-import { DashboardStatsResponse } from "@akit/contracts";
+import { AdminActivityEvent, DashboardStatsResponse } from "@akit/contracts";
+import { API_URL, getAuthHeaders } from "./client";
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-
-/** Lee el JWT almacenado por AuthContext y devuelve el encabezado Authorization */
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('akit_access_token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+export * from "./categories.api";
+export * from "./institutions.api";
+export * from "./sessions.api";
+export * from "./users.api";
+export * from "./vouchers.api";
 
 export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
   try {
-    const response = await fetch(`${API_URL}/sessions`, {
+    const response = await fetch(`${API_URL}/sessions/admin/overview`, {
       headers: getAuthHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch API data');
-    const responseData = await response.json();
-    const sessions = responseData.data || [];
-
-    // Mapeo básico a los stats definidos
-    // Este código transformará la data de la DB real en nuestra métrica mock temporalmente.
-    
-    // Calcula tiempos totales sumando todas las sesiones y calculando promedio en segundos
-    const sumTimeMs = sessions.reduce((acc: number, s: { totalTimeMs?: string | number }) => acc + Number(s.totalTimeMs || 0), 0);
-    const averageTimeSeconds = sessions.length > 0 ? Math.floor(sumTimeMs / sessions.length / 1000) : 0;
-
-    // Calcular distribución de Holland results based on DB data
-    const categories: Record<string, { count: number, name: string }> = {};
-    sessions.forEach((s: { results?: { categoryId: string }[] }) => {
-      if (s.results) {
-        s.results.forEach((r) => {
-          if (!categories[r.categoryId]) categories[r.categoryId] = { count: 0, name: `Categoría ${r.categoryId}` };
-          categories[r.categoryId].count++;
-        });
-      }
-    });
-
-    const resultsDistribution = Object.keys(categories).map(k => ({
-      categoryId: k,
-      name: categories[k].name,
-      count: categories[k].count,
-    })).sort((a, b) => b.count - a.count);
+    if (!response.ok) throw new Error("Failed to fetch admin overview");
+    const data = (await response.json()) as Partial<DashboardStatsResponse>;
 
     return {
-      totalSessions: sessions.length || 0,
-      completionRate: sessions.length > 0 ? 100 : 0, 
-      averageTimeSeconds,
-      sessionsActivity: [
-        { date: "Hoy", count: sessions.length }
-      ],
-      resultsDistribution: resultsDistribution.length > 0 ? resultsDistribution : [
-        { categoryId: 'R', name: 'Realista', count: 0 },
-        { categoryId: 'I', name: 'Investigador', count: 0 },
-        { categoryId: 'A', name: 'Artístico', count: 0 },
-        { categoryId: 'S', name: 'Social', count: 0 },
-        { categoryId: 'E', name: 'Emprendedor', count: 0 },
-        { categoryId: 'C', name: 'Convencional', count: 0 },
-      ],
+      totalSessions: Number(data.totalSessions ?? 0),
+      completionRate: Number(data.completionRate ?? 0),
+      averageTimeSeconds: Number(data.averageTimeSeconds ?? 0),
+      availableVouchers: Number(data.availableVouchers ?? 0),
+      redeemedVouchers: Number(data.redeemedVouchers ?? 0),
+      periodDays: Number(data.periodDays ?? 7),
+      periodLabel: data.periodLabel ?? "Ultimos 7 dias",
+      testsStartedPeriod: Number(data.testsStartedPeriod ?? 0),
+      testsCompletedPeriod: Number(data.testsCompletedPeriod ?? 0),
+      voucherRedemptionRatePeriod: Number(
+        data.voucherRedemptionRatePeriod ?? 0,
+      ),
+      channelBreakdown: data.channelBreakdown ?? {
+        voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
+        individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+      },
+      sessionsActivity: data.sessionsActivity ?? [],
+      resultsDistribution: data.resultsDistribution ?? [],
+      alerts: data.alerts ?? [],
+      activity: data.activity ?? [],
     };
-  } catch(e) {
-    console.error("Backend offline, returning zeroes.", e);
+  } catch (error) {
+    console.error("Admin overview unavailable, returning zeroes.", error);
     return {
       totalSessions: 0,
       completionRate: 0,
       averageTimeSeconds: 0,
+      availableVouchers: 0,
+      redeemedVouchers: 0,
+      periodDays: 7,
+      periodLabel: "Ultimos 7 dias",
+      testsStartedPeriod: 0,
+      testsCompletedPeriod: 0,
+      voucherRedemptionRatePeriod: 0,
+      channelBreakdown: {
+        voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
+        individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+      },
       sessionsActivity: [],
       resultsDistribution: [],
+      alerts: [],
+      activity: [],
     };
   }
 }
 
-export interface SessionData {
-  id: string;
-  patientName: string;
-  hollandCode: string;
-  sessionDate: string | Date | number;
-  totalTimeMs: number;
-  results?: { categoryId: string; percentage: number }[];
-}
-
-export async function fetchSessionsList(): Promise<SessionData[]> {
+export async function fetchAdminActivityHistory(
+  limit: number = 50,
+): Promise<AdminActivityEvent[]> {
   try {
-    const response = await fetch(`${API_URL}/sessions`, {
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error('Failed to fetch API data');
-    const responseData = await response.json();
-    const sessions = responseData.data || [];
+    const normalizedLimit = Number.isFinite(limit)
+      ? Math.min(Math.max(Math.floor(limit), 1), 200)
+      : 50;
 
-    // Transformamos la data cruda del backend al formato SessionData que el frontend espera
-    return sessions.map((s: any) => {
-      // Calculamos el código Holland (ej: "RIA") tomando las 3 iniciales de las categorías con mayor porcentaje
-      const topResults = (s.results || [])
-        .sort((a: any, b: any) => b.percentage - a.percentage)
-        .slice(0, 3);
-      
-      const hollandCode = topResults.map((r: any) => r.categoryId.charAt(0).toUpperCase()).join('');
+    const response = await fetch(
+      `${API_URL}/sessions/admin/activity?limit=${normalizedLimit}`,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
 
-      return {
-        id: s.id,
-        patientName: s.patientName,
-        hollandCode: hollandCode || 'N/A',
-        sessionDate: s.createdAt || new Date(),
-        totalTimeMs: Number(s.totalTimeMs || 0),
-        results: s.results
-      };
-    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch admin activity history");
+    }
+
+    const data = (await response.json()) as AdminActivityEvent[];
+    return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Error fetching sessions list:', error);
+    console.error("Admin activity history unavailable.", error);
     return [];
-  }
-}
-
-export async function fetchCategories(): Promise<any[]> {
-  try {
-    // GET /categories es público (Android lo usa sin auth)
-    const response = await fetch(`${API_URL}/categories`);
-    if (!response.ok) throw new Error('Failed to fetch categories');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [];
-  }
-}
-
-export async function updateCategory(categoryId: string, data: { title: string; description: string }): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_URL}/categories/${categoryId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-      body: JSON.stringify(data)
-    });
-    return response.ok;
-  } catch (error) {
-    console.error('Error updating category:', error);
-    return false;
   }
 }

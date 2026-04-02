@@ -1,12 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-/**
- * Guard de rutas privadas.
- * - Si la sesión todavía está cargando (rehidratando localStorage), muestra un spinner.
- * - Si no está autenticado, redirige a /login preservando la URL de origen.
- * - Si está autenticado, renderiza los hijos (Outlet).
- */
+
 export function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
