@@ -8,7 +8,6 @@ import {
     Sun,
     Ticket,
     Users,
-    Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -90,16 +89,20 @@ export function DashboardLayout() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-sidebar-bg text-sidebar-text border-r border-sidebar-border backdrop-blur-xl overflow-hidden">
       <div className="px-7 py-10 border-b border-sidebar-border flex flex-col gap-1">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-app-border bg-black/40 shadow-[0_0_25px_rgba(204,255,0,0.15)] transition-transform hover:scale-105">
-            <Zap className="h-6 w-6 text-app-primary animate-in" />
+        <div className="flex items-center gap-4 mb-4 rounded-2xl border border-app-border/70 bg-black/25 px-3 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.28)]">
+          <div className="h-[74px] w-[122px] rounded-2xl flex items-center justify-center border border-app-border bg-black/45 shadow-[0_0_30px_rgba(204,255,0,0.18)] transition-transform hover:scale-105 overflow-hidden px-2">
+            <img
+              src="/logo2.fw.png"
+              alt="ORIENT A.KI"
+              className="max-h-full w-full object-contain object-center"
+            />
           </div>
           <div className="flex flex-col">
-            <span className="text-3xl font-display font-bold text-app-text-main tracking-tight leading-none">
-              A.kit
+            <span className="text-[2rem] font-display font-bold text-app-text-main tracking-tight leading-none">
+              ORIENT A.KI
             </span>
-            <span className="app-label !text-[9px] opacity-70 mt-1.5">
-              Tech-Organic Console
+            <span className="app-label !text-[10px] opacity-80 mt-1.5">
+              Consola Operativa
             </span>
           </div>
         </div>
@@ -225,8 +228,10 @@ export function DashboardLayout() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-8 md:p-10 lg:p-12 scroll-smooth bg-app-bg">
-          <div className="max-w-7xl mx-auto space-y-14 animate-in">
-            <Outlet />
+          <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col animate-in">
+            <div className="flex-1">
+              <Outlet />
+            </div>
             <GlobalFooter />
           </div>
         </main>

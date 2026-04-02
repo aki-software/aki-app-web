@@ -1,50 +1,56 @@
-import { Cpu, Globe, Heart, ShieldCheck } from "lucide-react";
+import { Linkedin, MessageCircle } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function GlobalFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="-mx-8 mt-4 border-t border-app-border/50 pt-3 md:-mx-10 lg:-mx-12">
-      <div className="px-8 md:px-10 lg:px-12">
-        <div className="grid gap-4 py-3 lg:grid-cols-[1.1fr_1.4fr_auto] lg:items-center">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-app-primary shadow-[0_0_12px_rgba(163,184,117,0.45)]" />
-              <span className="text-[11px] font-semibold tracking-[0.1em] text-app-text-muted uppercase">
-                A.kit Platform v3.5.2
-              </span>
+    <footer className="-mx-8 mt-10 md:-mx-10 lg:-mx-12">
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-app-primary/50 to-transparent" />
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-app-border/60 to-transparent" />
+
+      <div className="px-8 pb-5 pt-6 md:px-10 lg:px-12">
+        <div className="rounded-3xl border border-app-border/80 bg-black/25 px-5 py-5 shadow-[0_12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl md:px-6 md:py-6">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-app-border bg-black/35 shadow-[0_0_22px_rgba(204,255,0,0.2)] overflow-hidden">
+                  <img
+                    src="/logo2.fw.png"
+                    alt="ORIENT A.KI"
+                    className="h-full w-full object-contain object-center p-1"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xl font-display font-bold tracking-tight text-app-text-main">
+                    ORIENT A.KI
+                  </span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-app-text-muted/85">
+                    Plataforma Vocacional
+                  </span>
+                </div>
+              </div>
+              <p className="max-w-2xl text-xs leading-relaxed text-app-text-muted/90">
+                © {currentYear} ORIENT A.KI. Todos los derechos reservados.
+              </p>
             </div>
-            <p className="max-w-xl text-xs leading-relaxed text-app-text-muted/90">
-              © {currentYear} A.kit Intelligence. Monitoreo operativo de
-              vouchers, informes y sesiones.
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-            <StatusPill
-              icon={<Globe className="h-4 w-4 text-app-primary" />}
-              label="Plataforma"
-              value="Operativa"
-            />
-            <StatusPill
-              icon={<ShieldCheck className="h-4 w-4 text-emerald-400" />}
-              label="Seguridad"
-              value="TLS activo"
-            />
-            <StatusPill
-              icon={<Cpu className="h-4 w-4 text-app-primary" />}
-              label="Motor"
-              value="Lux 5.0"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:justify-start lg:justify-end">
-            <FooterLink label="Soporte" />
-            <FooterLink label="Privacidad" />
-            <div className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-app-border/70 bg-black/20 px-3 py-1 text-[11px] text-app-text-muted">
-              <span>Hecho en ARG</span>
-              <Heart className="h-3.5 w-3.5 text-rose-400 fill-rose-400" />
+            <div className="flex flex-wrap items-center gap-2">
+              <SocialLink
+                href="https://wa.me/"
+                label="WhatsApp"
+                icon={<MessageCircle className="h-4 w-4" />}
+              />
+              <SocialLink
+                href="https://x.com"
+                label="X"
+                icon={<span className="text-[13px] font-bold">X</span>}
+              />
+              <SocialLink
+                href="https://www.linkedin.com"
+                label="LinkedIn"
+                icon={<Linkedin className="h-4 w-4" />}
+              />
             </div>
           </div>
         </div>
@@ -53,35 +59,25 @@ export function GlobalFooter() {
   );
 }
 
-function StatusPill({
-  icon,
+function SocialLink({
+  href,
   label,
-  value,
+  icon,
 }: {
-  icon: ReactNode;
+  href: string;
   label: string;
-  value: string;
+  icon: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-app-border/70 bg-black/15 px-3 py-1.5">
-      <div className="mb-1 flex items-center gap-2">
-        {icon}
-        <span className="text-[10px] font-medium text-app-text-muted">
-          {label}
-        </span>
-      </div>
-      <p className="text-[13px] font-semibold text-app-text-main">{value}</p>
-    </div>
-  );
-}
-
-function FooterLink({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="rounded-full border border-app-border/80 bg-black/20 px-3 py-1 text-[11px] font-medium text-app-text-muted transition-colors hover:border-app-primary/50 hover:text-app-text-main"
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={label}
+      className="inline-flex items-center gap-2 rounded-full border border-app-border/80 bg-black/20 px-3 py-1.5 text-[11px] font-medium text-app-text-muted transition-colors hover:border-app-primary/50 hover:text-app-text-main"
     >
-      {label}
-    </button>
+      {icon}
+      <span>{label}</span>
+    </a>
   );
 }
