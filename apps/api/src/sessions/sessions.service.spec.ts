@@ -1,14 +1,15 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { SessionsService } from './sessions.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Session } from './entities/session.entity';
-import { CreateSessionDto } from './dto/create-session.dto';
 import { CategoriesService } from '../categories/categories.service';
-import { MailService } from '../mail/mail.service';
 import { PdfService } from '../common/services/pdf.service';
 import { StorageService } from '../common/services/storage.service';
+import { MailService } from '../mail/mail.service';
+import { Voucher } from '../vouchers/entities/voucher.entity';
 import { VouchersService } from '../vouchers/vouchers.service';
-import { NotFoundException } from '@nestjs/common';
+import { CreateSessionDto } from './dto/create-session.dto';
+import { Session } from './entities/session.entity';
+import { SessionsService } from './sessions.service';
 
 describe('SessionsService', () => {
   let service: SessionsService;
@@ -25,6 +26,11 @@ describe('SessionsService', () => {
     findOne: jest.fn(),
   };
 
+  const mockVoucherRepository = {
+    count: jest.fn(),
+    find: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -32,6 +38,10 @@ describe('SessionsService', () => {
         {
           provide: getRepositoryToken(Session),
           useValue: mockSessionRepository,
+        },
+        {
+          provide: getRepositoryToken(Voucher),
+          useValue: mockVoucherRepository,
         },
         {
           provide: CategoriesService,

@@ -22,9 +22,13 @@
     "typeorm": "node ./node_modules/typeorm/cli.js",
     "migration:generate": "pnpm build && node ./node_modules/typeorm/cli.js migration:generate -d dist/config/typeorm.config.js src/migrations/",
     "migration:run": "pnpm build && node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js",
-    "seed": "pnpm build && node dist/database/seeds/initial-seed.js && node dist/database/seeds/mvp-scenarios-seed.js",
-    "seed:base": "pnpm build && node dist/database/seeds/initial-seed.js",
-    "seed:mvp": "pnpm build && node dist/database/seeds/mvp-scenarios-seed.js"
+    "seed": "pnpm seed:admin",
+    "seed:admin": "pnpm build && node dist/database/seeds/admin-seed.js",
+    "seed:base": "pnpm seed:admin",
+    "seed:optional:categories": "pnpm build && node dist/database/seeds/optional-categories-seed.js",
+    "seed:optional:mvp": "pnpm build && node dist/database/seeds/optional-mvp-scenarios-seed.js",
+    "db:bootstrap:staging": "pnpm migration:run && pnpm seed:admin",
+    "db:reset:staging": "pnpm build && node ./node_modules/typeorm/cli.js schema:drop -d dist/config/typeorm.config.js && node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js && node dist/database/seeds/admin-seed.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1014.0",

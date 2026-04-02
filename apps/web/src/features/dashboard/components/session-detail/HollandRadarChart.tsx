@@ -1,11 +1,11 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  ResponsiveContainer,
-  Tooltip,
+    PolarAngleAxis,
+    PolarGrid,
+    Radar,
+    RadarChart,
+    ResponsiveContainer,
+    Tooltip,
 } from "recharts";
 
 interface HollandRadarChartProps {

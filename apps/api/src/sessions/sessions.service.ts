@@ -125,8 +125,9 @@ export class SessionsService {
   async sendReport(
     sessionId: string,
     targetEmail: string,
+    scope?: SessionScope,
   ): Promise<{ success: boolean; message: string }> {
-    const session = await this.findOne(sessionId);
+    const session = await this.findOne(sessionId, scope);
     const categories = await this.categoriesService.findAll();
 
     const topResults = (session.results || [])

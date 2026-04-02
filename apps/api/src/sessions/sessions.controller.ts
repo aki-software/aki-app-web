@@ -203,12 +203,19 @@ export class SessionsController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post(':id/send-report')
   async sendReport(
     @Param('id') id: string,
     @Body() sendReportDto: SendReportDto,
+    @Req() req?: AuthenticatedRequest,
   ) {
-    return await this.sessionsService.sendReport(id, sendReportDto.email);
+    return await this.sessionsService.sendReport(id, sendReportDto.email, {
+      role: req?.user?.role,
+      therapistUserId: req?.user?.userId,
+      patientId: req?.user?.userId,
+      institutionId: req?.user?.institutionId,
+    });
   }
 
   private calculateDuration(start?: string, end?: string): number {

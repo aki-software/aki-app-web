@@ -45,7 +45,20 @@ export class VouchersController {
     @Body('email') email?: string,
     @Req() req?: AuthenticatedRequest,
   ) {
-    // Aquí podrías agregar una validación de propiedad si fuera necesario
+    const voucher = await this.vouchersService.findById(id);
+    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
+    const isInstitutionOwner =
+      !!voucher.ownerInstitutionId &&
+      req?.user?.institutionId === voucher.ownerInstitutionId;
+    const isDirectOwnerUser =
+      !!voucher.ownerUserId && req?.user?.userId === voucher.ownerUserId;
+
+    if (!isAdmin && !isInstitutionOwner && !isDirectOwnerUser) {
+      throw new UnauthorizedException(
+        'No tienes permisos para enviar este voucher',
+      );
+    }
+
     return await this.vouchersService.sendEmail(id, email);
   }
 

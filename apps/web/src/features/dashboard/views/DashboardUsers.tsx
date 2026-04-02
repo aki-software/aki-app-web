@@ -1,15 +1,19 @@
-import { type FormEvent, useEffect, useState } from "react";
 import { Building2, Users as UsersIcon } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
-  createInstitution,
-  createTherapist,
-  fetchInstitutions,
-  fetchTherapists,
-  resendActivationInvitation,
-  type InstitutionOption,
-  type TherapistOption,
+    createInstitution,
+    createTherapist,
+    fetchInstitutions,
+    fetchTherapists,
+    resendActivationInvitation,
+    type InstitutionOption,
+    type TherapistOption,
 } from "../api/dashboard";
-import { CreateEntityForm, initialFormState, type EntityFormState } from "../components/users/CreateEntityForm";
+import {
+    CreateEntityForm,
+    initialFormState,
+    type EntityFormState,
+} from "../components/users/CreateEntityForm";
 import { InstitutionCard } from "../components/users/InstitutionCard";
 import { TherapistCard } from "../components/users/TherapistCard";
 
@@ -54,9 +58,14 @@ export function DashboardUsers() {
     setSaving(true);
 
     if (formState.entityType === "INSTITUTION") {
-      if (!formState.responsibleName.trim() || !formState.responsibleEmail.trim()) {
+      if (
+        !formState.responsibleName.trim() ||
+        !formState.responsibleEmail.trim()
+      ) {
         setSaving(false);
-        setErrorMessage("Ingresá nombre y email del responsable institucional.");
+        setErrorMessage(
+          "Ingresá nombre y email del responsable institucional.",
+        );
         return;
       }
 
@@ -78,7 +87,7 @@ export function DashboardUsers() {
       setMessage(
         created.activationEmailSent
           ? `Institución ${created.name} creada. Se envió activación al responsable.`
-          : `Institución ${created.name} creada, pero no se pudo enviar el mail al responsable.`
+          : `Institución ${created.name} creada, pero no se pudo enviar el mail al responsable.`,
       );
       return;
     }
@@ -100,7 +109,7 @@ export function DashboardUsers() {
     setMessage(
       created.activationEmailSent
         ? `Terapeuta ${created.name} creado. Se envió un mail de activación a la dirección informada.`
-        : `Terapeuta ${created.name} creado, pero no se pudo enviar el mail de activación.`
+        : `Terapeuta ${created.name} creado, pero no se pudo enviar el mail de activación.`,
     );
   };
 
@@ -121,12 +130,12 @@ export function DashboardUsers() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h2 className="text-2xl font-display font-bold text-app-text-main tracking-tight">
           Instituciones y terapeutas
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Alta mínima de owners operativos. Cada institución se crea junto con su
-          usuario responsable, que recibe activación por mail.
+        <p className="mt-1 text-sm text-app-text-muted">
+          Alta mínima de owners operativos. Cada institución se crea junto con
+          su usuario responsable, que recibe activación por mail.
         </p>
       </div>
 
@@ -151,34 +160,33 @@ export function DashboardUsers() {
         resetMessages={resetMessages}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="app-card !p-6">
           <div className="mb-4 flex items-center">
-            <Building2 className="mr-2 h-5 w-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Instituciones
-            </h3>
+            <Building2 className="mr-2 h-5 w-5 text-app-primary" />
+            <h3 className="font-semibold text-app-text-main">Instituciones</h3>
           </div>
           {loading ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+            <p className="text-sm text-app-text-muted">Cargando...</p>
           ) : (
             <div className="space-y-3">
               {institutions.map((institution) => (
-                <InstitutionCard key={institution.id} institution={institution} />
+                <InstitutionCard
+                  key={institution.id}
+                  institution={institution}
+                />
               ))}
             </div>
           )}
         </div>
 
-        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="app-card !p-6">
           <div className="mb-4 flex items-center">
-            <UsersIcon className="mr-2 h-5 w-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Terapeutas
-            </h3>
+            <UsersIcon className="mr-2 h-5 w-5 text-app-primary" />
+            <h3 className="font-semibold text-app-text-main">Terapeutas</h3>
           </div>
           {loading ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+            <p className="text-sm text-app-text-muted">Cargando...</p>
           ) : (
             <div className="space-y-3">
               {therapists.map((therapist) => (

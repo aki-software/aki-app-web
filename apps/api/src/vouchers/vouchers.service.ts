@@ -107,6 +107,15 @@ export class VouchersService {
     );
   }
 
+  async findById(id: string): Promise<Voucher> {
+    const voucher = await this.voucherRepository.findOne({
+      where: { id },
+      relations: ['ownerUser', 'ownerInstitution'],
+    });
+    if (!voucher) throw new NotFoundException('Voucher no encontrado');
+    return voucher;
+  }
+
   async resolveAvailableVoucher(code: string): Promise<Voucher> {
     const voucher = await this.findByCode(code);
     this.assertVoucherAvailable(voucher);
