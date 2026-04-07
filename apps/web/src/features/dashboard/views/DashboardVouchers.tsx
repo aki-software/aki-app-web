@@ -12,13 +12,16 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import type {
     InstitutionOption,
     TherapistOption,
+    VoucherBatchSummary,
     VoucherData,
 } from "../api/dashboard";
 import {
     createVoucher,
+    fetchVoucherBatches,
     fetchInstitutions,
     fetchTherapists,
     fetchVouchersList,
+    fetchVouchersPage,
 } from "../api/dashboard";
 import { VoucherBatchRow } from "../components/vouchers/VoucherBatchRow";
 import {
@@ -29,21 +32,9 @@ import {
 import { VoucherStatsCards } from "../components/vouchers/VoucherStatsCards";
 import { VoucherTableRow } from "../components/vouchers/VoucherTableRow";
 
-export type BatchSummary = {
-  batchId: string;
-  ownerInstitutionName: string;
-  ownerUserName: string;
-  createdAt: string | number | Date;
-  expiresAt: string | number | Date | null;
-  total: number;
-  available: number;
-  used: number;
-};
-
 const ITEMS_PER_PAGE = 10;
 type StatusFilter = "ALL" | "AVAILABLE" | "USED" | "EXPIRED";
 type ExpirationFilter = "ALL" | "EXPIRING_7D" | "NO_EXPIRATION";
-type OriginFilter = "ALL" | "ORGANIZATION" | "THERAPIST" | "UNASSIGNED";
 
 const PERIOD_DAYS = 30;
 
@@ -59,10 +50,14 @@ export function DashboardVouchers() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [expirationFilter, setExpirationFilter] =
     useState<ExpirationFilter>("ALL");
-  const [originFilter, setOriginFilter] = useState<OriginFilter>("ALL");
+  const [clientFilter, setClientFilter] = useState("ALL");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [viewMode, setViewMode] = useState<"BATCHES" | "INDIVIDUAL">("BATCHES");
   const [currentPage, setCurrentPage] = useState(1);
+  const [batchItems, setBatchItems] = useState<VoucherBatchSummary[]>([]);
+  const [batchTotalItems, setBatchTotalItems] = useState(0);
+  const [individualItems, setIndividualItems] = useState<VoucherData[]>([]);
+  const [individualTotalItems, setIndividualTotalItems] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formState, setFormState] =
@@ -89,105 +84,96 @@ export function DashboardVouchers() {
   useEffect(() => {
     loadData();
   }, []);
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, viewMode, statusFilter, expirationFilter, originFilter]);
+  }, [searchTerm, viewMode, statusFilter, expirationFilter, clientFilter]);
 
-  const filteredVouchers = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    const now = Date.now();
-    const next7Days = now + 7 * 24 * 60 * 60 * 1000;
-    return vouchers.filter((voucher) => {
-      const matchesSearch =
-        !term ||
-        [
-          voucher.code,
-          voucher.status,
-          voucher.batchId,
-          voucher.ownerInstitutionName,
-          voucher.ownerUserName,
-          voucher.assignedPatientName,
-          voucher.assignedPatientEmail,
-        ]
-          .filter(Boolean)
-          .some((value) => String(value).toLowerCase().includes(term));
-      const matchesStatus =
-        statusFilter === "ALL" || voucher.status === statusFilter;
-
-      const expiresAtTimestamp = voucher.expiresAt
-        ? new Date(voucher.expiresAt).getTime()
-        : NaN;
-      const hasValidExpiration = Number.isFinite(expiresAtTimestamp);
-      const matchesExpiration =
-        expirationFilter === "ALL" ||
-        (expirationFilter === "EXPIRING_7D" &&
-          hasValidExpiration &&
-          expiresAtTimestamp >= now &&
-          expiresAtTimestamp <= next7Days) ||
-        (expirationFilter === "NO_EXPIRATION" && !hasValidExpiration);
-
-      const matchesOrigin =
-        originFilter === "ALL" ||
-        (originFilter === "ORGANIZATION" && !!voucher.ownerInstitutionId) ||
-        (originFilter === "THERAPIST" && !!voucher.ownerUserId) ||
-        (originFilter === "UNASSIGNED" &&
-          !voucher.ownerInstitutionId &&
-          !voucher.ownerUserId);
-
-      return (
-        matchesSearch && matchesStatus && matchesExpiration && matchesOrigin
-      );
-    });
-  }, [searchTerm, vouchers, statusFilter, expirationFilter, originFilter]);
-
-  const batchSummaries = useMemo<BatchSummary[]>(() => {
-    const grouped = new Map<string, BatchSummary>();
-    filteredVouchers.forEach((voucher) => {
-      const existing = grouped.get(voucher.batchId);
-      if (!existing) {
-        grouped.set(voucher.batchId, {
-          batchId: voucher.batchId,
-          ownerInstitutionName: voucher.ownerInstitutionName,
-          ownerUserName: voucher.ownerUserName,
-          createdAt: voucher.createdAt,
-          expiresAt: voucher.expiresAt,
-          total: 1,
-          available: voucher.status === "AVAILABLE" ? 1 : 0,
-          used: voucher.status === "USED" ? 1 : 0,
-        });
+  useEffect(() => {
+    const loadBatchData = async () => {
+      if (viewMode !== "BATCHES") {
         return;
       }
-      existing.total += 1;
-      if (voucher.status === "AVAILABLE") existing.available += 1;
-      if (voucher.status === "USED") existing.used += 1;
+      const response = await fetchVoucherBatches({
+        search: searchTerm,
+        clientId: clientFilter === "ALL" ? undefined : clientFilter,
+        expiration: expirationFilter,
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+      });
+      setBatchItems(response.data);
+      setBatchTotalItems(response.count);
+    };
+
+    void loadBatchData();
+  }, [searchTerm, expirationFilter, clientFilter, currentPage, viewMode]);
+
+  useEffect(() => {
+    const loadIndividualData = async () => {
+      if (viewMode !== "INDIVIDUAL") {
+        return;
+      }
+      const response = await fetchVouchersPage({
+        search: searchTerm,
+        status: statusFilter,
+        clientId: clientFilter === "ALL" ? undefined : clientFilter,
+        expiration: expirationFilter,
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+      });
+      setIndividualItems(response.data);
+      setIndividualTotalItems(response.count);
+    };
+
+    void loadIndividualData();
+  }, [
+    searchTerm,
+    statusFilter,
+    expirationFilter,
+    clientFilter,
+    currentPage,
+    viewMode,
+  ]);
+
+  const clientOptions = useMemo(() => {
+    const entries = new Map<string, string>();
+    vouchers.forEach((voucher) => {
+      const key = voucher.ownerInstitutionId ?? "__UNASSIGNED__";
+      const label =
+        voucher.ownerInstitutionId && voucher.ownerInstitutionName
+          ? voucher.ownerInstitutionName
+          : "Cliente no informado";
+      if (!entries.has(key)) {
+        entries.set(key, label);
+      }
     });
-    return Array.from(grouped.values()).sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-  }, [filteredVouchers]);
+
+    return Array.from(entries.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, "es"));
+  }, [vouchers]);
 
   const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
     if (viewMode === "BATCHES") {
       return {
-        items: batchSummaries.slice(startIndex, endIndex),
-        totalItems: batchSummaries.length,
-        totalPages: Math.ceil(batchSummaries.length / ITEMS_PER_PAGE),
+        items: batchItems,
+        totalItems: batchTotalItems,
+        totalPages: Math.ceil(batchTotalItems / ITEMS_PER_PAGE),
       };
     } else {
       return {
-        items: filteredVouchers.slice(startIndex, endIndex),
-        totalItems: filteredVouchers.length,
-        totalPages: Math.ceil(filteredVouchers.length / ITEMS_PER_PAGE),
+        items: individualItems,
+        totalItems: individualTotalItems,
+        totalPages: Math.ceil(individualTotalItems / ITEMS_PER_PAGE),
       };
     }
-  }, [currentPage, viewMode, batchSummaries, filteredVouchers]);
-
-  const availableCount = vouchers.filter(
-    (v) => v.status === "AVAILABLE",
-  ).length;
+  }, [
+    viewMode,
+    batchItems,
+    batchTotalItems,
+    individualItems,
+    individualTotalItems,
+  ]);
 
   const expiringSoonCount = useMemo(() => {
     const now = Date.now();
@@ -223,6 +209,17 @@ export function DashboardVouchers() {
     () => vouchers.filter((voucher) => voucher.status === "USED").length,
     [vouchers],
   );
+  const batchesEmittedInPeriod = useMemo(() => {
+    const periodStart = Date.now() - PERIOD_DAYS * 24 * 60 * 60 * 1000;
+    const batchIds = new Set<string>();
+    vouchers.forEach((voucher) => {
+      const createdAt = new Date(voucher.createdAt).getTime();
+      if (Number.isFinite(createdAt) && createdAt >= periodStart) {
+        batchIds.add(voucher.batchId);
+      }
+    });
+    return batchIds.size;
+  }, [vouchers]);
 
   const usesHistoricalFallback = emittedInPeriod === 0 && emittedHistorical > 0;
   const effectiveEmitted = usesHistoricalFallback
@@ -259,7 +256,7 @@ export function DashboardVouchers() {
       setSearchTerm("");
       setStatusFilter("ALL");
       setExpirationFilter("ALL");
-      setOriginFilter("ALL");
+      setClientFilter("ALL");
       setCurrentPage(1);
       setViewMode("BATCHES");
       setShowCreateForm(false);
@@ -331,9 +328,10 @@ export function DashboardVouchers() {
         isAdmin={isAdmin}
         showCreateForm={showCreateForm}
         onToggleForm={() => setShowCreateForm((prev) => !prev)}
-        availableCount={availableCount}
+        batchesEmittedInPeriod={batchesEmittedInPeriod}
+        vouchersEmittedInPeriod={effectiveEmitted}
+        vouchersRedeemedInPeriod={effectiveRedeemed}
         expiringSoonCount={expiringSoonCount}
-        emittedInPeriod={effectiveEmitted}
         redemptionRate={redemptionRate}
         periodDays={PERIOD_DAYS}
         usesHistoricalFallback={usesHistoricalFallback}
@@ -375,7 +373,11 @@ export function DashboardVouchers() {
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-app-text-muted group-focus-within:text-app-primary transition-colors" />
               <input
                 type="text"
-                placeholder="Filtrar por código o paciente..."
+                placeholder={
+                  viewMode === "BATCHES"
+                    ? "Buscar por lote o cliente..."
+                    : "Buscar por código, cliente o paciente..."
+                }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="app-card !p-4 !pl-14 w-full bg-app-surface border-app-border focus:border-app-primary outline-none transition-all shadow-xl !rounded-2xl"
@@ -418,17 +420,19 @@ export function DashboardVouchers() {
 
             {isAdmin && (
               <select
-                value={originFilter}
+                value={clientFilter}
                 onChange={(event) =>
-                  setOriginFilter(event.target.value as OriginFilter)
+                  setClientFilter(event.target.value)
                 }
                 className="app-select rounded-xl border border-app-border bg-app-bg px-4 py-3 text-[11px] font-black uppercase tracking-wide text-app-text-main"
-                aria-label="Filtrar por origen"
+                aria-label="Filtrar por cliente"
               >
-                <option value="ALL">Origen: Todos</option>
-                <option value="ORGANIZATION">Con organizacion</option>
-                <option value="THERAPIST">Con terapeuta</option>
-                <option value="UNASSIGNED">Sin asignacion</option>
+                <option value="ALL">Cliente: Todos</option>
+                {clientOptions.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name}
+                  </option>
+                ))}
               </select>
             )}
           </div>
@@ -462,7 +466,7 @@ export function DashboardVouchers() {
         {viewMode === "BATCHES" ? (
           <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {(paginatedData.items as BatchSummary[]).length === 0 ? (
+              {(paginatedData.items as VoucherBatchSummary[]).length === 0 ? (
                 <div className="col-span-full app-card !p-20 text-center flex flex-col items-center gap-4 opacity-40">
                   <Filter className="h-12 w-12" />
                   <p className="app-label">
@@ -470,7 +474,7 @@ export function DashboardVouchers() {
                   </p>
                 </div>
               ) : (
-                (paginatedData.items as BatchSummary[]).map((batch) => (
+                (paginatedData.items as VoucherBatchSummary[]).map((batch) => (
                   <VoucherBatchRow key={batch.batchId} batch={batch} />
                 ))
               )}
@@ -490,14 +494,14 @@ export function DashboardVouchers() {
                       <th className="px-5 py-5 app-label opacity-40">Estado</th>
                       {isAdmin && (
                         <th className="px-5 py-5 app-label opacity-40">
-                          Origen de emisión
+                          Cliente
                         </th>
                       )}
                       <th className="px-5 py-5 app-label opacity-40">
-                        Paciente / Destino
+                        Paciente / destino
                       </th>
                       <th className="px-5 py-5 app-label opacity-40">
-                        Registro de Uso
+                        Fechas clave
                       </th>
                       <th className="px-5 py-5 app-label opacity-40 text-right">
                         Compartir

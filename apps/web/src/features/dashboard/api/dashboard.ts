@@ -23,11 +23,14 @@ export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
       redeemedVouchers: Number(data.redeemedVouchers ?? 0),
       periodDays: Number(data.periodDays ?? 7),
       periodLabel: data.periodLabel ?? "Ultimos 7 dias",
+      vouchersGeneratedPeriod: Number(data.vouchersGeneratedPeriod ?? 0),
+      vouchersRedeemedPeriod: Number(data.vouchersRedeemedPeriod ?? 0),
       testsStartedPeriod: Number(data.testsStartedPeriod ?? 0),
       testsCompletedPeriod: Number(data.testsCompletedPeriod ?? 0),
       voucherRedemptionRatePeriod: Number(
         data.voucherRedemptionRatePeriod ?? 0,
       ),
+      reportsUnlockedPeriod: Number(data.reportsUnlockedPeriod ?? 0),
       channelBreakdown: data.channelBreakdown ?? {
         voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
         individual: { started: 0, completed: 0, reportsUnlocked: 0 },
@@ -47,9 +50,12 @@ export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
       redeemedVouchers: 0,
       periodDays: 7,
       periodLabel: "Ultimos 7 dias",
+      vouchersGeneratedPeriod: 0,
+      vouchersRedeemedPeriod: 0,
       testsStartedPeriod: 0,
       testsCompletedPeriod: 0,
       voucherRedemptionRatePeriod: 0,
+      reportsUnlockedPeriod: 0,
       channelBreakdown: {
         voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
         individual: { started: 0, completed: 0, reportsUnlocked: 0 },

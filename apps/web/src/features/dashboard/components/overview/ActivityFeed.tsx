@@ -1,7 +1,6 @@
 import { AdminActivityEvent } from "@akit/contracts";
 import {
     Activity,
-    ChevronRight,
     ClipboardList,
     MessageSquare,
     Ticket,
@@ -92,7 +91,7 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
       <div className="px-8 py-6 border-b border-app-border flex items-center justify-between bg-app-bg/10">
         <div className="flex items-center gap-3">
           <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <h3 className="app-label !text-xs opacity-60">Actividad Operativa</h3>
+          <h3 className="app-label !text-xs opacity-60">Actividad reciente</h3>
         </div>
         <Link
           to="/dashboard/activity"
@@ -111,7 +110,7 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
           events.map((event) => (
             <div
               key={event.id}
-              className="px-8 py-5 flex items-start gap-5 hover:bg-app-bg/30 transition-all cursor-pointer group"
+              className="px-8 py-5 flex items-start gap-5 hover:bg-app-bg/30 transition-all group"
             >
               <div className="relative shrink-0">
                 <div className="h-10 w-10 rounded-xl bg-app-bg border border-app-border flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:border-app-primary/20 transition-all">
@@ -135,8 +134,6 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
                   {event.description}
                 </p>
               </div>
-
-              <ChevronRight className="h-4 w-4 text-app-text-muted opacity-20 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </div>
           ))
         )}
@@ -144,7 +141,7 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
 
       <div className="mt-auto px-8 py-5 bg-app-bg/5 border-t border-app-border flex items-center justify-center">
         <p className="app-label !text-[9px] opacity-40">
-          Eventos recientes de vouchers, sesiones e informes
+          Eventos recientes de vouchers y sesiones en la plataforma
         </p>
       </div>
     </div>

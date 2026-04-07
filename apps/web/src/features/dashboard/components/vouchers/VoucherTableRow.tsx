@@ -20,6 +20,8 @@ function statusLabel(status: string) {
   switch (status) {
     case "AVAILABLE":
       return "Disponible";
+    case "SENT":
+      return "Enviado";
     case "USED":
       return "Canjeado";
     case "EXPIRED":
@@ -33,6 +35,8 @@ function statusClasses(status: string) {
   switch (status) {
     case "AVAILABLE":
       return "text-emerald-500 border-emerald-500/20 bg-emerald-500/5 shadow-emerald-500/10";
+    case "SENT":
+      return "text-amber-400 border-amber-400/20 bg-amber-400/5 shadow-amber-400/10";
     case "USED":
       return "text-app-primary border-app-primary/20 bg-app-primary/5 shadow-app-primary/10";
     case "EXPIRED":
@@ -137,7 +141,7 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5 text-[10px] font-black text-app-text-main uppercase tracking-tight whitespace-nowrap">
               <Building2 className="h-3 w-3 text-app-primary/60" />
-              {voucher.ownerInstitutionName || "Pago individual"}
+              {voucher.ownerInstitutionName || "Cliente no informado"}
             </div>
             <div className="flex items-center gap-1.5 opacity-40">
               <UserRound className="h-3 w-3" />
@@ -168,7 +172,7 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
         <div className="flex flex-col gap-1 text-[9px] font-bold text-app-text-muted uppercase tracking-tighter">
           <div className="flex items-center gap-1.5 opacity-60">
             <Calendar className="h-3 w-3" />
-            {formatDate(voucher.createdAt)}
+            Emision: {formatDate(voucher.createdAt)}
           </div>
           {voucher.redeemedAt && (
             <div className="flex items-center gap-1.5 text-app-primary font-black opacity-100 whitespace-nowrap">
@@ -176,6 +180,10 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
               Uso: {formatDate(voucher.redeemedAt)}
             </div>
           )}
+          <div className="flex items-center gap-1.5 opacity-60">
+            <Calendar className="h-3 w-3" />
+            Venc.: {formatDate(voucher.expiresAt)}
+          </div>
         </div>
       </td>
 
@@ -273,7 +281,7 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
             </>
           ) : (
             <div className="app-tag !px-3 !py-1 opacity-20 !bg-transparent border-dashed">
-              Consumido
+              Sin acciones
             </div>
           )}
         </div>

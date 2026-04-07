@@ -13,6 +13,8 @@ import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserRole } from '../users/entities/user.entity';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
+import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
+import { ListVouchersDto } from './dto/list-vouchers.dto';
 import { ResolveVoucherDto } from './dto/resolve-voucher.dto';
 import { VouchersService } from './vouchers.service';
 
@@ -81,17 +83,33 @@ export class VouchersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
-  async findAll(
-    @Query('institutionId') institutionId?: string,
+  @Get('batches')
+  async findBatches(
+    @Query() query: ListVoucherBatchesDto,
     @Req() req?: AuthenticatedRequest,
   ) {
     const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
-    return await this.vouchersService.findAll({
+    return await this.vouchersService.findBatchSummaries(query, {
       role: req?.user?.role,
       ownerUserId: req?.user?.userId,
       ownerInstitutionId: isAdmin
-        ? institutionId || undefined
+        ? query.clientId || undefined
+        : req?.user?.institutionId,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async findAll(
+    @Query() query?: ListVouchersDto,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
+    return await this.vouchersService.findAllFiltered(query ?? {}, {
+      role: req?.user?.role,
+      ownerUserId: req?.user?.userId,
+      ownerInstitutionId: isAdmin
+        ? query?.clientId || undefined
         : req?.user?.institutionId,
     });
   }

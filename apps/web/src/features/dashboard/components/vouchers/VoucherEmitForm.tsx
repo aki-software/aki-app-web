@@ -71,7 +71,7 @@ export function VoucherEmitForm({
       <form className="space-y-10" onSubmit={onSubmit}>
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-4">
           <label className="flex flex-col gap-3">
-            <span className="app-label opacity-60">Tipo de Destinatario</span>
+            <span className="app-label opacity-60">Tipo de Cliente</span>
             <select
               value={formState.ownerType}
               onChange={(event) =>
@@ -80,13 +80,13 @@ export function VoucherEmitForm({
               className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary focus:ring-2 focus:ring-app-primary/20 transition-all outline-none appearance-none cursor-pointer"
             >
               <option value="INSTITUTION">Institución</option>
-              <option value="THERAPIST">Terapeuta</option>
+              <option value="THERAPIST">Consultorio privado</option>
             </select>
           </label>
 
           {formState.ownerType === "INSTITUTION" ? (
             <label className="flex flex-col gap-3">
-              <span className="app-label opacity-60">Asignar Institución</span>
+              <span className="app-label opacity-60">Cliente</span>
               <select
                 value={formState.ownerInstitutionId}
                 onChange={(event) =>
@@ -94,7 +94,7 @@ export function VoucherEmitForm({
                 }
                 className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer"
               >
-                <option value="">Seleccionar institución...</option>
+                <option value="">Seleccionar cliente...</option>
                 {institutions.map((institution) => (
                   <option key={institution.id} value={institution.id}>
                     {institution.name}
@@ -104,7 +104,7 @@ export function VoucherEmitForm({
             </label>
           ) : (
             <label className="flex flex-col gap-3">
-              <span className="app-label opacity-60">Asignar Terapeuta</span>
+              <span className="app-label opacity-60">Responsable</span>
               <select
                 value={formState.ownerUserId}
                 onChange={(event) =>
@@ -112,7 +112,7 @@ export function VoucherEmitForm({
                 }
                 className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer"
               >
-                <option value="">Seleccionar terapeuta...</option>
+                <option value="">Seleccionar responsable...</option>
                 {therapistOptions.map((therapist) => (
                   <option key={therapist.id} value={therapist.id}>
                     {therapist.name}
@@ -126,7 +126,7 @@ export function VoucherEmitForm({
           )}
 
           <label className="flex flex-col gap-3">
-            <span className="app-label opacity-60">Cantidad de Créditos</span>
+            <span className="app-label opacity-60">Cantidad de Vouchers</span>
             <input
               type="number"
               min="1"

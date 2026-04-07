@@ -1,4 +1,4 @@
-import { FileDown, HelpCircle, Plus, Search } from "lucide-react";
+import { HelpCircle, Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
@@ -12,7 +12,7 @@ export function QuickActions({ isAdmin }: Props) {
     {
       id: "emit",
       title: "Emitir lotes",
-      desc: "Crear vouchers para distribucion.",
+      desc: "Generar vouchers para clientes.",
       icon: Plus,
       color: "text-app-primary bg-app-primary/5 border-app-primary/10",
       path: "/dashboard/vouchers?create=true",
@@ -28,18 +28,9 @@ export function QuickActions({ isAdmin }: Props) {
       show: true,
     },
     {
-      id: "report",
-      title: "Exportar reporte",
-      desc: "Descargar resumen operativo.",
-      icon: FileDown,
-      color: "text-emerald-500 bg-emerald-500/5 border-emerald-500/10",
-      path: "/dashboard/results",
-      show: true,
-    },
-    {
       id: "support",
       title: "Centro de soporte",
-      desc: "Guias y configuracion.",
+      desc: "Guias y ajustes del sistema.",
       icon: HelpCircle,
       color: "text-amber-500 bg-amber-500/5 border-amber-500/10",
       path: "/dashboard/settings",
@@ -48,7 +39,7 @@ export function QuickActions({ isAdmin }: Props) {
   ].filter((a) => a.show);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
       {actions.map((action) => (
         <button
           key={action.id}

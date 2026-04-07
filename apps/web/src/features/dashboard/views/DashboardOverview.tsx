@@ -64,25 +64,27 @@ export function DashboardOverview() {
 
   const displayStats = isInstitution
     ? {
-        availableVouchers: institutionStats?.availableVouchers || 0,
-        redeemedVouchers: institutionStats?.redeemedVouchers || 0,
         periodLabel: "Ultimos 7 dias",
+        vouchersGeneratedPeriod: 0,
+        vouchersRedeemedPeriod: institutionStats?.redeemedVouchers || 0,
         testsStartedPeriod: institutionStats?.totalSessions || 0,
         testsCompletedPeriod: 0,
         voucherRedemptionRatePeriod: 0,
+        reportsUnlockedPeriod: 0,
         channelBreakdown: {
           voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
           individual: { started: 0, completed: 0, reportsUnlocked: 0 },
         },
       }
     : {
-        availableVouchers: adminStats?.availableVouchers || 0,
-        redeemedVouchers: adminStats?.redeemedVouchers || 0,
         periodLabel: adminStats?.periodLabel || "Ultimos 7 dias",
+        vouchersGeneratedPeriod: adminStats?.vouchersGeneratedPeriod || 0,
+        vouchersRedeemedPeriod: adminStats?.vouchersRedeemedPeriod || 0,
         testsStartedPeriod: adminStats?.testsStartedPeriod || 0,
         testsCompletedPeriod: adminStats?.testsCompletedPeriod || 0,
         voucherRedemptionRatePeriod:
           adminStats?.voucherRedemptionRatePeriod || 0,
+        reportsUnlockedPeriod: adminStats?.reportsUnlockedPeriod || 0,
         channelBreakdown: adminStats?.channelBreakdown || {
           voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
           individual: { started: 0, completed: 0, reportsUnlocked: 0 },
@@ -94,6 +96,32 @@ export function DashboardOverview() {
     day: "numeric",
     month: "long",
   }).format(new Date());
+  const sessionsActivitySummary = adminStats
+    ? (() => {
+        const totalStarted = adminStats.sessionsActivity.reduce(
+          (acc, item) => acc + item.count,
+          0,
+        );
+        const daysCount = adminStats.sessionsActivity.length;
+        const dailyAverage =
+          daysCount > 0 ? Math.round((totalStarted / daysCount) * 10) / 10 : 0;
+        const peakDay = adminStats.sessionsActivity.reduce<{
+          date: string;
+          count: number;
+        } | null>((best, item) => {
+          if (!best || item.count > best.count) {
+            return item;
+          }
+          return best;
+        }, null);
+
+        return {
+          totalStarted,
+          dailyAverage,
+          peakDay,
+        };
+      })()
+    : null;
 
   return (
     <div className="space-y-12 animate-in pb-20">
@@ -109,8 +137,8 @@ export function DashboardOverview() {
             Resumen Operativo
           </h2>
           <p className="mt-3 text-sm font-medium text-app-text-muted max-w-lg leading-relaxed">
-            Vista ejecutiva para controlar vouchers, informes y conversion por
-            canal.
+            Vista ejecutiva para seguir el flujo operativo, las alertas y la
+            actividad reciente de la plataforma.
           </p>
         </div>
         <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-black/25 border border-app-border backdrop-blur-xl">
@@ -122,12 +150,12 @@ export function DashboardOverview() {
       </div>
 
       <OverviewHighlights
-        availableVouchers={displayStats.availableVouchers}
-        redeemedVouchers={displayStats.redeemedVouchers}
         periodLabel={displayStats.periodLabel}
-        testsStartedPeriod={displayStats.testsStartedPeriod}
+        vouchersGeneratedPeriod={displayStats.vouchersGeneratedPeriod}
+        vouchersRedeemedPeriod={displayStats.vouchersRedeemedPeriod}
         testsCompletedPeriod={displayStats.testsCompletedPeriod}
         voucherRedemptionRatePeriod={displayStats.voucherRedemptionRatePeriod}
+        reportsUnlockedPeriod={displayStats.reportsUnlockedPeriod}
         channelBreakdown={displayStats.channelBreakdown}
       />
 
@@ -139,15 +167,46 @@ export function DashboardOverview() {
                 <div className="flex items-center gap-3">
                   <BarChart3 className="h-5 w-5 text-app-primary" />
                   <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] text-app-text-muted truncate">
-                    Actividad de Sesiones
+                    Sesiones iniciadas por dia
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-app-text-muted/80 leading-relaxed">
-                  Evolucion diaria de sesiones iniciadas durante{" "}
-                  {displayStats.periodLabel.toLowerCase()}.
+                  Cantidad diaria de sesiones iniciadas en la plataforma
+                  durante {displayStats.periodLabel.toLowerCase()}.
                 </p>
               </div>
             </div>
+            {sessionsActivitySummary ? (
+              <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
+                    Total del periodo
+                  </p>
+                  <p className="mt-1 text-2xl font-black tracking-tight text-app-text-main">
+                    {sessionsActivitySummary.totalStarted}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
+                    Promedio diario
+                  </p>
+                  <p className="mt-1 text-2xl font-black tracking-tight text-app-text-main">
+                    {sessionsActivitySummary.dailyAverage}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
+                    Mejor dia
+                  </p>
+                  <p className="mt-1 text-2xl font-black tracking-tight text-app-text-main">
+                    {sessionsActivitySummary.peakDay?.date ?? "--"}
+                  </p>
+                  <p className="mt-1 text-xs text-app-text-muted/80">
+                    {sessionsActivitySummary.peakDay?.count ?? 0} iniciadas
+                  </p>
+                </div>
+              </div>
+            ) : null}
             <div className="h-[220px] sm:h-[260px] xl:h-[300px] min-w-0">
               <SessionsChart data={adminStats.sessionsActivity} />
             </div>
@@ -174,14 +233,6 @@ export function DashboardOverview() {
           <div className="lg:col-span-7 xl:col-span-8 space-y-6">
             {isAdmin ? <AdminAlerts alerts={adminStats?.alerts ?? []} /> : null}
             <QuickActions isAdmin={isAdmin} />
-            <div className="app-card !p-8 bg-black/20 border-app-border/40 text-center flex flex-col items-center justify-center gap-4 group hover:bg-app-primary/[0.04] transition-colors cursor-pointer">
-              <div className="flex items-center gap-4 text-app-text-muted opacity-50 group-hover:opacity-100 group-hover:text-app-primary transition-all">
-                <span className="app-label text-xs">
-                  Acceder al registro de auditoria
-                </span>
-                <TrendingUp className="h-4 w-4" />
-              </div>
-            </div>
           </div>
 
           <div className="lg:col-span-5 xl:col-span-4 h-full">
@@ -203,11 +254,11 @@ export function DashboardOverview() {
                 <div className="flex items-center gap-3">
                   <TrendingUp className="h-5 w-5 text-emerald-500" />
                   <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] text-app-text-muted truncate">
-                    Distribucion de Resultados
+                    Resultados predominantes
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-app-text-muted/80 leading-relaxed">
-                  Cantidad de informes por categoria predominante.
+                  Cantidad de sesiones segun la categoria con mayor afinidad.
                 </p>
               </div>
             </div>

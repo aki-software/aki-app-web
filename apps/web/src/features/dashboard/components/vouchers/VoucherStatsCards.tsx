@@ -1,6 +1,5 @@
 import {
     AlertTriangle,
-    BadgeCheck,
     Layers3,
     Plus,
     Ticket,
@@ -11,9 +10,10 @@ interface Props {
   isAdmin?: boolean;
   showCreateForm: boolean;
   onToggleForm: () => void;
-  availableCount: number;
+  batchesEmittedInPeriod: number;
+  vouchersEmittedInPeriod: number;
+  vouchersRedeemedInPeriod: number;
   expiringSoonCount: number;
-  emittedInPeriod: number;
   redemptionRate: number;
   periodDays: number;
   usesHistoricalFallback?: boolean;
@@ -23,9 +23,10 @@ export function VoucherStatsCards({
   isAdmin,
   showCreateForm,
   onToggleForm,
-  availableCount,
+  batchesEmittedInPeriod,
+  vouchersEmittedInPeriod,
+  vouchersRedeemedInPeriod,
   expiringSoonCount,
-  emittedInPeriod,
   redemptionRate,
   periodDays,
   usesHistoricalFallback = false,
@@ -39,32 +40,78 @@ export function VoucherStatsCards({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
-      {/* Tarjeta de Créditos Disponibles (COMPACTA LUX 4.1) */}
-      <div className="app-card !p-7 shadow-lg border-emerald-500/10 bg-gradient-to-br from-app-surface to-emerald-500/[0.01] group relative overflow-hidden">
+      <div className="app-card !p-7 shadow-lg border-app-border bg-gradient-to-br from-app-surface to-app-bg/30 group relative overflow-hidden">
         <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
-          <BadgeCheck className="h-20 w-20 text-emerald-500" />
+          <Layers3 className="h-20 w-20 text-app-text-muted" />
         </div>
         <div className="flex flex-col gap-4 relative z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 shadow-sm">
-              <BadgeCheck className="h-5 w-5 text-emerald-500" />
+            <div className="p-2.5 bg-app-bg rounded-xl border border-app-border shadow-sm">
+              <Layers3 className="h-5 w-5 text-app-text-muted" />
             </div>
             <span className="app-label opacity-60 tracking-wider">
-              {isAdmin ? "Licencias Disponibles" : "Créditos Disponibles"}
+              {usesHistoricalFallback
+                ? "Lotes emitidos"
+                : `Lotes emitidos (${periodDays}d)`}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="app-value !text-3xl font-black text-emerald-500 tracking-tighter leading-none">
-              {availableCount}
-            </span>
-            <span className="text-[10px] font-black text-emerald-500/40 uppercase tracking-widest">
-              uds
+            <span className="app-value !text-3xl font-black text-app-text-main tracking-tighter leading-none">
+              {batchesEmittedInPeriod}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Tarjeta de Vencimientos Próximos */}
+      <div className="app-card !p-7 shadow-lg border-app-border bg-gradient-to-br from-app-surface to-app-bg/30 group relative overflow-hidden">
+        <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
+          <Ticket className="h-20 w-20 text-app-primary" />
+        </div>
+        <div className="flex flex-col gap-4 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-app-bg rounded-xl border border-app-border shadow-sm">
+              <Ticket className="h-5 w-5 text-app-primary" />
+            </div>
+            <span className="app-label opacity-60 tracking-wider">
+              {usesHistoricalFallback
+                ? "Vouchers emitidos"
+                : `Vouchers emitidos (${periodDays}d)`}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="app-value !text-3xl font-black text-app-text-main tracking-tighter leading-none">
+              {vouchersEmittedInPeriod}
+            </span>
+            <span className="text-[10px] font-black text-app-text-muted/60 uppercase tracking-widest">
+              codigos
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="app-card !p-7 shadow-lg border-emerald-500/10 bg-gradient-to-br from-app-surface to-emerald-500/[0.01] group relative overflow-hidden">
+        <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
+          <Ticket className="h-20 w-20 text-emerald-500" />
+        </div>
+        <div className="flex flex-col gap-4 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 shadow-sm">
+              <Ticket className="h-5 w-5 text-emerald-500" />
+            </div>
+            <span className="app-label opacity-60 tracking-wider">
+              {usesHistoricalFallback
+                ? "Vouchers canjeados"
+                : `Vouchers canjeados (${periodDays}d)`}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="app-value !text-3xl font-black text-emerald-500 tracking-tighter leading-none">
+              {vouchersRedeemedInPeriod}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="app-card !p-7 shadow-lg border-amber-400/15 bg-gradient-to-br from-app-surface to-amber-400/[0.02] group relative overflow-hidden">
         <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
           <AlertTriangle className="h-20 w-20 text-amber-400" />
@@ -86,7 +133,6 @@ export function VoucherStatsCards({
         </div>
       </div>
 
-      {/* Tarjeta de Tasa de Canje */}
       <div className="app-card !p-7 shadow-lg border-app-border bg-gradient-to-br from-app-surface to-app-bg/30 group relative overflow-hidden">
         <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
           <TrendingUp className="h-20 w-20 text-app-primary" />
@@ -111,35 +157,6 @@ export function VoucherStatsCards({
           </div>
         </div>
       </div>
-
-      {/* Tarjeta de Emision del período */}
-      <div className="app-card !p-7 shadow-lg border-app-border bg-gradient-to-br from-app-surface to-app-bg/30 group relative overflow-hidden">
-        <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
-          <Layers3 className="h-20 w-20 text-app-text-muted" />
-        </div>
-        <div className="flex flex-col gap-4 relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-app-bg rounded-xl border border-app-border shadow-sm">
-              <Layers3 className="h-5 w-5 text-app-text-muted" />
-            </div>
-            <span className="app-label opacity-60 tracking-wider">
-              {usesHistoricalFallback
-                ? "Emitidos (Historico)"
-                : `Emitidos (${periodDays}d)`}
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="app-value !text-3xl font-black text-app-text-main tracking-tighter leading-none">
-              {emittedInPeriod}
-            </span>
-            <span className="text-[10px] font-black text-app-text-muted/60 uppercase tracking-widest">
-              codigos
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Botón de Acción Compacto */}
       {isAdmin ? (
         <button
           onClick={onToggleForm}

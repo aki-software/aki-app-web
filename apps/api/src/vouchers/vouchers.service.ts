@@ -14,13 +14,27 @@ import {
   VoucherStatus,
 } from './entities/voucher.enums';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
+import { ListVouchersDto } from './dto/list-vouchers.dto';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
+import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
 
 type VoucherScope = {
   role?: string;
   ownerUserId?: string;
   ownerInstitutionId?: string | null;
+};
+
+type VoucherBatchSummary = {
+  batchId: string;
+  ownerInstitutionName: string;
+  ownerUserName: string;
+  createdAt: Date | string;
+  expiresAt: Date | string | null;
+  total: number;
+  available: number;
+  used: number;
+  pending: number;
 };
 
 @Injectable()
@@ -141,6 +155,193 @@ export class VouchersService {
       order: { createdAt: 'DESC' },
     });
     return { data, count };
+  }
+
+  async findAllFiltered(
+    filters: ListVouchersDto,
+    scope?: VoucherScope,
+  ): Promise<{ data: Voucher[]; count: number; page?: number; limit?: number }> {
+    const hasAdvancedFilters = Boolean(
+      filters.search?.trim() ||
+        filters.status ||
+        filters.clientId ||
+        filters.expiration ||
+        filters.page ||
+        filters.limit,
+    );
+
+    const where = this.buildScopedWhere(scope);
+    const vouchers = await this.voucherRepository.find({
+      where,
+      relations: ['ownerUser', 'ownerInstitution', 'redeemedSession'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const now = Date.now();
+    const next7Days = now + 7 * 24 * 60 * 60 * 1000;
+    const normalizedSearch = filters.search?.trim().toLowerCase() ?? '';
+
+    const filtered = vouchers.filter((voucher) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        [
+          voucher.code,
+          voucher.status,
+          voucher.batchId,
+          voucher.ownerInstitution?.name,
+          voucher.ownerUser?.name,
+          voucher.assignedPatientName,
+          voucher.assignedPatientEmail,
+        ]
+          .filter(Boolean)
+          .some((value) =>
+            String(value).toLowerCase().includes(normalizedSearch),
+          );
+
+      const matchesStatus =
+        !filters.status || voucher.status === filters.status;
+
+      const voucherClientId = voucher.ownerInstitutionId ?? '__UNASSIGNED__';
+      const targetClientId = filters.clientId?.trim();
+      const matchesClient = !targetClientId || voucherClientId === targetClientId;
+
+      const expiresAtTimestamp = voucher.expiresAt
+        ? new Date(voucher.expiresAt).getTime()
+        : NaN;
+      const hasValidExpiration = Number.isFinite(expiresAtTimestamp);
+      const matchesExpiration =
+        !filters.expiration ||
+        filters.expiration === 'ALL' ||
+        (filters.expiration === 'EXPIRING_7D' &&
+          hasValidExpiration &&
+          expiresAtTimestamp >= now &&
+          expiresAtTimestamp <= next7Days) ||
+        (filters.expiration === 'NO_EXPIRATION' && !hasValidExpiration);
+
+      return (
+        matchesSearch && matchesStatus && matchesClient && matchesExpiration
+      );
+    });
+
+    if (!hasAdvancedFilters) {
+      return { data: filtered, count: filtered.length };
+    }
+
+    const page = Number.isFinite(filters.page) ? Math.max(1, filters.page ?? 1) : 1;
+    const limit = Number.isFinite(filters.limit)
+      ? Math.min(Math.max(1, filters.limit ?? 10), 100)
+      : 10;
+    const startIndex = (page - 1) * limit;
+
+    return {
+      data: filtered.slice(startIndex, startIndex + limit),
+      count: filtered.length,
+      page,
+      limit,
+    };
+  }
+
+  async findBatchSummaries(
+    filters: ListVoucherBatchesDto,
+    scope?: VoucherScope,
+  ): Promise<{ data: VoucherBatchSummary[]; count: number; page: number; limit: number }> {
+    const where = this.buildScopedWhere(scope);
+    const page = Number.isFinite(filters.page)
+      ? Math.max(1, filters.page ?? 1)
+      : 1;
+    const limit = Number.isFinite(filters.limit)
+      ? Math.min(Math.max(1, filters.limit ?? 10), 100)
+      : 10;
+
+    const vouchers = await this.voucherRepository.find({
+      where,
+      relations: ['ownerUser', 'ownerInstitution'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const now = Date.now();
+    const next7Days = now + 7 * 24 * 60 * 60 * 1000;
+    const normalizedSearch = filters.search?.trim().toLowerCase() ?? '';
+
+    const filteredVouchers = vouchers.filter((voucher) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        [
+          voucher.batchId,
+          voucher.code,
+          voucher.ownerInstitution?.name,
+          voucher.ownerUser?.name,
+        ]
+          .filter(Boolean)
+          .some((value) =>
+            String(value).toLowerCase().includes(normalizedSearch),
+          );
+
+      const voucherClientId = voucher.ownerInstitutionId ?? '__UNASSIGNED__';
+      const targetClientId = filters.clientId?.trim();
+      const matchesClient = !targetClientId || voucherClientId === targetClientId;
+
+      const expiresAtTimestamp = voucher.expiresAt
+        ? new Date(voucher.expiresAt).getTime()
+        : NaN;
+      const hasValidExpiration = Number.isFinite(expiresAtTimestamp);
+      const matchesExpiration =
+        !filters.expiration ||
+        filters.expiration === 'ALL' ||
+        (filters.expiration === 'EXPIRING_7D' &&
+          hasValidExpiration &&
+          expiresAtTimestamp >= now &&
+          expiresAtTimestamp <= next7Days) ||
+        (filters.expiration === 'NO_EXPIRATION' && !hasValidExpiration);
+
+      return matchesSearch && matchesClient && matchesExpiration;
+    });
+
+    const grouped = new Map<string, VoucherBatchSummary>();
+    filteredVouchers.forEach((voucher) => {
+      const pendingIncrement =
+        voucher.status === VoucherStatus.USED || voucher.status === VoucherStatus.EXPIRED
+          ? 0
+          : 1;
+
+      const existing = grouped.get(voucher.batchId);
+      if (!existing) {
+        grouped.set(voucher.batchId, {
+          batchId: voucher.batchId,
+          ownerInstitutionName:
+            voucher.ownerInstitution?.name ?? 'Cliente no informado',
+          ownerUserName:
+            voucher.ownerUser?.name ?? 'Responsable no informado',
+          createdAt: voucher.createdAt,
+          expiresAt: voucher.expiresAt,
+          total: 1,
+          available: voucher.status === VoucherStatus.AVAILABLE ? 1 : 0,
+          used: voucher.status === VoucherStatus.USED ? 1 : 0,
+          pending: pendingIncrement,
+        });
+        return;
+      }
+
+      existing.total += 1;
+      if (voucher.status === VoucherStatus.AVAILABLE) existing.available += 1;
+      if (voucher.status === VoucherStatus.USED) existing.used += 1;
+      existing.pending += pendingIncrement;
+    });
+
+    const summaries = Array.from(grouped.values()).sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    const startIndex = (page - 1) * limit;
+    const data = summaries.slice(startIndex, startIndex + limit);
+
+    return {
+      data,
+      count: summaries.length,
+      page,
+      limit,
+    };
   }
 
   async findByCode(code: string): Promise<Voucher> {

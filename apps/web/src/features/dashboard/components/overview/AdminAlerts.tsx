@@ -43,16 +43,16 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
       {alerts.length === 0 ? (
         <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/5 px-4 py-5">
           <p className="text-sm font-semibold text-emerald-300">
-            Operacion saludable
+            Operacion estable
           </p>
           <p className="mt-1 text-sm text-app-text-muted">
-            No se detectaron incidencias criticas en vouchers, canje ni
-            sesiones.
+            No se detectaron incidencias relevantes en canje, vencimientos o
+            sesiones del periodo.
           </p>
           <ul className="mt-3 space-y-1 text-xs text-app-text-muted">
-            <li>• Stock de vouchers dentro de rango</li>
-            <li>• Sin vencimientos urgentes reportados</li>
-            <li>• Sin acumulacion critica de sesiones pendientes</li>
+            <li>• Sin vouchers con vencimiento cercano</li>
+            <li>• Sin sesiones demoradas para cierre</li>
+            <li>• Sin desvio critico en la tasa de canje</li>
           </ul>
         </div>
       ) : (

@@ -32,9 +32,12 @@ type DashboardStatsPayload = {
   redeemedVouchers: number;
   periodDays: number;
   periodLabel: string;
+  vouchersGeneratedPeriod: number;
+  vouchersRedeemedPeriod: number;
   testsStartedPeriod: number;
   testsCompletedPeriod: number;
   voucherRedemptionRatePeriod: number;
+  reportsUnlockedPeriod: number;
   channelBreakdown: {
     voucher: {
       started: number;
@@ -350,10 +353,20 @@ export class SessionsService {
     );
 
     sessions.forEach((session) => {
-      session.results?.forEach((result) => {
-        const key = result.categoryId.toUpperCase();
-        distributionBuckets.set(key, (distributionBuckets.get(key) ?? 0) + 1);
-      });
+      if (!session.results?.length) {
+        return;
+      }
+
+      const topResult = [...session.results].sort(
+        (a, b) => b.percentage - a.percentage,
+      )[0];
+
+      if (!topResult?.categoryId) {
+        return;
+      }
+
+      const key = topResult.categoryId.toUpperCase();
+      distributionBuckets.set(key, (distributionBuckets.get(key) ?? 0) + 1);
     });
 
     const resultsDistribution = Array.from(distributionBuckets.entries())
@@ -372,31 +385,8 @@ export class SessionsService {
     ).length;
 
     const alerts: DashboardStatsPayload['alerts'] = [];
-    const lowStockThreshold = 20;
     const lowRedemptionRateThreshold = 15;
     const minIssuedForRateAlert = 5;
-
-    if (availableVouchers === 0) {
-      alerts.push({
-        id: 'vouchers-out',
-        severity: 'critical',
-        title: 'Sin vouchers disponibles',
-        description: 'No hay créditos listos para asignar nuevos tests.',
-        actionLabel: 'Emitir lote',
-        actionPath: '/dashboard/vouchers?create=true',
-      });
-    }
-
-    if (availableVouchers > 0 && availableVouchers <= lowStockThreshold) {
-      alerts.push({
-        id: 'vouchers-low-stock',
-        severity: 'warning',
-        title: 'Stock de vouchers bajo',
-        description: `Quedan ${availableVouchers} voucher(es) disponibles. Se recomienda emitir un nuevo lote.`,
-        actionLabel: 'Emitir lote',
-        actionPath: '/dashboard/vouchers?create=true',
-      });
-    }
 
     if (expiringSoonVouchers > 0) {
       alerts.push({
@@ -442,9 +432,12 @@ export class SessionsService {
       redeemedVouchers,
       periodDays,
       periodLabel: `Ultimos ${periodDays} dias`,
+      vouchersGeneratedPeriod: issuedVouchersPeriod,
+      vouchersRedeemedPeriod: redeemedVouchersPeriod,
       testsStartedPeriod,
       testsCompletedPeriod,
       voucherRedemptionRatePeriod,
+      reportsUnlockedPeriod: periodUnlockedSessions.length,
       channelBreakdown: {
         voucher: {
           started: voucherStartedPeriod,
@@ -471,11 +464,12 @@ export class SessionsService {
 
     const [recentSessions, recentVouchers] = await Promise.all([
       this.sessionRepository.find({
-        relations: ['results'],
+        relations: ['results', 'institution', 'therapist', 'voucher'],
         order: { createdAt: 'DESC' },
         take: normalizedLimit,
       }),
       this.voucherRepository.find({
+        relations: ['ownerInstitution', 'ownerUser'],
         order: { createdAt: 'DESC' },
         take: normalizedLimit,
       }),
@@ -498,8 +492,30 @@ export class SessionsService {
       return new Date(0).toISOString();
     };
 
+    const describeSessionChannel = (session: Session): string =>
+      session.voucherId ||
+      session.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
+        ? 'con voucher'
+        : 'sin voucher';
+
+    const describeVoucherOwner = (voucher: Voucher): string => {
+      const institutionName = voucher.ownerInstitution?.name?.trim();
+      const ownerName = voucher.ownerUser?.name?.trim();
+
+      if (institutionName) {
+        return institutionName;
+      }
+
+      if (ownerName) {
+        return ownerName;
+      }
+
+      return 'cliente no informado';
+    };
+
     const sessionEvents: AdminActivityItem[] = recentSessions.map((session) => {
       const isCompleted = (session.results?.length ?? 0) > 0;
+      const channelLabel = describeSessionChannel(session);
       const occurredAt = isCompleted
         ? toIso(
             session.reportUnlockedAt,
@@ -513,7 +529,9 @@ export class SessionsService {
         id: `session-${session.id}`,
         type: isCompleted ? 'SESSION_COMPLETED' : 'SESSION_STARTED',
         title: isCompleted ? 'Sesión completada' : 'Sesión iniciada',
-        description: `Paciente: ${session.patientName || 'Sin nombre'}`,
+        description: isCompleted
+          ? `${session.patientName || 'Paciente sin nombre'} completó un test ${channelLabel}.`
+          : `${session.patientName || 'Paciente sin nombre'} inició un test ${channelLabel}.`,
         occurredAt,
       };
     });
@@ -521,6 +539,7 @@ export class SessionsService {
     const voucherEvents: AdminActivityItem[] = recentVouchers.map((voucher) => {
       const redeemed =
         Boolean(voucher.redeemedAt) || voucher.status === VoucherStatus.USED;
+      const ownerLabel = describeVoucherOwner(voucher);
       const occurredAt = redeemed
         ? toIso(voucher.redeemedAt, voucher.sentAt, voucher.createdAt)
         : toIso(voucher.sentAt, voucher.createdAt);
@@ -528,7 +547,9 @@ export class SessionsService {
         id: `voucher-${voucher.id}`,
         type: redeemed ? 'VOUCHER_REDEEMED' : 'VOUCHER_ISSUED',
         title: redeemed ? 'Voucher canjeado' : 'Voucher emitido',
-        description: `Código ${voucher.code}`,
+        description: redeemed
+          ? `El código ${voucher.code} fue canjeado para ${ownerLabel}.`
+          : `Se emitió el código ${voucher.code} para ${ownerLabel}.`,
         occurredAt,
       };
     });

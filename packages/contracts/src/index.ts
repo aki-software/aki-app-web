@@ -6,9 +6,12 @@ export interface DashboardStatsResponse {
   redeemedVouchers: number;
   periodDays: number;
   periodLabel: string;
+  vouchersGeneratedPeriod: number;
+  vouchersRedeemedPeriod: number;
   testsStartedPeriod: number;
   testsCompletedPeriod: number;
   voucherRedemptionRatePeriod: number;
+  reportsUnlockedPeriod: number;
   channelBreakdown: DashboardChannelBreakdown;
   sessionsActivity: SessionActivityData[];
   resultsDistribution: CategoryDistributionData[];

@@ -1,5 +1,5 @@
-import { ArrowUpRight, Calendar, Layers3 } from "lucide-react";
-import type { BatchSummary } from "../../views/DashboardVouchers";
+import { Building2, Calendar, Layers3, UserRound } from "lucide-react";
+import type { VoucherBatchSummary } from "../../api/dashboard";
 
 function formatDate(value: string | number | Date) {
   const date = new Date(value);
@@ -11,7 +11,7 @@ function formatDate(value: string | number | Date) {
 }
 
 interface Props {
-  batch: BatchSummary;
+  batch: VoucherBatchSummary;
 }
 
 export function VoucherBatchRow({ batch }: Props) {
@@ -40,6 +40,26 @@ export function VoucherBatchRow({ batch }: Props) {
                 Emision: {formatDate(batch.createdAt)}
               </span>
             </div>
+            <div className="mt-3 space-y-2 text-sm text-app-text-muted">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-3.5 w-3.5 text-app-primary/70" />
+                <span className="font-semibold text-app-text-main">
+                  {batch.ownerInstitutionName || "Cliente no informado"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 opacity-70">
+                <UserRound className="h-3.5 w-3.5" />
+                <span>
+                  {batch.ownerUserName || "Responsable no informado"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 opacity-70">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>
+                  Vencimiento: {batch.expiresAt ? formatDate(batch.expiresAt) : "Sin vencimiento"}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -65,16 +85,16 @@ export function VoucherBatchRow({ batch }: Props) {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-3 border-t border-app-border pt-5 xl:grid-cols-2 xl:gap-4">
+      <div className="mt-6 grid grid-cols-1 gap-3 border-t border-app-border pt-5 xl:grid-cols-3 xl:gap-4">
         <div className="min-w-0 rounded-xl border border-app-border bg-app-bg/50 p-3 sm:p-3.5">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-emerald-500" />
             <span className="text-[9px] font-black uppercase tracking-wide text-app-text-muted sm:text-[10px]">
-              Disponibles
+              Pendientes
             </span>
           </div>
           <span className="mt-2 block text-2xl font-black leading-none tracking-tight text-emerald-400 sm:text-3xl">
-            {batch.available}
+            {batch.pending}
           </span>
         </div>
         <div className="min-w-0 rounded-xl border border-app-border bg-app-bg/50 p-3 sm:p-3.5 xl:text-right">
@@ -88,14 +108,16 @@ export function VoucherBatchRow({ batch }: Props) {
             {batch.used}
           </span>
         </div>
-      </div>
-
-      <div className="mt-5 flex justify-center">
-        <div className="inline-flex cursor-default items-center gap-2 rounded-xl border border-app-border bg-app-surface px-4 py-2 text-app-text-muted transition-all group-hover:border-app-primary/30">
-          <span className="text-[11px] font-black uppercase tracking-wider">
-            Total: {batch.total} creditos
+        <div className="min-w-0 rounded-xl border border-app-border bg-app-bg/50 p-3 sm:p-3.5">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-app-primary" />
+            <span className="text-[9px] font-black uppercase tracking-wide text-app-text-muted sm:text-[10px]">
+              Total
+            </span>
+          </div>
+          <span className="mt-2 block text-2xl font-black leading-none tracking-tight text-app-text-main sm:text-3xl">
+            {batch.total}
           </span>
-          <ArrowUpRight className="h-3.5 w-3.5 opacity-50 transition-all group-hover:text-app-primary group-hover:opacity-100" />
         </div>
       </div>
     </div>
