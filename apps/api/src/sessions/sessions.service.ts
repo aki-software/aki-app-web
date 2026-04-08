@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-    Between,
-    FindOptionsWhere,
-    In,
-    MoreThanOrEqual,
-    Repository,
+  Between,
+  FindOptionsWhere,
+  In,
+  MoreThanOrEqual,
+  Repository,
 } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { CategoryResult, MailService } from '../mail/mail.service';

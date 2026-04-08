@@ -50,11 +50,11 @@ export class InstitutionsService {
   async getStats(institutionId: string) {
     const totalSessionsRes = await this.dataSource.query(
       `SELECT count(*) as count FROM sessions WHERE institution_id = $1`,
-      [institutionId]
+      [institutionId],
     );
     const vouchersRes = await this.dataSource.query(
       `SELECT status, count(*) as count FROM vouchers WHERE owner_institution_id = $1 GROUP BY status`,
-      [institutionId]
+      [institutionId],
     );
 
     const stats = {

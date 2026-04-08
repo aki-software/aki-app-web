@@ -24,7 +24,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true); // true al inicio para rehidratar sesión
 
-  // Rehidratar sesión desde localStorage al montar
   useEffect(() => {
     try {
       const storedToken = localStorage.getItem(TOKEN_KEY);
@@ -34,7 +33,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(JSON.parse(storedUser) as AuthUser);
       }
     } catch {
-      // Datos corruptos: limpiamos
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
     } finally {

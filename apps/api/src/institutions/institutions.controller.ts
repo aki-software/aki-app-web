@@ -112,16 +112,15 @@ export class InstitutionsController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id/stats')
-  async getStats(
-    @Param('id') id: string,
-    @Req() req?: AuthenticatedRequest,
-  ) {
+  async getStats(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
     const isOwnerOrAdmin =
       req?.user?.role?.toUpperCase() === UserRole.ADMIN ||
       req?.user?.institutionId === id;
-      
+
     if (!isOwnerOrAdmin) {
-      throw new UnauthorizedException('No tienes permisos para ver las estadísticas de esta institución');
+      throw new UnauthorizedException(
+        'No tienes permisos para ver las estadísticas de esta institución',
+      );
     }
 
     return await this.institutionsService.getStats(id);

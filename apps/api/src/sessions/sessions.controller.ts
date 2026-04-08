@@ -1,14 +1,14 @@
 import {
-    Body,
-    Controller,
-    Get,
-    NotFoundException,
-    Param,
-    Post,
-    Query,
-    Req,
-    UnauthorizedException,
-    UseGuards,
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+  Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';

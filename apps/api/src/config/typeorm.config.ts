@@ -32,7 +32,10 @@ export const typeOrmConfig: PostgresConnectionOptions = {
   ],
   migrations: ['dist/migrations/*.js'],
   synchronize: false,
-  ssl: process.env.DATABASE_HOST !== 'localhost' ? { rejectUnauthorized: false } : false,
+  ssl:
+    process.env.DATABASE_HOST !== 'localhost'
+      ? { rejectUnauthorized: false }
+      : false,
 };
 
 export default new DataSource(typeOrmConfig);

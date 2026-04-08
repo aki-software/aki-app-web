@@ -12,9 +12,10 @@ function formatDate(value: string | number | Date) {
 
 interface Props {
   batch: VoucherBatchSummary;
+  onOpenDetail: (batchId: string) => void;
 }
 
-export function VoucherBatchRow({ batch }: Props) {
+export function VoucherBatchRow({ batch, onOpenDetail }: Props) {
   const consumptionPercentage = batch.total
     ? Math.round((batch.used / batch.total) * 100)
     : 0;
@@ -120,6 +121,14 @@ export function VoucherBatchRow({ batch }: Props) {
           </span>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => onOpenDetail(batch.batchId)}
+        className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-app-primary/40 bg-app-primary/10 px-4 py-3 text-[11px] font-black uppercase tracking-wider text-app-primary transition-colors hover:bg-app-primary/20"
+      >
+        Ver detalle del lote
+      </button>
     </div>
   );
 }

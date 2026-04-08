@@ -2,10 +2,7 @@ import { Loader2, Send } from "lucide-react";
 import { type FormEvent, useMemo } from "react";
 import type { InstitutionOption, TherapistOption } from "../../api/dashboard";
 
-export type OwnerType = "INSTITUTION" | "THERAPIST";
-
 export type VoucherFormState = {
-  ownerType: OwnerType;
   ownerInstitutionId: string;
   ownerUserId: string;
   quantity: string;
@@ -13,7 +10,6 @@ export type VoucherFormState = {
 };
 
 export const initialFormState: VoucherFormState = {
-  ownerType: "INSTITUTION",
   ownerInstitutionId: "",
   ownerUserId: "",
   quantity: "1",
@@ -44,26 +40,20 @@ export function VoucherEmitForm({
   resetMessages,
 }: Props) {
   const therapistOptions = useMemo(() => {
-    if (formState.ownerType !== "THERAPIST") return therapists;
     return therapists.filter((therapist) =>
       formState.ownerInstitutionId
         ? therapist.institutionId === formState.ownerInstitutionId
-        : true,
+        : false,
     );
-  }, [formState.ownerInstitutionId, formState.ownerType, therapists]);
+  }, [formState.ownerInstitutionId, therapists]);
 
-  const handleOwnerTypeChange = (value: OwnerType) => {
+  const updateForm = (field: keyof VoucherFormState, value: string) => {
     resetMessages();
     setFormState((prev) => ({
       ...prev,
-      ownerType: value,
-      ownerInstitutionId: "",
-      ownerUserId: "",
+      [field]: value,
+      ...(field === "ownerInstitutionId" ? { ownerUserId: "" } : {}),
     }));
-  };
-
-  const updateForm = (field: keyof VoucherFormState, value: string) => {
-    setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -71,59 +61,45 @@ export function VoucherEmitForm({
       <form className="space-y-10" onSubmit={onSubmit}>
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-4">
           <label className="flex flex-col gap-3">
-            <span className="app-label opacity-60">Tipo de Cliente</span>
+            <span className="app-label opacity-60">Cliente</span>
             <select
-              value={formState.ownerType}
+              value={formState.ownerInstitutionId}
               onChange={(event) =>
-                handleOwnerTypeChange(event.target.value as OwnerType)
+                updateForm("ownerInstitutionId", event.target.value)
               }
               className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary focus:ring-2 focus:ring-app-primary/20 transition-all outline-none appearance-none cursor-pointer"
             >
-              <option value="INSTITUTION">Institución</option>
-              <option value="THERAPIST">Consultorio privado</option>
+              <option value="">Seleccionar cliente...</option>
+              {institutions.map((institution) => (
+                <option key={institution.id} value={institution.id}>
+                  {institution.name}
+                </option>
+              ))}
             </select>
           </label>
 
-          {formState.ownerType === "INSTITUTION" ? (
-            <label className="flex flex-col gap-3">
-              <span className="app-label opacity-60">Cliente</span>
-              <select
-                value={formState.ownerInstitutionId}
-                onChange={(event) =>
-                  updateForm("ownerInstitutionId", event.target.value)
-                }
-                className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer"
-              >
-                <option value="">Seleccionar cliente...</option>
-                {institutions.map((institution) => (
-                  <option key={institution.id} value={institution.id}>
-                    {institution.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : (
-            <label className="flex flex-col gap-3">
-              <span className="app-label opacity-60">Responsable</span>
-              <select
-                value={formState.ownerUserId}
-                onChange={(event) =>
-                  updateForm("ownerUserId", event.target.value)
-                }
-                className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer"
-              >
-                <option value="">Seleccionar responsable...</option>
-                {therapistOptions.map((therapist) => (
-                  <option key={therapist.id} value={therapist.id}>
-                    {therapist.name}
-                    {therapist.institutionName
-                      ? ` (${therapist.institutionName})`
-                      : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          <label className="flex flex-col gap-3">
+            <span className="app-label opacity-60">
+              Responsable (opcional)
+            </span>
+            <select
+              value={formState.ownerUserId}
+              onChange={(event) => updateForm("ownerUserId", event.target.value)}
+              disabled={!formState.ownerInstitutionId}
+              className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary outline-none transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">
+                {!formState.ownerInstitutionId
+                  ? "Selecciona primero un cliente"
+                  : "Sin responsable asignado"}
+              </option>
+              {therapistOptions.map((therapist) => (
+                <option key={therapist.id} value={therapist.id}>
+                  {therapist.name}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label className="flex flex-col gap-3">
             <span className="app-label opacity-60">Cantidad de Vouchers</span>

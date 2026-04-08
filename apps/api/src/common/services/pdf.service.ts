@@ -12,7 +12,7 @@ export class PdfService {
       });
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'networkidle0' });
-      
+
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -27,7 +27,9 @@ export class PdfService {
       return Buffer.from(pdfBuffer);
     } catch (error) {
       console.error('❌ Error generating PDF with Puppeteer:', error);
-      throw new InternalServerErrorException('Error al generar el documento PDF.');
+      throw new InternalServerErrorException(
+        'Error al generar el documento PDF.',
+      );
     } finally {
       if (browser) {
         await browser.close();

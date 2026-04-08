@@ -6,6 +6,7 @@ import {
     Copy,
     Mail,
     MessageCircle,
+    ShieldBan,
     Send,
     Share2,
     Ticket,
@@ -14,7 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { VoucherData } from "../../api/dashboard";
-import { sendVoucherEmail } from "../../api/dashboard";
+import { resendVoucherEmail, revokeVoucher } from "../../api/dashboard";
 
 function statusLabel(status: string) {
   switch (status) {
@@ -26,6 +27,8 @@ function statusLabel(status: string) {
       return "Canjeado";
     case "EXPIRED":
       return "Expirado";
+    case "REVOKED":
+      return "Revocado";
     default:
       return status;
   }
@@ -41,6 +44,8 @@ function statusClasses(status: string) {
       return "text-app-primary border-app-primary/20 bg-app-primary/5 shadow-app-primary/10";
     case "EXPIRED":
       return "text-rose-500 border-rose-500/20 bg-rose-500/5 shadow-rose-500/10";
+    case "REVOKED":
+      return "text-zinc-400 border-zinc-500/20 bg-zinc-500/5 shadow-zinc-500/10";
     default:
       return "text-app-text-muted border-app-border bg-app-bg";
   }
@@ -60,17 +65,22 @@ function formatDate(value: string | number | Date | null) {
 interface Props {
   voucher: VoucherData;
   isAdmin?: boolean;
+  onVoucherUpdated?: (result: { ok: boolean; message: string }) => void | Promise<void>;
 }
 
-export function VoucherTableRow({ voucher, isAdmin }: Props) {
+export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
   const [copiedType, setCopiedType] = useState<"CODE" | "LINK" | "MAIL" | null>(
     null,
   );
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [customEmail, setCustomEmail] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [revoking, setRevoking] = useState(false);
 
   const testUrl = `https://akit-test.com/v/${voucher.code}`;
+  const canSendOrResend = voucher.status === "AVAILABLE" || voucher.status === "SENT";
+  const canRevoke = voucher.status === "AVAILABLE" || voucher.status === "SENT";
+  const actionBusy = sendingEmail || revoking;
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(voucher.code);
@@ -91,7 +101,15 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
     window.open(`https://wa.me/?text=${message}`, "_blank");
   };
 
+  const notifyVoucherUpdate = async (ok: boolean, message: string) => {
+    if (!onVoucherUpdated) {
+      return;
+    }
+    await onVoucherUpdated({ ok, message });
+  };
+
   const handleSendEmail = async (emailToUse?: string) => {
+    if (!canSendOrResend) return;
     const target = emailToUse || voucher.assignedPatientEmail || customEmail;
     if (!target && !showEmailInput) {
       setShowEmailInput(true);
@@ -99,14 +117,44 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
     }
     if (!target) return;
     setSendingEmail(true);
-    const success = await sendVoucherEmail(voucher.id, target);
+    const success = await resendVoucherEmail(voucher.id, target);
     setSendingEmail(false);
     if (success) {
       setCopiedType("MAIL");
       setShowEmailInput(false);
       setCustomEmail("");
+      await notifyVoucherUpdate(
+        true,
+        voucher.status === "SENT"
+          ? `Voucher ${voucher.code} reenviado por email.`
+          : `Voucher ${voucher.code} enviado por email.`,
+      );
       setTimeout(() => setCopiedType(null), 3000);
+      return;
     }
+    await notifyVoucherUpdate(
+      false,
+      `No se pudo enviar el voucher ${voucher.code} por email.`,
+    );
+  };
+
+  const handleRevoke = async () => {
+    if (!canRevoke || actionBusy) return;
+    const shouldRevoke = window.confirm(
+      `Vas a revocar el voucher ${voucher.code}. Esta acción no se puede deshacer. ¿Continuar?`,
+    );
+    if (!shouldRevoke) return;
+    setRevoking(true);
+    const success = await revokeVoucher(voucher.id);
+    setRevoking(false);
+    if (success) {
+      await notifyVoucherUpdate(true, `Voucher ${voucher.code} revocado.`);
+      return;
+    }
+    await notifyVoucherUpdate(
+      false,
+      `No se pudo revocar el voucher ${voucher.code}.`,
+    );
   };
 
   return (
@@ -189,7 +237,7 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
 
       <td className="px-5 py-4">
         <div className="flex items-center justify-end gap-1.5 relative">
-          {voucher.status === "AVAILABLE" ? (
+          {canSendOrResend || canRevoke ? (
             <>
               {showEmailInput && (
                 <div className="absolute right-0 -top-20 z-[100] animate-in fade-in zoom-in slide-in-from-bottom-4 duration-300">
@@ -200,6 +248,7 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
                       </span>
                       <button
                         onClick={() => setShowEmailInput(false)}
+                        disabled={actionBusy}
                         className="text-app-text-muted hover:text-rose-500 transition-colors"
                         aria-label="Cerrar envío por email"
                         title="Cerrar"
@@ -217,7 +266,7 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
                         autoFocus
                       />
                       <button
-                        disabled={sendingEmail || !customEmail}
+                        disabled={actionBusy || !customEmail}
                         onClick={() => handleSendEmail(customEmail)}
                         aria-label="Enviar voucher por email"
                         title="Enviar por email"
@@ -235,8 +284,9 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
               )}
               <button
                 onClick={handleCopyCode}
+                disabled={actionBusy}
                 aria-label="Copiar código del voucher"
-                className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all ${copiedType === "CODE" ? "bg-emerald-500 text-white border-emerald-500" : "bg-app-bg text-app-text-muted hover:text-emerald-500 hover:border-emerald-500/20 shadow-sm"}`}
+                className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all disabled:opacity-40 ${copiedType === "CODE" ? "bg-emerald-500 text-white border-emerald-500" : "bg-app-bg text-app-text-muted hover:text-emerald-500 hover:border-emerald-500/20 shadow-sm"}`}
                 title="Copiar código"
               >
                 {copiedType === "CODE" ? (
@@ -247,8 +297,9 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
               </button>
               <button
                 onClick={handleCopyLink}
+                disabled={actionBusy}
                 aria-label="Copiar enlace directo"
-                className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all ${copiedType === "LINK" ? "bg-app-primary text-white border-app-primary" : "bg-app-bg text-app-text-muted hover:text-app-primary hover:border-app-primary/20 shadow-sm"}`}
+                className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all disabled:opacity-40 ${copiedType === "LINK" ? "bg-app-primary text-white border-app-primary" : "bg-app-bg text-app-text-muted hover:text-app-primary hover:border-app-primary/20 shadow-sm"}`}
                 title="Copiar link directo"
               >
                 {copiedType === "LINK" ? (
@@ -259,18 +310,23 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
               </button>
               <button
                 onClick={handleWhatsApp}
+                disabled={actionBusy}
                 aria-label="Compartir por WhatsApp"
-                className="flex items-center justify-center p-2 rounded-lg border border-app-border bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 shadow-sm transition-all"
+                className="flex items-center justify-center p-2 rounded-lg border border-app-border bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 shadow-sm transition-all disabled:opacity-40"
                 title="WhatsApp"
               >
                 <MessageCircle className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => handleSendEmail()}
-                disabled={sendingEmail}
-                aria-label="Enviar voucher por correo"
-                className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all ${copiedType === "MAIL" ? "bg-amber-500 text-white border-amber-500" : "bg-app-bg text-app-text-muted hover:text-amber-500 hover:border-amber-500/20 shadow-sm"}`}
-                title="Enviar por Email"
+                disabled={actionBusy}
+                aria-label={
+                  voucher.status === "SENT"
+                    ? "Reenviar voucher por correo"
+                    : "Enviar voucher por correo"
+                }
+                className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all disabled:opacity-40 ${copiedType === "MAIL" ? "bg-amber-500 text-white border-amber-500" : "bg-app-bg text-app-text-muted hover:text-amber-500 hover:border-amber-500/20 shadow-sm"}`}
+                title={voucher.status === "SENT" ? "Reenviar por Email" : "Enviar por Email"}
               >
                 {copiedType === "MAIL" ? (
                   <BadgeCheck className="h-3.5 w-3.5" />
@@ -278,6 +334,21 @@ export function VoucherTableRow({ voucher, isAdmin }: Props) {
                   <Mail className="h-3.5 w-3.5" />
                 )}
               </button>
+              {canRevoke && (
+                <button
+                  onClick={handleRevoke}
+                  disabled={actionBusy}
+                  aria-label="Revocar voucher"
+                  className="flex items-center justify-center p-2 rounded-lg border border-rose-500/20 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-rose-500 shadow-sm transition-all disabled:opacity-40"
+                  title="Revocar voucher"
+                >
+                  {revoking ? (
+                    <div className="h-3.5 w-3.5 border-2 border-rose-200/50 border-t-current animate-spin rounded-full" />
+                  ) : (
+                    <ShieldBan className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
             </>
           ) : (
             <div className="app-tag !px-3 !py-1 opacity-20 !bg-transparent border-dashed">

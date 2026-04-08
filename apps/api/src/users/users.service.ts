@@ -40,10 +40,7 @@ export class UsersService {
     });
     const savedUser = await this.userRepository.save(user);
 
-    if (
-      normalizedRole === UserRole.THERAPIST &&
-      !savedUser.institutionId
-    ) {
+    if (normalizedRole === UserRole.THERAPIST && !savedUser.institutionId) {
       return await this.ensureInstitutionOwner(savedUser);
     }
 
@@ -113,12 +110,12 @@ export class UsersService {
 
   async ensureInstitutionOwner(userOrId: User | string): Promise<User> {
     const user =
-      typeof userOrId === 'string'
-        ? await this.findOne(userOrId)
-        : userOrId;
+      typeof userOrId === 'string' ? await this.findOne(userOrId) : userOrId;
 
     if (!user) {
-      throw new Error('Usuario no encontrado para asegurar ownership institucional');
+      throw new Error(
+        'Usuario no encontrado para asegurar ownership institucional',
+      );
     }
 
     if (user.institutionId) {

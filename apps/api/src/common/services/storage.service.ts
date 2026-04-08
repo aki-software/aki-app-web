@@ -38,7 +38,9 @@ export class StorageService {
     mimeType: string = 'application/pdf',
   ): Promise<string | null> {
     if (!this.s3Client) {
-      console.warn('⚠️ S3 Storage no está configurado. El archivo no se subirá.');
+      console.warn(
+        '⚠️ S3 Storage no está configurado. El archivo no se subirá.',
+      );
       return null;
     }
 
@@ -55,7 +57,9 @@ export class StorageService {
       return `${this.endpoint}/${this.bucket}/${fileName}`;
     } catch (error) {
       console.error('❌ Error uploading file to S3:', error);
-      throw new InternalServerErrorException('Error al subir el archivo al almacenamiento.');
+      throw new InternalServerErrorException(
+        'Error al subir el archivo al almacenamiento.',
+      );
     }
   }
 }

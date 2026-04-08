@@ -10,6 +10,8 @@ describe('VouchersController', () => {
   const mockVouchersService = {
     findById: jest.fn(),
     sendEmail: jest.fn(),
+    resendEmail: jest.fn(),
+    revoke: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -107,6 +109,61 @@ describe('VouchersController', () => {
       ).rejects.toBeInstanceOf(UnauthorizedException);
 
       expect(mockVouchersService.sendEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resendEmail', () => {
+    it('should allow owner to resend email', async () => {
+      const req: Parameters<VouchersController['resendEmail']>[2] = {
+        user: {
+          role: UserRole.THERAPIST,
+          userId: 'therapist-1',
+          institutionId: 'institution-1',
+        },
+      } as Parameters<VouchersController['resendEmail']>[2];
+
+      mockVouchersService.findById.mockResolvedValueOnce({
+        id: 'voucher-4',
+        ownerInstitutionId: 'institution-1',
+        ownerUserId: null,
+      });
+      mockVouchersService.resendEmail.mockResolvedValueOnce(true);
+
+      const result = await controller.resendEmail(
+        'voucher-4',
+        'patient@test.com',
+        req,
+      );
+
+      expect(result).toBe(true);
+      expect(mockVouchersService.resendEmail).toHaveBeenCalledWith(
+        'voucher-4',
+        'patient@test.com',
+      );
+    });
+  });
+
+  describe('revoke', () => {
+    it('should reject revocation when user is outside ownership scope', async () => {
+      const req: Parameters<VouchersController['revoke']>[1] = {
+        user: {
+          role: UserRole.THERAPIST,
+          userId: 'therapist-x',
+          institutionId: 'institution-other',
+        },
+      } as Parameters<VouchersController['revoke']>[1];
+
+      mockVouchersService.findById.mockResolvedValueOnce({
+        id: 'voucher-5',
+        ownerInstitutionId: 'institution-owner',
+        ownerUserId: null,
+      });
+
+      await expect(controller.revoke('voucher-5', req)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+
+      expect(mockVouchersService.revoke).not.toHaveBeenCalled();
     });
   });
 });

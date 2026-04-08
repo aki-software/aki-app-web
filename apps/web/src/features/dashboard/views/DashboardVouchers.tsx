@@ -6,17 +6,20 @@ import {
     LayoutGrid,
     List,
     Search,
+    X,
 } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import type {
     InstitutionOption,
     TherapistOption,
+    VoucherBatchDetailResponse,
     VoucherBatchSummary,
     VoucherData,
 } from "../api/dashboard";
 import {
     createVoucher,
+    fetchVoucherBatchDetail,
     fetchVoucherBatches,
     fetchInstitutions,
     fetchTherapists,
@@ -38,6 +41,53 @@ type ExpirationFilter = "ALL" | "EXPIRING_7D" | "NO_EXPIRATION";
 
 const PERIOD_DAYS = 30;
 
+function formatDateTime(value: string | Date | number | null | undefined) {
+  if (!value) return "Sin dato";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Sin dato";
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function getStatusLabel(status: string) {
+  switch (status) {
+    case "AVAILABLE":
+      return "Disponible";
+    case "USED":
+      return "Consumido";
+    case "EXPIRED":
+      return "Vencido";
+    case "REVOKED":
+      return "Revocado";
+    case "SENT":
+      return "Enviado";
+    default:
+      return status;
+  }
+}
+
+function getStatusPillClass(status: string) {
+  switch (status) {
+    case "AVAILABLE":
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
+    case "USED":
+      return "border-rose-500/30 bg-rose-500/10 text-rose-300";
+    case "EXPIRED":
+      return "border-amber-500/30 bg-amber-500/10 text-amber-300";
+    case "REVOKED":
+      return "border-zinc-500/30 bg-zinc-500/10 text-zinc-300";
+    case "SENT":
+      return "border-sky-500/30 bg-sky-500/10 text-sky-300";
+    default:
+      return "border-app-border bg-app-bg text-app-text-muted";
+  }
+}
+
 export function DashboardVouchers() {
   const { user } = useAuth();
   const isAdmin = user?.role?.toUpperCase() === "ADMIN";
@@ -58,6 +108,12 @@ export function DashboardVouchers() {
   const [batchTotalItems, setBatchTotalItems] = useState(0);
   const [individualItems, setIndividualItems] = useState<VoucherData[]>([]);
   const [individualTotalItems, setIndividualTotalItems] = useState(0);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [selectedBatchDetail, setSelectedBatchDetail] =
+    useState<VoucherBatchDetailResponse | null>(null);
+  const [batchDetailLoading, setBatchDetailLoading] = useState(false);
+  const [batchDetailError, setBatchDetailError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formState, setFormState] =
@@ -106,7 +162,14 @@ export function DashboardVouchers() {
     };
 
     void loadBatchData();
-  }, [searchTerm, expirationFilter, clientFilter, currentPage, viewMode]);
+  }, [
+    searchTerm,
+    expirationFilter,
+    clientFilter,
+    currentPage,
+    viewMode,
+    reloadToken,
+  ]);
 
   useEffect(() => {
     const loadIndividualData = async () => {
@@ -133,7 +196,37 @@ export function DashboardVouchers() {
     clientFilter,
     currentPage,
     viewMode,
+    reloadToken,
   ]);
+
+  useEffect(() => {
+    if (!selectedBatchId) {
+      return;
+    }
+
+    let isActive = true;
+
+    const loadBatchDetail = async () => {
+      setBatchDetailLoading(true);
+      setBatchDetailError(null);
+      const detail = await fetchVoucherBatchDetail(selectedBatchId);
+      if (!isActive) {
+        return;
+      }
+      if (!detail) {
+        setBatchDetailError("No se pudo cargar el detalle del lote.");
+      } else {
+        setSelectedBatchDetail(detail);
+      }
+      setBatchDetailLoading(false);
+    };
+
+    void loadBatchDetail();
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedBatchId]);
 
   const clientOptions = useMemo(() => {
     const entries = new Map<string, string>();
@@ -237,15 +330,32 @@ export function DashboardVouchers() {
     event.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
+
+    if (!formState.ownerInstitutionId) {
+      setErrorMessage("Selecciona un cliente antes de emitir el lote.");
+      return;
+    }
+
+    if (formState.ownerUserId) {
+      const selectedTherapist = therapists.find(
+        (therapist) => therapist.id === formState.ownerUserId,
+      );
+      if (
+        !selectedTherapist ||
+        selectedTherapist.institutionId !== formState.ownerInstitutionId
+      ) {
+        setErrorMessage(
+          "El responsable seleccionado no pertenece al cliente elegido.",
+        );
+        return;
+      }
+    }
+
     setSaving(true);
     const created = await createVoucher({
-      ownerType: formState.ownerType,
-      ownerInstitutionId:
-        formState.ownerType === "INSTITUTION"
-          ? formState.ownerInstitutionId
-          : undefined,
-      ownerUserId:
-        formState.ownerType === "THERAPIST" ? formState.ownerUserId : undefined,
+      ownerType: "INSTITUTION",
+      ownerInstitutionId: formState.ownerInstitutionId,
+      ownerUserId: formState.ownerUserId || undefined,
       quantity: Number(formState.quantity || "1"),
       expiresAt: formState.expiresAt || undefined,
     });
@@ -260,6 +370,7 @@ export function DashboardVouchers() {
       setCurrentPage(1);
       setViewMode("BATCHES");
       setShowCreateForm(false);
+      setFormState(initialFormState);
       setSuccessMessage(
         `Lote emitido correctamente (${created.createdCount} voucher${created.createdCount === 1 ? "" : "s"}).`,
       );
@@ -268,6 +379,35 @@ export function DashboardVouchers() {
     setErrorMessage(
       "No se pudo emitir el lote. Verifica los datos e intenta nuevamente.",
     );
+  };
+
+  const handleOpenBatchDetail = (batchId: string) => {
+    setSelectedBatchId(batchId);
+    setSelectedBatchDetail(null);
+    setBatchDetailError(null);
+  };
+
+  const handleCloseBatchDetail = () => {
+    setSelectedBatchId(null);
+    setSelectedBatchDetail(null);
+    setBatchDetailLoading(false);
+    setBatchDetailError(null);
+  };
+
+  const handleVoucherActionResult = async (result: {
+    ok: boolean;
+    message: string;
+  }) => {
+    if (!result.ok) {
+      setErrorMessage(result.message);
+      setSuccessMessage(null);
+      return;
+    }
+
+    setSuccessMessage(result.message);
+    setErrorMessage(null);
+    await loadData();
+    setReloadToken((current) => current + 1);
   };
 
   const Pagination = () => (
@@ -475,7 +615,11 @@ export function DashboardVouchers() {
                 </div>
               ) : (
                 (paginatedData.items as VoucherBatchSummary[]).map((batch) => (
-                  <VoucherBatchRow key={batch.batchId} batch={batch} />
+                  <VoucherBatchRow
+                    key={batch.batchId}
+                    batch={batch}
+                    onOpenDetail={handleOpenBatchDetail}
+                  />
                 ))
               )}
             </div>
@@ -529,6 +673,7 @@ export function DashboardVouchers() {
                           key={voucher.id}
                           voucher={voucher}
                           isAdmin={isAdmin}
+                          onVoucherUpdated={handleVoucherActionResult}
                         />
                       ))
                     )}
@@ -540,6 +685,171 @@ export function DashboardVouchers() {
           </div>
         )}
       </div>
+
+      {selectedBatchId && (
+        <>
+          <button
+            type="button"
+            aria-label="Cerrar detalle de lote"
+            onClick={handleCloseBatchDetail}
+            className="fixed inset-0 z-40 bg-app-bg/70 backdrop-blur-sm"
+          />
+          <aside className="fixed right-0 top-0 z-50 h-full w-full max-w-2xl overflow-y-auto border-l border-app-border bg-app-surface p-6 shadow-2xl">
+            <div className="sticky top-0 z-10 mb-6 flex items-center justify-between border-b border-app-border bg-app-surface/95 pb-4 backdrop-blur">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-app-text-muted">
+                  Detalle de lote
+                </p>
+                <h3 className="mt-1 text-xl font-black text-app-text-main">
+                  {`Lote ${(selectedBatchDetail?.batchId ?? selectedBatchId).slice(0, 8).toUpperCase()}`}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseBatchDetail}
+                className="rounded-xl border border-app-border bg-app-bg p-2.5 text-app-text-muted transition-colors hover:text-app-primary"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {batchDetailLoading && (
+              <div className="flex h-48 items-center justify-center">
+                <span className="app-label opacity-60">Cargando detalle...</span>
+              </div>
+            )}
+
+            {!batchDetailLoading && batchDetailError && (
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-200">
+                {batchDetailError}
+              </div>
+            )}
+
+            {!batchDetailLoading && !batchDetailError && selectedBatchDetail && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  <div className="rounded-xl border border-app-border bg-app-bg p-3">
+                    <p className="text-[10px] font-black uppercase tracking-wide text-app-text-muted">
+                      Total
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-app-text-main">
+                      {selectedBatchDetail.total}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-app-border bg-app-bg p-3">
+                    <p className="text-[10px] font-black uppercase tracking-wide text-app-text-muted">
+                      Pendientes
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-emerald-300">
+                      {selectedBatchDetail.pending}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-app-border bg-app-bg p-3">
+                    <p className="text-[10px] font-black uppercase tracking-wide text-app-text-muted">
+                      Consumidos
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-rose-300">
+                      {selectedBatchDetail.used}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-app-border bg-app-bg p-3">
+                    <p className="text-[10px] font-black uppercase tracking-wide text-app-text-muted">
+                      Disponibles
+                    </p>
+                    <p className="mt-2 text-2xl font-black text-sky-300">
+                      {selectedBatchDetail.available}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 rounded-xl border border-app-border bg-app-bg p-4 text-sm text-app-text-muted md:grid-cols-2">
+                  <p>
+                    Cliente:{" "}
+                    <span className="font-semibold text-app-text-main">
+                      {selectedBatchDetail.ownerInstitutionName}
+                    </span>
+                  </p>
+                  <p>
+                    Responsable:{" "}
+                    <span className="font-semibold text-app-text-main">
+                      {selectedBatchDetail.ownerUserName}
+                    </span>
+                  </p>
+                  <p>
+                    Emision:{" "}
+                    <span className="font-semibold text-app-text-main">
+                      {formatDateTime(selectedBatchDetail.createdAt)}
+                    </span>
+                  </p>
+                  <p>
+                    Vencimiento:{" "}
+                    <span className="font-semibold text-app-text-main">
+                      {formatDateTime(selectedBatchDetail.expiresAt)}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-app-border">
+                  <table className="w-full border-collapse text-left">
+                    <thead className="bg-app-bg/70">
+                      <tr>
+                        <th className="px-3 py-3 text-[10px] font-black uppercase tracking-wide text-app-text-muted">
+                          Codigo
+                        </th>
+                        <th className="px-3 py-3 text-[10px] font-black uppercase tracking-wide text-app-text-muted">
+                          Estado
+                        </th>
+                        <th className="px-3 py-3 text-[10px] font-black uppercase tracking-wide text-app-text-muted">
+                          Paciente
+                        </th>
+                        <th className="px-3 py-3 text-[10px] font-black uppercase tracking-wide text-app-text-muted">
+                          Fechas
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-app-border bg-app-surface">
+                      {selectedBatchDetail.vouchers.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-3 py-8 text-center text-sm text-app-text-muted"
+                          >
+                            Este lote no tiene vouchers.
+                          </td>
+                        </tr>
+                      ) : (
+                        selectedBatchDetail.vouchers.map((voucher) => (
+                          <tr key={voucher.id}>
+                            <td className="px-3 py-3 text-sm font-semibold text-app-text-main">
+                              {voucher.code}
+                            </td>
+                            <td className="px-3 py-3">
+                              <span
+                                className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-black uppercase tracking-wide ${getStatusPillClass(voucher.status)}`}
+                              >
+                                {getStatusLabel(voucher.status)}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-xs text-app-text-muted">
+                              <p>{voucher.assignedPatientName ?? "Sin asignar"}</p>
+                              <p>{voucher.assignedPatientEmail ?? "Sin email"}</p>
+                            </td>
+                            <td className="px-3 py-3 text-xs text-app-text-muted">
+                              <p>Emision: {formatDateTime(voucher.createdAt)}</p>
+                              <p>Canje: {formatDateTime(voucher.redeemedAt)}</p>
+                              <p>Vence: {formatDateTime(voucher.expiresAt)}</p>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </aside>
+        </>
+      )}
     </div>
   );
 }

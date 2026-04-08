@@ -48,6 +48,31 @@ export interface VoucherBatchSummary {
   pending: number;
 }
 
+export interface VoucherBatchDetailItem {
+  id: string;
+  code: string;
+  status: string;
+  assignedPatientName: string | null;
+  assignedPatientEmail: string | null;
+  redeemedSessionId: string | null;
+  createdAt: string | Date | number;
+  redeemedAt: string | Date | number | null;
+  expiresAt: string | Date | number | null;
+}
+
+export interface VoucherBatchDetailResponse {
+  batchId: string;
+  ownerInstitutionName: string;
+  ownerUserName: string;
+  createdAt: string | Date | number;
+  expiresAt: string | Date | number | null;
+  total: number;
+  available: number;
+  used: number;
+  pending: number;
+  vouchers: VoucherBatchDetailItem[];
+}
+
 export interface VoucherBatchListResponse {
   data: VoucherBatchSummary[];
   count: number;
@@ -230,6 +255,21 @@ export async function fetchVoucherBatches(input: {
   }
 }
 
+export async function fetchVoucherBatchDetail(
+  batchId: string,
+): Promise<VoucherBatchDetailResponse | null> {
+  try {
+    const response = await fetch(`${API_URL}/vouchers/batches/${batchId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to fetch voucher batch detail");
+    return (await response.json()) as VoucherBatchDetailResponse;
+  } catch (error) {
+    console.error("Error fetching voucher batch detail:", error);
+    return null;
+  }
+}
+
 export async function sendVoucherEmail(id: string, email?: string): Promise<boolean> {
   try {
     const response = await fetch(`${API_URL}/vouchers/${id}/send-email`, {
@@ -240,6 +280,33 @@ export async function sendVoucherEmail(id: string, email?: string): Promise<bool
     return response.ok;
   } catch (error) {
     console.error("Error sending voucher email:", error);
+    return false;
+  }
+}
+
+export async function resendVoucherEmail(id: string, email?: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/vouchers/${id}/resend`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify({ email }),
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error resending voucher email:", error);
+    return false;
+  }
+}
+
+export async function revokeVoucher(id: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/vouchers/${id}/revoke`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error revoking voucher:", error);
     return false;
   }
 }

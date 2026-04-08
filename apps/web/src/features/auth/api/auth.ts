@@ -30,13 +30,6 @@ export interface ResolveSetupTokenResponse {
   expiresAt: string;
 }
 
-/**
- * Llama al endpoint POST /auth/login del backend.
- * Cuando el módulo de autenticación del backend esté listo,
- * este servicio ya está integrado sin necesidad de cambios.
- *
- *  @throws {Error} con mensaje legible si las credenciales son incorrectas o hay un error de red.
- */
 export async function loginRequest(credentials: LoginCredentials): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
@@ -54,9 +47,6 @@ export async function loginRequest(credentials: LoginCredentials): Promise<Login
   return response.json() as Promise<LoginResponse>;
 }
 
-/**
- * Invalida la sesión del usuario en el servidor.
- */
 export async function logoutRequest(accessToken: string): Promise<void> {
   try {
     await fetch(`${API_URL}/auth/logout`, {

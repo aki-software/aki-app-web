@@ -3,6 +3,7 @@ import {
     Controller,
     Get,
     Param,
+    ParseUUIDPipe,
     Post,
     Query,
     Req,
@@ -48,20 +49,37 @@ export class VouchersController {
     @Req() req?: AuthenticatedRequest,
   ) {
     const voucher = await this.vouchersService.findById(id);
-    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
-    const isInstitutionOwner =
-      !!voucher.ownerInstitutionId &&
-      req?.user?.institutionId === voucher.ownerInstitutionId;
-    const isDirectOwnerUser =
-      !!voucher.ownerUserId && req?.user?.userId === voucher.ownerUserId;
-
-    if (!isAdmin && !isInstitutionOwner && !isDirectOwnerUser) {
-      throw new UnauthorizedException(
-        'No tienes permisos para enviar este voucher',
-      );
-    }
+    this.assertVoucherOwnership(voucher, req, 'enviar este voucher');
 
     return await this.vouchersService.sendEmail(id, email);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/resend')
+  async resendEmail(
+    @Param('id') id: string,
+    @Body('email') email?: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    const voucher = await this.vouchersService.findById(id);
+    this.assertVoucherOwnership(voucher, req, 'reenviar este voucher');
+    return await this.vouchersService.resendEmail(id, email);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/revoke')
+  async revoke(
+    @Param('id') id: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    const voucher = await this.vouchersService.findById(id);
+    this.assertVoucherOwnership(voucher, req, 'revocar este voucher');
+    const revoked = await this.vouchersService.revoke(id);
+    return {
+      id: revoked.id,
+      code: revoked.code,
+      status: revoked.status,
+    };
   }
 
   @Post('resolve')
@@ -95,6 +113,20 @@ export class VouchersController {
       ownerInstitutionId: isAdmin
         ? query.clientId || undefined
         : req?.user?.institutionId,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('batches/:batchId')
+  async findBatchDetail(
+    @Param('batchId', new ParseUUIDPipe()) batchId: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
+    return await this.vouchersService.findBatchDetail(batchId, {
+      role: req?.user?.role,
+      ownerUserId: req?.user?.userId,
+      ownerInstitutionId: isAdmin ? undefined : req?.user?.institutionId,
     });
   }
 
@@ -138,6 +170,23 @@ export class VouchersController {
   private assertAdmin(req?: AuthenticatedRequest) {
     if (req?.user?.role?.toUpperCase() !== UserRole.ADMIN) {
       throw new UnauthorizedException('Se requiere usuario administrador');
+    }
+  }
+
+  private assertVoucherOwnership(
+    voucher: { ownerInstitutionId?: string | null; ownerUserId?: string | null },
+    req: AuthenticatedRequest | undefined,
+    action: string,
+  ) {
+    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
+    const isInstitutionOwner =
+      !!voucher.ownerInstitutionId &&
+      req?.user?.institutionId === voucher.ownerInstitutionId;
+    const isDirectOwnerUser =
+      !!voucher.ownerUserId && req?.user?.userId === voucher.ownerUserId;
+
+    if (!isAdmin && !isInstitutionOwner && !isDirectOwnerUser) {
+      throw new UnauthorizedException(`No tienes permisos para ${action}`);
     }
   }
 }
