@@ -14,16 +14,20 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    const adminEmail =
-      this.configService.get<string>('ADMIN_USER') || 'admin@akit.app';
-    const adminPass =
-      this.configService.get<string>('ADMIN_PASS') || 'admin123';
+    const adminEmail = this.configService.get<string>('ADMIN_USER');
+    const adminPass = this.configService.get<string>('ADMIN_PASS');
 
-    if (loginDto.email === adminEmail && loginDto.password === adminPass) {
+    if (
+      adminEmail &&
+      adminPass &&
+      loginDto.email === adminEmail &&
+      loginDto.password === adminPass
+    ) {
       return this.buildAdminLoginResponse(adminEmail);
     }
 
     const user = await this.usersService.findByEmail(loginDto.email);
+
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }

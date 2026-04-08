@@ -6,21 +6,14 @@ import {
   Param,
   Post,
   Query,
-  Req,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { UsersService } from './users.service';
 import { UserRole } from './entities/user.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { MailService } from '../mail/mail.service';
-
-type AuthenticatedRequest = Request & {
-  user?: {
-    role?: string;
-  };
-};
 
 @Controller('users')
 export class UsersController {
@@ -29,14 +22,10 @@ export class UsersController {
     private readonly mailService: MailService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get()
-  async findAll(
-    @Query('role') role?: string,
-    @Req() req?: AuthenticatedRequest,
-  ) {
-    this.assertAdmin(req);
-
+  async findAll(@Query('role') role?: string) {
     if (role?.toUpperCase() === UserRole.THERAPIST) {
       const users = await this.usersService.findTherapists();
       return {
@@ -55,7 +44,8 @@ export class UsersController {
     return { data: [] };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post()
   async create(
     @Body()
@@ -65,10 +55,7 @@ export class UsersController {
       email?: string;
       institutionId?: string | null;
     },
-    @Req() req?: AuthenticatedRequest,
   ) {
-    this.assertAdmin(req);
-
     const user = await this.usersService.register(
       payload.name,
       payload.role ?? UserRole.THERAPIST,
@@ -119,14 +106,10 @@ export class UsersController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post(':id/resend-activation')
-  async resendActivation(
-    @Param('id') id: string,
-    @Req() req?: AuthenticatedRequest,
-  ) {
-    this.assertAdmin(req);
-
+  async resendActivation(@Param('id') id: string) {
     try {
       const user = await this.usersService.refreshPasswordSetupToken(id);
       const activationEmailSent =
@@ -144,14 +127,10 @@ export class UsersController {
       };
     } catch (error) {
       throw new BadRequestException(
-        error instanceof Error ? error.message : 'No se pudo reenviar la invitación',
+        error instanceof Error
+          ? error.message
+          : 'No se pudo reenviar la invitación',
       );
-    }
-  }
-
-  private assertAdmin(req?: AuthenticatedRequest) {
-    if (req?.user?.role?.toUpperCase() !== UserRole.ADMIN) {
-      throw new UnauthorizedException('Se requiere usuario administrador');
     }
   }
 }

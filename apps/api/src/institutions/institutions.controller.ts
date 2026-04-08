@@ -7,9 +7,12 @@ import {
   UnauthorizedException,
   UseGuards,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { InstitutionsService } from './institutions.service';
 import { UsersService } from '../users/users.service';
@@ -23,6 +26,7 @@ type AuthenticatedRequest = Request & {
 };
 
 @Controller('institutions')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class InstitutionsController {
   constructor(
     private readonly institutionsService: InstitutionsService,
@@ -30,10 +34,9 @@ export class InstitutionsController {
     private readonly mailService: MailService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(@Req() req?: AuthenticatedRequest) {
-    this.assertAdmin(req);
+  @Roles(UserRole.ADMIN)
+  async findAll() {
     const institutions = await this.institutionsService.findAll();
     return {
       data: institutions.map((institution) => ({
@@ -52,8 +55,8 @@ export class InstitutionsController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post()
+  @Roles(UserRole.ADMIN)
   async create(
     @Body()
     payload: {
@@ -63,10 +66,7 @@ export class InstitutionsController {
       responsibleName?: string;
       responsibleEmail?: string;
     },
-    @Req() req?: AuthenticatedRequest,
   ) {
-    this.assertAdmin(req);
-
     let institution = await this.institutionsService.create({
       name: payload.name,
       billingEmail: payload.billingEmail,
@@ -110,7 +110,6 @@ export class InstitutionsController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get(':id/stats')
   async getStats(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
     const isOwnerOrAdmin =
@@ -126,9 +125,35 @@ export class InstitutionsController {
     return await this.institutionsService.getStats(id);
   }
 
-  private assertAdmin(req?: AuthenticatedRequest) {
-    if (req?.user?.role?.toUpperCase() !== UserRole.ADMIN) {
-      throw new UnauthorizedException('Se requiere usuario administrador');
-    }
+  @Patch(':id')
+  @Roles(UserRole.ADMIN)
+  async update(
+    @Param('id') id: string,
+    @Body() payload: { name?: string; billingEmail?: string },
+  ) {
+    const institution = await this.institutionsService.update(id, payload);
+    return {
+      id: institution.id,
+      name: institution.name,
+      billingEmail: institution.billingEmail,
+      responsibleTherapistUserId: institution.responsibleTherapistUserId,
+      responsibleTherapistName: institution.responsibleTherapist?.name ?? null,
+    };
+  }
+
+  @Patch(':id/status')
+  @Roles(UserRole.ADMIN)
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() payload: { isActive: boolean },
+  ) {
+    const institution = await this.institutionsService.updateStatus(
+      id,
+      payload.isActive,
+    );
+    return {
+      id: institution.id,
+      isActive: institution.isActive,
+    };
   }
 }
