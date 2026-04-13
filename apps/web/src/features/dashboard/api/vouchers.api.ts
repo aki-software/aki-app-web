@@ -1,4 +1,13 @@
 import { API_URL, getAuthHeaders } from "./client";
+import type {
+  VoucherBatchCreateResult,
+  VoucherBatchDetailResponse,
+  VoucherBatchListResponse,
+  VoucherOwnerType,
+  VoucherStatus,
+  VoucherData,
+  VoucherListResponse,
+} from "@akit/contracts";
 
 export type VoucherApi = {
   id: string;
@@ -18,84 +27,15 @@ export type VoucherApi = {
   expiresAt?: string | Date | number | null;
 };
 
-export interface VoucherData {
-  id: string;
-  code: string;
-  batchId: string;
-  status: string;
-  ownerType: string;
-  ownerInstitutionId: string | null;
-  ownerInstitutionName: string;
-  ownerUserId: string | null;
-  ownerUserName: string;
-  assignedPatientName: string | null;
-  assignedPatientEmail: string | null;
-  redeemedSessionId: string | null;
-  createdAt: string | Date | number;
-  redeemedAt: string | Date | number | null;
-  expiresAt: string | Date | number | null;
-}
-
-export interface VoucherBatchSummary {
-  batchId: string;
-  ownerInstitutionName: string;
-  ownerUserName: string;
-  createdAt: string | Date | number;
-  expiresAt: string | Date | number | null;
-  total: number;
-  available: number;
-  used: number;
-  pending: number;
-}
-
-export interface VoucherBatchDetailItem {
-  id: string;
-  code: string;
-  status: string;
-  assignedPatientName: string | null;
-  assignedPatientEmail: string | null;
-  redeemedSessionId: string | null;
-  createdAt: string | Date | number;
-  redeemedAt: string | Date | number | null;
-  expiresAt: string | Date | number | null;
-}
-
-export interface VoucherBatchDetailResponse {
-  batchId: string;
-  ownerInstitutionName: string;
-  ownerUserName: string;
-  createdAt: string | Date | number;
-  expiresAt: string | Date | number | null;
-  total: number;
-  available: number;
-  used: number;
-  pending: number;
-  vouchers: VoucherBatchDetailItem[];
-}
-
-export interface VoucherBatchListResponse {
-  data: VoucherBatchSummary[];
-  count: number;
-  page: number;
-  limit: number;
-}
-
-export interface VoucherListResponse {
-  data: VoucherData[];
-  count: number;
-  page?: number;
-  limit?: number;
-}
-
-export interface VoucherBatchCreateResult {
-  batchId: string;
-  createdCount: number;
-  codes: string[];
-  ownerType: string;
-  ownerUserId: string | null;
-  ownerInstitutionId: string | null;
-  expiresAt: string | Date | number | null;
-}
+export type {
+  VoucherBatchCreateResult,
+  VoucherBatchDetailItem,
+  VoucherBatchDetailResponse,
+  VoucherBatchListResponse,
+  VoucherBatchSummary,
+  VoucherData,
+  VoucherListResponse,
+} from "@akit/contracts";
 
 export async function fetchVouchersList(): Promise<VoucherData[]> {
   try {
@@ -105,16 +45,16 @@ export async function fetchVouchersList(): Promise<VoucherData[]> {
     if (!response.ok) throw new Error("Failed to fetch vouchers");
     const responseData = await response.json();
     const vouchers: VoucherApi[] = responseData.data || [];
-    return vouchers.map((voucher) => ({
+    const normalized = vouchers.map((voucher) => ({
       id: voucher.id,
       code: voucher.code,
       batchId: voucher.batchId,
-      status: voucher.status,
-      ownerType: voucher.ownerType,
+      status: normalizeVoucherStatus(voucher.status),
+      ownerType: normalizeVoucherOwnerType(voucher.ownerType),
       ownerInstitutionId: voucher.ownerInstitutionId ?? null,
       ownerInstitutionName: voucher.ownerInstitution?.name ?? "Institución no informada",
       ownerUserId: voucher.ownerUserId ?? null,
-      ownerUserName: voucher.ownerUser?.name ?? "Responsable no informado",
+      ownerUserName: voucher.ownerUser?.name ?? "Cuenta operativa no informada",
       assignedPatientName: voucher.assignedPatientName ?? null,
       assignedPatientEmail: voucher.assignedPatientEmail ?? null,
       redeemedSessionId: voucher.redeemedSessionId ?? null,
@@ -122,6 +62,7 @@ export async function fetchVouchersList(): Promise<VoucherData[]> {
       redeemedAt: voucher.redeemedAt ?? null,
       expiresAt: voucher.expiresAt ?? null,
     }));
+    return normalized.map((voucher) => voucherBaseForUi(voucher));
   } catch (error) {
     console.error("Error fetching vouchers list:", error);
     return [];
@@ -178,36 +119,38 @@ export async function fetchVouchersPage(input: {
     if (!response.ok) throw new Error("Failed to fetch vouchers page");
     const responseData = await response.json();
     const vouchers: VoucherApi[] = responseData.data || [];
-    return {
-      data: vouchers.map((voucher) => ({
+    const mapped = vouchers.map((voucher) => ({
         id: voucher.id,
         code: voucher.code,
         batchId: voucher.batchId,
-        status: voucher.status,
-        ownerType: voucher.ownerType,
+        status: normalizeVoucherStatus(voucher.status),
+        ownerType: normalizeVoucherOwnerType(voucher.ownerType),
         ownerInstitutionId: voucher.ownerInstitutionId ?? null,
         ownerInstitutionName:
           voucher.ownerInstitution?.name ?? "Institución no informada",
         ownerUserId: voucher.ownerUserId ?? null,
-        ownerUserName: voucher.ownerUser?.name ?? "Responsable no informado",
+        ownerUserName: voucher.ownerUser?.name ?? "Cuenta operativa no informada",
         assignedPatientName: voucher.assignedPatientName ?? null,
         assignedPatientEmail: voucher.assignedPatientEmail ?? null,
         redeemedSessionId: voucher.redeemedSessionId ?? null,
         createdAt: voucher.createdAt,
         redeemedAt: voucher.redeemedAt ?? null,
         expiresAt: voucher.expiresAt ?? null,
-      })),
+      }));
+    const payload = {
+      data: mapped.map((voucher) => voucherBaseForUi(voucher)),
       count: Number(responseData.count ?? 0),
-      page: responseData.page ? Number(responseData.page) : undefined,
-      limit: responseData.limit ? Number(responseData.limit) : undefined,
+      page: Number(responseData.page ?? input.page ?? 1),
+      limit: Number(responseData.limit ?? input.limit ?? 10),
     };
+    return payload;
   } catch (error) {
     console.error("Error fetching vouchers page:", error);
     return {
       data: [],
       count: 0,
-      page: input.page,
-      limit: input.limit,
+      page: input.page ?? 1,
+      limit: input.limit ?? 10,
     };
   }
 }
@@ -237,13 +180,14 @@ export async function fetchVoucherBatches(input: {
       },
     );
     if (!response.ok) throw new Error("Failed to fetch voucher batches");
-    const responseData = (await response.json()) as Partial<VoucherBatchListResponse>;
-    return {
+    const responseData = await response.json();
+    const payload = {
       data: Array.isArray(responseData.data) ? responseData.data : [],
       count: Number(responseData.count ?? 0),
       page: Number(responseData.page ?? input.page ?? 1),
       limit: Number(responseData.limit ?? input.limit ?? 10),
     };
+    return payload;
   } catch (error) {
     console.error("Error fetching voucher batches:", error);
     return {
@@ -268,6 +212,39 @@ export async function fetchVoucherBatchDetail(
     console.error("Error fetching voucher batch detail:", error);
     return null;
   }
+}
+
+function voucherBaseForUi(voucher: Omit<VoucherData, "createdAt" | "redeemedAt" | "expiresAt"> & {
+  createdAt: string | Date | number;
+  redeemedAt: string | Date | number | null;
+  expiresAt: string | Date | number | null;
+}): VoucherData {
+  return {
+    ...voucher,
+    createdAt: normalizeIsoDate(voucher.createdAt),
+    redeemedAt: voucher.redeemedAt ? normalizeIsoDate(voucher.redeemedAt) : null,
+    expiresAt: voucher.expiresAt ? normalizeIsoDate(voucher.expiresAt) : null,
+  };
+}
+
+function normalizeIsoDate(value: string | Date | number): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return new Date(0).toISOString();
+  return date.toISOString();
+}
+
+function normalizeVoucherStatus(value: string): VoucherStatus {
+  const allowed: VoucherStatus[] = ["AVAILABLE", "SENT", "USED", "EXPIRED", "REVOKED"];
+  return allowed.includes(value as VoucherStatus)
+    ? (value as VoucherStatus)
+    : "AVAILABLE";
+}
+
+function normalizeVoucherOwnerType(value: string): VoucherOwnerType {
+  const allowed: VoucherOwnerType[] = ["THERAPIST", "INSTITUTION"];
+  return allowed.includes(value as VoucherOwnerType)
+    ? (value as VoucherOwnerType)
+    : "INSTITUTION";
 }
 
 export async function sendVoucherEmail(id: string, email?: string): Promise<boolean> {
