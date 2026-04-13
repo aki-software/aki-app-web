@@ -12,6 +12,7 @@ describe('VouchersController', () => {
     sendEmail: jest.fn(),
     resendEmail: jest.fn(),
     revoke: jest.fn(),
+    redeemForSession: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -49,7 +50,7 @@ describe('VouchersController', () => {
 
       const result = await controller.sendEmail(
         'voucher-1',
-        'patient@test.com',
+        { email: 'patient@test.com' },
         req,
       );
 
@@ -78,7 +79,7 @@ describe('VouchersController', () => {
 
       const result = await controller.sendEmail(
         'voucher-2',
-        'patient@test.com',
+        { email: 'patient@test.com' },
         req,
       );
 
@@ -105,7 +106,7 @@ describe('VouchersController', () => {
       });
 
       await expect(
-        controller.sendEmail('voucher-3', 'patient@test.com', req),
+        controller.sendEmail('voucher-3', { email: 'patient@test.com' }, req),
       ).rejects.toBeInstanceOf(UnauthorizedException);
 
       expect(mockVouchersService.sendEmail).not.toHaveBeenCalled();
@@ -131,7 +132,7 @@ describe('VouchersController', () => {
 
       const result = await controller.resendEmail(
         'voucher-4',
-        'patient@test.com',
+        { email: 'patient@test.com' },
         req,
       );
 
@@ -164,6 +165,33 @@ describe('VouchersController', () => {
       );
 
       expect(mockVouchersService.revoke).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('redeem', () => {
+    it('should redeem voucher for session', async () => {
+      mockVouchersService.redeemForSession.mockResolvedValueOnce({
+        success: true,
+        status: 'REDEEMED',
+        voucherCode: 'AB12CD34',
+        sessionId: '11111111-1111-1111-1111-111111111111',
+      });
+
+      const result = await controller.redeem({
+        code: 'ab12cd34',
+        sessionId: '11111111-1111-1111-1111-111111111111',
+      });
+
+      expect(result).toEqual({
+        success: true,
+        status: 'REDEEMED',
+        voucherCode: 'AB12CD34',
+        sessionId: '11111111-1111-1111-1111-111111111111',
+      });
+      expect(mockVouchersService.redeemForSession).toHaveBeenCalledWith(
+        'ab12cd34',
+        '11111111-1111-1111-1111-111111111111',
+      );
     });
   });
 });

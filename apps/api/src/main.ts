@@ -11,17 +11,25 @@ async function bootstrap() {
 
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
-  
+
   // Habilitamos CORS restrictivo (VULN-06 Fix)
-  const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173'];
+  const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? [
+    'http://localhost:5173',
+  ];
   app.enableCors({
     origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
-  // Habilitamos validación DTO global y removemos exceso de campos (whitelist: true)
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  // Habilitamos validación DTO global y rechazamos campos no permitidos.
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   app.setGlobalPrefix('api/v1');
 

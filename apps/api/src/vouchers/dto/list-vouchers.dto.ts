@@ -22,7 +22,7 @@ export class ListVouchersDto {
   clientId?: string;
 
   @IsOptional()
-  @IsString()
+  @IsIn(['ALL', 'EXPIRING_7D', 'NO_EXPIRATION'])
   expiration?: string;
 
   @IsOptional()

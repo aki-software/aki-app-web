@@ -2,10 +2,11 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Brackets, DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { Voucher } from './entities/voucher.entity';
 import { VoucherBatch } from './entities/voucher-batch.entity';
 import {
@@ -18,6 +19,7 @@ import { ListVouchersDto } from './dto/list-vouchers.dto';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
 import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
+import { Session, SessionPaymentStatus } from '../sessions/entities/session.entity';
 
 type VoucherScope = {
   role?: string;
@@ -62,6 +64,19 @@ type VoucherBatchDetail = {
   vouchers: VoucherBatchDetailItem[];
 };
 
+type RawVoucherBatchCountRow = { count: string };
+type RawVoucherBatchSummaryRow = {
+  batchId: string;
+  ownerInstitutionName: string;
+  ownerUserName: string;
+  createdAt: Date | string;
+  expiresAt: Date | string | null;
+  total: string;
+  available: string;
+  used: string;
+  pending: string;
+};
+
 @Injectable()
 export class VouchersService {
   constructor(
@@ -69,6 +84,7 @@ export class VouchersService {
     private readonly voucherRepository: Repository<Voucher>,
     @InjectRepository(VoucherBatch)
     private readonly voucherBatchRepository: Repository<VoucherBatch>,
+    private readonly dataSource: DataSource,
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
   ) {}
@@ -195,6 +211,80 @@ export class VouchersService {
     return voucher;
   }
 
+  async redeemForSession(code: string, sessionId: string): Promise<{
+    success: boolean;
+    status: 'REDEEMED' | 'ALREADY_REDEEMED_BY_THIS_SESSION';
+    voucherCode: string;
+    sessionId: string;
+  }> {
+    const normalizedCode = this.normalizeCode(code);
+    return await this.dataSource.transaction(async (manager) => {
+      const voucherRepository = manager.getRepository(Voucher);
+      const sessionRepository = manager.getRepository(Session);
+
+      const voucher = await voucherRepository.findOne({
+        where: { code: normalizedCode },
+      });
+      if (!voucher) {
+        throw new NotFoundException('INVALID_CODE');
+      }
+
+      const session = await sessionRepository.findOne({ where: { id: sessionId } });
+      if (!session) {
+        throw new NotFoundException('SESSION_NOT_FOUND');
+      }
+
+      if (voucher.redeemedSessionId === sessionId) {
+        this.applyVoucherRedemptionToSession(session, voucher, new Date());
+        await sessionRepository.save(session);
+        return {
+          success: true,
+          status: 'ALREADY_REDEEMED_BY_THIS_SESSION' as const,
+          voucherCode: voucher.code,
+          sessionId,
+        };
+      }
+
+      if (voucher.status === VoucherStatus.USED) {
+        throw new ConflictException('ALREADY_USED');
+      }
+
+      this.assertVoucherAvailable(voucher);
+      const redeemedAt = new Date();
+      voucher.status = VoucherStatus.USED;
+      voucher.redeemedSessionId = sessionId;
+      voucher.redeemedAt = redeemedAt;
+
+      this.applyVoucherRedemptionToSession(session, voucher, redeemedAt);
+
+      await voucherRepository.save(voucher);
+      await sessionRepository.save(session);
+
+      return {
+        success: true,
+        status: 'REDEEMED' as const,
+        voucherCode: voucher.code,
+        sessionId,
+      };
+    });
+  }
+
+  private applyVoucherRedemptionToSession(
+    session: Session,
+    voucher: Voucher,
+    redeemedAt: Date,
+  ) {
+    session.voucherId = voucher.id;
+    session.paymentStatus = SessionPaymentStatus.VOUCHER_REDEEMED;
+    session.reportUnlockedAt = session.reportUnlockedAt ?? redeemedAt;
+    if (!session.institutionId && voucher.ownerInstitutionId) {
+      session.institutionId = voucher.ownerInstitutionId;
+    }
+    if (!session.therapistUserId && voucher.ownerUserId) {
+      session.therapistUserId = voucher.ownerUserId;
+    }
+  }
+
   async attachVoucherToSession(
     code: string,
     sessionId: string,
@@ -228,90 +318,96 @@ export class VouchersService {
   ): Promise<{
     data: Voucher[];
     count: number;
-    page?: number;
-    limit?: number;
+    page: number;
+    limit: number;
   }> {
-    const hasAdvancedFilters = Boolean(
-      filters.search?.trim() ||
-      filters.status ||
-      filters.clientId ||
-      filters.expiration ||
-      filters.page ||
-      filters.limit,
-    );
-
-    const where = this.buildScopedWhere(scope);
-    const vouchers = await this.voucherRepository.find({
-      where,
-      relations: ['ownerUser', 'ownerInstitution', 'redeemedSession'],
-      order: { createdAt: 'DESC' },
-    });
-
-    const now = Date.now();
-    const next7Days = now + 7 * 24 * 60 * 60 * 1000;
-    const normalizedSearch = filters.search?.trim().toLowerCase() ?? '';
-
-    const filtered = vouchers.filter((voucher) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        [
-          voucher.code,
-          voucher.status,
-          voucher.batchId,
-          voucher.ownerInstitution?.name,
-          voucher.ownerUser?.name,
-          voucher.assignedPatientName,
-          voucher.assignedPatientEmail,
-        ]
-          .filter(Boolean)
-          .some((value) =>
-            String(value).toLowerCase().includes(normalizedSearch),
-          );
-
-      const matchesStatus =
-        !filters.status || voucher.status === filters.status;
-
-      const voucherClientId = voucher.ownerInstitutionId ?? '__UNASSIGNED__';
-      const targetClientId = filters.clientId?.trim();
-      const matchesClient =
-        !targetClientId || voucherClientId === targetClientId;
-
-      const expiresAtTimestamp = voucher.expiresAt
-        ? new Date(voucher.expiresAt).getTime()
-        : NaN;
-      const hasValidExpiration = Number.isFinite(expiresAtTimestamp);
-      const matchesExpiration =
-        !filters.expiration ||
-        filters.expiration === 'ALL' ||
-        (filters.expiration === 'EXPIRING_7D' &&
-          hasValidExpiration &&
-          expiresAtTimestamp >= now &&
-          expiresAtTimestamp <= next7Days) ||
-        (filters.expiration === 'NO_EXPIRATION' && !hasValidExpiration);
-
-      return (
-        matchesSearch && matchesStatus && matchesClient && matchesExpiration
-      );
-    });
-
-    if (!hasAdvancedFilters) {
-      return { data: filtered, count: filtered.length };
-    }
-
     const page = Number.isFinite(filters.page)
       ? Math.max(1, filters.page ?? 1)
       : 1;
     const limit = Number.isFinite(filters.limit)
       ? Math.min(Math.max(1, filters.limit ?? 10), 100)
       : 10;
-    const startIndex = (page - 1) * limit;
 
-    return {
-      data: filtered.slice(startIndex, startIndex + limit),
-      count: filtered.length,
-      page,
-      limit,
-    };
+    const qb = this.voucherRepository
+      .createQueryBuilder('voucher')
+      .leftJoinAndSelect('voucher.ownerUser', 'ownerUser')
+      .leftJoinAndSelect('voucher.ownerInstitution', 'ownerInstitution')
+      .leftJoinAndSelect('voucher.redeemedSession', 'redeemedSession')
+      .orderBy('voucher.createdAt', 'DESC');
+
+    const normalizedRole = scope?.role?.toUpperCase();
+    if (normalizedRole === 'ADMIN') {
+      if (scope?.ownerInstitutionId) {
+        qb.andWhere('voucher.ownerInstitutionId = :ownerInstitutionId', {
+          ownerInstitutionId: scope.ownerInstitutionId,
+        });
+      }
+    } else if (scope?.ownerInstitutionId) {
+      qb.andWhere('voucher.ownerInstitutionId = :ownerInstitutionId', {
+        ownerInstitutionId: scope.ownerInstitutionId,
+      });
+    } else if (scope?.ownerUserId) {
+      qb.andWhere('voucher.ownerUserId = :ownerUserId', {
+        ownerUserId: scope.ownerUserId,
+      });
+    } else {
+      qb.andWhere('voucher.id = :forbidden', { forbidden: '__forbidden__' });
+    }
+
+    const search = filters.search?.trim();
+    if (search) {
+      const normalized = `%${search.toLowerCase()}%`;
+      qb.andWhere(
+        new Brackets((inner) => {
+          inner
+            .where('LOWER(voucher.code) LIKE :search', { search: normalized })
+            .orWhere('LOWER(CAST(voucher.status AS text)) LIKE :search', {
+              search: normalized,
+            })
+            .orWhere('LOWER(CAST(voucher.batchId AS text)) LIKE :search', {
+              search: normalized,
+            })
+            .orWhere('LOWER(ownerInstitution.name) LIKE :search', {
+              search: normalized,
+            })
+            .orWhere('LOWER(ownerUser.name) LIKE :search', {
+              search: normalized,
+            })
+            .orWhere(
+              "LOWER(COALESCE(voucher.assignedPatientName, '')) LIKE :search",
+              { search: normalized },
+            )
+            .orWhere(
+              "LOWER(COALESCE(voucher.assignedPatientEmail, '')) LIKE :search",
+              { search: normalized },
+            );
+        }),
+      );
+    }
+
+    if (filters.status) {
+      qb.andWhere('voucher.status = :status', { status: filters.status });
+    }
+
+    const expiration = filters.expiration?.trim();
+    if (expiration && expiration !== 'ALL') {
+      if (expiration === 'EXPIRING_7D') {
+        const now = new Date();
+        const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        qb.andWhere('voucher.expiresAt IS NOT NULL')
+          .andWhere('voucher.expiresAt >= :now', { now })
+          .andWhere('voucher.expiresAt <= :next7Days', { next7Days });
+      } else if (expiration === 'NO_EXPIRATION') {
+        qb.andWhere('voucher.expiresAt IS NULL');
+      }
+    }
+
+    const [data, count] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, count, page, limit };
   }
 
   async findBatchSummaries(
@@ -323,7 +419,6 @@ export class VouchersService {
     page: number;
     limit: number;
   }> {
-    const where = this.buildScopedWhere(scope);
     const page = Number.isFinite(filters.page)
       ? Math.max(1, filters.page ?? 1)
       : 1;
@@ -331,96 +426,130 @@ export class VouchersService {
       ? Math.min(Math.max(1, filters.limit ?? 10), 100)
       : 10;
 
-    const vouchers = await this.voucherRepository.find({
-      where,
-      relations: ['ownerUser', 'ownerInstitution'],
-      order: { createdAt: 'DESC' },
-    });
+    const baseQb = this.voucherRepository
+      .createQueryBuilder('voucher')
+      .leftJoin('voucher.ownerInstitution', 'ownerInstitution')
+      .leftJoin('voucher.ownerUser', 'ownerUser');
 
-    const now = Date.now();
-    const next7Days = now + 7 * 24 * 60 * 60 * 1000;
-    const normalizedSearch = filters.search?.trim().toLowerCase() ?? '';
-
-    const filteredVouchers = vouchers.filter((voucher) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        [
-          voucher.batchId,
-          voucher.code,
-          voucher.ownerInstitution?.name,
-          voucher.ownerUser?.name,
-        ]
-          .filter(Boolean)
-          .some((value) =>
-            String(value).toLowerCase().includes(normalizedSearch),
-          );
-
-      const voucherClientId = voucher.ownerInstitutionId ?? '__UNASSIGNED__';
-      const targetClientId = filters.clientId?.trim();
-      const matchesClient =
-        !targetClientId || voucherClientId === targetClientId;
-
-      const expiresAtTimestamp = voucher.expiresAt
-        ? new Date(voucher.expiresAt).getTime()
-        : NaN;
-      const hasValidExpiration = Number.isFinite(expiresAtTimestamp);
-      const matchesExpiration =
-        !filters.expiration ||
-        filters.expiration === 'ALL' ||
-        (filters.expiration === 'EXPIRING_7D' &&
-          hasValidExpiration &&
-          expiresAtTimestamp >= now &&
-          expiresAtTimestamp <= next7Days) ||
-        (filters.expiration === 'NO_EXPIRATION' && !hasValidExpiration);
-
-      return matchesSearch && matchesClient && matchesExpiration;
-    });
-
-    const grouped = new Map<string, VoucherBatchSummary>();
-    filteredVouchers.forEach((voucher) => {
-      const pendingIncrement =
-        voucher.status === VoucherStatus.USED ||
-        voucher.status === VoucherStatus.EXPIRED
-          ? 0
-          : 1;
-
-      const existing = grouped.get(voucher.batchId);
-      if (!existing) {
-        grouped.set(voucher.batchId, {
-          batchId: voucher.batchId,
-          ownerInstitutionName:
-            voucher.ownerInstitution?.name ?? 'Cliente no informado',
-          ownerUserName: voucher.ownerUser?.name ?? 'Responsable no informado',
-          createdAt: voucher.createdAt,
-          expiresAt: voucher.expiresAt,
-          total: 1,
-          available: voucher.status === VoucherStatus.AVAILABLE ? 1 : 0,
-          used: voucher.status === VoucherStatus.USED ? 1 : 0,
-          pending: pendingIncrement,
+    const normalizedRole = scope?.role?.toUpperCase();
+    if (normalizedRole === 'ADMIN') {
+      if (scope?.ownerInstitutionId) {
+        baseQb.andWhere('voucher.ownerInstitutionId = :ownerInstitutionId', {
+          ownerInstitutionId: scope.ownerInstitutionId,
         });
-        return;
       }
+    } else if (scope?.ownerInstitutionId) {
+      baseQb.andWhere('voucher.ownerInstitutionId = :ownerInstitutionId', {
+        ownerInstitutionId: scope.ownerInstitutionId,
+      });
+    } else if (scope?.ownerUserId) {
+      baseQb.andWhere('voucher.ownerUserId = :ownerUserId', {
+        ownerUserId: scope.ownerUserId,
+      });
+    } else {
+      baseQb.andWhere('voucher.id = :forbidden', {
+        forbidden: '__forbidden__',
+      });
+    }
 
-      existing.total += 1;
-      if (voucher.status === VoucherStatus.AVAILABLE) existing.available += 1;
-      if (voucher.status === VoucherStatus.USED) existing.used += 1;
-      existing.pending += pendingIncrement;
-    });
+    if (filters.clientId?.trim()) {
+      baseQb.andWhere('voucher.ownerInstitutionId = :clientId', {
+        clientId: filters.clientId.trim(),
+      });
+    }
 
-    const summaries = Array.from(grouped.values()).sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
+    const search = filters.search?.trim();
+    if (search) {
+      const normalized = `%${search.toLowerCase()}%`;
+      baseQb.andWhere(
+        new Brackets((inner) => {
+          inner
+            .where('LOWER(CAST(voucher.batchId AS text)) LIKE :search', {
+              search: normalized,
+            })
+            .orWhere('LOWER(voucher.code) LIKE :search', {
+              search: normalized,
+            })
+            .orWhere('LOWER(ownerInstitution.name) LIKE :search', {
+              search: normalized,
+            })
+            .orWhere('LOWER(ownerUser.name) LIKE :search', {
+              search: normalized,
+            });
+        }),
+      );
+    }
 
-    const startIndex = (page - 1) * limit;
-    const data = summaries.slice(startIndex, startIndex + limit);
+    const expiration = filters.expiration?.trim();
+    if (expiration && expiration !== 'ALL') {
+      if (expiration === 'EXPIRING_7D') {
+        const now = new Date();
+        const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        baseQb
+          .andWhere('voucher.expiresAt IS NOT NULL')
+          .andWhere('voucher.expiresAt >= :now', { now })
+          .andWhere('voucher.expiresAt <= :next7Days', { next7Days });
+      } else if (expiration === 'NO_EXPIRATION') {
+        baseQb.andWhere('voucher.expiresAt IS NULL');
+      }
+    }
 
-    return {
-      data,
-      count: summaries.length,
-      page,
-      limit,
-    };
+    const countRow = await baseQb
+      .clone()
+      .select('COUNT(DISTINCT voucher.batchId)', 'count')
+      .getRawOne<RawVoucherBatchCountRow>();
+    const count = Number.parseInt(String(countRow?.count ?? '0'), 10) || 0;
+
+    const rows = await baseQb
+      .clone()
+      .select('voucher.batchId', 'batchId')
+      .addSelect(
+        "COALESCE(MAX(ownerInstitution.name), 'Institución no informada')",
+        'ownerInstitutionName',
+      )
+      .addSelect(
+        "COALESCE(MAX(ownerUser.name), 'Cuenta operativa no informada')",
+        'ownerUserName',
+      )
+      .addSelect('MIN(voucher.createdAt)', 'createdAt')
+      .addSelect('MAX(voucher.expiresAt)', 'expiresAt')
+      .addSelect('COUNT(*)', 'total')
+      .addSelect(
+        `SUM(CASE WHEN voucher.status = :available THEN 1 ELSE 0 END)`,
+        'available',
+      )
+      .addSelect(
+        `SUM(CASE WHEN voucher.status = :used THEN 1 ELSE 0 END)`,
+        'used',
+      )
+      .addSelect(
+        `SUM(CASE WHEN voucher.status = :used OR voucher.status = :expired THEN 0 ELSE 1 END)`,
+        'pending',
+      )
+      .setParameters({
+        available: VoucherStatus.AVAILABLE,
+        used: VoucherStatus.USED,
+        expired: VoucherStatus.EXPIRED,
+      })
+      .groupBy('voucher.batchId')
+      .orderBy('createdAt', 'DESC')
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .getRawMany<RawVoucherBatchSummaryRow>();
+
+    const data: VoucherBatchSummary[] = (rows ?? []).map((row) => ({
+      batchId: row.batchId,
+      ownerInstitutionName: row.ownerInstitutionName,
+      ownerUserName: row.ownerUserName,
+      createdAt: row.createdAt,
+      expiresAt: row.expiresAt,
+      total: Number.parseInt(String(row.total ?? '0'), 10) || 0,
+      available: Number.parseInt(String(row.available ?? '0'), 10) || 0,
+      used: Number.parseInt(String(row.used ?? '0'), 10) || 0,
+      pending: Number.parseInt(String(row.pending ?? '0'), 10) || 0,
+    }));
+
+    return { data, count, page, limit };
   }
 
   async findBatchDetail(
@@ -458,8 +587,9 @@ export class VouchersService {
     return {
       batchId,
       ownerInstitutionName:
-        firstVoucher.ownerInstitution?.name ?? 'Cliente no informado',
-      ownerUserName: firstVoucher.ownerUser?.name ?? 'Responsable no informado',
+        firstVoucher.ownerInstitution?.name ?? 'Institución no informada',
+      ownerUserName:
+        firstVoucher.ownerUser?.name ?? 'Cuenta operativa no informada',
       createdAt: firstVoucher.createdAt,
       expiresAt: firstVoucher.expiresAt,
       total: vouchers.length,
@@ -560,8 +690,8 @@ export class VouchersService {
   private async generateVoucherCode(): Promise<string> {
     for (let attempt = 0; attempt < 10; attempt++) {
       const raw = randomBytes(6).toString('base64url').toUpperCase();
-      const code = raw.replace(/[^A-Z0-9]/g, '').slice(0, 10);
-      if (code.length < 8) continue;
+      const code = raw.replace(/[^A-Z0-9]/g, '').slice(0, 8);
+      if (code.length !== 8) continue;
       const existing = await this.voucherRepository.findOne({
         where: { code },
       });

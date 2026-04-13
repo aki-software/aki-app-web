@@ -1,14 +1,14 @@
 import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    ParseUUIDPipe,
-    Post,
-    Query,
-    Req,
-    UnauthorizedException,
-    UseGuards,
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -17,6 +17,8 @@ import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
 import { ListVouchersDto } from './dto/list-vouchers.dto';
 import { ResolveVoucherDto } from './dto/resolve-voucher.dto';
+import { RedeemVoucherDto } from './dto/redeem-voucher.dto';
+import { SendVoucherEmailDto } from './dto/send-voucher-email.dto';
 import { VouchersService } from './vouchers.service';
 
 type AuthenticatedRequest = Request & {
@@ -44,32 +46,32 @@ export class VouchersController {
   @UseGuards(JwtAuthGuard)
   @Post(':id/send-email')
   async sendEmail(
-    @Param('id') id: string,
-    @Body('email') email?: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: SendVoucherEmailDto,
     @Req() req?: AuthenticatedRequest,
   ) {
     const voucher = await this.vouchersService.findById(id);
     this.assertVoucherOwnership(voucher, req, 'enviar este voucher');
 
-    return await this.vouchersService.sendEmail(id, email);
+    return await this.vouchersService.sendEmail(id, body.email);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/resend')
   async resendEmail(
-    @Param('id') id: string,
-    @Body('email') email?: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: SendVoucherEmailDto,
     @Req() req?: AuthenticatedRequest,
   ) {
     const voucher = await this.vouchersService.findById(id);
     this.assertVoucherOwnership(voucher, req, 'reenviar este voucher');
-    return await this.vouchersService.resendEmail(id, email);
+    return await this.vouchersService.resendEmail(id, body.email);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/revoke')
   async revoke(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req?: AuthenticatedRequest,
   ) {
     const voucher = await this.vouchersService.findById(id);
@@ -82,6 +84,7 @@ export class VouchersController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('resolve')
   async resolve(@Body() resolveVoucherDto: ResolveVoucherDto) {
     const voucher = await this.vouchersService.resolveAvailableVoucher(
@@ -98,6 +101,15 @@ export class VouchersController {
       expiresAt: voucher.expiresAt,
       status: voucher.status,
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('redeem')
+  async redeem(@Body() redeemVoucherDto: RedeemVoucherDto) {
+    return await this.vouchersService.redeemForSession(
+      redeemVoucherDto.code,
+      redeemVoucherDto.sessionId,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -174,7 +186,10 @@ export class VouchersController {
   }
 
   private assertVoucherOwnership(
-    voucher: { ownerInstitutionId?: string | null; ownerUserId?: string | null },
+    voucher: {
+      ownerInstitutionId?: string | null;
+      ownerUserId?: string | null;
+    },
     req: AuthenticatedRequest | undefined,
     action: string,
   ) {

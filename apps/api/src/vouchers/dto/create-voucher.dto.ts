@@ -1,11 +1,12 @@
 import {
   IsEmail,
+  IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
   IsString,
   IsUUID,
-  Length,
+  Matches,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -14,7 +15,7 @@ import { VoucherOwnerType } from '../entities/voucher.enums';
 export class CreateVoucherDto {
   @IsOptional()
   @IsString()
-  @Length(4, 12)
+  @Matches(/^[A-Za-z0-9]{8}$/)
   code?: string;
 
   @IsEnum(VoucherOwnerType)
@@ -43,6 +44,6 @@ export class CreateVoucherDto {
   quantity?: number = 1;
 
   @IsOptional()
-  @IsString()
+  @IsDateString()
   expiresAt?: string;
 }

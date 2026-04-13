@@ -40,4 +40,21 @@ describe('AppController (e2e)', () => {
       .send({ email: 'test@example.com' })
       .expect(401);
   });
+
+  it('/vouchers/redeem (POST) rejects unauthenticated request', () => {
+    return request(app.getHttpServer())
+      .post('/vouchers/redeem')
+      .send({
+        code: 'AB12CD34',
+        sessionId: '11111111-1111-1111-1111-111111111111',
+      })
+      .expect(401);
+  });
+
+  it('/vouchers/resolve (POST) rejects unauthenticated request', () => {
+    return request(app.getHttpServer())
+      .post('/vouchers/resolve')
+      .send({ code: 'AB12CD34' })
+      .expect(401);
+  });
 });

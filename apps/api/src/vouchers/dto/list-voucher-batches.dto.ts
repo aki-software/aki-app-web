@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class ListVoucherBatchesDto {
   @IsOptional()
@@ -11,7 +11,7 @@ export class ListVoucherBatchesDto {
   clientId?: string;
 
   @IsOptional()
-  @IsString()
+  @IsIn(['ALL', 'EXPIRING_7D', 'NO_EXPIRATION'])
   expiration?: string;
 
   @IsOptional()
