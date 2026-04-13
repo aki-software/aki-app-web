@@ -12,7 +12,7 @@ export function QuickActions({ isAdmin }: Props) {
     {
       id: "emit",
       title: "Emitir lotes",
-      desc: "Generar vouchers para clientes.",
+      desc: "Generar vouchers para instituciones.",
       icon: Plus,
       color: "text-app-primary bg-app-primary/5 border-app-primary/10",
       path: "/dashboard/vouchers?create=true",
@@ -29,8 +29,8 @@ export function QuickActions({ isAdmin }: Props) {
     },
     {
       id: "support",
-      title: "Centro de soporte",
-      desc: "Guias y ajustes del sistema.",
+      title: isAdmin ? "Centro de soporte" : "Cuenta operativa",
+      desc: isAdmin ? "Guías y ajustes del sistema." : "Cambiar contraseña y ajustes.",
       icon: HelpCircle,
       color: "text-amber-500 bg-amber-500/5 border-amber-500/10",
       path: "/dashboard/settings",

@@ -39,19 +39,41 @@ export class VoucherBatch {
   @Column({ type: 'int' })
   quantity: number;
 
-  @Column({ name: 'unit_price', type: 'numeric', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'unit_price',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   unitPrice: string;
 
-  @Column({ name: 'total_price', type: 'numeric', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   totalPrice: string;
 
   @Column({ type: 'varchar', length: 3, default: 'ARS' })
   currency: string;
 
-  @Column({ name: 'payment_provider', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'payment_provider',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   paymentProvider: string | null;
 
-  @Column({ name: 'payment_reference', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'payment_reference',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   paymentReference: string | null;
 
   @Column({

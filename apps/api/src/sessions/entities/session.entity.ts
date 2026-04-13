@@ -80,7 +80,12 @@ export class Session {
   @Column({ name: 'paid_at', type: 'timestamp', nullable: true })
   paidAt: Date | null;
 
-  @Column({ name: 'payment_reference', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'payment_reference',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   paymentReference: string | null;
 
   @OneToMany('SessionResult', (result: any) => result.session, {

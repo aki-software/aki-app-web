@@ -155,6 +155,30 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<User> {
+    const user = await this.findOne(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    if (!this.hasPasswordConfigured(user)) {
+      throw new Error('La cuenta todavía no activó su contraseña');
+    }
+
+    const ok = this.verifyPassword(currentPassword, user.passwordHash);
+    if (!ok) {
+      throw new Error('La contraseña actual es incorrecta');
+    }
+
+    user.passwordHash = this.hashPassword(newPassword);
+    user.passwordSetAt = new Date();
+    return await this.userRepository.save(user);
+  }
+
   async refreshPasswordSetupToken(userId: string): Promise<User> {
     const user = await this.findOneWithInstitution(userId);
     if (!user) {

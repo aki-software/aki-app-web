@@ -9,9 +9,9 @@ import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Voucher, VoucherBatch]), 
-    UsersModule, 
-    MailModule
+    TypeOrmModule.forFeature([Voucher, VoucherBatch]),
+    UsersModule,
+    MailModule,
   ],
   controllers: [VouchersController],
   providers: [VouchersService],

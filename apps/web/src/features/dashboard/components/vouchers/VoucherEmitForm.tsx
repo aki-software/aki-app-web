@@ -61,7 +61,7 @@ export function VoucherEmitForm({
       <form className="space-y-10" onSubmit={onSubmit}>
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-4">
           <label className="flex flex-col gap-3">
-            <span className="app-label opacity-60">Cliente</span>
+            <span className="app-label opacity-60">Institución</span>
             <select
               value={formState.ownerInstitutionId}
               onChange={(event) =>
@@ -69,7 +69,7 @@ export function VoucherEmitForm({
               }
               className="app-select w-full rounded-2xl border border-app-border bg-app-bg px-5 py-4 text-sm font-bold text-app-text-main focus:border-app-primary focus:ring-2 focus:ring-app-primary/20 transition-all outline-none appearance-none cursor-pointer"
             >
-              <option value="">Seleccionar cliente...</option>
+              <option value="">Seleccionar institución...</option>
               {institutions.map((institution) => (
                 <option key={institution.id} value={institution.id}>
                   {institution.name}
@@ -79,9 +79,7 @@ export function VoucherEmitForm({
           </label>
 
           <label className="flex flex-col gap-3">
-            <span className="app-label opacity-60">
-              Responsable (opcional)
-            </span>
+            <span className="app-label opacity-60">Cuenta operativa (opcional)</span>
             <select
               value={formState.ownerUserId}
               onChange={(event) => updateForm("ownerUserId", event.target.value)}
@@ -90,8 +88,8 @@ export function VoucherEmitForm({
             >
               <option value="">
                 {!formState.ownerInstitutionId
-                  ? "Selecciona primero un cliente"
-                  : "Sin responsable asignado"}
+                  ? "Selecciona primero una institución"
+                  : "Sin cuenta operativa asignada"}
               </option>
               {therapistOptions.map((therapist) => (
                 <option key={therapist.id} value={therapist.id}>

@@ -9,6 +9,7 @@ import { DashboardResults } from "../features/dashboard/views/DashboardResults";
 import { DashboardSettings } from "../features/dashboard/views/DashboardSettings";
 import { DashboardUsers } from "../features/dashboard/views/DashboardUsers";
 import { DashboardVouchers } from "../features/dashboard/views/DashboardVouchers";
+import { InstitutionDetailOverview } from "../features/dashboard/views/InstitutionDetailOverview";
 import { NotFoundFeature } from "../features/dashboard/views/NotFoundFeature";
 import { SessionDetailPage } from "../features/dashboard/views/SessionDetailPage";
 
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
           {
             path: "users",
             element: <DashboardUsers />,
+          },
+          {
+            path: "institutions/:id",
+            element: <InstitutionDetailOverview />,
           },
           {
             path: "settings",

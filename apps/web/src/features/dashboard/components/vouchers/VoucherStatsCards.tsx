@@ -51,8 +51,12 @@ export function VoucherStatsCards({
             </div>
             <span className="app-label opacity-60 tracking-wider">
               {usesHistoricalFallback
-                ? "Lotes emitidos"
-                : `Lotes emitidos (${periodDays}d)`}
+                ? isAdmin
+                  ? "Lotes emitidos"
+                  : "Lotes recibidos"
+                : isAdmin
+                  ? `Lotes emitidos (${periodDays}d)`
+                  : `Lotes recibidos (${periodDays}d)`}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
@@ -74,8 +78,12 @@ export function VoucherStatsCards({
             </div>
             <span className="app-label opacity-60 tracking-wider">
               {usesHistoricalFallback
-                ? "Vouchers emitidos"
-                : `Vouchers emitidos (${periodDays}d)`}
+                ? isAdmin
+                  ? "Vouchers emitidos"
+                  : "Vouchers recibidos"
+                : isAdmin
+                  ? `Vouchers emitidos (${periodDays}d)`
+                  : `Vouchers recibidos (${periodDays}d)`}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
@@ -100,8 +108,12 @@ export function VoucherStatsCards({
             </div>
             <span className="app-label opacity-60 tracking-wider">
               {usesHistoricalFallback
-                ? "Vouchers canjeados"
-                : `Vouchers canjeados (${periodDays}d)`}
+                ? isAdmin
+                  ? "Vouchers canjeados"
+                  : "Vouchers consumidos"
+                : isAdmin
+                  ? `Vouchers canjeados (${periodDays}d)`
+                  : `Vouchers consumidos (${periodDays}d)`}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
@@ -144,8 +156,12 @@ export function VoucherStatsCards({
             </div>
             <span className="app-label opacity-60 tracking-wider">
               {usesHistoricalFallback
-                ? "Tasa de Canje (Historico)"
-                : `Tasa de Canje (${periodDays}d)`}
+                ? isAdmin
+                  ? "Tasa de Canje (Historico)"
+                  : "Tasa de Consumo (Historico)"
+                : isAdmin
+                  ? `Tasa de Canje (${periodDays}d)`
+                  : `Tasa de Consumo (${periodDays}d)`}
             </span>
           </div>
           <div className="flex items-baseline gap-2">

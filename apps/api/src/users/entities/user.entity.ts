@@ -37,7 +37,11 @@ export class User {
   })
   passwordSetupToken: string | null;
 
-  @Column({ name: 'password_setup_expires_at', type: 'timestamp', nullable: true })
+  @Column({
+    name: 'password_setup_expires_at',
+    type: 'timestamp',
+    nullable: true,
+  })
   passwordSetupExpiresAt: Date | null;
 
   @Column({ name: 'password_set_at', type: 'timestamp', nullable: true })

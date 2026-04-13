@@ -77,6 +77,34 @@ export class AuthService {
     return this.buildUserLoginResponse(user);
   }
 
+  async changePassword(
+    userId: string | null | undefined,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    if (!userId) {
+      throw new UnauthorizedException('Sesión inválida');
+    }
+
+    if (currentPassword === newPassword) {
+      throw new UnauthorizedException(
+        'La nueva contraseña debe ser distinta a la actual',
+      );
+    }
+
+    try {
+      await this.usersService.changePassword(
+        userId,
+        currentPassword,
+        newPassword,
+      );
+      return { ok: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No autorizado';
+      throw new UnauthorizedException(message);
+    }
+  }
+
   private buildAdminLoginResponse(adminEmail: string) {
     const payload = {
       email: adminEmail,

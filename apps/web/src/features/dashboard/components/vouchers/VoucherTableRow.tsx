@@ -189,7 +189,7 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5 text-[10px] font-black text-app-text-main uppercase tracking-tight whitespace-nowrap">
               <Building2 className="h-3 w-3 text-app-primary/60" />
-              {voucher.ownerInstitutionName || "Cliente no informado"}
+              {voucher.ownerInstitutionName || "Institución no informada"}
             </div>
             <div className="flex items-center gap-1.5 opacity-40">
               <UserRound className="h-3 w-3" />
@@ -202,7 +202,9 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
       )}
 
       <td className="px-5 py-4">
-        {voucher.assignedPatientName ? (
+        {isAdmin ? (
+          <span className="app-label opacity-20 italic">Oculto para admin</span>
+        ) : voucher.assignedPatientName ? (
           <div className="flex flex-col gap-0.5 px-3 py-1.5 rounded-lg bg-app-bg border border-app-border/40 group-hover:border-app-primary/20 transition-all">
             <span className="text-[10px] font-black text-app-text-main uppercase tracking-tight line-clamp-1">
               {voucher.assignedPatientName}
@@ -237,7 +239,9 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
 
       <td className="px-5 py-4">
         <div className="flex items-center justify-end gap-1.5 relative">
-          {canSendOrResend || canRevoke ? (
+          {isAdmin ? (
+            <span className="app-label opacity-20 italic">Solo lectura</span>
+          ) : canSendOrResend || canRevoke ? (
             <>
               {showEmailInput && (
                 <div className="absolute right-0 -top-20 z-[100] animate-in fade-in zoom-in slide-in-from-bottom-4 duration-300">

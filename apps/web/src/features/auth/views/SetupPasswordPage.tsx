@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, KeyRound } from "lucide-react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, KeyRound } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resolveSetupTokenRequest, setupPasswordRequest } from "../api/auth";
@@ -12,6 +12,8 @@ export function SetupPasswordPage() {
   const [submitting, setSubmitting] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<{
@@ -127,23 +129,59 @@ export function SetupPasswordPage() {
                 <span className="text-sm font-medium text-app-text-muted">
                   Contrasena
                 </span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-app-border bg-app-bg px-4 py-3 text-sm text-app-text-main outline-none transition-all focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                    required
+                    className="w-full rounded-xl border border-app-border bg-app-bg px-4 py-3 pr-12 text-sm text-app-text-main outline-none transition-all focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-2 inline-flex items-center justify-center rounded-lg px-2 text-app-text-muted hover:text-app-text-main"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </label>
               <label className="block space-y-1.5">
                 <span className="text-sm font-medium text-app-text-muted">
                   Repetir contrasena
                 </span>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="w-full rounded-xl border border-app-border bg-app-bg px-4 py-3 text-sm text-app-text-main outline-none transition-all focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                    required
+                    className="w-full rounded-xl border border-app-border bg-app-bg px-4 py-3 pr-12 text-sm text-app-text-main outline-none transition-all focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-2 inline-flex items-center justify-center rounded-lg px-2 text-app-text-muted hover:text-app-text-main"
+                    aria-label={
+                      showConfirmPassword
+                        ? "Ocultar confirmación de contraseña"
+                        : "Mostrar confirmación de contraseña"
+                    }
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </label>
               <button
                 type="submit"

@@ -259,9 +259,7 @@ export class InitialMvpSchema1776000000000 implements MigrationInterface {
     await queryRunner.query(
       `DROP INDEX "public"."IDX_vouchers_owner_institution_id"`,
     );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_vouchers_owner_user_id"`,
-    );
+    await queryRunner.query(`DROP INDEX "public"."IDX_vouchers_owner_user_id"`);
     await queryRunner.query(`DROP INDEX "public"."IDX_vouchers_status"`);
     await queryRunner.query(`DROP INDEX "public"."IDX_vouchers_code"`);
     await queryRunner.query(`DROP TABLE "vouchers"`);

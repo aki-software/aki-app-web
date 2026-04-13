@@ -13,7 +13,7 @@ describe('VoucherBatch Entity', () => {
   describe('markAsPaid', () => {
     it('should mark batch as paid and store payment info', () => {
       batch.markAsPaid('stripe', 'pi_123');
-      
+
       expect(batch.status).toBe(VoucherBatchStatus.PAID);
       expect(batch.paymentProvider).toBe('stripe');
       expect(batch.paymentReference).toBe('pi_123');
@@ -22,7 +22,7 @@ describe('VoucherBatch Entity', () => {
 
     it('should not allow marking a cancelled batch as paid', () => {
       batch.status = VoucherBatchStatus.CANCELLED;
-      
+
       expect(() => {
         batch.markAsPaid('stripe', 'pi_123');
       }).toThrow('Cannot pay for a cancelled batch.');
@@ -37,7 +37,7 @@ describe('VoucherBatch Entity', () => {
 
     it('should not allow cancelling a paid batch', () => {
       batch.markAsPaid('stripe', 'pi_123');
-      
+
       expect(() => {
         batch.cancel();
       }).toThrow('Cannot cancel an already paid batch.');

@@ -1,47 +1,37 @@
 import { DashboardStatsResponse } from "@akit/contracts";
 import {
-    Activity,
-    BarChart3,
-    Calendar,
-    Sparkles,
-    TrendingUp,
+  Activity,
+  BarChart3,
+  Calendar,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
-import {
-    fetchDashboardStats,
-    fetchInstitutionStats,
-    type InstitutionStats,
-} from "../api/dashboard";
+import { fetchDashboardStats } from "../api/dashboard";
 import { ActivityFeed } from "../components/overview/ActivityFeed";
 import { AdminAlerts } from "../components/overview/AdminAlerts";
 import { OverviewHighlights } from "../components/overview/OverviewHighlights";
 import { QuickActions } from "../components/overview/QuickActions";
 import { ResultsDistributionChart } from "../components/ResultsDistributionChart";
 import { SessionsChart } from "../components/SessionsChart";
+import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 
-export function DashboardOverview() {
-  const { user } = useAuth();
-  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
-  const isInstitution = !!user?.institutionId && !isAdmin;
-
+function AdminDashboardOverview({
+  isAdmin,
+}: {
+  isAdmin: boolean;
+}) {
   const [adminStats, setAdminStats] = useState<DashboardStatsResponse | null>(
     null,
   );
-  const [institutionStats, setInstitutionStats] =
-    useState<InstitutionStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStats = async () => {
       try {
-        if (isInstitution && user?.institutionId) {
-          const data = await fetchInstitutionStats(user.institutionId);
-          setInstitutionStats(data);
-        } else {
-          const data = await fetchDashboardStats();
-          setAdminStats(data);
-        }
+        const data = await fetchDashboardStats();
+        setAdminStats(data);
       } catch (error) {
         console.error("Error loading stats:", error);
       } finally {
@@ -49,7 +39,7 @@ export function DashboardOverview() {
       }
     };
     loadStats();
-  }, [isInstitution, user?.institutionId]);
+  }, []);
 
   if (loading) {
     return (
@@ -62,34 +52,19 @@ export function DashboardOverview() {
     );
   }
 
-  const displayStats = isInstitution
-    ? {
-        periodLabel: "Ultimos 7 dias",
-        vouchersGeneratedPeriod: 0,
-        vouchersRedeemedPeriod: institutionStats?.redeemedVouchers || 0,
-        testsStartedPeriod: institutionStats?.totalSessions || 0,
-        testsCompletedPeriod: 0,
-        voucherRedemptionRatePeriod: 0,
-        reportsUnlockedPeriod: 0,
-        channelBreakdown: {
-          voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
-          individual: { started: 0, completed: 0, reportsUnlocked: 0 },
-        },
-      }
-    : {
-        periodLabel: adminStats?.periodLabel || "Ultimos 7 dias",
-        vouchersGeneratedPeriod: adminStats?.vouchersGeneratedPeriod || 0,
-        vouchersRedeemedPeriod: adminStats?.vouchersRedeemedPeriod || 0,
-        testsStartedPeriod: adminStats?.testsStartedPeriod || 0,
-        testsCompletedPeriod: adminStats?.testsCompletedPeriod || 0,
-        voucherRedemptionRatePeriod:
-          adminStats?.voucherRedemptionRatePeriod || 0,
-        reportsUnlockedPeriod: adminStats?.reportsUnlockedPeriod || 0,
-        channelBreakdown: adminStats?.channelBreakdown || {
-          voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
-          individual: { started: 0, completed: 0, reportsUnlocked: 0 },
-        },
-      };
+  const displayStats = {
+    periodLabel: adminStats?.periodLabel || "Ultimos 7 dias",
+    vouchersGeneratedPeriod: adminStats?.vouchersGeneratedPeriod || 0,
+    vouchersRedeemedPeriod: adminStats?.vouchersRedeemedPeriod || 0,
+    testsStartedPeriod: adminStats?.testsStartedPeriod || 0,
+    testsCompletedPeriod: adminStats?.testsCompletedPeriod || 0,
+    voucherRedemptionRatePeriod: adminStats?.voucherRedemptionRatePeriod || 0,
+    reportsUnlockedPeriod: adminStats?.reportsUnlockedPeriod || 0,
+    channelBreakdown: adminStats?.channelBreakdown || {
+      voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
+      individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+    },
+  };
 
   const currentDate = new Intl.DateTimeFormat("es-AR", {
     weekday: "long",
@@ -270,4 +245,17 @@ export function DashboardOverview() {
       ) : null}
     </div>
   );
+}
+
+export function DashboardOverview() {
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+  const isInstitution = !!user?.institutionId && !isAdmin;
+
+  // Institutions have a different dashboard: voucher ownership + recent tests.
+  if (isInstitution) {
+    return <InstitutionDashboardOverview />;
+  }
+
+  return <AdminDashboardOverview isAdmin={isAdmin} />;
 }

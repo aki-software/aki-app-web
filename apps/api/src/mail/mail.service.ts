@@ -76,7 +76,10 @@ export class MailService {
       hollandCode,
     );
     try {
-      const from = this.configService.get<string>('SMTP_FROM', 'reportes@akit.app');
+      const from = this.configService.get<string>(
+        'SMTP_FROM',
+        'reportes@akit.app',
+      );
       const mailOptions: nodemailer.SendMailOptions = {
         from: `A.kit Test Vocacional <${from}>`,
         to: targetEmail,
@@ -106,7 +109,10 @@ export class MailService {
     patientName?: string,
   ): Promise<boolean> {
     try {
-      const from = this.configService.get<string>('SMTP_FROM', 'reportes@akit.app');
+      const from = this.configService.get<string>(
+        'SMTP_FROM',
+        'reportes@akit.app',
+      );
       const testUrl = `https://akit-test.com/v/${voucherCode}`;
 
       const html = `
@@ -162,7 +168,10 @@ export class MailService {
     institutionName?: string | null,
   ): Promise<boolean> {
     try {
-      const from = this.configService.get<string>('SMTP_FROM', 'reportes@akit.app');
+      const from = this.configService.get<string>(
+        'SMTP_FROM',
+        'reportes@akit.app',
+      );
       const html = `
         <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.6;">
           <h2 style="margin-bottom: 8px;">Activá tu cuenta de A.kit</h2>

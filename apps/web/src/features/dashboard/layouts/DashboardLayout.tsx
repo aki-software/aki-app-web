@@ -70,7 +70,7 @@ export function DashboardLayout() {
       adminOnly: true,
     },
     {
-      name: "Material teórico (CMS)",
+      name: isAdmin ? "Material teórico (CMS)" : "Cuenta operativa",
       path: "/dashboard/settings",
       icon: Settings,
       adminOnly: false,

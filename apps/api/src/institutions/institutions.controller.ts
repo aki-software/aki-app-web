@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -8,6 +9,7 @@ import {
   UseGuards,
   Param,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -42,6 +44,7 @@ export class InstitutionsController {
       data: institutions.map((institution) => ({
         id: institution.id,
         name: institution.name,
+        createdAt: institution.createdAt,
         billingEmail: institution.billingEmail,
         responsibleTherapistUserId: institution.responsibleTherapistUserId,
         responsibleTherapistName:
@@ -61,12 +64,21 @@ export class InstitutionsController {
     @Body()
     payload: {
       name: string;
+      email?: string;
       billingEmail?: string;
       responsibleTherapistUserId?: string | null;
-      responsibleName?: string;
-      responsibleEmail?: string;
     },
   ) {
+    if (!payload.name?.trim()) {
+      throw new BadRequestException('El nombre es obligatorio');
+    }
+
+    if (!payload.email?.trim()) {
+      throw new BadRequestException('El email es obligatorio');
+    }
+
+    const hasResponsibleUserId = !!payload.responsibleTherapistUserId?.trim();
+
     let institution = await this.institutionsService.create({
       name: payload.name,
       billingEmail: payload.billingEmail,
@@ -75,11 +87,17 @@ export class InstitutionsController {
 
     let activationEmailSent = false;
 
-    if (payload.responsibleName?.trim() && payload.responsibleEmail?.trim()) {
+    if (hasResponsibleUserId) {
+      institution = await this.institutionsService.assignResponsibleTherapist(
+        institution.id,
+        payload.responsibleTherapistUserId!.trim(),
+      );
+    } else {
+      // Creamos el usuario operativo para login usando el email informado.
       const responsibleUser = await this.usersService.register(
-        payload.responsibleName,
+        payload.email.trim(),
         UserRole.THERAPIST,
-        payload.responsibleEmail,
+        payload.email.trim(),
         institution.id,
       );
 
@@ -125,6 +143,30 @@ export class InstitutionsController {
     return await this.institutionsService.getStats(id);
   }
 
+  @Get(':id/overview')
+  async getOverview(
+    @Param('id') id: string,
+    @Req() req?: AuthenticatedRequest,
+    @Query('days') days?: string,
+  ) {
+    const isOwnerOrAdmin =
+      req?.user?.role?.toUpperCase() === UserRole.ADMIN ||
+      req?.user?.institutionId === id;
+
+    if (!isOwnerOrAdmin) {
+      throw new UnauthorizedException(
+        'No tienes permisos para ver el overview de esta institución',
+      );
+    }
+
+    const parsedDays = days ? parseInt(days, 10) : 7;
+    const normalizedDays = Number.isFinite(parsedDays)
+      ? Math.min(Math.max(parsedDays, 1), 90)
+      : 7;
+
+    return await this.institutionsService.getOverview(id, normalizedDays);
+  }
+
   @Patch(':id')
   @Roles(UserRole.ADMIN)
   async update(
@@ -154,6 +196,66 @@ export class InstitutionsController {
     return {
       id: institution.id,
       isActive: institution.isActive,
+    };
+  }
+
+  @Post(':id/operational-account')
+  @Roles(UserRole.ADMIN)
+  async createOperationalAccount(
+    @Param('id') id: string,
+    @Body() payload: { email?: string },
+  ) {
+    const email = payload.email?.trim();
+    if (!email) {
+      throw new BadRequestException('El email es obligatorio');
+    }
+
+    const existingInstitution =
+      await this.institutionsService.findOneOrFail(id);
+    if (existingInstitution.responsibleTherapistUserId) {
+      throw new BadRequestException(
+        'La institución ya tiene una cuenta operativa asignada',
+      );
+    }
+
+    // Creamos el usuario operativo para login usando el email informado.
+    const responsibleUser = await this.usersService.register(
+      email,
+      UserRole.THERAPIST,
+      email,
+      existingInstitution.id,
+    );
+
+    const institution =
+      await this.institutionsService.assignResponsibleTherapist(
+        existingInstitution.id,
+        responsibleUser.id,
+      );
+
+    let activationEmailSent = false;
+    if (responsibleUser.passwordSetupToken) {
+      activationEmailSent = await this.mailService.sendAccountActivation(
+        responsibleUser.email,
+        responsibleUser.name,
+        this.usersService.buildPasswordSetupLink(
+          responsibleUser.passwordSetupToken,
+        ),
+        institution.name,
+      );
+    }
+
+    return {
+      id: institution.id,
+      name: institution.name,
+      billingEmail: institution.billingEmail,
+      responsibleTherapistUserId: institution.responsibleTherapistUserId,
+      responsibleTherapistName: institution.responsibleTherapist?.name ?? null,
+      responsibleTherapistActive: institution.responsibleTherapist
+        ? this.usersService.hasPasswordConfigured(
+            institution.responsibleTherapist,
+          )
+        : false,
+      activationEmailSent,
     };
   }
 }

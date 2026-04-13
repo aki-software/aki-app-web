@@ -57,10 +57,20 @@ export class Voucher {
   })
   status: VoucherStatus = VoucherStatus.AVAILABLE;
 
-  @Column({ name: 'assigned_patient_name', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'assigned_patient_name',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   assignedPatientName: string | null;
 
-  @Column({ name: 'assigned_patient_email', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'assigned_patient_email',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   assignedPatientEmail: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
@@ -94,8 +104,13 @@ export class Voucher {
   }
 
   redeem(sessionId: string) {
-    if (this.status !== VoucherStatus.AVAILABLE && this.status !== VoucherStatus.SENT) {
-      throw new Error(`Voucher cannot be redeemed. Current status: ${this.status}`);
+    if (
+      this.status !== VoucherStatus.AVAILABLE &&
+      this.status !== VoucherStatus.SENT
+    ) {
+      throw new Error(
+        `Voucher cannot be redeemed. Current status: ${this.status}`,
+      );
     }
     if (this.expiresAt && new Date() > this.expiresAt) {
       this.status = VoucherStatus.EXPIRED;

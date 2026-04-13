@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Between,
+  Brackets,
   FindOptionsWhere,
   In,
   MoreThanOrEqual,
@@ -78,6 +79,35 @@ type DashboardStatsPayload = {
 };
 
 type AdminActivityItem = DashboardStatsPayload['activity'][number];
+
+type RawCountRow = { count: string };
+type RawTotalsRow = { totalSessions: string; totalTimeMs: string };
+type RawCompletedSessionsRow = { completedSessions: string };
+type RawSessionsActivityRow = { day: string; count: string };
+type RawTopCategoryRow = { categoryId: string; count: string };
+
+type RawRecentSessionRow = {
+  id: string;
+  patientName: string | null;
+  createdAt: Date | string;
+  sessionDate: Date | string | null;
+  reportUnlockedAt: Date | string | null;
+  paidAt: Date | string | null;
+  voucherId: string | null;
+  paymentStatus: SessionPaymentStatus | null;
+  resultsCount: string;
+};
+
+type RawRecentVoucherRow = {
+  id: string;
+  code: string;
+  status: VoucherStatus;
+  createdAt: Date | string;
+  sentAt: Date | string | null;
+  redeemedAt: Date | string | null;
+  ownerInstitutionName: string | null;
+  ownerUserName: string | null;
+};
 
 @Injectable()
 export class SessionsService {
@@ -215,11 +245,6 @@ export class SessionsService {
   }
 
   async getAdminOverview(): Promise<DashboardStatsPayload> {
-    const sessions = await this.sessionRepository.find({
-      relations: ['results'],
-      order: { createdAt: 'DESC' },
-    });
-
     const now = new Date();
     const periodDays = 7;
     const periodStart = new Date(now);
@@ -229,6 +254,28 @@ export class SessionsService {
     const weekAhead = new Date(now);
     weekAhead.setDate(weekAhead.getDate() + 7);
 
+    const parseIntSafe = (value: unknown): number => {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return Math.trunc(value);
+      }
+      if (typeof value === 'string') {
+        const parsed = parseInt(value, 10);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+      return 0;
+    };
+
+    const parseBigNumberSafe = (value: unknown): number => {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+      }
+      if (typeof value === 'string') {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+      return 0;
+    };
+
     const [
       availableVouchers,
       redeemedVouchers,
@@ -236,6 +283,17 @@ export class SessionsService {
       redeemedVouchersPeriod,
       expiringSoonVouchers,
       activity,
+      totalsRow,
+      completedRow,
+      testsStartedRow,
+      testsCompletedRow,
+      reportsUnlockedRow,
+      voucherStartedRow,
+      voucherCompletedRow,
+      voucherUnlockedRow,
+      individualCompletedRow,
+      sessionsActivityRows,
+      stalledRow,
     ] = await Promise.all([
       this.voucherRepository.count({
         where: { status: VoucherStatus.AVAILABLE },
@@ -257,57 +315,147 @@ export class SessionsService {
         },
       }),
       this.getAdminActivity(10),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .select('COUNT(*)', 'totalSessions')
+        .addSelect(
+          'COALESCE(SUM(COALESCE(session.totalTimeMs, 0)), 0)',
+          'totalTimeMs',
+        )
+        .getRawOne<RawTotalsRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .innerJoin('session.results', 'result')
+        .select('COUNT(DISTINCT session.id)', 'completedSessions')
+        .getRawOne<RawCompletedSessionsRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .where('session.createdAt >= :periodStart', { periodStart })
+        .select('COUNT(*)', 'count')
+        .getRawOne<RawCountRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .innerJoin('session.results', 'result')
+        .where('session.createdAt >= :periodStart', { periodStart })
+        .select('COUNT(DISTINCT session.id)', 'count')
+        .getRawOne<RawCountRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .where('session.reportUnlockedAt IS NOT NULL')
+        .andWhere('session.reportUnlockedAt >= :periodStart', { periodStart })
+        .select('COUNT(*)', 'count')
+        .getRawOne<RawCountRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .where('session.createdAt >= :periodStart', { periodStart })
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where('session.voucherId IS NOT NULL').orWhere(
+              'session.paymentStatus = :voucherRedeemedStatus',
+              {
+                voucherRedeemedStatus: SessionPaymentStatus.VOUCHER_REDEEMED,
+              },
+            );
+          }),
+        )
+        .select('COUNT(*)', 'count')
+        .getRawOne<RawCountRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .innerJoin('session.results', 'result')
+        .where('session.createdAt >= :periodStart', { periodStart })
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where('session.voucherId IS NOT NULL').orWhere(
+              'session.paymentStatus = :voucherRedeemedStatus',
+              {
+                voucherRedeemedStatus: SessionPaymentStatus.VOUCHER_REDEEMED,
+              },
+            );
+          }),
+        )
+        .select('COUNT(DISTINCT session.id)', 'count')
+        .getRawOne<RawCountRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .where('session.reportUnlockedAt IS NOT NULL')
+        .andWhere('session.reportUnlockedAt >= :periodStart', { periodStart })
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where('session.voucherId IS NOT NULL').orWhere(
+              'session.paymentStatus = :voucherRedeemedStatus',
+              {
+                voucherRedeemedStatus: SessionPaymentStatus.VOUCHER_REDEEMED,
+              },
+            );
+          }),
+        )
+        .select('COUNT(*)', 'count')
+        .getRawOne<RawCountRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .innerJoin('session.results', 'result')
+        .where('session.createdAt >= :periodStart', { periodStart })
+        .andWhere('session.voucherId IS NULL')
+        .andWhere('session.paymentStatus != :voucherRedeemedStatus', {
+          voucherRedeemedStatus: SessionPaymentStatus.VOUCHER_REDEEMED,
+        })
+        .select('COUNT(DISTINCT session.id)', 'count')
+        .getRawOne<RawCountRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .select(
+          "to_char(session.createdAt AT TIME ZONE 'UTC', 'YYYY-MM-DD')",
+          'day',
+        )
+        .addSelect('COUNT(*)', 'count')
+        .where('session.createdAt >= :periodStart', { periodStart })
+        .groupBy("to_char(session.createdAt AT TIME ZONE 'UTC', 'YYYY-MM-DD')")
+        .orderBy('day', 'ASC')
+        .getRawMany<RawSessionsActivityRow>(),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .where('session.createdAt < :dayAgo', {
+          dayAgo: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+        })
+        .andWhere((qb) => {
+          const subquery = qb
+            .subQuery()
+            .select('1')
+            .from('session_results', 'sr')
+            .where('sr.session_id = session.id')
+            .getQuery();
+          return `NOT EXISTS (${subquery})`;
+        })
+        .select('COUNT(*)', 'count')
+        .getRawOne<RawCountRow>(),
     ]);
 
-    const totalSessions = sessions.length;
-    const completedSessions = sessions.filter(
-      (session) => (session.results?.length ?? 0) > 0,
-    ).length;
+    const totalSessions = parseIntSafe(totalsRow?.totalSessions);
+    const completedSessions = parseIntSafe(completedRow?.completedSessions);
     const completionRate =
       totalSessions > 0
         ? Math.round((completedSessions / totalSessions) * 100)
         : 0;
 
-    const totalTimeMs = sessions.reduce(
-      (acc, session) => acc + Number(session.totalTimeMs || 0),
-      0,
-    );
+    const totalTimeMs = parseBigNumberSafe(totalsRow?.totalTimeMs);
     const averageTimeSeconds =
       totalSessions > 0 ? Math.floor(totalTimeMs / totalSessions / 1000) : 0;
 
-    const isCompletedSession = (session: Session) =>
-      (session.results?.length ?? 0) > 0;
-    const isVoucherFlow = (session: Session) =>
-      Boolean(session.voucherId) ||
-      session.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED;
+    const testsStartedPeriod = parseIntSafe(testsStartedRow?.count);
+    const testsCompletedPeriod = parseIntSafe(testsCompletedRow?.count);
+    const reportsUnlockedPeriod = parseIntSafe(reportsUnlockedRow?.count);
 
-    const periodSessions = sessions.filter(
-      (session) => new Date(session.createdAt) >= periodStart,
+    const voucherStartedPeriod = parseIntSafe(voucherStartedRow?.count);
+    const voucherCompletedPeriod = parseIntSafe(voucherCompletedRow?.count);
+    const voucherUnlockedPeriod = parseIntSafe(voucherUnlockedRow?.count);
+
+    const individualStartedPeriod = testsStartedPeriod - voucherStartedPeriod;
+    const individualCompletedPeriod = parseIntSafe(
+      individualCompletedRow?.count,
     );
-    const testsStartedPeriod = periodSessions.length;
-    const testsCompletedPeriod =
-      periodSessions.filter(isCompletedSession).length;
-
-    const periodUnlockedSessions = sessions.filter(
-      (session) =>
-        Boolean(session.reportUnlockedAt) &&
-        new Date(session.reportUnlockedAt as Date) >= periodStart,
-    );
-
-    const voucherStartedPeriod = periodSessions.filter(isVoucherFlow).length;
-    const voucherCompletedPeriod = periodSessions.filter(
-      (session) => isVoucherFlow(session) && isCompletedSession(session),
-    ).length;
-    const voucherUnlockedPeriod =
-      periodUnlockedSessions.filter(isVoucherFlow).length;
-
-    const individualStartedPeriod =
-      periodSessions.length - voucherStartedPeriod;
-    const individualCompletedPeriod = periodSessions.filter(
-      (session) => !isVoucherFlow(session) && isCompletedSession(session),
-    ).length;
     const individualUnlockedPeriod =
-      periodUnlockedSessions.length - voucherUnlockedPeriod;
+      reportsUnlockedPeriod - voucherUnlockedPeriod;
 
     const voucherRedemptionRatePeriod =
       issuedVouchersPeriod > 0
@@ -324,12 +472,15 @@ export class SessionsService {
       dayBuckets.set(key, 0);
     }
 
-    sessions.forEach((session) => {
-      const key = new Date(session.createdAt).toISOString().slice(0, 10);
-      if (dayBuckets.has(key)) {
-        dayBuckets.set(key, (dayBuckets.get(key) ?? 0) + 1);
+    for (const row of sessionsActivityRows ?? []) {
+      const key = String(row.day ?? '');
+      if (!key) {
+        continue;
       }
-    });
+      if (dayBuckets.has(key)) {
+        dayBuckets.set(key, parseIntSafe(row.count));
+      }
+    }
 
     const sessionsActivity = dayKeys.map((key) => {
       const date = new Date(`${key}T00:00:00`);
@@ -352,22 +503,33 @@ export class SessionsService {
       distributionBuckets.set(categoryId, 0),
     );
 
-    sessions.forEach((session) => {
-      if (!session.results?.length) {
-        return;
+    const topResultsRows = await this.sessionRepository.manager
+      .createQueryBuilder()
+      .select('UPPER(t.category_id)', 'categoryId')
+      .addSelect('COUNT(*)', 'count')
+      .from(
+        (sub) =>
+          sub
+            .select('sr.category_id', 'category_id')
+            .addSelect('sr.session_id', 'session_id')
+            .addSelect(
+              'ROW_NUMBER() OVER (PARTITION BY sr.session_id ORDER BY sr.percentage DESC)',
+              'rn',
+            )
+            .from('session_results', 'sr'),
+        't',
+      )
+      .where('t.rn = 1')
+      .groupBy('UPPER(t.category_id)')
+      .getRawMany<RawTopCategoryRow>();
+
+    for (const row of topResultsRows ?? []) {
+      const key = String(row.categoryId ?? '').toUpperCase();
+      if (!key) {
+        continue;
       }
-
-      const topResult = [...session.results].sort(
-        (a, b) => b.percentage - a.percentage,
-      )[0];
-
-      if (!topResult?.categoryId) {
-        return;
-      }
-
-      const key = topResult.categoryId.toUpperCase();
-      distributionBuckets.set(key, (distributionBuckets.get(key) ?? 0) + 1);
-    });
+      distributionBuckets.set(key, parseIntSafe(row.count));
+    }
 
     const resultsDistribution = Array.from(distributionBuckets.entries())
       .map(([categoryId, count]) => ({
@@ -377,12 +539,7 @@ export class SessionsService {
       }))
       .sort((a, b) => b.count - a.count);
 
-    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const stalledSessions = sessions.filter(
-      (session) =>
-        (session.results?.length ?? 0) === 0 &&
-        new Date(session.createdAt) < dayAgo,
-    ).length;
+    const stalledSessions = parseIntSafe(stalledRow?.count);
 
     const alerts: DashboardStatsPayload['alerts'] = [];
     const lowRedemptionRateThreshold = 15;
@@ -437,7 +594,7 @@ export class SessionsService {
       testsStartedPeriod,
       testsCompletedPeriod,
       voucherRedemptionRatePeriod,
-      reportsUnlockedPeriod: periodUnlockedSessions.length,
+      reportsUnlockedPeriod,
       channelBreakdown: {
         voucher: {
           started: voucherStartedPeriod,
@@ -462,17 +619,56 @@ export class SessionsService {
       ? Math.min(Math.max(Math.floor(limit), 1), 200)
       : 50;
 
+    const parseIntSafe = (value: unknown): number => {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return Math.trunc(value);
+      }
+      if (typeof value === 'string') {
+        const parsed = parseInt(value, 10);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+      return 0;
+    };
+
     const [recentSessions, recentVouchers] = await Promise.all([
-      this.sessionRepository.find({
-        relations: ['results', 'institution', 'therapist', 'voucher'],
-        order: { createdAt: 'DESC' },
-        take: normalizedLimit,
-      }),
-      this.voucherRepository.find({
-        relations: ['ownerInstitution', 'ownerUser'],
-        order: { createdAt: 'DESC' },
-        take: normalizedLimit,
-      }),
+      this.sessionRepository
+        .createQueryBuilder('session')
+        .select('session.id', 'id')
+        .addSelect('session.patientName', 'patientName')
+        .addSelect('session.createdAt', 'createdAt')
+        .addSelect('session.sessionDate', 'sessionDate')
+        .addSelect('session.reportUnlockedAt', 'reportUnlockedAt')
+        .addSelect('session.paidAt', 'paidAt')
+        .addSelect('session.voucherId', 'voucherId')
+        .addSelect('session.paymentStatus', 'paymentStatus')
+        .addSelect('COUNT(result.id)', 'resultsCount')
+        .leftJoin('session.results', 'result')
+        .groupBy('session.id')
+        .addGroupBy('session.patientName')
+        .addGroupBy('session.createdAt')
+        .addGroupBy('session.sessionDate')
+        .addGroupBy('session.reportUnlockedAt')
+        .addGroupBy('session.paidAt')
+        .addGroupBy('session.voucherId')
+        .addGroupBy('session.paymentStatus')
+        .orderBy('session.createdAt', 'DESC')
+        .limit(normalizedLimit)
+        .getRawMany<RawRecentSessionRow>(),
+      this.voucherRepository
+        .createQueryBuilder('voucher')
+        .select('voucher.id', 'id')
+        .addSelect('voucher.code', 'code')
+        .addSelect('voucher.status', 'status')
+        .addSelect('voucher.createdAt', 'createdAt')
+        .addSelect('voucher.sentAt', 'sentAt')
+        .addSelect('voucher.redeemedAt', 'redeemedAt')
+        .addSelect('ownerInstitution.name', 'ownerInstitutionName')
+        .addSelect('ownerUser.name', 'ownerUserName')
+        .leftJoin('voucher.ownerInstitution', 'ownerInstitution')
+        .leftJoin('voucher.ownerUser', 'ownerUser')
+        .orderBy('voucher.createdAt', 'DESC')
+        .limit(normalizedLimit)
+        .getRawMany<RawRecentVoucherRow>(),
     ]);
 
     const toIso = (
@@ -492,15 +688,21 @@ export class SessionsService {
       return new Date(0).toISOString();
     };
 
-    const describeSessionChannel = (session: Session): string =>
+    const describeSessionChannel = (session: {
+      voucherId: string | null;
+      paymentStatus: SessionPaymentStatus | null;
+    }): string =>
       session.voucherId ||
       session.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
         ? 'con voucher'
         : 'sin voucher';
 
-    const describeVoucherOwner = (voucher: Voucher): string => {
-      const institutionName = voucher.ownerInstitution?.name?.trim();
-      const ownerName = voucher.ownerUser?.name?.trim();
+    const describeVoucherOwner = (voucher: {
+      ownerInstitutionName: string | null;
+      ownerUserName: string | null;
+    }): string => {
+      const institutionName = voucher.ownerInstitutionName?.trim();
+      const ownerName = voucher.ownerUserName?.trim();
 
       if (institutionName) {
         return institutionName;
@@ -513,46 +715,50 @@ export class SessionsService {
       return 'cliente no informado';
     };
 
-    const sessionEvents: AdminActivityItem[] = recentSessions.map((session) => {
-      const isCompleted = (session.results?.length ?? 0) > 0;
-      const channelLabel = describeSessionChannel(session);
-      const occurredAt = isCompleted
-        ? toIso(
-            session.reportUnlockedAt,
-            session.paidAt,
-            session.sessionDate,
-            session.createdAt,
-          )
-        : toIso(session.sessionDate, session.createdAt);
+    const sessionEvents: AdminActivityItem[] = (recentSessions ?? []).map(
+      (session) => {
+        const isCompleted = parseIntSafe(session.resultsCount) > 0;
+        const channelLabel = describeSessionChannel(session);
+        const occurredAt = isCompleted
+          ? toIso(
+              session.reportUnlockedAt,
+              session.paidAt,
+              session.sessionDate,
+              session.createdAt,
+            )
+          : toIso(session.sessionDate, session.createdAt);
 
-      return {
-        id: `session-${session.id}`,
-        type: isCompleted ? 'SESSION_COMPLETED' : 'SESSION_STARTED',
-        title: isCompleted ? 'Sesión completada' : 'Sesión iniciada',
-        description: isCompleted
-          ? `${session.patientName || 'Paciente sin nombre'} completó un test ${channelLabel}.`
-          : `${session.patientName || 'Paciente sin nombre'} inició un test ${channelLabel}.`,
-        occurredAt,
-      };
-    });
+        return {
+          id: `session-${session.id}`,
+          type: isCompleted ? 'SESSION_COMPLETED' : 'SESSION_STARTED',
+          title: isCompleted ? 'Sesión completada' : 'Sesión iniciada',
+          description: isCompleted
+            ? `${session.patientName || 'Paciente sin nombre'} completó un test ${channelLabel}.`
+            : `${session.patientName || 'Paciente sin nombre'} inició un test ${channelLabel}.`,
+          occurredAt,
+        };
+      },
+    );
 
-    const voucherEvents: AdminActivityItem[] = recentVouchers.map((voucher) => {
-      const redeemed =
-        Boolean(voucher.redeemedAt) || voucher.status === VoucherStatus.USED;
-      const ownerLabel = describeVoucherOwner(voucher);
-      const occurredAt = redeemed
-        ? toIso(voucher.redeemedAt, voucher.sentAt, voucher.createdAt)
-        : toIso(voucher.sentAt, voucher.createdAt);
-      return {
-        id: `voucher-${voucher.id}`,
-        type: redeemed ? 'VOUCHER_REDEEMED' : 'VOUCHER_ISSUED',
-        title: redeemed ? 'Voucher canjeado' : 'Voucher emitido',
-        description: redeemed
-          ? `El código ${voucher.code} fue canjeado para ${ownerLabel}.`
-          : `Se emitió el código ${voucher.code} para ${ownerLabel}.`,
-        occurredAt,
-      };
-    });
+    const voucherEvents: AdminActivityItem[] = (recentVouchers ?? []).map(
+      (voucher) => {
+        const redeemed =
+          Boolean(voucher.redeemedAt) || voucher.status === VoucherStatus.USED;
+        const ownerLabel = describeVoucherOwner(voucher);
+        const occurredAt = redeemed
+          ? toIso(voucher.redeemedAt, voucher.sentAt, voucher.createdAt)
+          : toIso(voucher.sentAt, voucher.createdAt);
+        return {
+          id: `voucher-${voucher.id}`,
+          type: redeemed ? 'VOUCHER_REDEEMED' : 'VOUCHER_ISSUED',
+          title: redeemed ? 'Voucher canjeado' : 'Voucher emitido',
+          description: redeemed
+            ? `El código ${voucher.code} fue canjeado para ${ownerLabel}.`
+            : `Se emitió el código ${voucher.code} para ${ownerLabel}.`,
+          occurredAt,
+        };
+      },
+    );
 
     return [...sessionEvents, ...voucherEvents]
       .sort(
