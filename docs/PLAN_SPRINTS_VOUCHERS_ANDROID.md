@@ -1,7 +1,7 @@
 # Plan de Sprints - Integracion Vouchers API en Android
 
 > Fecha de creacion: 2026-04-13  
-> Ultima actualizacion: 2026-04-13 (Sprint 2 implementado)  
+> Ultima actualizacion: 2026-04-15 (S1-08 cerrado; Sprint 3 hecho; PR plan S4-S5 documentado)  
 > Estado: Aprobado para ejecucion
 
 ---
@@ -80,6 +80,8 @@ Dejar la API de vouchers robusta, segura y predecible para clientes moviles.
 - `expiresAt` validado como fecha ISO (`IsDateString`) cuando se informa.
 - `resolve` protegido con JWT para reducir exposicion de datos.
 - Paginacion de `GET /vouchers` normalizada para devolver siempre `page` y `limit`.
+- Tests unitarios de vouchers en verde (`pnpm --filter api test -- vouchers`: 4 suites, 23 tests).
+- `test:e2e` validado en verde tras estabilizar conectividad local de Postgres (`pnpm --filter api test:e2e`: 1 suite, 5 tests).
 
 ---
 
@@ -121,13 +123,34 @@ Preparar una base tecnica segura para consumir vouchers.
 - Integrar DI para nuevo cliente sin romper flujo actual.
 - Mantener compatibilidad temporal con cliente legacy hasta migracion completa.
 
+### Avance
+- Creado `NetworkModule` en Android con `OkHttpClient` + `Retrofit` + `GsonConverterFactory`.
+- Agregadas dependencias de red en `gradle/libs.versions.toml` y `app/build.gradle.kts`.
+- Declarada interfaz `VouchersApi` para `POST /api/v1/vouchers/redeem` como prueba tecnica base.
+- Declarada interfaz `SessionsApi` para `POST /api/v1/sessions/{id}/send-report`.
+- Compilacion validada: `gradlew.bat :app:compileDebugKotlin`.
+- Iniciado manejo de auth de red con `AuthInterceptor` (Bearer token desde Firebase).
+- Iniciado manejo base de 401 con `UnauthorizedInterceptor` (limpieza de cache local de `backend_user_id`).
+- Iniciado mapper de errores HTTP a dominio con `HttpErrorMapper` y nuevo contrato `ApiResult/RemoteFailure`.
+- Integrado primer flujo protegido de vouchers (`redeemVoucherProtected`) con parseo de error de negocio (`code/message`) y errores de red/timeouts.
+- Integrado flujo protegido de envio de reporte (`sendReportProtected`) y adaptados `SendEmailReportUseCase` + `SyncSessionWorker` al nuevo contrato de errores.
+- Migradas operaciones remotas legacy (`ensureBackendUserId`, `completeSession`, `fetchAllMaterial`) a variantes protegidas `*Protected` con wrappers de compatibilidad temporal.
+- Avance de integracion DI sin ruptura: `SyncCompletedSessionToBackendUseCase`, `SyncSessionWorker` y `MaterialTeoricoRepositoryImpl` ahora consumen el flujo protegido.
+- Etapa de transicion cerrada: wrappers legacy removidos en `BackendApiClient`; el consumo interno queda alineado al cliente nuevo.
+- Ajuste de fiabilidad del flujo final: `FinalizeVocationalTestUseCase` intenta sincronizar la sesion al backend en el mismo cierre del test y mantiene `WorkManager` como respaldo.
+- `send-report` habilitado para mobile sin requerir JWT backend mientras se implementa token exchange Firebase -> JWT.
+- Correccion de UX en Android para mostrar estado real del envio de informe (sin falso positivo de exito).
+
 ### Criterio de salida
 - Al menos un endpoint backend funcionando por la nueva capa de red.
 - Base de auth y errores lista para vouchers.
 
+### Estado real
+- Sprint 3 cerrado funcionalmente: sync de sesion backend validado en dispositivo real, envio de informe operativo en entorno dev (Mailtrap) y UX sin falso positivo.
+
 ---
 
-## Sprint 4 (4-5 dias) - Feature vouchers Android end-to-end
+## Sprint 4 (4-5 dias) — Feature vouchers Android end-to-end
 
 ### Objetivo
 Entregar la funcionalidad completa de vouchers en Android.
@@ -138,13 +161,17 @@ Entregar la funcionalidad completa de vouchers en Android.
 - Construir ViewModel y estados UI de lista/detalle/acciones.
 - Agregar pantallas y navegacion de vouchers.
 - Manejar estados de carga, vacio, error y reintentos.
+- Integrar estado de desbloqueo de informe por voucher (`UNLOCKED_BY_VOUCHER`).
+- Integrar estado de desbloqueo de informe por pago (`UNLOCKED_BY_PAYMENT`).
+- Introducir maquina de estados para informe (`SessionSyncState`, `ReportUnlockState`, `ReportDeliveryState`).
 
 ### Criterio de salida
 - Flujo funcional en dispositivo: listar -> detalle -> accion (enviar/reenviar/revocar segun permiso).
+- Flujo funcional de informe en dispositivo: terminar test -> desbloquear (voucher o pago) -> solicitar informe -> estado final (`SENT` o `QUEUED` con reintento).
 
 ---
 
-## Sprint 5 (1-2 dias) - QA, seguridad y salida
+## Sprint 5 (1-2 dias) — QA, seguridad y salida
 
 ### Objetivo
 Reducir riesgo de release y dejar evidencia de calidad.
@@ -155,10 +182,21 @@ Reducir riesgo de release y dejar evidencia de calidad.
 - Revisar configuracion de red para release (cleartext, policies).
 - Actualizar documentacion tecnica final.
 - Checklist de Go/No-Go con riesgos y mitigaciones.
+- Validar matriz de casos de informe: backend caido, backend recuperado, voucher valido/invalido/usado, pago aprobado/rechazado.
 
 ### Criterio de salida
 - Evidencia de pruebas y checklist cerrada.
 - Lista para despliegue controlado.
+
+## Plan de ejecucion por PR (S4-S5)
+
+1. PR1: Maquina de estados de informe + UI base de estados.
+2. PR2: Desbloqueo por voucher (UI + canje + errores).
+3. PR3: Desbloqueo por pago (estado + transiciones).
+4. PR4: Resiliencia y orquestacion worker para entrega eventual.
+5. PR5: QA E2E, hardening y cierre documental.
+
+Ver detalle operativo en `docs/IMPLEMENTACION_INFORME_ANDROID_PR_PLAN.md`.
 
 ---
 
