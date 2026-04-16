@@ -25,6 +25,45 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Bootstrap de base de datos (servidor nuevo)
+
+Este proyecto soporta inicializacion en un solo paso para una base limpia:
+
+1. Ejecutar todas las migraciones.
+2. Crear/actualizar seed base idempotente:
+   - Admin global (sin `institution_id`).
+   - Institucion inicial.
+
+### Variables requeridas
+
+Configura `apps/api/.env` a partir de `apps/api/.env.example` y completa:
+
+- `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME`
+- `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`
+- `SEED_ADMIN_NAME` (opcional)
+- `SEED_INSTITUTION_NAME`, `SEED_INSTITUTION_BILLING_EMAIL` (opcional), `SEED_INSTITUTION_IS_ACTIVE` (opcional)
+- `SEED_INSTITUTION_USER_EMAIL`, `SEED_INSTITUTION_USER_PASSWORD`
+- `SEED_INSTITUTION_USER_NAME` (opcional)
+
+### Comando unico (cross-platform)
+
+Desde la raiz del monorepo:
+
+```bash
+pnpm --filter api run db:bootstrap
+```
+
+Wrappers opcionales:
+
+- Linux/macOS: `./scripts/bootstrap-db.sh`
+- Windows (PowerShell): `./scripts/bootstrap-db.ps1`
+
+### Reset completo (solo entornos no productivos)
+
+```bash
+pnpm --filter api run db:reset
+```
+
 ## Project setup
 
 ```bash

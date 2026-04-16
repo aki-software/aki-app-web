@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -79,6 +80,8 @@ type RawVoucherBatchSummaryRow = {
 
 @Injectable()
 export class VouchersService {
+  private readonly logger = new Logger(VouchersService.name);
+
   constructor(
     @InjectRepository(Voucher)
     private readonly voucherRepository: Repository<Voucher>,
@@ -218,6 +221,10 @@ export class VouchersService {
     sessionId: string;
   }> {
     const normalizedCode = this.normalizeCode(code);
+    this.logger.debug(
+      `redeemForSession start code=${normalizedCode} sessionId=${sessionId}`,
+    );
+
     return await this.dataSource.transaction(async (manager) => {
       const voucherRepository = manager.getRepository(Voucher);
       const sessionRepository = manager.getRepository(Session);
@@ -226,15 +233,32 @@ export class VouchersService {
         where: { code: normalizedCode },
       });
       if (!voucher) {
+        this.logger.warn(
+          `redeemForSession voucher-not-found code=${normalizedCode} sessionId=${sessionId}`,
+        );
         throw new NotFoundException('INVALID_CODE');
       }
 
+      this.logger.debug(
+        `redeemForSession voucher-loaded id=${voucher.id} status=${voucher.status} ownerUserId=${voucher.ownerUserId ?? 'null'} ownerInstitutionId=${voucher.ownerInstitutionId ?? 'null'} redeemedSessionId=${voucher.redeemedSessionId ?? 'null'}`,
+      );
+
       const session = await sessionRepository.findOne({ where: { id: sessionId } });
       if (!session) {
+        this.logger.warn(
+          `redeemForSession session-not-found code=${normalizedCode} sessionId=${sessionId}`,
+        );
         throw new NotFoundException('SESSION_NOT_FOUND');
       }
 
+      this.logger.debug(
+        `redeemForSession session-loaded id=${session.id} patientId=${session.patientId ?? 'null'} therapistUserId=${session.therapistUserId ?? 'null'} institutionId=${session.institutionId ?? 'null'} paymentStatus=${session.paymentStatus}`,
+      );
+
       if (voucher.redeemedSessionId === sessionId) {
+        this.logger.debug(
+          `redeemForSession already-redeemed-same-session code=${normalizedCode} sessionId=${sessionId}`,
+        );
         this.applyVoucherRedemptionToSession(session, voucher, new Date());
         await sessionRepository.save(session);
         return {
@@ -246,6 +270,9 @@ export class VouchersService {
       }
 
       if (voucher.status === VoucherStatus.USED) {
+        this.logger.warn(
+          `redeemForSession voucher-already-used code=${normalizedCode} voucherId=${voucher.id} redeemedSessionId=${voucher.redeemedSessionId ?? 'null'} requestedSessionId=${sessionId}`,
+        );
         throw new ConflictException('ALREADY_USED');
       }
 
@@ -259,6 +286,10 @@ export class VouchersService {
 
       await voucherRepository.save(voucher);
       await sessionRepository.save(session);
+
+      this.logger.log(
+        `redeemForSession success code=${normalizedCode} voucherId=${voucher.id} sessionId=${sessionId}`,
+      );
 
       return {
         success: true,

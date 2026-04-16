@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Param,
   ParseUUIDPipe,
   Post,
@@ -31,6 +32,8 @@ type AuthenticatedRequest = Request & {
 
 @Controller('vouchers')
 export class VouchersController {
+  private readonly logger = new Logger(VouchersController.name);
+
   constructor(private readonly vouchersService: VouchersService) {}
 
   @UseGuards(JwtAuthGuard)
@@ -105,7 +108,14 @@ export class VouchersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('redeem')
-  async redeem(@Body() redeemVoucherDto: RedeemVoucherDto) {
+  async redeem(
+    @Body() redeemVoucherDto: RedeemVoucherDto,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    this.logger.debug(
+      `redeem requested code=${redeemVoucherDto.code?.trim()?.toUpperCase()} sessionId=${redeemVoucherDto.sessionId} userId=${req?.user?.userId ?? 'none'} role=${req?.user?.role ?? 'none'} institutionId=${req?.user?.institutionId ?? 'none'}`,
+    );
+
     return await this.vouchersService.redeemForSession(
       redeemVoucherDto.code,
       redeemVoucherDto.sessionId,
