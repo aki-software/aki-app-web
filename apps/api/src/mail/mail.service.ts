@@ -2,15 +2,11 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as pug from 'pug';
 import { ConfigService } from '@nestjs/config';
-
-export interface CategoryResult {
-  title: string;
-  percentage: number;
-  description: string;
-  parsedBlocks?: { subtitle?: string; content: string }[];
-  materialSnippet?: string;
-  suggestedCareers?: string[];
-}
+import {
+  CategoryResult,
+  ReportSummary,
+  ReportTripletInsight,
+} from '../common/types/report.types';
 
 @Injectable()
 export class MailService {
@@ -50,30 +46,67 @@ export class MailService {
     }
   }
 
-  renderReportTemplate(
+  private renderTemplate(
+    templateName: string,
+    payload: Record<string, unknown>,
+  ): string {
+    const templatePath = process.cwd() + `/src/mail/templates/${templateName}`;
+    return pug.renderFile(templatePath, payload);
+  }
+
+  renderReportPdfTemplate(
     patientName: string,
     formattedResults: CategoryResult[],
     hollandCode?: string,
+    reportUrl?: string,
+    summary?: ReportSummary,
+    tripletInsight?: ReportTripletInsight,
   ): string {
-    const templatePath = process.cwd() + '/src/mail/templates/report.pug';
-    return pug.renderFile(templatePath, {
+    return this.renderTemplate('report-pdf.pug', {
       patientName,
       topResults: formattedResults,
       hollandCode: hollandCode || null,
+      reportUrl: reportUrl || null,
+      summary: summary || null,
+      tripletInsight: tripletInsight || null,
+    });
+  }
+
+  renderReportEmailTemplate(
+    patientName: string,
+    hollandCode?: string,
+    reportUrl?: string,
+    summary?: ReportSummary,
+  ): string {
+    return this.renderTemplate('report-email.pug', {
+      patientName,
+      hollandCode: hollandCode || null,
+      reportUrl: reportUrl || null,
+      summary: summary || null,
     });
   }
 
   async sendVocationalReport(
     targetEmail: string,
     patientName: string,
-    formattedResults: CategoryResult[],
     hollandCode?: string,
     pdfAttachment?: Buffer,
+    reportUrl?: string,
+    summary?: ReportSummary,
+    tripletInsight?: ReportTripletInsight,
   ): Promise<boolean> {
-    const htmlContent = this.renderReportTemplate(
+    const htmlContent = this.renderReportEmailTemplate(
       patientName,
-      formattedResults,
       hollandCode,
+      reportUrl,
+      summary,
+    );
+    const textContent = this.renderReportText(
+      patientName,
+      hollandCode,
+      reportUrl,
+      summary,
+      tripletInsight,
     );
     try {
       const from = this.configService.get<string>(
@@ -85,6 +118,7 @@ export class MailService {
         to: targetEmail,
         subject: `📊 Tu Informe Vocacional${hollandCode ? ` — Código ${hollandCode}` : ''}`,
         html: htmlContent,
+        text: textContent,
       };
       if (pdfAttachment) {
         mailOptions.attachments = [
@@ -101,6 +135,67 @@ export class MailService {
       console.error(`❌ Error dispatching vocational report:`, error);
       return false;
     }
+  }
+
+  private renderReportText(
+    patientName: string,
+    hollandCode?: string,
+    reportUrl?: string,
+    summary?: ReportSummary,
+    tripletInsight?: ReportTripletInsight,
+  ): string {
+    const lines: string[] = [];
+    lines.push('INFORME DE RESULTADOS VOCACIONALES');
+    lines.push('');
+    lines.push(
+      `Hola ${patientName}, aqui tienes los detalles de tu exploracion vocacional.`,
+    );
+    if (hollandCode) {
+      lines.push(`Codigo Holland: ${hollandCode}`);
+    }
+
+    if (summary) {
+      lines.push('');
+      lines.push('RESUMEN EJECUTIVO');
+      lines.push('');
+      lines.push(
+        `Afinidad principal: ${summary.primaryTitle} (${summary.primaryPercentage}%)`,
+      );
+      lines.push(`Fortaleza destacada: ${summary.profileStrength}`);
+      lines.push(`Recomendacion: ${summary.recommendation}`);
+      if (summary.rankedAreas.length > 0) {
+        lines.push('Ranking de afinidad:');
+        summary.rankedAreas.forEach((area, idx) => {
+          lines.push(`${idx + 1}. ${area.title} (${area.percentage}%)`);
+        });
+      }
+    }
+
+    lines.push('');
+    if (summary?.rankedAreas?.length) {
+      lines.push('Ranking de afinidad (Top 3):');
+      summary.rankedAreas.forEach((area, idx) => {
+        lines.push(`${idx + 1}. ${area.title} (${area.percentage}%)`);
+      });
+      lines.push('');
+    }
+
+    if (tripletInsight) {
+      lines.push(`Combinacion destacada: ${tripletInsight.title}`);
+      if (tripletInsight.tendencies?.length) {
+        lines.push('Tendencias observadas:');
+        tripletInsight.tendencies.forEach((item) => lines.push(`- ${item}`));
+      }
+      lines.push('');
+    }
+
+    if (reportUrl) {
+      lines.push(`Descargar informe completo en PDF: ${reportUrl}`);
+      lines.push('');
+    }
+
+    lines.push('Soporte tecnico: soporte@orientaki.app');
+    return lines.join('\n');
   }
 
   async sendVoucherCode(

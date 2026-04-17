@@ -25,6 +25,7 @@
     "seed": "pnpm seed:base",
     "seed:admin": "pnpm build && node dist/database/seeds/admin-seed.js",
     "seed:institution": "pnpm build && node dist/database/seeds/institution-seed.js",
+    "seed:tres-areas": "pnpm build && node dist/database/seeds/tres-areas-combinations-seed.js",
     "seed:base": "pnpm build && node dist/database/seeds/base-seed.js",
     "db:bootstrap": "pnpm migration:run && pnpm seed:base",
     "db:reset": "pnpm build && node ./node_modules/typeorm/cli.js schema:drop -d dist/config/typeorm.config.js && node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js && node dist/database/seeds/base-seed.js"

@@ -10,6 +10,7 @@ import { User } from '../users/entities/user.entity';
 import { Institution } from '../institutions/entities/institution.entity';
 import { Voucher } from '../vouchers/entities/voucher.entity';
 import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity';
+import { TresAreasCombination } from '../common/entities/tres-areas-combination.entity';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ export const typeOrmConfig: PostgresConnectionOptions = {
     Institution,
     Voucher,
     VoucherBatch,
+    TresAreasCombination,
   ],
   migrations: ['dist/migrations/*.js'],
   synchronize: false,

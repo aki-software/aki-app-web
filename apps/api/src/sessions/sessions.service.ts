@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { mkdir, writeFile } from 'fs/promises';
+import { join, resolve } from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Between,
@@ -9,7 +11,9 @@ import {
   Repository,
 } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
-import { CategoryResult, MailService } from '../mail/mail.service';
+import {
+  MailService,
+} from '../mail/mail.service';
 import { Voucher } from '../vouchers/entities/voucher.entity';
 import { VoucherStatus } from '../vouchers/entities/voucher.enums';
 import { CreateSessionDto } from './dto/create-session.dto';
@@ -17,6 +21,7 @@ import { Session, SessionPaymentStatus } from './entities/session.entity';
 
 import { PdfService } from '../common/services/pdf.service';
 import { StorageService } from '../common/services/storage.service';
+import { ReportService } from './services/report.service';
 
 type SessionScope = {
   role?: string;
@@ -111,6 +116,8 @@ type RawRecentVoucherRow = {
 
 @Injectable()
 export class SessionsService {
+  private readonly logger = new Logger(SessionsService.name);
+
   constructor(
     @InjectRepository(Session)
     private sessionRepository: Repository<Session>,
@@ -120,6 +127,7 @@ export class SessionsService {
     private mailService: MailService,
     private pdfService: PdfService,
     private storageService: StorageService,
+    private reportService: ReportService,
   ) {}
 
   async create(createSessionDto: CreateSessionDto): Promise<Session> {
@@ -159,60 +167,33 @@ export class SessionsService {
     sessionId: string,
     targetEmail: string,
     scope?: SessionScope,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<{
+    success: boolean;
+    message: string;
+    localReportPath?: string;
+  }> {
     const session = await this.findOne(sessionId, scope);
-    const categories = await this.categoriesService.findAll();
+    const reportData = await this.reportService.buildReportData(session);
 
-    const topResults = (session.results || [])
-      .sort((a, b) => b.percentage - a.percentage)
-      .slice(0, 3);
-
-    const formattedResults: CategoryResult[] = topResults.map((res) => {
-      const catInfo = categories.find((c) => c.categoryId === res.categoryId);
-      const description = catInfo
-        ? catInfo.description
-        : 'Información no disponible.';
-
-      const parsedBlocks = description
-        .split('\n\n')
-        .map((b) => b.trim())
-        .filter(Boolean)
-        .map((b) => {
-          let subtitle = '';
-          let content = b;
-          const colonIndex = b.indexOf(':');
-          if (colonIndex > 0 && colonIndex < 80) {
-            subtitle = b.slice(0, colonIndex).trim();
-            content = b.slice(colonIndex + 1).trim();
-          }
-          return { subtitle, content };
-        });
-
-      return {
-        title: catInfo ? catInfo.title : res.categoryId,
-        percentage: res.percentage,
-        description,
-        parsedBlocks,
-        suggestedCareers: res.suggestedCareers,
-        materialSnippet: res.materialSnippet,
-      };
-    });
-
-    const htmlContent = this.mailService.renderReportTemplate(
-      session.patientName,
-      formattedResults,
-      session.hollandCode ?? undefined,
+    const htmlContent = this.mailService.renderReportPdfTemplate(
+      reportData.patientName,
+      reportData.topResults,
+      reportData.hollandCode,
+      undefined,
+      reportData.summary,
+      reportData.tripletInsight ?? undefined,
     );
 
     let pdfBuffer: Buffer | undefined;
+    let reportUrl: string | null = null;
+    let localReportPath: string | undefined;
     try {
       pdfBuffer = await this.pdfService.generateFromHtml(htmlContent);
 
+      localReportPath = await this.persistPdfLocally(sessionId, pdfBuffer);
+
       const fileName = `report_${sessionId}_${Date.now()}.pdf`;
-      const reportUrl = await this.storageService.uploadFile(
-        pdfBuffer,
-        fileName,
-      );
+      reportUrl = await this.storageService.uploadFile(pdfBuffer, fileName);
 
       // Persistir la URL en la sesión solo si se generó (S3 configurado)
       if (reportUrl) {
@@ -220,28 +201,65 @@ export class SessionsService {
         await this.sessionRepository.save(session);
       }
     } catch (err) {
-      console.error(
-        '⚠️ Falló la generación o subida del PDF, se enviará solo HTML:',
-        err,
+      this.logger.warn(
+        `sendReport pdf-fallback sessionId=${sessionId} paymentStatus=${session.paymentStatus ?? 'UNKNOWN'} voucherId=${session.voucherId ?? 'none'} reason=${(err as Error)?.message ?? 'unknown'}`,
       );
     }
 
     const sent = await this.mailService.sendVocationalReport(
       targetEmail,
-      session.patientName,
-      formattedResults,
-      session.hollandCode ?? undefined,
+      reportData.patientName,
+      reportData.hollandCode,
       pdfBuffer,
+      reportUrl ?? session.reportUrl ?? undefined,
+      reportData.summary,
+      reportData.tripletInsight ?? undefined,
     );
 
     if (!sent) {
+      this.logger.error(
+        `sendReport mail-dispatch-failed sessionId=${sessionId} targetEmail=${targetEmail}`,
+      );
       return {
         success: false,
         message: 'Hubo un error despachando el correo electrónico.',
       };
     }
 
-    return { success: true, message: `Email despachado hacia ${targetEmail}` };
+    this.logger.log(
+      `sendReport dispatched sessionId=${sessionId} targetEmail=${targetEmail} mode=${pdfBuffer ? 'pdf' : 'html_fallback'} localReportPath=${localReportPath ?? 'none'}`,
+    );
+
+    return {
+      success: true,
+      message: `Email despachado hacia ${targetEmail}`,
+      localReportPath,
+    };
+  }
+
+  private async persistPdfLocally(
+    sessionId: string,
+    pdfBuffer: Buffer,
+  ): Promise<string | undefined> {
+    try {
+      const configuredDir = process.env.REPORTS_LOCAL_DIR?.trim();
+      const reportsDir = configuredDir
+        ? resolve(configuredDir)
+        : resolve(process.cwd(), 'tmp', 'reports');
+      await mkdir(reportsDir, { recursive: true });
+
+      const filePath = join(
+        reportsDir,
+        `report_${sessionId}_${Date.now()}.pdf`,
+      );
+      await writeFile(filePath, pdfBuffer);
+      return filePath;
+    } catch (error) {
+      this.logger.warn(
+        `persistPdfLocally failed sessionId=${sessionId} reason=${(error as Error)?.message ?? 'unknown'}`,
+      );
+      return undefined;
+    }
   }
 
   async getAdminOverview(): Promise<DashboardStatsPayload> {

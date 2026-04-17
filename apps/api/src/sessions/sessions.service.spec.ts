@@ -9,6 +9,7 @@ import { Voucher } from '../vouchers/entities/voucher.entity';
 import { VouchersService } from '../vouchers/vouchers.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { Session } from './entities/session.entity';
+import { ReportService } from './services/report.service';
 import { SessionsService } from './sessions.service';
 
 describe('SessionsService', () => {
@@ -58,6 +59,10 @@ describe('SessionsService', () => {
         {
           provide: StorageService,
           useValue: {},
+        },
+        {
+          provide: ReportService,
+          useValue: { buildReportData: jest.fn() },
         },
         {
           provide: VouchersService,

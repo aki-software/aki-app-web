@@ -1,0 +1,3527 @@
+{
+  "version": 1,
+  "generatedAt": "2026-04-17T13:25:00.929Z",
+  "totalCombinations": 220,
+  "combinations": [
+    {
+      "id": 1,
+      "title": "Artístico + Humanitario + Servicios",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Servicios"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Servicios muestra potencial para trabajar en lugares donde se combine lo social, lo creativo y el servicio y que tu perfil tiende a: crear cosas).",
+      "tendencies": [
+        "interesarse por ayudar a otras personas usando la creatividad.",
+        "sentirse cómodo/a en tareas donde haya trato con gente y expresión (dibujar, actuar,"
+      ],
+      "possibleJobs": "Animador/a de eventos, asistente en talleres artísticos, ayudante en centros culturales, recreador/a infantil, apoyo en actividades comunitarias, auxiliar en espacios educativos, organizador/a de actividades recreativas.",
+      "relatedProfessions": "Diseño, Ortesis y Prótesis, Terapia Ocupacional, Docencia, Acompañamiento Terapéutico, Gastronomía, Gestión de Servicios."
+    },
+    {
+      "id": 2,
+      "title": "Artístico + Humanitario + Protección",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Protección"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Protección muestra potencial para trabajar en lugares donde se combine el cuidado de personas, la expresión y el respeto por normas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por acompañar a otros en entornos organizados.",
+        "sentirse cómodo/a en tareas con responsabilidad, cuidado y actividades expresivas."
+      ],
+      "possibleJobs": "Auxiliar en instituciones, acompañante en centros de día, recreador/a en espacios de cuidado, asistente en programas comunitarios, apoyo en organizaciones sociales, auxiliar en espacios terapéuticos.",
+      "relatedProfessions": "Terapia Ocupacional, Trabajo Social, Seguridad e Higiene, Psicología, Docencia, Acompañamiento Terapéutico."
+    },
+    {
+      "id": 3,
+      "title": "Artístico + Humanitario + Desempeño físico",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Desempeño físico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Desempeño físico muestra potencial para trabajar en lugares donde se combine lo corporal, lo creativo y el trabajo con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por actividades dinámicas con otros.",
+        "sentirse cómodo/a en tareas con movimiento, creatividad y contacto social."
+      ],
+      "possibleJobs": "Animador/a, recreador/a, ayudante en colonias de vacaciones, asistente en clubes, apoyo en actividades deportivas, ayudante en eventos, acompañante recreativo.",
+      "relatedProfessions": "Educación Física, Recreación, Terapia Ocupacional, Docencia, Animación sociocultural."
+    },
+    {
+      "id": 4,
+      "title": "Artístico + Humanitario + Industrial",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario e Industrial muestra potencial para trabajar en lugares donde se combine la producción, la creatividad y el trabajo con otros y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por crear productos útiles para otras personas.",
+        "sentirse cómodo/a en tareas manuales, organizadas y con sentido social."
+      ],
+      "possibleJobs": "Operario/a en talleres, ayudante en producción artesanal, serigrafía, armado de productos, empaquetado, talleres protegidos, producción manual.",
+      "relatedProfessions": "Diseño Industrial, Producción Textil, Tecnología Industrial, Terapia Ocupacional, Gestión de Producción."
+    },
+    {
+      "id": 5,
+      "title": "Artístico + Humanitario + Mecánica",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Mecánica muestra potencial para trabajar en lugares donde se combine lo técnico, lo creativo y el servicio a otros y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por reparar, armar o construir cosas útiles.",
+        "sentirse cómodo/a en tareas manuales con herramientas y contacto con personas."
+      ],
+      "possibleJobs": "Ayudante de taller, utilero/a, armado de escenografía, mantenimiento básico, auxiliar electricista, ayudante mecánico, reparaciones simples.",
+      "relatedProfessions": "Técnico Mecánico, Electromecánica, Diseño Escenográfico, Ingeniería, Mantenimiento Industrial."
+    },
+    {
+      "id": 6,
+      "title": "Artístico + Humanitario + Plantas y animales",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Plantas y animales muestra potencial para trabajar en lugares donde se combine la naturaleza, el cuidado y la creatividad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por el cuidado de seres vivos y el entorno.",
+        "sentirse cómodo/a en tareas al aire libre con actividades prácticas."
+      ],
+      "possibleJobs": "Huerta comunitaria, vivero, jardinería, cuidado de animales, mantenimiento de espacios verdes, producción vegetal, actividades ambientales.",
+      "relatedProfessions": "Agronomía, Veterinaria, Educación Ambiental, Terapia Ocupacional, Gestión Ambiental."
+    },
+    {
+      "id": 7,
+      "title": "Artístico + Humanitario + Liderazgo",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación de personas, la creatividad y el trabajo social y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades para otros.",
+        "sentirse cómodo/a guiando grupos y proponiendo ideas."
+      ],
+      "possibleJobs": "Coordinador/a de talleres, líder de actividades, organizador/a de eventos, referente de grupo, coordinador recreativo, encargado de equipo.",
+      "relatedProfessions": "Recursos Humanos, Gestión Cultural, Docencia, Trabajo Social, Administración."
+    },
+    {
+      "id": 8,
+      "title": "Artístico + Humanitario + Científico",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Científico muestra potencial para trabajar en lugares donde se combine el conocimiento, la creatividad y el trabajo con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por aprender y transmitir conocimientos.",
+        "sentirse cómodo/a en tareas de análisis, observación y comunicación."
+      ],
+      "possibleJobs": "Apoyo escolar, asistente educativo, ayudante de laboratorio, divulgador/a, acompañamiento educativo, tareas de registro.",
+      "relatedProfessions": "Psicología, Docencia, Investigación, Terapia Ocupacional, Ciencias de la Educación."
+    },
+    {
+      "id": 9,
+      "title": "Artístico + Humanitario + Ventas",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Ventas muestra potencial para trabajar en lugares donde se combine la comunicación, el contacto con personas y la creatividad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar y convencer a otros.",
+        "sentirse cómodo/a en tareas de atención al público y expresión."
+      ],
+      "possibleJobs": "Vendedor/a en ferias, promotor/a, venta de productos artesanales, atención al público, comercialización de productos creativos, asesor/a comercial.",
+      "relatedProfessions": "Marketing, Comercialización, Publicidad, Gestión Comercial, Comunicación."
+    },
+    {
+      "id": 10,
+      "title": "Artístico + Humanitario + Negocio",
+      "categories": [
+        "Artístico",
+        "Humanitario",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Humanitario y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la creatividad y el trabajo con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por gestionar proyectos con impacto social.",
+        "sentirse cómodo/a en tareas organizadas con objetivos claros."
+      ],
+      "possibleJobs": "Organización de eventos, emprendimientos, auxiliar administrativo en espacios culturales, gestión de proyectos simples, coordinación de actividades.",
+      "relatedProfessions": "Administración, Gestión Cultural, Contabilidad, Recursos Humanos, Marketing."
+    },
+    {
+      "id": 11,
+      "title": "Artístico + Servicios + Protección",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Protección"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios y Protección muestra potencial para trabajar en lugares donde se combine el orden, la atención a personas y actividades prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas organizadas con contacto social.",
+        "sentirse cómodo/a en entornos con normas claras."
+      ],
+      "possibleJobs": "Control en eventos, asistencia en seguridad, recepción, organización de espacios, logística básica, control de accesos.",
+      "relatedProfessions": "Seguridad e Higiene, Organización de Eventos, Gestión de Servicios, Administración."
+    },
+    {
+      "id": 12,
+      "title": "Artístico + Servicios + Desempeño físico",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Desempeño físico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios y Desempeño físico muestra potencial para trabajar en lugares donde se combine el movimiento, la creatividad y la atención a personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por actividades dinámicas y sociales.",
+        "sentirse cómodo/a en tareas activas y prácticas."
+      ],
+      "possibleJobs": "Animador/a, recreador/a, ayudante en eventos, montaje de escenarios, actividades deportivas, asistencia en clubes.",
+      "relatedProfessions": "Educación Física, Recreación, Organización de Eventos, Turismo."
+    },
+    {
+      "id": 13,
+      "title": "Artístico + Servicios + Industrial",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios e Industrial muestra potencial para trabajar en lugares donde se combine la producción, el servicio y la creatividad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por producir cosas para otros.",
+        "sentirse cómodo/a en tareas manuales organizadas."
+      ],
+      "possibleJobs": "Cocina, gastronomía, panadería, producción en eventos, armado de productos, catering, ayudante de cocina.",
+      "relatedProfessions": "Gastronomía, Producción de Alimentos, Hotelería, Gestión de Servicios."
+    },
+    {
+      "id": 14,
+      "title": "Artístico + Servicios + Mecánica",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios y Mecánica muestra potencial para trabajar en lugares donde se combine lo técnico, lo práctico y el trato con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por armar y mantener cosas.",
+        "sentirse cómodo/a usando herramientas y resolviendo problemas concretos."
+      ],
+      "possibleJobs": "Montaje de estructuras, armado de stands, mantenimiento, ayudante técnico, instalaciones básicas, soporte técnico simple.",
+      "relatedProfessions": "Técnico Mecánico, Electromecánica, Mantenimiento, Instalaciones."
+    },
+    {
+      "id": 15,
+      "title": "Artístico + Servicios + Plantas y animales",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios y Plantas y animales muestra potencial para trabajar en lugares donde se combine la naturaleza, el servicio y actividades prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por el cuidado del entorno y las personas.",
+        "sentirse cómodo/a en tareas al aire libre."
+      ],
+      "possibleJobs": "Jardinería, viveros, mantenimiento de plazas, cuidado de animales, parques, espacios verdes, huertas.",
+      "relatedProfessions": "Agronomía, Jardinería, Gestión Ambiental, Veterinaria."
+    },
+    {
+      "id": 16,
+      "title": "Artístico + Servicios + Liderazgo",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación de personas, la creatividad y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades para otros.",
+        "sentirse cómodo/a guiando equipos y proponiendo ideas."
+      ],
+      "possibleJobs": "Coordinador/a de eventos, encargado/a de equipos, líder de actividades recreativas, supervisor/a de servicios, organizador/a de actividades, referente de grupo.",
+      "relatedProfessions": "Administración, Recursos Humanos, Gestión de Servicios, Organización de Eventos, Turismo."
+    },
+    {
+      "id": 17,
+      "title": "Artístico + Servicios + Científico",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios y Científico muestra potencial para trabajar en lugares donde se combine el conocimiento, la atención a personas y la creatividad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por aprender y explicar cosas.",
+        "sentirse cómodo/a en tareas de observación, registro y comunicación."
+      ],
+      "possibleJobs": "Asistente educativo, apoyo escolar, ayudante de laboratorio, tareas de registro, divulgación, asistencia en capacitación.",
+      "relatedProfessions": "Docencia, Ciencias de la Educación, Investigación, Psicopedagogía."
+    },
+    {
+      "id": 18,
+      "title": "Artístico + Servicios + Ventas",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios y Ventas muestra potencial para trabajar en lugares donde se combine la atención al público, la creatividad y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar con personas y ofrecer productos.",
+        "sentirse cómodo/a en tareas de atención, promoción y venta."
+      ],
+      "possibleJobs": "Vendedor/a, promotor/a, atención al cliente, ventas en ferias, comercialización de productos creativos, repositor/a, cajero/a.",
+      "relatedProfessions": "Marketing, Comercialización, Publicidad, Gestión Comercial."
+    },
+    {
+      "id": 19,
+      "title": "Artístico + Servicios + Negocio",
+      "categories": [
+        "Artístico",
+        "Servicios",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Servicios y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el servicio y la creatividad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades o servicios.",
+        "sentirse cómodo/a en tareas estructuradas con objetivos claros."
+      ],
+      "possibleJobs": "Organización de eventos, administración básica, atención en oficinas, gestión de servicios, coordinación de actividades, asistencia administrativa.",
+      "relatedProfessions": "Administración, Contabilidad, Gestión de Servicios, Recursos Humanos."
+    },
+    {
+      "id": 20,
+      "title": "Artístico + Protección + Desempeño físico",
+      "categories": [
+        "Artístico",
+        "Protección",
+        "Desempeño físico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Protección y Desempeño físico muestra potencial para trabajar en lugares donde se combine la actividad física, el control y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas activas con responsabilidad.",
+        "sentirse cómodo/a en entornos estructurados y dinámicos."
+      ],
+      "possibleJobs": "Seguridad en eventos, control de accesos, auxiliar de vigilancia, asistencia en operativos, logística, tareas de prevención.",
+      "relatedProfessions": "Seguridad, Educación Física, Seguridad e Higiene."
+    },
+    {
+      "id": 21,
+      "title": "Artístico + Protección + Industrial",
+      "categories": [
+        "Artístico",
+        "Protección",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Protección e Industrial muestra potencial para trabajar en lugares donde se combine la producción, el control y el cumplimiento de normas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas organizadas con reglas claras.",
+        "sentirse cómodo/a en entornos estructurados y productivos."
+      ],
+      "possibleJobs": "Control de calidad, operario/a de producción, supervisión de procesos, control de stock, empaquetado, clasificación de productos.",
+      "relatedProfessions": "Seguridad e Higiene, Ingeniería Industrial, Logística."
+    },
+    {
+      "id": 22,
+      "title": "Artístico + Protección + Mecánica",
+      "categories": [
+        "Artístico",
+        "Protección",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Protección y Mecánica muestra potencial para trabajar en lugares donde se combine lo técnico, el control y la seguridad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por reparar y mantener cosas con responsabilidad.",
+        "sentirse cómodo/a en tareas técnicas y estructuradas."
+      ],
+      "possibleJobs": "Mantenimiento, ayudante mecánico, control técnico, revisión de equipos, asistencia en reparaciones, instalaciones.",
+      "relatedProfessions": "Técnico Mecánico, Electromecánica, Seguridad e Higiene."
+    },
+    {
+      "id": 23,
+      "title": "Artístico + Protección + Plantas y animales",
+      "categories": [
+        "Artístico",
+        "Protección",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Protección y Plantas y animales muestra potencial para trabajar en lugares donde se combine el cuidado del entorno, la naturaleza y la seguridad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por el cuidado de espacios naturales.",
+        "sentirse cómodo/a en tareas al aire libre con responsabilidad."
+      ],
+      "possibleJobs": "Guardaparque auxiliar, mantenimiento de parques, cuidado de animales, control de espacios verdes, tareas ambientales.",
+      "relatedProfessions": "Gestión Ambiental, Agronomía, Seguridad Ambiental."
+    },
+    {
+      "id": 24,
+      "title": "Artístico + Protección + Liderazgo",
+      "categories": [
+        "Artístico",
+        "Protección",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Protección y Liderazgo muestra potencial para trabajar en lugares donde se combine la conducción de personas, el orden y la responsabilidad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar tareas con normas claras.",
+        "sentirse cómodo/a guiando equipos en entornos estructurados."
+      ],
+      "possibleJobs": "Encargado/a, supervisor/a, jefe de turno, coordinador/a de seguridad, responsable de equipo.",
+      "relatedProfessions": "Administración, Seguridad, Recursos Humanos."
+    },
+    {
+      "id": 25,
+      "title": "Artístico + Protección + Científico",
+      "categories": [
+        "Artístico",
+        "Protección",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Protección y Científico muestra potencial para trabajar en lugares donde se combine el análisis, el control y el cumplimiento de normas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por observar y analizar situaciones.",
+        "sentirse cómodo/a en tareas técnicas y de registro."
+      ],
+      "possibleJobs": "Control de calidad, análisis básico, registro de datos, inspecciones, seguimiento de procesos.",
+      "relatedProfessions": "Investigación, Seguridad e Higiene, Ciencias."
+    },
+    {
+      "id": 26,
+      "title": "Artístico + Protección + Ventas",
+      "categories": [
+        "Artístico",
+        "Protección",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Protección y Ventas muestra potencial para trabajar en lugares donde se combine la atención al público, el control y la organización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar con personas en contextos organizados.",
+        "sentirse cómodo/a en tareas comerciales con normas claras."
+      ],
+      "possibleJobs": "Ventas en locales, control de caja, atención al cliente, reposición, control de stock, atención en espacios regulados.",
+      "relatedProfessions": "Comercialización, Administración, Seguridad."
+    },
+    {
+      "id": 27,
+      "title": "Artístico + Protección + Negocio",
+      "categories": [
+        "Artístico",
+        "Protección",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Protección y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el control y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas administrativas con responsabilidad.",
+        "sentirse cómodo/a en entornos estructurados."
+      ],
+      "possibleJobs": "Administración, control de documentación, archivo, gestión de datos, control de procesos, asistencia administrativa.",
+      "relatedProfessions": "Administración, Contabilidad, Gestión."
+    },
+    {
+      "id": 28,
+      "title": "Artístico + Desempeño físico + Industrial",
+      "categories": [
+        "Artístico",
+        "Desempeño físico",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Desempeño físico e Industrial muestra potencial para trabajar en lugares donde se combine la producción, el trabajo corporal y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por actividades concretas y dinámicas.",
+        "sentirse cómodo/a en tareas físicas y organizadas."
+      ],
+      "possibleJobs": "Operario/a, carga y descarga, producción, depósito, armado, logística, tareas manuales.",
+      "relatedProfessions": "Producción Industrial, Logística, Educación Física."
+    },
+    {
+      "id": 29,
+      "title": "Artístico + Desempeño físico + Mecánica",
+      "categories": [
+        "Artístico",
+        "Desempeño físico",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Desempeño físico y Mecánica muestra potencial para trabajar en lugares donde se combine el trabajo corporal, técnico y práctico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por reparar y construir cosas.",
+        "sentirse cómodo/a en tareas físicas con herramientas."
+      ],
+      "possibleJobs": "Mantenimiento, mecánica básica, ayudante técnico, armado, instalaciones, reparaciones.",
+      "relatedProfessions": "Mecánica, Electromecánica, Mantenimiento."
+    },
+    {
+      "id": 30,
+      "title": "Artístico + Desempeño físico + Plantas y animales",
+      "categories": [
+        "Artístico",
+        "Desempeño físico",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Desempeño físico y Plantas y animales muestra potencial para trabajar en lugares donde se combine la naturaleza, el trabajo físico y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por actividades al aire libre.",
+        "sentirse cómodo/a en tareas dinámicas y concretas."
+      ],
+      "possibleJobs": "Jardinería, viveros, huerta, mantenimiento de espacios verdes, cuidado de animales, tareas rurales.",
+      "relatedProfessions": "Agronomía, Veterinaria, Gestión Ambiental."
+    },
+    {
+      "id": 31,
+      "title": "Artístico + Desempeño físico + Liderazgo",
+      "categories": [
+        "Artístico",
+        "Desempeño físico",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Desempeño físico y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación de personas, el movimiento y la organización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por liderar actividades dinámicas.",
+        "sentirse cómodo/a guiando equipos."
+      ],
+      "possibleJobs": "Coordinador/a, entrenador/a, líder de grupo, encargado/a, supervisor/a, actividades recreativas.",
+      "relatedProfessions": "Educación Física, Recursos Humanos, Administración."
+    },
+    {
+      "id": 32,
+      "title": "Artístico + Desempeño físico + Científico",
+      "categories": [
+        "Artístico",
+        "Desempeño físico",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Desempeño físico y Científico muestra potencial para trabajar en lugares donde se combine el análisis, el cuerpo y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender cómo funcionan las cosas.",
+        "sentirse cómodo/a en tareas técnicas y físicas."
+      ],
+      "possibleJobs": "Asistente deportivo, control físico, medición, registro de datos, apoyo técnico.",
+      "relatedProfessions": "Educación Física, Ciencias, Kinesiología."
+    },
+    {
+      "id": 33,
+      "title": "Artístico + Desempeño físico + Ventas",
+      "categories": [
+        "Artístico",
+        "Desempeño físico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Desempeño físico y Ventas muestra potencial para trabajar en lugares donde se combine la actividad física, el contacto social y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar con personas.",
+        "sentirse cómodo/a en tareas dinámicas y de venta."
+      ],
+      "possibleJobs": "Promotor/a, vendedor/a, atención al cliente, ventas en eventos, actividades comerciales dinámicas.",
+      "relatedProfessions": "Comercialización, Marketing, Educación Física."
+    },
+    {
+      "id": 34,
+      "title": "Artístico + Desempeño físico + Negocio",
+      "categories": [
+        "Artístico",
+        "Desempeño físico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Desempeño físico y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el movimiento y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades dinámicas.",
+        "sentirse cómodo/a en tareas prácticas y estructuradas."
+      ],
+      "possibleJobs": "Logística, organización, administración básica, coordinación de actividades, asistencia en gestión.",
+      "relatedProfessions": "Administración, Logística, Gestión."
+    },
+    {
+      "id": 35,
+      "title": "Artístico + Industrial + Mecánica",
+      "categories": [
+        "Artístico",
+        "Industrial",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Industrial y Mecánica muestra potencial para trabajar en lugares donde se combine la producción, lo técnico y tareas manuales y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por armar, reparar y producir.",
+        "sentirse cómodo/a en tareas técnicas y organizadas."
+      ],
+      "possibleJobs": "Operario técnico, mantenimiento, armado, producción, mecánica, instalaciones.",
+      "relatedProfessions": "Ingeniería, Mecánica, Electromecánica."
+    },
+    {
+      "id": 36,
+      "title": "Artístico + Industrial + Plantas y animales",
+      "categories": [
+        "Artístico",
+        "Industrial",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Industrial y Plantas y animales muestra potencial para trabajar en lugares donde se combine la producción, la naturaleza y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por producir en entornos naturales.",
+        "sentirse cómodo/a en tareas organizadas y al aire libre."
+      ],
+      "possibleJobs": "Producción agrícola, viveros, huertas, mantenimiento, tareas rurales, producción vegetal.",
+      "relatedProfessions": "Agronomía, Producción Agropecuaria, Gestión Ambiental."
+    },
+    {
+      "id": 37,
+      "title": "Artístico + Industrial + Liderazgo",
+      "categories": [
+        "Artístico",
+        "Industrial",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Industrial y Liderazgo muestra potencial para trabajar en lugares donde se combine la producción, la organización y la coordinación de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas productivas.",
+        "sentirse cómodo/a guiando equipos."
+      ],
+      "possibleJobs": "Encargado/a, supervisor/a, jefe de turno, coordinador/a, responsable de producción.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Recursos Humanos."
+    },
+    {
+      "id": 38,
+      "title": "Artístico + Industrial + Científico",
+      "categories": [
+        "Artístico",
+        "Industrial",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Industrial y Científico muestra potencial para trabajar en lugares donde se combine la producción, el análisis y tareas técnicas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender procesos.",
+        "sentirse cómodo/a en tareas de control y registro."
+      ],
+      "possibleJobs": "Control de calidad, laboratorio, análisis de procesos, registro de datos, producción técnica.",
+      "relatedProfessions": "Ingeniería, Tecnología Industrial, Ciencias."
+    },
+    {
+      "id": 39,
+      "title": "Artístico + Industrial + Ventas",
+      "categories": [
+        "Artístico",
+        "Industrial",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Industrial y Ventas muestra potencial para trabajar en lugares donde se combine la producción, la comercialización y el contacto con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender productos.",
+        "sentirse cómodo/a en tareas mixtas (producción y venta)."
+      ],
+      "possibleJobs": "Ventas técnicas, comercialización, atención al cliente, producción y venta, reposición, asesoramiento.",
+      "relatedProfessions": "Comercialización, Marketing, Producción."
+    },
+    {
+      "id": 40,
+      "title": "Artístico + Industrial + Negocio",
+      "categories": [
+        "Artístico",
+        "Industrial",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Industrial y Negocio muestra potencial para trabajar en lugares donde se combine la producción, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar procesos productivos.",
+        "sentirse cómodo/a en tareas administrativas."
+      ],
+      "possibleJobs": "Administración, control de producción, logística, gestión, organización de tareas, registro de datos.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Logística."
+    },
+    {
+      "id": 41,
+      "title": "Artístico + Mecánica + Plantas y animales",
+      "categories": [
+        "Artístico",
+        "Mecánica",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Mecánica y Plantas y animales muestra potencial para trabajar en lugares donde se combine el trabajo manual, la naturaleza y lo técnico y que tu perfil tiende a: natural.",
+      "tendencies": [
+        "interesarse por construir, reparar o mantener elementos vinculados al entorno",
+        "sentirse cómodo/a en tareas prácticas, al aire libre y con herramientas."
+      ],
+      "possibleJobs": "Mantenimiento de espacios verdes, instalación de riego, armado de estructuras, viveros, huertas, mantenimiento rural, cuidado de maquinaria simple.",
+      "relatedProfessions": "Agronomía, Técnico Agropecuario, Mecánica, Gestión Ambiental."
+    },
+    {
+      "id": 42,
+      "title": "Artístico + Mecánica + Liderazgo",
+      "categories": [
+        "Artístico",
+        "Mecánica",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Mecánica y Liderazgo muestra potencial para trabajar en lugares donde se combine lo técnico, la organización y la coordinación de equipos y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por resolver problemas técnicos y organizar tareas.",
+        "sentirse cómodo/a guiando grupos en trabajos prácticos."
+      ],
+      "possibleJobs": "Encargado/a de taller, supervisor/a, jefe de mantenimiento, coordinador técnico, responsable de equipo, líder de cuadrilla.",
+      "relatedProfessions": "Ingeniería, Mecánica, Electromecánica, Administración."
+    },
+    {
+      "id": 43,
+      "title": "Artístico + Mecánica + Científico",
+      "categories": [
+        "Artístico",
+        "Mecánica",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Mecánica y Científico muestra potencial para trabajar en lugares donde se combine lo técnico, el análisis y la resolución de problemas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender cómo funcionan los sistemas.",
+        "sentirse cómodo/a en tareas de reparación, análisis y control."
+      ],
+      "possibleJobs": "Mantenimiento técnico, laboratorio técnico, control de equipos, pruebas, diagnóstico, asistencia técnica.",
+      "relatedProfessions": "Ingeniería, Electromecánica, Tecnología, Ciencias."
+    },
+    {
+      "id": 44,
+      "title": "Artístico + Mecánica + Ventas",
+      "categories": [
+        "Artístico",
+        "Mecánica",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Mecánica y Ventas muestra potencial para trabajar en lugares donde se combine lo técnico, la comercialización y el trato con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por explicar y vender productos técnicos.",
+        "sentirse cómodo/a en tareas de atención y resolución práctica."
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, venta de herramientas, repuestos, servicios técnicos.",
+      "relatedProfessions": "Comercialización, Marketing, Ingeniería, Mecánica."
+    },
+    {
+      "id": 45,
+      "title": "Artístico + Mecánica + Negocio",
+      "categories": [
+        "Artístico",
+        "Mecánica",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Mecánica y Negocio muestra potencial para trabajar en lugares donde se combine lo técnico, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas técnicas.",
+        "sentirse cómodo/a en tareas estructuradas con herramientas."
+      ],
+      "possibleJobs": "Administración técnica, logística, gestión de mantenimiento, control de tareas, organización de talleres.",
+      "relatedProfessions": "Administración, Ingeniería, Logística."
+    },
+    {
+      "id": 46,
+      "title": "Artístico + Plantas y animales + Liderazgo",
+      "categories": [
+        "Artístico",
+        "Plantas y animales",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Plantas y animales y Liderazgo muestra potencial para trabajar en lugares donde se combine la naturaleza, la organización y el trabajo con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar tareas en entornos naturales.",
+        "sentirse cómodo/a guiando grupos en actividades al aire libre."
+      ],
+      "possibleJobs": "Encargado/a de vivero, coordinador/a rural, líder de cuadrilla, organización de huertas, mantenimiento de espacios verdes.",
+      "relatedProfessions": "Agronomía, Gestión Ambiental, Administración."
+    },
+    {
+      "id": 47,
+      "title": "Artístico + Plantas y animales + Científico",
+      "categories": [
+        "Artístico",
+        "Plantas y animales",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Plantas y animales y Científico muestra potencial para trabajar en lugares donde se combine la naturaleza, el análisis y la observación y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por estudiar el entorno natural.",
+        "sentirse cómodo/a en tareas de observación y registro."
+      ],
+      "possibleJobs": "Viveros, laboratorio ambiental, recolección de datos, análisis de plantas, huertas, cuidado de especies.",
+      "relatedProfessions": "Agronomía, Biología, Ciencias Ambientales."
+    },
+    {
+      "id": 48,
+      "title": "Artístico + Plantas y animales + Ventas",
+      "categories": [
+        "Artístico",
+        "Plantas y animales",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Plantas y animales y Ventas muestra potencial para trabajar en lugares donde se combine la naturaleza, el contacto con personas y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender productos naturales.",
+        "sentirse cómodo/a en tareas de atención y asesoramiento."
+      ],
+      "possibleJobs": "Venta en viveros, atención al cliente, comercialización de plantas, ferias, asesoramiento básico, jardinería.",
+      "relatedProfessions": "Comercialización, Agronomía, Marketing."
+    },
+    {
+      "id": 49,
+      "title": "Artístico + Plantas y animales + Negocio",
+      "categories": [
+        "Artístico",
+        "Plantas y animales",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Plantas y animales y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la naturaleza y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas en entornos naturales.",
+        "sentirse cómodo/a en tareas administrativas y prácticas."
+      ],
+      "possibleJobs": "Administración de viveros, gestión de huertas, organización de espacios verdes, logística, control de producción.",
+      "relatedProfessions": "Administración, Agronomía, Gestión Ambiental."
+    },
+    {
+      "id": 50,
+      "title": "Artístico + Liderazgo + Científico",
+      "categories": [
+        "Artístico",
+        "Liderazgo",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Liderazgo y Científico muestra potencial para trabajar en lugares donde se combine la organización, el análisis y la creatividad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar tareas con base en información.",
+        "sentirse cómodo/a guiando equipos y analizando situaciones."
+      ],
+      "possibleJobs": "Coordinación, supervisión, gestión de proyectos, análisis de datos, organización de equipos.",
+      "relatedProfessions": "Administración, Ingeniería, Ciencias, Recursos Humanos."
+    },
+    {
+      "id": 51,
+      "title": "Artístico + Liderazgo + Ventas",
+      "categories": [
+        "Artístico",
+        "Liderazgo",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Liderazgo y Ventas muestra potencial para trabajar en lugares donde se combine la conducción de personas, la comunicación y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por liderar equipos de venta.",
+        "sentirse cómodo/a en tareas de negociación y coordinación."
+      ],
+      "possibleJobs": "Supervisor/a, encargado/a de ventas, líder de equipo, coordinador/a comercial, jefe de turno.",
+      "relatedProfessions": "Marketing, Comercialización, Administración."
+    },
+    {
+      "id": 52,
+      "title": "Artístico + Liderazgo + Negocio",
+      "categories": [
+        "Artístico",
+        "Liderazgo",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Liderazgo y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la gestión y la toma de decisiones y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por administrar y coordinar actividades.",
+        "sentirse cómodo/a en tareas de planificación y conducción."
+      ],
+      "possibleJobs": "Encargado/a, administración, coordinación, gestión de equipos, organización de proyectos.",
+      "relatedProfessions": "Administración, Recursos Humanos, Gestión Empresarial."
+    },
+    {
+      "id": 53,
+      "title": "Artístico + Científico + Ventas",
+      "categories": [
+        "Artístico",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Científico y Ventas muestra potencial para trabajar en lugares donde se combine el conocimiento, la comunicación y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por explicar productos o ideas.",
+        "sentirse cómodo/a en tareas de atención y análisis."
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, promoción, comercialización de productos técnicos.",
+      "relatedProfessions": "Marketing, Ciencias, Ingeniería, Comercialización."
+    },
+    {
+      "id": 54,
+      "title": "Artístico + Científico + Negocio",
+      "categories": [
+        "Artístico",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Científico y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por trabajar con información.",
+        "sentirse cómodo/a en tareas de registro y planificación."
+      ],
+      "possibleJobs": "Administración, análisis de datos, gestión, organización, control de información.",
+      "relatedProfessions": "Administración, Ciencias, Contabilidad."
+    },
+    {
+      "id": 55,
+      "title": "Artístico + Ventas + Negocio",
+      "categories": [
+        "Artístico",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Artístico, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine la comunicación, la comercialización y la organización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender y organizar actividades.",
+        "sentirse cómodo/a en tareas comerciales y administrativas."
+      ],
+      "possibleJobs": "Ventas, atención al cliente, administración, organización de actividades, comercialización.",
+      "relatedProfessions": "Marketing, Administración, Comercialización.  A partir de acá (56–80) Se combinan áreas donde ya no aparece Artístico y entran combinaciones más técnicas, sociales y administrativas."
+    },
+    {
+      "id": 56,
+      "title": "Humanitario + Servicios + Protección",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Protección"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios y Protección muestra potencial para trabajar en lugares donde se combine el cuidado de personas, la atención directa y el cumplimiento de normas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por ayudar y cuidar a otros.",
+        "sentirse cómodo/a en tareas con responsabilidad y contacto social."
+      ],
+      "possibleJobs": "Acompañante, auxiliar de cuidado, atención al público, asistencia en instituciones, control de accesos, apoyo comunitario.",
+      "relatedProfessions": "Enfermería, Trabajo Social, Seguridad, Psicología."
+    },
+    {
+      "id": 57,
+      "title": "Humanitario + Servicios + Desempeño físico",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Desempeño físico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios y Desempeño físico muestra potencial para trabajar en lugares donde se combine el cuidado, la actividad física y la atención a personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por ayudar a otros de forma activa.",
+        "sentirse cómodo/a en tareas dinámicas y sociales."
+      ],
+      "possibleJobs": "Asistente en clubes, recreador/a, acompañante, apoyo en actividades deportivas, auxiliar en colonias.",
+      "relatedProfessions": "Educación Física, Terapia Ocupacional, Recreación."
+    },
+    {
+      "id": 58,
+      "title": "Humanitario + Servicios + Industrial",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios e Industrial muestra potencial para trabajar en lugares donde se combine la producción, la atención a personas y el trabajo organizado y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por ayudar a otros a través de tareas prácticas.",
+        "sentirse cómodo/a en tareas organizadas con objetivos claros."
+      ],
+      "possibleJobs": "Ayudante de cocina, producción de alimentos, panadería, empaquetado, catering, armado de productos, asistencia en talleres.",
+      "relatedProfessions": "Gastronomía, Producción de Alimentos, Hotelería, Gestión de Servicios."
+    },
+    {
+      "id": 59,
+      "title": "Humanitario + Servicios + Mecánica",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios y Mecánica muestra potencial para trabajar en lugares donde se combine la ayuda a otros, lo técnico y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por resolver problemas de otros.",
+        "sentirse cómodo/a en tareas manuales con herramientas."
+      ],
+      "possibleJobs": "Mantenimiento básico, instalaciones, reparaciones, soporte técnico, armado, ayudante técnico.",
+      "relatedProfessions": "Mecánica, Electromecánica, Mantenimiento, Instalaciones."
+    },
+    {
+      "id": 60,
+      "title": "Humanitario + Servicios + Plantas y animales",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios y Plantas y animales muestra potencial para trabajar en lugares donde se combine el cuidado, la naturaleza y el trabajo con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por el cuidado del entorno y otros.",
+        "sentirse cómodo/a en tareas al aire libre y sociales."
+      ],
+      "possibleJobs": "Jardinería, viveros, huertas, cuidado de animales, mantenimiento de espacios verdes, actividades comunitarias.",
+      "relatedProfessions": "Agronomía, Veterinaria, Gestión Ambiental."
+    },
+    {
+      "id": 61,
+      "title": "Humanitario + Servicios + Liderazgo",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación de personas, el servicio y el trabajo social y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades para otros.",
+        "sentirse cómodo/a guiando equipos y acompañando personas."
+      ],
+      "possibleJobs": "Coordinador/a, referente de grupo, encargado/a, supervisor/a, líder de actividades, organización de servicios.",
+      "relatedProfessions": "Trabajo Social, Administración, Recursos Humanos."
+    },
+    {
+      "id": 62,
+      "title": "Humanitario + Servicios + Científico",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios y Científico muestra potencial para trabajar en lugares donde se combine el conocimiento, la ayuda a otros y la observación y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por comprender y ayudar.",
+        "sentirse cómodo/a en tareas de registro, observación y acompañamiento."
+      ],
+      "possibleJobs": "Asistente educativo, apoyo escolar, tareas de registro, acompañamiento terapéutico, asistencia en salud, auxiliar en investigación social.",
+      "relatedProfessions": "Psicología, Docencia, Terapia Ocupacional, Trabajo Social."
+    },
+    {
+      "id": 63,
+      "title": "Humanitario + Servicios + Ventas",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios y Ventas muestra potencial para trabajar en lugares donde se combine la atención a personas, la comunicación y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar y ayudar a clientes.",
+        "sentirse cómodo/a en tareas de atención y venta."
+      ],
+      "possibleJobs": "Atención al cliente, vendedor/a, promotor/a, asesoramiento, ventas, caja, reposición.",
+      "relatedProfessions": "Comercialización, Marketing, Gestión de Servicios."
+    },
+    {
+      "id": 64,
+      "title": "Humanitario + Servicios + Negocio",
+      "categories": [
+        "Humanitario",
+        "Servicios",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Servicios y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el servicio y el trabajo con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades o servicios.",
+        "sentirse cómodo/a en tareas administrativas con contacto social."
+      ],
+      "possibleJobs": "Administración, atención en oficinas, organización de servicios, gestión, archivo, coordinación de actividades.",
+      "relatedProfessions": "Administración, Contabilidad, Recursos Humanos."
+    },
+    {
+      "id": 65,
+      "title": "Humanitario + Protección + Desempeño físico",
+      "categories": [
+        "Humanitario",
+        "Protección",
+        "Desempeño físico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Protección y Desempeño físico muestra potencial para trabajar en lugares donde se combine el cuidado de personas, la actividad física y la responsabilidad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por ayudar en contextos activos.",
+        "sentirse cómodo/a en tareas dinámicas y estructuradas."
+      ],
+      "possibleJobs": "Acompañante, auxiliar en seguridad, asistencia en operativos, apoyo en instituciones, control, tareas de prevención.",
+      "relatedProfessions": "Seguridad, Educación Física, Trabajo Social."
+    },
+    {
+      "id": 66,
+      "title": "Humanitario + Protección + Industrial",
+      "categories": [
+        "Humanitario",
+        "Protección",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Protección e Industrial muestra potencial para trabajar en lugares donde se combine el control, la producción y la responsabilidad social y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas organizadas con normas claras.",
+        "sentirse cómodo/a en entornos estructurados."
+      ],
+      "possibleJobs": "Control de calidad, producción, supervisión, clasificación, empaquetado, control de procesos.",
+      "relatedProfessions": "Seguridad e Higiene, Logística, Ingeniería Industrial."
+    },
+    {
+      "id": 67,
+      "title": "Humanitario + Protección + Mecánica",
+      "categories": [
+        "Humanitario",
+        "Protección",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Protección y Mecánica muestra potencial para trabajar en lugares donde se combine lo técnico, la seguridad y el cuidado de otros y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por reparar o mantener con responsabilidad.",
+        "sentirse cómodo/a en tareas técnicas estructuradas."
+      ],
+      "possibleJobs": "Mantenimiento, reparaciones, instalaciones, control técnico, asistencia mecánica, revisión de equipos.",
+      "relatedProfessions": "Mecánica, Electromecánica, Seguridad."
+    },
+    {
+      "id": 68,
+      "title": "Humanitario + Protección + Plantas y animales",
+      "categories": [
+        "Humanitario",
+        "Protección",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Protección y Plantas y animales muestra potencial para trabajar en lugares donde se combine el cuidado del entorno, la seguridad y la naturaleza y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por cuidar espacios naturales.",
+        "sentirse cómodo/a en tareas al aire libre con responsabilidad."
+      ],
+      "possibleJobs": "Guardaparque, mantenimiento de parques, cuidado de animales, control ambiental, tareas rurales, vigilancia de espacios.",
+      "relatedProfessions": "Gestión Ambiental, Agronomía, Seguridad."
+    },
+    {
+      "id": 69,
+      "title": "Humanitario + Protección + Liderazgo",
+      "categories": [
+        "Humanitario",
+        "Protección",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Protección y Liderazgo muestra potencial para trabajar en lugares donde se combine la conducción de personas, el cuidado y la responsabilidad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar equipos.",
+        "sentirse cómodo/a guiando grupos en entornos estructurados."
+      ],
+      "possibleJobs": "Supervisor/a, encargado/a, coordinador/a, jefe de turno, responsable de equipo, líder de grupo.",
+      "relatedProfessions": "Administración, Seguridad, Recursos Humanos."
+    },
+    {
+      "id": 70,
+      "title": "Humanitario + Protección + Científico",
+      "categories": [
+        "Humanitario",
+        "Protección",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Protección y Científico muestra potencial para trabajar en lugares donde se combine el análisis, el cuidado y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por observar y analizar situaciones.",
+        "sentirse cómodo/a en tareas técnicas y de registro."
+      ],
+      "possibleJobs": "Control de calidad, análisis, registro de datos, inspección, seguimiento de procesos, tareas técnicas.",
+      "relatedProfessions": "Ciencias, Seguridad e Higiene, Investigación."
+    },
+    {
+      "id": 71,
+      "title": "Humanitario + Protección + Ventas",
+      "categories": [
+        "Humanitario",
+        "Protección",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Protección y Ventas muestra potencial para trabajar en lugares donde se combine la atención al público, el control y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar con personas.",
+        "sentirse cómodo/a en tareas comerciales con normas claras."
+      ],
+      "possibleJobs": "Ventas, atención al cliente, control de caja, reposición, control de stock, atención en locales.",
+      "relatedProfessions": "Comercialización, Administración, Seguridad."
+    },
+    {
+      "id": 72,
+      "title": "Humanitario + Protección + Negocio",
+      "categories": [
+        "Humanitario",
+        "Protección",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Protección y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el control y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas administrativas con responsabilidad.",
+        "sentirse cómodo/a en entornos estructurados."
+      ],
+      "possibleJobs": "Administración, archivo, control de datos, gestión, registro, tareas administrativas.",
+      "relatedProfessions": "Administración, Contabilidad, Gestión."
+    },
+    {
+      "id": 73,
+      "title": "Humanitario + Desempeño físico + Industrial",
+      "categories": [
+        "Humanitario",
+        "Desempeño físico",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Desempeño físico e Industrial muestra potencial para trabajar en lugares donde se combine la producción, el trabajo corporal y el servicio a otros y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas prácticas.",
+        "sentirse cómodo/a en actividades físicas organizadas."
+      ],
+      "possibleJobs": "Producción, carga y descarga, logística, armado, depósito, operario/a, tareas manuales.",
+      "relatedProfessions": "Logística, Producción Industrial, Educación Física."
+    },
+    {
+      "id": 74,
+      "title": "Humanitario + Desempeño físico + Mecánica",
+      "categories": [
+        "Humanitario",
+        "Desempeño físico",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Desempeño físico y Mecánica muestra potencial para trabajar en lugares donde se combine el trabajo corporal, lo técnico y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por reparar o construir cosas.",
+        "sentirse cómodo/a en tareas físicas con herramientas."
+      ],
+      "possibleJobs": "Mantenimiento, reparaciones, instalaciones, armado, ayudante técnico, mecánica básica.",
+      "relatedProfessions": "Mecánica, Electromecánica, Mantenimiento."
+    },
+    {
+      "id": 75,
+      "title": "Humanitario + Desempeño físico + Plantas y animales",
+      "categories": [
+        "Humanitario",
+        "Desempeño físico",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Desempeño físico y Plantas y animales muestra potencial para trabajar en lugares donde se combine la naturaleza, el trabajo físico y el cuidado y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por actividades al aire libre.",
+        "sentirse cómodo/a en tareas dinámicas."
+      ],
+      "possibleJobs": "Jardinería, viveros, huertas, mantenimiento de espacios verdes, cuidado de animales, tareas rurales.",
+      "relatedProfessions": "Agronomía, Veterinaria, Gestión Ambiental."
+    },
+    {
+      "id": 76,
+      "title": "Humanitario + Desempeño físico + Liderazgo",
+      "categories": [
+        "Humanitario",
+        "Desempeño físico",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Desempeño físico y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación, el trabajo corporal y el acompañamiento de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por liderar actividades dinámicas.",
+        "sentirse cómodo/a guiando grupos."
+      ],
+      "possibleJobs": "Coordinador/a, entrenador/a, líder de grupo, encargado/a, supervisor/a, actividades recreativas.",
+      "relatedProfessions": "Educación Física, Recursos Humanos, Trabajo Social."
+    },
+    {
+      "id": 77,
+      "title": "Humanitario + Desempeño físico + Científico",
+      "categories": [
+        "Humanitario",
+        "Desempeño físico",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Desempeño físico y Científico muestra potencial para trabajar en lugares donde se combine el análisis, el cuerpo y el cuidado de otros y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender el funcionamiento del cuerpo.",
+        "sentirse cómodo/a en tareas de observación y asistencia."
+      ],
+      "possibleJobs": "Asistente en salud, apoyo en rehabilitación, registro de datos, actividades físicas, acompañamiento.",
+      "relatedProfessions": "Kinesiología, Educación Física, Ciencias de la Salud."
+    },
+    {
+      "id": 78,
+      "title": "Humanitario + Desempeño físico + Ventas",
+      "categories": [
+        "Humanitario",
+        "Desempeño físico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Desempeño físico y Ventas muestra potencial para trabajar en lugares donde se combine la actividad física, el contacto social y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar con personas.",
+        "sentirse cómodo/a en tareas dinámicas y de venta."
+      ],
+      "possibleJobs": "Promotor/a, vendedor/a, atención al cliente, ventas en eventos, actividades comerciales.",
+      "relatedProfessions": "Comercialización, Marketing, Educación Física."
+    },
+    {
+      "id": 79,
+      "title": "Humanitario + Desempeño físico + Negocio",
+      "categories": [
+        "Humanitario",
+        "Desempeño físico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Desempeño físico y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el movimiento y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades.",
+        "sentirse cómodo/a en tareas prácticas y estructuradas."
+      ],
+      "possibleJobs": "Logística, organización, administración básica, coordinación de actividades, gestión.",
+      "relatedProfessions": "Administración, Logística, Gestión."
+    },
+    {
+      "id": 80,
+      "title": "Humanitario + Industrial + Mecánica",
+      "categories": [
+        "Humanitario",
+        "Industrial",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Industrial y Mecánica muestra potencial para trabajar en lugares donde se combine la producción, lo técnico y el trabajo práctico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por armar, reparar y producir.",
+        "sentirse cómodo/a en tareas técnicas y organizadas."
+      ],
+      "possibleJobs": "Producción, mantenimiento, armado, mecánica, instalaciones, operario técnico.",
+      "relatedProfessions": "Ingeniería, Mecánica, Electromecánica."
+    },
+    {
+      "id": 81,
+      "title": "Humanitario + Industrial + Plantas y animales",
+      "categories": [
+        "Humanitario",
+        "Industrial",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Industrial y Plantas y animales muestra potencial para trabajar en lugares donde se combine la producción, la naturaleza y el cuidado de otros y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas prácticas vinculadas al entorno natural.",
+        "sentirse cómodo/a en actividades organizadas y al aire libre."
+      ],
+      "possibleJobs": "Huertas, viveros, producción agrícola, mantenimiento de espacios verdes, tareas rurales, cuidado de animales, producción vegetal.",
+      "relatedProfessions": "Agronomía, Producción Agropecuaria, Gestión Ambiental."
+    },
+    {
+      "id": 82,
+      "title": "Humanitario + Industrial + Liderazgo",
+      "categories": [
+        "Humanitario",
+        "Industrial",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Industrial y Liderazgo muestra potencial para trabajar en lugares donde se combine la producción, la organización y el trabajo con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar tareas productivas.",
+        "sentirse cómodo/a guiando equipos."
+      ],
+      "possibleJobs": "Encargado/a, supervisor/a, jefe de turno, coordinador/a, responsable de producción, líder de equipo.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Recursos Humanos."
+    },
+    {
+      "id": 83,
+      "title": "Humanitario + Industrial + Científico",
+      "categories": [
+        "Humanitario",
+        "Industrial",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Industrial y Científico muestra potencial para trabajar en lugares donde se combine la producción, el análisis y el trabajo con información y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender procesos productivos.",
+        "sentirse cómodo/a en tareas de control y registro."
+      ],
+      "possibleJobs": "Control de calidad, análisis de procesos, registro de datos, laboratorio, producción técnica, inspección.",
+      "relatedProfessions": "Ingeniería, Tecnología Industrial, Ciencias."
+    },
+    {
+      "id": 84,
+      "title": "Humanitario + Industrial + Ventas",
+      "categories": [
+        "Humanitario",
+        "Industrial",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Industrial y Ventas muestra potencial para trabajar en lugares donde se combine la producción, la comercialización y el trato con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender productos.",
+        "sentirse cómodo/a en tareas de atención y organización."
+      ],
+      "possibleJobs": "Ventas, atención al cliente, reposición, comercialización, asesoramiento, control de stock.",
+      "relatedProfessions": "Comercialización, Marketing, Producción."
+    },
+    {
+      "id": 85,
+      "title": "Humanitario + Industrial + Negocio",
+      "categories": [
+        "Humanitario",
+        "Industrial",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Industrial y Negocio muestra potencial para trabajar en lugares donde se combine la producción, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar procesos productivos.",
+        "sentirse cómodo/a en tareas administrativas."
+      ],
+      "possibleJobs": "Administración, control de producción, logística, gestión, organización, registro de datos.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Logística."
+    },
+    {
+      "id": 86,
+      "title": "Humanitario + Mecánica + Plantas y animales",
+      "categories": [
+        "Humanitario",
+        "Mecánica",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Mecánica y Plantas y animales muestra potencial para trabajar en lugares donde se combine lo técnico, la naturaleza y el trabajo práctico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por reparar o mantener elementos vinculados al entorno natural.",
+        "sentirse cómodo/a en tareas al aire libre con herramientas."
+      ],
+      "possibleJobs": "Mantenimiento rural, reparación de herramientas, instalación de riego, viveros, huertas, tareas agrícolas.",
+      "relatedProfessions": "Agronomía, Mecánica, Gestión Ambiental."
+    },
+    {
+      "id": 87,
+      "title": "Humanitario + Mecánica + Liderazgo",
+      "categories": [
+        "Humanitario",
+        "Mecánica",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Mecánica y Liderazgo muestra potencial para trabajar en lugares donde se combine lo técnico, la organización y la conducción de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar tareas técnicas.",
+        "sentirse cómodo/a guiando equipos."
+      ],
+      "possibleJobs": "Encargado/a de taller, supervisor/a, jefe de mantenimiento, coordinador/a técnico, líder de cuadrilla.",
+      "relatedProfessions": "Ingeniería, Mecánica, Administración."
+    },
+    {
+      "id": 88,
+      "title": "Humanitario + Mecánica + Científico",
+      "categories": [
+        "Humanitario",
+        "Mecánica",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Mecánica y Científico muestra potencial para trabajar en lugares donde se combine lo técnico, el análisis y la resolución de problemas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender cómo funcionan los sistemas.",
+        "sentirse cómodo/a en tareas de reparación y análisis."
+      ],
+      "possibleJobs": "Mantenimiento técnico, laboratorio, control de equipos, pruebas, diagnóstico, asistencia técnica.",
+      "relatedProfessions": "Ingeniería, Electromecánica, Ciencias."
+    },
+    {
+      "id": 89,
+      "title": "Humanitario + Mecánica + Ventas",
+      "categories": [
+        "Humanitario",
+        "Mecánica",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Mecánica y Ventas muestra potencial para trabajar en lugares donde se combine lo técnico, la atención a personas y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por ayudar a otros con soluciones técnicas.",
+        "sentirse cómodo/a en tareas de atención y venta."
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, venta de herramientas, repuestos, soporte técnico.",
+      "relatedProfessions": "Comercialización, Ingeniería, Mecánica."
+    },
+    {
+      "id": 90,
+      "title": "Humanitario + Mecánica + Negocio",
+      "categories": [
+        "Humanitario",
+        "Mecánica",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Mecánica y Negocio muestra potencial para trabajar en lugares donde se combine lo técnico, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas técnicas.",
+        "sentirse cómodo/a en tareas estructuradas."
+      ],
+      "possibleJobs": "Administración técnica, logística, gestión de mantenimiento, control de tareas, organización de talleres.",
+      "relatedProfessions": "Administración, Ingeniería, Logística."
+    },
+    {
+      "id": 91,
+      "title": "Humanitario + Plantas y animales + Liderazgo",
+      "categories": [
+        "Humanitario",
+        "Plantas y animales",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Plantas y animales y Liderazgo muestra potencial para trabajar en lugares donde se combine la naturaleza, la coordinación de personas y el cuidado y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades al aire libre.",
+        "sentirse cómodo/a guiando grupos en entornos naturales."
+      ],
+      "possibleJobs": "Encargado/a de vivero, coordinador/a rural, líder de cuadrilla, organización de huertas, mantenimiento de espacios verdes.",
+      "relatedProfessions": "Agronomía, Gestión Ambiental, Administración."
+    },
+    {
+      "id": 92,
+      "title": "Humanitario + Plantas y animales + Científico",
+      "categories": [
+        "Humanitario",
+        "Plantas y animales",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Plantas y animales y Científico muestra potencial para trabajar en lugares donde se combine la naturaleza, el análisis y la observación y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por estudiar el entorno natural.",
+        "sentirse cómodo/a en tareas de observación y registro."
+      ],
+      "possibleJobs": "Viveros, laboratorio ambiental, recolección de datos, análisis de plantas, huertas, cuidado de especies.",
+      "relatedProfessions": "Agronomía, Biología, Ciencias Ambientales."
+    },
+    {
+      "id": 93,
+      "title": "Humanitario + Plantas y animales + Ventas",
+      "categories": [
+        "Humanitario",
+        "Plantas y animales",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Plantas y animales y Ventas muestra potencial para trabajar en lugares donde se combine la naturaleza, el contacto con personas y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender productos naturales.",
+        "sentirse cómodo/a en tareas de atención y asesoramiento."
+      ],
+      "possibleJobs": "Venta en viveros, atención al cliente, comercialización de plantas, ferias, asesoramiento básico, jardinería.",
+      "relatedProfessions": "Comercialización, Agronomía, Marketing."
+    },
+    {
+      "id": 94,
+      "title": "Humanitario + Plantas y animales + Negocio",
+      "categories": [
+        "Humanitario",
+        "Plantas y animales",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Plantas y animales y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la naturaleza y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas en entornos naturales.",
+        "sentirse cómodo/a en tareas administrativas y prácticas."
+      ],
+      "possibleJobs": "Administración de viveros, gestión de huertas, organización de espacios verdes, logística, control de producción.",
+      "relatedProfessions": "Administración, Agronomía, Gestión Ambiental."
+    },
+    {
+      "id": 95,
+      "title": "Humanitario + Liderazgo + Científico",
+      "categories": [
+        "Humanitario",
+        "Liderazgo",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Liderazgo y Científico muestra potencial para trabajar en lugares donde se combine la coordinación de personas, el análisis y la toma de decisiones y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas con base en información.",
+        "sentirse cómodo/a guiando equipos y analizando situaciones."
+      ],
+      "possibleJobs": "Coordinación, supervisión, gestión de proyectos, análisis de datos, organización de equipos.",
+      "relatedProfessions": "Administración, Ingeniería, Ciencias, Recursos Humanos."
+    },
+    {
+      "id": 96,
+      "title": "Humanitario + Liderazgo + Ventas",
+      "categories": [
+        "Humanitario",
+        "Liderazgo",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Liderazgo y Ventas muestra potencial para trabajar en lugares donde se combine la conducción de personas, la comunicación y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por liderar equipos de venta.",
+        "sentirse cómodo/a en tareas de negociación y coordinación."
+      ],
+      "possibleJobs": "Supervisor/a, encargado/a de ventas, líder de equipo, coordinador/a comercial, jefe de turno.",
+      "relatedProfessions": "Marketing, Comercialización, Administración."
+    },
+    {
+      "id": 97,
+      "title": "Humanitario + Liderazgo + Negocio",
+      "categories": [
+        "Humanitario",
+        "Liderazgo",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Liderazgo y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la gestión y la conducción de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por administrar y coordinar actividades.",
+        "sentirse cómodo/a en tareas de planificación y conducción."
+      ],
+      "possibleJobs": "Encargado/a, administración, coordinación, gestión de equipos, organización de proyectos.",
+      "relatedProfessions": "Administración, Recursos Humanos, Gestión Empresarial."
+    },
+    {
+      "id": 98,
+      "title": "Humanitario + Científico + Ventas",
+      "categories": [
+        "Humanitario",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Científico y Ventas muestra potencial para trabajar en lugares donde se combine el conocimiento, la comunicación y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por explicar productos o ideas.",
+        "sentirse cómodo/a en tareas de atención y análisis."
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, promoción, comercialización de productos técnicos.",
+      "relatedProfessions": "Marketing, Ciencias, Ingeniería, Comercialización."
+    },
+    {
+      "id": 99,
+      "title": "Humanitario + Científico + Negocio",
+      "categories": [
+        "Humanitario",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Científico y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por trabajar con información.",
+        "sentirse cómodo/a en tareas de registro y planificación."
+      ],
+      "possibleJobs": "Administración, análisis de datos, gestión, organización, control de información.",
+      "relatedProfessions": "Administración, Ciencias, Contabilidad."
+    },
+    {
+      "id": 100,
+      "title": "Humanitario + Ventas + Negocio",
+      "categories": [
+        "Humanitario",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Humanitario, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine la atención a personas, la comercialización y la organización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender y ayudar a otros.",
+        "sentirse cómodo/a en tareas comerciales y administrativas."
+      ],
+      "possibleJobs": "Ventas, atención al cliente, administración, organización de actividades, comercialización, gestión básica.",
+      "relatedProfessions": "Marketing, Administración, Comercialización."
+    },
+    {
+      "id": 101,
+      "title": "Servicios + Protección + Desempeño físico",
+      "categories": [
+        "Servicios",
+        "Protección",
+        "Desempeño físico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Protección y Desempeño físico muestra potencial para trabajar en lugares donde se combine la atención a personas, el control y el trabajo activo y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas dinámicas con responsabilidad.",
+        "sentirse cómodo/a en actividades con movimiento y normas claras."
+      ],
+      "possibleJobs": "Seguridad en eventos, control de accesos, atención al público, logística, asistencia en operativos, tareas de prevención, vigilancia.",
+      "relatedProfessions": "Seguridad, Educación Física, Seguridad e Higiene."
+    },
+    {
+      "id": 102,
+      "title": "Servicios + Protección + Industrial",
+      "categories": [
+        "Servicios",
+        "Protección",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Protección e Industrial muestra potencial para trabajar en lugares donde se combine la atención, la producción y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas organizadas con normas.",
+        "sentirse cómodo/a en entornos estructurados."
+      ],
+      "possibleJobs": "Control de calidad, producción, supervisión, empaquetado, clasificación, control de procesos, logística.",
+      "relatedProfessions": "Seguridad e Higiene, Ingeniería Industrial, Logística."
+    },
+    {
+      "id": 103,
+      "title": "Servicios + Protección + Mecánica",
+      "categories": [
+        "Servicios",
+        "Protección",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Protección y Mecánica muestra potencial para trabajar en lugares donde se combine lo técnico, la atención y la seguridad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por resolver problemas prácticos.",
+        "sentirse cómodo/a en tareas técnicas con responsabilidad."
+      ],
+      "possibleJobs": "Mantenimiento, reparaciones, instalaciones, control técnico, asistencia técnica, revisión de equipos.",
+      "relatedProfessions": "Mecánica, Electromecánica, Seguridad."
+    },
+    {
+      "id": 104,
+      "title": "Servicios + Protección + Plantas y animales",
+      "categories": [
+        "Servicios",
+        "Protección",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Protección y Plantas y animales muestra potencial para trabajar en lugares donde se combine el cuidado del entorno, la atención y la seguridad y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por el cuidado de espacios naturales.",
+        "sentirse cómodo/a en tareas al aire libre con responsabilidad."
+      ],
+      "possibleJobs": "Mantenimiento de parques, cuidado de animales, vigilancia de espacios verdes, tareas ambientales, jardinería.",
+      "relatedProfessions": "Gestión Ambiental, Agronomía, Seguridad."
+    },
+    {
+      "id": 105,
+      "title": "Servicios + Protección + Liderazgo",
+      "categories": [
+        "Servicios",
+        "Protección",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Protección y Liderazgo muestra potencial para trabajar en lugares donde se combine la conducción de personas, el orden y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar equipos.",
+        "sentirse cómodo/a guiando personas en entornos organizados."
+      ],
+      "possibleJobs": "Supervisor/a, encargado/a, coordinador/a, jefe de turno, responsable de equipo, líder de grupo.",
+      "relatedProfessions": "Administración, Seguridad, Recursos Humanos."
+    },
+    {
+      "id": 106,
+      "title": "Servicios + Protección + Científico",
+      "categories": [
+        "Servicios",
+        "Protección",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Protección y Científico muestra potencial para trabajar en lugares donde se combine el análisis, la atención y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por observar y registrar información.",
+        "sentirse cómodo/a en tareas técnicas con normas claras."
+      ],
+      "possibleJobs": "Control de calidad, análisis, registro de datos, inspección, seguimiento de procesos, tareas técnicas.",
+      "relatedProfessions": "Ciencias, Seguridad e Higiene, Investigación."
+    },
+    {
+      "id": 107,
+      "title": "Servicios + Protección + Ventas",
+      "categories": [
+        "Servicios",
+        "Protección",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Protección y Ventas muestra potencial para trabajar en lugares donde se combine la atención al público, el control y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar con personas.",
+        "sentirse cómodo/a en tareas comerciales con organización."
+      ],
+      "possibleJobs": "Ventas, atención al cliente, control de caja, reposición, control de stock, asesoramiento, locales.",
+      "relatedProfessions": "Comercialización, Administración, Seguridad."
+    },
+    {
+      "id": 108,
+      "title": "Servicios + Protección + Negocio",
+      "categories": [
+        "Servicios",
+        "Protección",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Protección y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el control y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas administrativas.",
+        "sentirse cómodo/a en entornos estructurados."
+      ],
+      "possibleJobs": "Administración, archivo, control de datos, gestión, registro, tareas administrativas.",
+      "relatedProfessions": "Administración, Contabilidad, Gestión."
+    },
+    {
+      "id": 109,
+      "title": "Servicios + Desempeño físico + Industrial",
+      "categories": [
+        "Servicios",
+        "Desempeño físico",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Desempeño físico e Industrial muestra potencial para trabajar en lugares donde se combine la producción, el trabajo corporal y la atención y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas prácticas.",
+        "sentirse cómodo/a en actividades físicas organizadas."
+      ],
+      "possibleJobs": "Producción, logística, depósito, carga y descarga, armado, operario/a, tareas manuales.",
+      "relatedProfessions": "Logística, Producción Industrial, Educación Física."
+    },
+    {
+      "id": 110,
+      "title": "Servicios + Desempeño físico + Mecánica",
+      "categories": [
+        "Servicios",
+        "Desempeño físico",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Desempeño físico y Mecánica muestra potencial para trabajar en lugares donde se combine lo técnico, el trabajo corporal y tareas prácticas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por reparar o construir cosas.",
+        "sentirse cómodo/a en tareas físicas con herramientas."
+      ],
+      "possibleJobs": "Mantenimiento, reparaciones, instalaciones, armado, ayudante técnico, mecánica básica.",
+      "relatedProfessions": "Mecánica, Electromecánica, Mantenimiento."
+    },
+    {
+      "id": 111,
+      "title": "Servicios + Desempeño físico + Plantas y animales",
+      "categories": [
+        "Servicios",
+        "Desempeño físico",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Desempeño físico y Plantas y animales muestra potencial para trabajar en lugares donde se combine la naturaleza, el trabajo físico y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por actividades al aire libre.",
+        "sentirse cómodo/a en tareas dinámicas."
+      ],
+      "possibleJobs": "Jardinería, viveros, huertas, mantenimiento de espacios verdes, cuidado de animales, tareas rurales.",
+      "relatedProfessions": "Agronomía, Veterinaria, Gestión Ambiental."
+    },
+    {
+      "id": 112,
+      "title": "Servicios + Desempeño físico + Liderazgo",
+      "categories": [
+        "Servicios",
+        "Desempeño físico",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Desempeño físico y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación, el trabajo activo y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por liderar actividades dinámicas.",
+        "sentirse cómodo/a guiando grupos."
+      ],
+      "possibleJobs": "Coordinador/a, entrenador/a, líder de grupo, encargado/a, supervisor/a, actividades recreativas.",
+      "relatedProfessions": "Educación Física, Recursos Humanos, Administración."
+    },
+    {
+      "id": 113,
+      "title": "Servicios + Desempeño físico + Científico",
+      "categories": [
+        "Servicios",
+        "Desempeño físico",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Desempeño físico y Científico muestra potencial para trabajar en lugares donde se combine el análisis, el cuerpo y el trabajo práctico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender procesos físicos.",
+        "sentirse cómodo/a en tareas de observación y registro."
+      ],
+      "possibleJobs": "Asistente deportivo, medición, control físico, registro de datos, apoyo técnico.",
+      "relatedProfessions": "Educación Física, Ciencias, Kinesiología."
+    },
+    {
+      "id": 114,
+      "title": "Servicios + Desempeño físico + Ventas",
+      "categories": [
+        "Servicios",
+        "Desempeño físico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Desempeño físico y Ventas muestra potencial para trabajar en lugares donde se combine la actividad física, el contacto social y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por interactuar con personas.",
+        "sentirse cómodo/a en tareas dinámicas."
+      ],
+      "possibleJobs": "Promotor/a, vendedor/a, atención al cliente, ventas en eventos, actividades comerciales.",
+      "relatedProfessions": "Comercialización, Marketing, Educación Física."
+    },
+    {
+      "id": 115,
+      "title": "Servicios + Desempeño físico + Negocio",
+      "categories": [
+        "Servicios",
+        "Desempeño físico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Desempeño físico y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el movimiento y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades.",
+        "sentirse cómodo/a en tareas prácticas."
+      ],
+      "possibleJobs": "Logística, organización, administración básica, coordinación de actividades, gestión.",
+      "relatedProfessions": "Administración, Logística, Gestión."
+    },
+    {
+      "id": 116,
+      "title": "Servicios + Industrial + Mecánica",
+      "categories": [
+        "Servicios",
+        "Industrial",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Industrial y Mecánica muestra potencial para trabajar en lugares donde se combine la producción, lo técnico y el trabajo práctico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por armar, reparar y producir.",
+        "sentirse cómodo/a en tareas técnicas y organizadas."
+      ],
+      "possibleJobs": "Producción, mantenimiento, armado, mecánica, instalaciones, operario técnico.",
+      "relatedProfessions": "Ingeniería, Mecánica, Electromecánica."
+    },
+    {
+      "id": 117,
+      "title": "Servicios + Industrial + Plantas y animales",
+      "categories": [
+        "Servicios",
+        "Industrial",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Industrial y Plantas y animales muestra potencial para trabajar en lugares donde se combine la producción, la naturaleza y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas en entornos naturales.",
+        "sentirse cómodo/a en actividades organizadas."
+      ],
+      "possibleJobs": "Producción agrícola, viveros, huertas, mantenimiento de espacios verdes, tareas rurales.",
+      "relatedProfessions": "Agronomía, Producción Agropecuaria, Gestión Ambiental."
+    },
+    {
+      "id": 118,
+      "title": "Servicios + Industrial + Liderazgo",
+      "categories": [
+        "Servicios",
+        "Industrial",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Industrial y Liderazgo muestra potencial para trabajar en lugares donde se combine la producción, la organización y la conducción de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar tareas productivas.",
+        "sentirse cómodo/a guiando equipos."
+      ],
+      "possibleJobs": "Encargado/a, supervisor/a, jefe de turno, coordinador/a, responsable de producción.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Recursos Humanos."
+    },
+    {
+      "id": 119,
+      "title": "Servicios + Industrial + Científico",
+      "categories": [
+        "Servicios",
+        "Industrial",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Industrial y Científico muestra potencial para trabajar en lugares donde se combine la producción, el análisis y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender procesos.",
+        "sentirse cómodo/a en tareas técnicas y de registro."
+      ],
+      "possibleJobs": "Control de calidad, laboratorio, análisis de procesos, registro de datos, producción técnica.",
+      "relatedProfessions": "Ingeniería, Tecnología Industrial, Ciencias."
+    },
+    {
+      "id": 120,
+      "title": "Servicios + Industrial + Ventas",
+      "categories": [
+        "Servicios",
+        "Industrial",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Industrial y Ventas muestra potencial para trabajar en lugares donde se combine la producción, la comercialización y el trato con personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender productos.",
+        "sentirse cómodo/a en tareas mixtas."
+      ],
+      "possibleJobs": "Ventas técnicas, atención al cliente, reposición, comercialización, asesoramiento, control de stock.",
+      "relatedProfessions": "Comercialización, Marketing, Producción."
+    },
+    {
+      "id": 121,
+      "title": "Servicios + Industrial + Negocio",
+      "categories": [
+        "Servicios",
+        "Industrial",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Industrial y Negocio muestra potencial para trabajar en lugares donde se combine la producción, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas productivas.",
+        "sentirse cómodo/a en tareas administrativas y estructuradas."
+      ],
+      "possibleJobs": "Administración, logística, control de producción, gestión, organización de tareas, registro de datos, depósito.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Logística."
+    },
+    {
+      "id": 122,
+      "title": "Servicios + Mecánica + Plantas y animales",
+      "categories": [
+        "Servicios",
+        "Mecánica",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Mecánica y Plantas y animales muestra potencial para trabajar en lugares donde se combine lo técnico, la naturaleza y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por reparar o mantener en entornos naturales.",
+        "sentirse cómodo/a en tareas al aire libre con herramientas."
+      ],
+      "possibleJobs": "Mantenimiento rural, instalación de riego, viveros, huertas, reparación de herramientas, tareas agrícolas.",
+      "relatedProfessions": "Agronomía, Mecánica, Gestión Ambiental."
+    },
+    {
+      "id": 123,
+      "title": "Servicios + Mecánica + Liderazgo",
+      "categories": [
+        "Servicios",
+        "Mecánica",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Mecánica y Liderazgo muestra potencial para trabajar en lugares donde se combine lo técnico, la organización y la conducción de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por coordinar tareas técnicas.",
+        "sentirse cómodo/a guiando equipos de trabajo."
+      ],
+      "possibleJobs": "Encargado/a de mantenimiento, supervisor/a, jefe de taller, coordinador/a técnico, líder de cuadrilla.",
+      "relatedProfessions": "Ingeniería, Mecánica, Administración."
+    },
+    {
+      "id": 124,
+      "title": "Servicios + Mecánica + Científico",
+      "categories": [
+        "Servicios",
+        "Mecánica",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Mecánica y Científico muestra potencial para trabajar en lugares donde se combine lo técnico, el análisis y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender cómo funcionan los sistemas.",
+        "sentirse cómodo/a en tareas de análisis, reparación y control."
+      ],
+      "possibleJobs": "Mantenimiento técnico, laboratorio, pruebas, control de equipos, diagnóstico, asistencia técnica.",
+      "relatedProfessions": "Ingeniería, Electromecánica, Ciencias."
+    },
+    {
+      "id": 125,
+      "title": "Servicios + Mecánica + Ventas",
+      "categories": [
+        "Servicios",
+        "Mecánica",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Mecánica y Ventas muestra potencial para trabajar en lugares donde se combine lo técnico, la atención a personas y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por ayudar a otros con soluciones técnicas.",
+        "sentirse cómodo/a en tareas de atención y venta."
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, venta de herramientas, repuestos, soporte técnico.",
+      "relatedProfessions": "Comercialización, Ingeniería, Mecánica."
+    },
+    {
+      "id": 126,
+      "title": "Servicios + Mecánica + Negocio",
+      "categories": [
+        "Servicios",
+        "Mecánica",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Mecánica y Negocio muestra potencial para trabajar en lugares donde se combine lo técnico, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas técnicas.",
+        "sentirse cómodo/a en tareas estructuradas."
+      ],
+      "possibleJobs": "Administración técnica, logística, gestión de mantenimiento, control de tareas, organización de talleres.",
+      "relatedProfessions": "Administración, Ingeniería, Logística."
+    },
+    {
+      "id": 127,
+      "title": "Servicios + Plantas y animales + Liderazgo",
+      "categories": [
+        "Servicios",
+        "Plantas y animales",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Plantas y animales y Liderazgo muestra potencial para trabajar en lugares donde se combine la naturaleza, el servicio y la coordinación de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar actividades al aire libre.",
+        "sentirse cómodo/a guiando grupos en entornos naturales."
+      ],
+      "possibleJobs": "Encargado/a de vivero, coordinador/a rural, líder de cuadrilla, mantenimiento de espacios verdes, organización de huertas.",
+      "relatedProfessions": "Agronomía, Gestión Ambiental, Administración."
+    },
+    {
+      "id": 128,
+      "title": "Servicios + Plantas y animales + Científico",
+      "categories": [
+        "Servicios",
+        "Plantas y animales",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Plantas y animales y Científico muestra potencial para trabajar en lugares donde se combine la naturaleza, el análisis y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por observar y comprender el entorno natural.",
+        "sentirse cómodo/a en tareas de registro y análisis."
+      ],
+      "possibleJobs": "Viveros, laboratorio ambiental, recolección de datos, análisis de plantas, huertas, cuidado de especies.",
+      "relatedProfessions": "Agronomía, Biología, Ciencias Ambientales."
+    },
+    {
+      "id": 129,
+      "title": "Servicios + Plantas y animales + Ventas",
+      "categories": [
+        "Servicios",
+        "Plantas y animales",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Plantas y animales y Ventas muestra potencial para trabajar en lugares donde se combine la naturaleza, el trato con personas y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender productos naturales.",
+        "sentirse cómodo/a en tareas de atención y asesoramiento."
+      ],
+      "possibleJobs": "Venta en viveros, atención al cliente, comercialización de plantas, ferias, asesoramiento, jardinería.",
+      "relatedProfessions": "Comercialización, Agronomía, Marketing."
+    },
+    {
+      "id": 130,
+      "title": "Servicios + Plantas y animales + Negocio",
+      "categories": [
+        "Servicios",
+        "Plantas y animales",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Plantas y animales y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la naturaleza y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas en entornos naturales.",
+        "sentirse cómodo/a en tareas administrativas y prácticas."
+      ],
+      "possibleJobs": "Administración de viveros, gestión de huertas, organización de espacios verdes, logística, control de producción.",
+      "relatedProfessions": "Administración, Agronomía, Gestión Ambiental."
+    },
+    {
+      "id": 131,
+      "title": "Servicios + Liderazgo + Científico",
+      "categories": [
+        "Servicios",
+        "Liderazgo",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Liderazgo y Científico muestra potencial para trabajar en lugares donde se combine la coordinación, el análisis y el servicio y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas con información.",
+        "sentirse cómodo/a guiando equipos y analizando situaciones."
+      ],
+      "possibleJobs": "Coordinación, supervisión, gestión de proyectos, análisis de datos, organización de equipos.",
+      "relatedProfessions": "Administración, Ingeniería, Ciencias, Recursos Humanos."
+    },
+    {
+      "id": 132,
+      "title": "Servicios + Liderazgo + Ventas",
+      "categories": [
+        "Servicios",
+        "Liderazgo",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Liderazgo y Ventas muestra potencial para trabajar en lugares donde se combine la conducción de personas, la comunicación y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por liderar equipos de venta.",
+        "sentirse cómodo/a en tareas de coordinación y negociación."
+      ],
+      "possibleJobs": "Supervisor/a, encargado/a de ventas, líder de equipo, coordinador/a comercial, jefe de turno.",
+      "relatedProfessions": "Marketing, Comercialización, Administración."
+    },
+    {
+      "id": 133,
+      "title": "Servicios + Liderazgo + Negocio",
+      "categories": [
+        "Servicios",
+        "Liderazgo",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Liderazgo y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la gestión y la conducción de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por administrar y coordinar actividades.",
+        "sentirse cómodo/a en tareas de planificación."
+      ],
+      "possibleJobs": "Encargado/a, administración, coordinación, gestión de equipos, organización de proyectos.",
+      "relatedProfessions": "Administración, Recursos Humanos, Gestión."
+    },
+    {
+      "id": 134,
+      "title": "Servicios + Científico + Ventas",
+      "categories": [
+        "Servicios",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Científico y Ventas muestra potencial para trabajar en lugares donde se combine el conocimiento, la comunicación y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por explicar productos o ideas.",
+        "sentirse cómodo/a en tareas de atención y análisis."
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, promoción, comercialización de productos técnicos.",
+      "relatedProfessions": "Marketing, Ciencias, Ingeniería."
+    },
+    {
+      "id": 135,
+      "title": "Servicios + Científico + Negocio",
+      "categories": [
+        "Servicios",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Científico y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, la organización y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por trabajar con información.",
+        "sentirse cómodo/a en tareas de registro y planificación."
+      ],
+      "possibleJobs": "Administración, análisis de datos, gestión, organización, control de información.",
+      "relatedProfessions": "Administración, Ciencias, Contabilidad."
+    },
+    {
+      "id": 136,
+      "title": "Servicios + Ventas + Negocio",
+      "categories": [
+        "Servicios",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Servicios, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine la atención a personas, la comercialización y la organización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender y organizar actividades.",
+        "sentirse cómodo/a en tareas comerciales y administrativas."
+      ],
+      "possibleJobs": "Ventas, atención al cliente, administración, organización de actividades, comercialización, gestión.",
+      "relatedProfessions": "Marketing, Administración, Comercialización."
+    },
+    {
+      "id": 137,
+      "title": "Protección + Desempeño físico + Industrial",
+      "categories": [
+        "Protección",
+        "Desempeño físico",
+        "Industrial"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Desempeño físico e Industrial muestra potencial para trabajar en lugares donde se combine el control, la actividad física y el trabajo productivo y que tu perfil tiende a: cumplimiento de procedimientos.",
+      "tendencies": [
+        "interesarse por tareas concretas, activas y con normas claras.",
+        "sentirse cómodo/a en actividades donde haya esfuerzo físico, organización y"
+      ],
+      "possibleJobs": "Operario/a, control de accesos, personal de seguridad, ayudante de depósito, logística, clasificación de productos, carga y descarga, control de stock, vigilancia en fábricas, asistencia en producción.",
+      "relatedProfessions": "Seguridad e Higiene, Ingeniería Industrial, Logística, Gestión de Operaciones."
+    },
+    {
+      "id": 138,
+      "title": "Protección + Desempeño físico + Mecánica",
+      "categories": [
+        "Protección",
+        "Desempeño físico",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Desempeño físico y Mecánica muestra potencial para trabajar en lugares donde se combine la actividad física, lo técnico y la seguridad y que tu perfil tiende a: sobre el uso correcto de equipos o espacios.",
+      "tendencies": [
+        "interesarse por tareas de mantenimiento, reparación y control.",
+        "sentirse cómodo/a en actividades prácticas, con herramientas y con responsabilidad"
+      ],
+      "possibleJobs": "Mantenimiento, ayudante mecánico/a, auxiliar técnico, instalaciones, reparaciones, control de equipos, revisión de herramientas, asistencia en talleres, operario/a técnico, tareas de prevención.",
+      "relatedProfessions": "Mecánica, Electromecánica, Seguridad e Higiene, Mantenimiento Industrial."
+    },
+    {
+      "id": 139,
+      "title": "Protección + Desempeño físico + Plantas y animales",
+      "categories": [
+        "Protección",
+        "Desempeño físico",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Desempeño físico y Plantas y animales muestra potencial para trabajar en lugares donde se combine el cuidado del entorno, la actividad física y la prevención y que tu perfil tiende a: mantenimiento. espacios naturales o seres vivos.",
+      "tendencies": [
+        "interesarse por tareas al aire libre vinculadas al orden, la vigilancia o el",
+        "sentirse cómodo/a en actividades concretas, físicas y con responsabilidad sobre"
+      ],
+      "possibleJobs": "Guardaparque auxiliar, mantenimiento de parques, cuidado de animales, tareas rurales, vigilancia de espacios verdes, jardinería, limpieza de predios, viveros, huertas, apoyo en reservas naturales.",
+      "relatedProfessions": "Gestión Ambiental, Agronomía, Veterinaria, Guardaparque, Seguridad Ambiental."
+    },
+    {
+      "id": 140,
+      "title": "Protección + Desempeño físico + Liderazgo",
+      "categories": [
+        "Protección",
+        "Desempeño físico",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Desempeño físico y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación de personas, la actividad física y el cumplimiento de normas y que tu perfil tiende a: grupos y toma de decisiones en contextos dinámicos.",
+      "tendencies": [
+        "interesarse por organizar tareas activas y supervisar a otros.",
+        "sentirse cómodo/a en actividades donde haya responsabilidad, conducción de"
+      ],
+      "possibleJobs": "Supervisor/a, encargado/a, coordinador/a de operativos, jefe/a de turno, líder de grupo, responsable de seguridad, coordinador/a logístico, referente de equipo, encargado/a de mantenimiento.",
+      "relatedProfessions": "Administración, Seguridad, Recursos Humanos, Seguridad e Higiene, Gestión de Operaciones.  BLOQUE FINAL (141–220)"
+    },
+    {
+      "id": 141,
+      "title": "Protección + Desempeño físico + Científico",
+      "categories": [
+        "Protección",
+        "Desempeño físico",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Desempeño físico y Científico muestra potencial para trabajar en lugares donde se combine la observación, la actividad física y el análisis y que tu perfil tiende a: cumplimiento de protocolos.",
+      "tendencies": [
+        "interesarse por controlar, medir o registrar información en contextos activos.",
+        "sentirse cómodo/a en tareas donde haya movimiento, atención sostenida y"
+      ],
+      "possibleJobs": "Inspector/a, control de calidad, toma de muestras, registro de datos, relevamiento, monitoreo, seguimiento de procesos, control técnico, verificación de procedimientos.",
+      "relatedProfessions": "Seguridad e Higiene, Ciencias Ambientales, Investigación, Kinesiología, Ingeniería."
+    },
+    {
+      "id": 142,
+      "title": "Protección + Desempeño físico + Ventas",
+      "categories": [
+        "Protección",
+        "Desempeño físico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Desempeño físico y Ventas muestra potencial para trabajar en lugares donde se combine la atención a personas, la actividad práctica y el control y que tu perfil tiende a: de reglas.",
+      "tendencies": [
+        "interesarse por interactuar con otros en contextos activos y organizados.",
+        "sentirse cómodo/a en tareas donde haya movimiento, trato con gente y cumplimiento"
+      ],
+      "possibleJobs": "Promotor/a, vendedor/a, atención al cliente, control de salón, seguridad en locales, repositor/a, cajero/a, recepción, control de acceso, organización de eventos.",
+      "relatedProfessions": "Comercialización, Marketing, Seguridad, Gestión de Servicios."
+    },
+    {
+      "id": 143,
+      "title": "Protección + Desempeño físico + Negocio",
+      "categories": [
+        "Protección",
+        "Desempeño físico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Desempeño físico y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el trabajo activo y el control y que tu perfil tiende a: de procedimientos.",
+      "tendencies": [
+        "interesarse por tareas operativas con responsabilidad y orden.",
+        "sentirse cómodo/a en actividades que exijan movimiento, organización y seguimiento"
+      ],
+      "possibleJobs": "Logística, administración operativa, control de stock, archivo, depósito, coordinación de tareas, gestión de insumos, recepción de mercadería, control administrativo.",
+      "relatedProfessions": "Administración, Logística, Contabilidad, Gestión de Operaciones."
+    },
+    {
+      "id": 144,
+      "title": "Protección + Industrial + Mecánica",
+      "categories": [
+        "Protección",
+        "Industrial",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Industrial y Mecánica muestra potencial para trabajar en lugares donde se combine la producción, lo técnico y la prevención y que tu perfil tiende a: productivos. seguridad.",
+      "tendencies": [
+        "interesarse por tareas de mantenimiento, reparación y control en contextos",
+        "sentirse cómodo/a en actividades prácticas, estructuradas y con normas claras de"
+      ],
+      "possibleJobs": "Mantenimiento industrial, operario/a técnico, control de equipos, revisión de máquinas, reparación, asistencia en planta, instalaciones, producción técnica, supervisión de procesos.",
+      "relatedProfessions": "Ingeniería Industrial, Mecánica, Electromecánica, Seguridad e Higiene."
+    },
+    {
+      "id": 145,
+      "title": "Protección + Industrial + Plantas y animales",
+      "categories": [
+        "Protección",
+        "Industrial",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Industrial y Plantas y animales muestra potencial para trabajar en lugares donde se combine la producción, la naturaleza y el control y que tu perfil tiende a: normas.",
+      "tendencies": [
+        "interesarse por tareas organizadas en entornos naturales o rurales.",
+        "sentirse cómodo/a en actividades de mantenimiento, seguimiento y cumplimiento de"
+      ],
+      "possibleJobs": "Producción agrícola, viveros, huertas, control de espacios verdes, tareas rurales, mantenimiento, riego, cuidado de animales, clasificación de productos naturales.",
+      "relatedProfessions": "Agronomía, Producción Agropecuaria, Gestión Ambiental, Seguridad Ambiental."
+    },
+    {
+      "id": 146,
+      "title": "Protección + Industrial + Liderazgo",
+      "categories": [
+        "Protección",
+        "Industrial",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Industrial y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación de personas, la producción y el cumplimiento de normas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas productivas y controlar su cumplimiento.",
+        "sentirse cómodo/a en actividades de supervisión, orden y responsabilidad."
+      ],
+      "possibleJobs": "Supervisor/a, jefe/a de turno, encargado/a, coordinador/a de planta, líder de equipo, control de producción, responsable de depósito, referente de operarios.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Recursos Humanos, Seguridad e Higiene."
+    },
+    {
+      "id": 147,
+      "title": "Protección + Industrial + Científico",
+      "categories": [
+        "Protección",
+        "Industrial",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Industrial y Científico muestra potencial para trabajar en lugares donde se combine el análisis, la producción y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por observar, registrar y verificar procesos.",
+        "sentirse cómodo/a en tareas técnicas, organizadas y con normas claras."
+      ],
+      "possibleJobs": "Control de calidad, laboratorio industrial, análisis de procesos, registro de datos, inspección, seguimiento técnico, verificación de normas, asistencia en planta.",
+      "relatedProfessions": "Ingeniería, Tecnología Industrial, Ciencias, Seguridad e Higiene."
+    },
+    {
+      "id": 148,
+      "title": "Protección + Industrial + Ventas",
+      "categories": [
+        "Protección",
+        "Industrial",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Industrial y Ventas muestra potencial para trabajar en lugares donde se combine la organización, la comercialización y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender o mover productos en entornos organizados.",
+        "sentirse cómodo/a en tareas comerciales con procedimientos definidos."
+      ],
+      "possibleJobs": "Ventas técnicas, atención al cliente, reposición, control de stock, comercialización, caja, asesoramiento, logística comercial, seguimiento de pedidos.",
+      "relatedProfessions": "Comercialización, Marketing, Ingeniería Industrial, Gestión de Operaciones."
+    },
+    {
+      "id": 149,
+      "title": "Protección + Industrial + Negocio",
+      "categories": [
+        "Protección",
+        "Industrial",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Industrial y Negocio muestra potencial para trabajar en lugares donde se combine la gestión, la producción y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar procesos y recursos.",
+        "sentirse cómodo/a en tareas administrativas, técnicas y estructuradas."
+      ],
+      "possibleJobs": "Administración, logística, control de producción, archivo, gestión de stock, coordinación de tareas, compras, planificación operativa, registro de información.",
+      "relatedProfessions": "Administración, Contabilidad, Logística, Ingeniería Industrial."
+    },
+    {
+      "id": 150,
+      "title": "Protección + Mecánica + Plantas y animales",
+      "categories": [
+        "Protección",
+        "Mecánica",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Mecánica y Plantas y animales muestra potencial para trabajar en lugares donde se combine lo técnico, la naturaleza y la prevención y que tu perfil tiende a: vinculados al entorno natural.",
+      "tendencies": [
+        "interesarse por mantener o reparar herramientas, instalaciones o espacios",
+        "sentirse cómodo/a en tareas prácticas, al aire libre y con responsabilidad."
+      ],
+      "possibleJobs": "Mantenimiento rural, reparación de herramientas, instalación de riego, viveros, huertas, tareas agrícolas, cercado, revisión de equipos, cuidado de espacios verdes.",
+      "relatedProfessions": "Agronomía, Mecánica, Gestión Ambiental, Técnico Agropecuario."
+    },
+    {
+      "id": 151,
+      "title": "Protección + Mecánica + Liderazgo",
+      "categories": [
+        "Protección",
+        "Mecánica",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Mecánica y Liderazgo muestra potencial para trabajar en lugares donde se combine la conducción de personas, lo técnico y la responsabilidad y que tu perfil tiende a: problemas concretos.",
+      "tendencies": [
+        "interesarse por coordinar tareas de mantenimiento o reparación.",
+        "sentirse cómodo/a en actividades donde haya que organizar equipos y resolver"
+      ],
+      "possibleJobs": "Encargado/a de taller, supervisor/a, jefe/a de mantenimiento, coordinador/a técnico, líder de cuadrilla, responsable de instalaciones.",
+      "relatedProfessions": "Ingeniería, Mecánica, Electromecánica, Administración, Seguridad e Higiene."
+    },
+    {
+      "id": 152,
+      "title": "Protección + Mecánica + Científico",
+      "categories": [
+        "Protección",
+        "Mecánica",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Mecánica y Científico muestra potencial para trabajar en lugares donde se combine lo técnico, el análisis y el control y que tu perfil tiende a: equipos.",
+      "tendencies": [
+        "interesarse por diagnosticar problemas y verificar el funcionamiento de sistemas o",
+        "sentirse cómodo/a en tareas de análisis, control y reparación."
+      ],
+      "possibleJobs": "Diagnóstico técnico, mantenimiento, pruebas, laboratorio, control de equipos, revisión, medición, asistencia técnica, verificación de procedimientos.",
+      "relatedProfessions": "Ingeniería, Electromecánica, Ciencias, Tecnología Industrial."
+    },
+    {
+      "id": 153,
+      "title": "Protección + Mecánica + Ventas",
+      "categories": [
+        "Protección",
+        "Mecánica",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Mecánica y Ventas muestra potencial para trabajar en lugares donde se combine la atención a personas, lo técnico y la organización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por ofrecer soluciones prácticas o técnicas a otros.",
+        "sentirse cómodo/a en tareas de venta, asesoramiento y control."
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, venta de repuestos, herramientas, soporte técnico, seguimiento de pedidos, mostrador técnico.",
+      "relatedProfessions": "Comercialización, Ingeniería, Mecánica, Marketing."
+    },
+    {
+      "id": 154,
+      "title": "Protección + Mecánica + Negocio",
+      "categories": [
+        "Protección",
+        "Mecánica",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Mecánica y Negocio muestra potencial para trabajar en lugares donde se combine la gestión, lo técnico y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas técnicas y recursos.",
+        "sentirse cómodo/a en actividades administrativas, prácticas y estructuradas."
+      ],
+      "possibleJobs": "Administración técnica, logística, gestión de mantenimiento, control de tareas, organización de talleres, archivo de repuestos, compras técnicas.",
+      "relatedProfessions": "Administración, Ingeniería, Logística, Gestión de Operaciones."
+    },
+    {
+      "id": 155,
+      "title": "Protección + Plantas y animales + Liderazgo",
+      "categories": [
+        "Protección",
+        "Plantas y animales",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Plantas y animales y Liderazgo muestra potencial para trabajar en lugares donde se combine la naturaleza, la coordinación y la prevención y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas en espacios naturales o rurales.",
+        "sentirse cómodo/a guiando grupos y cuidando entornos o recursos."
+      ],
+      "possibleJobs": "Encargado/a de vivero, coordinador/a rural, líder de cuadrilla, organización de huertas, mantenimiento de espacios verdes, cuidado de predios, supervisión de tareas.",
+      "relatedProfessions": "Agronomía, Gestión Ambiental, Administración, Guardaparque."
+    },
+    {
+      "id": 156,
+      "title": "Protección + Plantas y animales + Científico",
+      "categories": [
+        "Protección",
+        "Plantas y animales",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Plantas y animales y Científico muestra potencial para trabajar en lugares donde se combine la naturaleza, la observación y el control y que tu perfil tiende a: especies.",
+      "tendencies": [
+        "interesarse por registrar, analizar o monitorear el entorno natural.",
+        "sentirse cómodo/a en tareas de observación, medición y cuidado de espacios o"
+      ],
+      "possibleJobs": "Monitoreo ambiental, recolección de datos, análisis de plantas, cuidado de especies, laboratorio ambiental, viveros, huertas, observación de campo.",
+      "relatedProfessions": "Biología, Agronomía, Ciencias Ambientales, Veterinaria."
+    },
+    {
+      "id": 157,
+      "title": "Protección + Plantas y animales + Ventas",
+      "categories": [
+        "Protección",
+        "Plantas y animales",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Plantas y animales y Ventas muestra potencial para trabajar en lugares donde se combine la naturaleza, el contacto con personas y la comercialización y que tu perfil tiende a: animal/vegetal.",
+      "tendencies": [
+        "interesarse por vender productos o servicios vinculados al ambiente o al cuidado",
+        "sentirse cómodo/a en tareas de atención, orden y asesoramiento."
+      ],
+      "possibleJobs": "Venta en viveros, atención al cliente, comercialización de plantas, ferias, asesoramiento básico, jardinería, venta de insumos, cuidado de animales.",
+      "relatedProfessions": "Comercialización, Agronomía, Marketing, Gestión Ambiental."
+    },
+    {
+      "id": 158,
+      "title": "Protección + Plantas y animales + Negocio",
+      "categories": [
+        "Protección",
+        "Plantas y animales",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Plantas y animales y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la naturaleza y la gestión y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar recursos y tareas en entornos naturales.",
+        "sentirse cómodo/a en actividades administrativas y prácticas."
+      ],
+      "possibleJobs": "Administración de viveros, gestión de huertas, organización de espacios verdes, logística, control de producción, archivo, compras, seguimiento de insumos.",
+      "relatedProfessions": "Administración, Agronomía, Gestión Ambiental, Logística."
+    },
+    {
+      "id": 159,
+      "title": "Protección + Liderazgo + Científico",
+      "categories": [
+        "Protección",
+        "Liderazgo",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Liderazgo y Científico muestra potencial para trabajar en lugares donde se combine la coordinación, el análisis y la responsabilidad y que tu perfil tiende a: observaciones.",
+      "tendencies": [
+        "interesarse por supervisar tareas con base en información y procedimientos.",
+        "sentirse cómodo/a guiando equipos y tomando decisiones a partir de datos u"
+      ],
+      "possibleJobs": "Coordinación, supervisión, gestión de proyectos, análisis de datos, organización de equipos, control técnico, seguimiento de procesos, inspección.",
+      "relatedProfessions": "Administración, Ingeniería, Ciencias, Recursos Humanos, Seguridad e Higiene."
+    },
+    {
+      "id": 160,
+      "title": "Protección + Liderazgo + Ventas",
+      "categories": [
+        "Protección",
+        "Liderazgo",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Liderazgo y Ventas muestra potencial para trabajar en lugares donde se combine la conducción de personas, la comunicación y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por liderar equipos y ordenar procesos de atención o venta.",
+        "sentirse cómodo/a en tareas de coordinación, negociación y supervisión."
+      ],
+      "possibleJobs": "Supervisor/a, encargado/a de ventas, líder de equipo, coordinador/a comercial, jefe/a de turno, control de salón, seguimiento de objetivos, atención al cliente.",
+      "relatedProfessions": "Marketing, Comercialización, Administración, Recursos Humanos."
+    },
+    {
+      "id": 161,
+      "title": "Protección + Liderazgo + Negocio",
+      "categories": [
+        "Protección",
+        "Liderazgo",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Liderazgo y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la gestión y la conducción de personas y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por administrar tareas con responsabilidad y control.",
+        "sentirse cómodo/a coordinando equipos y organizando recursos."
+      ],
+      "possibleJobs": "Encargado/a, supervisor/a, administración, coordinación de equipos, gestión operativa, control de procesos, organización de tareas, jefe/a de turno.",
+      "relatedProfessions": "Administración, Recursos Humanos, Contabilidad, Gestión Empresarial, Seguridad."
+    },
+    {
+      "id": 162,
+      "title": "Protección + Científico + Ventas",
+      "categories": [
+        "Protección",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Científico y Ventas muestra potencial para trabajar en lugares donde se combine el análisis, la atención a personas y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por explicar productos o servicios técnicos.",
+        "sentirse cómodo/a en tareas de observación, análisis y venta."
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, promoción, comercialización de productos técnicos, seguimiento de ventas.",
+      "relatedProfessions": "Marketing, Ciencias, Ingeniería, Comercialización."
+    },
+    {
+      "id": 163,
+      "title": "Protección + Científico + Negocio",
+      "categories": [
+        "Protección",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Científico y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, la organización y el control y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por trabajar con información y procesos.",
+        "sentirse cómodo/a en tareas de registro, planificación y verificación."
+      ],
+      "possibleJobs": "Administración, análisis de datos, control de procesos, gestión, organización, registro de información, auditorías simples.",
+      "relatedProfessions": "Administración, Ciencias, Contabilidad, Ingeniería."
+    },
+    {
+      "id": 164,
+      "title": "Protección + Ventas + Negocio",
+      "categories": [
+        "Protección",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Protección, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine la atención a personas, la comercialización y la organización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por vender y gestionar actividades.",
+        "sentirse cómodo/a en tareas comerciales con estructura."
+      ],
+      "possibleJobs": "Ventas, atención al cliente, administración, organización de actividades, gestión comercial, control de stock, caja.",
+      "relatedProfessions": "Marketing, Administración, Comercialización."
+    },
+    {
+      "id": 165,
+      "title": "Desempeño físico + Industrial + Mecánica",
+      "categories": [
+        "Desempeño físico",
+        "Industrial",
+        "Mecánica"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Industrial y Mecánica muestra potencial para trabajar en lugares donde se combine el trabajo corporal, la producción y lo técnico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas concretas y prácticas.",
+        "sentirse cómodo/a en actividades físicas con herramientas."
+      ],
+      "possibleJobs": "Operario/a, mantenimiento, armado, mecánica, instalaciones, producción, logística, reparación.",
+      "relatedProfessions": "Ingeniería, Mecánica, Electromecánica, Producción Industrial."
+    },
+    {
+      "id": 166,
+      "title": "Desempeño físico + Industrial + Plantas y animales",
+      "categories": [
+        "Desempeño físico",
+        "Industrial",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Industrial y Plantas y animales muestra potencial para trabajar en lugares donde se combine la naturaleza, la producción y el trabajo físico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por actividades al aire libre.",
+        "sentirse cómodo/a en tareas prácticas y organizadas."
+      ],
+      "possibleJobs": "Huertas, viveros, producción agrícola, mantenimiento, tareas rurales, cuidado de animales, espacios verdes.",
+      "relatedProfessions": "Agronomía, Producción Agropecuaria, Gestión Ambiental."
+    },
+    {
+      "id": 167,
+      "title": "Desempeño físico + Industrial + Liderazgo",
+      "categories": [
+        "Desempeño físico",
+        "Industrial",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Industrial y Liderazgo muestra potencial para trabajar en lugares donde se combine la coordinación de personas, la producción y el trabajo activo y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas dinámicas.",
+        "sentirse cómodo/a guiando equipos."
+      ],
+      "possibleJobs": "Encargado/a, supervisor/a, jefe/a de turno, coordinador/a, líder de equipo, responsable de producción.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Recursos Humanos."
+    },
+    {
+      "id": 168,
+      "title": "Desempeño físico + Industrial + Científico",
+      "categories": [
+        "Desempeño físico",
+        "Industrial",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Industrial y Científico muestra potencial para trabajar en lugares donde se combine el análisis, la producción y el trabajo práctico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por entender procesos.",
+        "sentirse cómodo/a en tareas técnicas y físicas."
+      ],
+      "possibleJobs": "Control de calidad, laboratorio, análisis de procesos, registro de datos, producción técnica, inspección.",
+      "relatedProfessions": "Ingeniería, Tecnología Industrial, Ciencias."
+    },
+    {
+      "id": 169,
+      "title": "Desempeño físico + Industrial + Ventas",
+      "categories": [
+        "Desempeño físico",
+        "Industrial",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Industrial y Ventas muestra potencial para trabajar en lugares donde se combine la producción, el contacto con personas y la comercialización y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por tareas prácticas y de venta.",
+        "sentirse cómodo/a en actividades dinámicas."
+      ],
+      "possibleJobs": "Ventas, atención al cliente, reposición, logística, comercialización, asesoramiento, depósito.",
+      "relatedProfessions": "Comercialización, Marketing, Producción."
+    },
+    {
+      "id": 170,
+      "title": "Desempeño físico + Industrial + Negocio",
+      "categories": [
+        "Desempeño físico",
+        "Industrial",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Industrial y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la producción y el trabajo práctico y que tu perfil tiende a:",
+      "tendencies": [
+        "interesarse por organizar tareas productivas.",
+        "sentirse cómodo/a en tareas administrativas y operativas."
+      ],
+      "possibleJobs": "Administración, logística, control de producción, gestión, organización de tareas, depósito, registro.",
+      "relatedProfessions": "Administración, Logística, Ingeniería Industrial."
+    },
+    {
+      "id": 171,
+      "title": "Desempeño físico + Mecánica + Plantas y animales",
+      "categories": [
+        "Desempeño físico",
+        "Mecánica",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Mecánica y Plantas y animales muestra potencial para trabajar en lugares donde se combine el trabajo corporal, el uso de herramientas y el contacto con la naturaleza y que tu perfil tiende a: producción. sostener el funcionamiento de herramientas, instalaciones o espacios naturales.",
+      "tendencies": [
+        "interesarse por tareas prácticas, al aire libre y vinculadas al mantenimiento o la",
+        "sentirse cómodo/a en actividades físicas donde haya que reparar, armar, cuidar o"
+      ],
+      "possibleJobs": "Mantenimiento rural, reparación de herramientas, instalación de riego, trabajos en viveros, huertas, cuidado de maquinaria simple, cercado, mantenimiento de espacios verdes, tareas agrícolas, apoyo en granjas.",
+      "relatedProfessions": "Agronomía, Técnico Agropecuario, Mecánica, Electromecánica, Gestión Ambiental."
+    },
+    {
+      "id": 172,
+      "title": "Desempeño físico + Mecánica + Liderazgo",
+      "categories": [
+        "Desempeño físico",
+        "Mecánica",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Mecánica y Liderazgo muestra potencial para trabajar en lugares donde se combine el trabajo práctico, la coordinación de personas y la resolución de problemas técnicos y que tu perfil tiende a: técnico. sostener el ritmo de trabajo de un equipo.",
+      "tendencies": [
+        "interesarse por organizar tareas concretas y dirigir actividades de tipo operativo o",
+        "sentirse cómodo/a en tareas donde haya que supervisar, resolver imprevistos y"
+      ],
+      "possibleJobs": "Encargado/a de mantenimiento, supervisor/a de taller, jefe/a de cuadrilla, coordinador/a técnico, responsable de instalaciones, líder de equipo, encargado/a de depósito técnico, referente operativo.",
+      "relatedProfessions": "Ingeniería, Mecánica, Electromecánica, Administración, Gestión de Operaciones."
+    },
+    {
+      "id": 173,
+      "title": "Desempeño físico + Mecánica + Científico",
+      "categories": [
+        "Desempeño físico",
+        "Mecánica",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Mecánica y Científico muestra potencial para trabajar en lugares donde se combine lo técnico, el análisis y el trabajo práctico y que tu perfil tiende a: controlar el funcionamiento de objetos o herramientas.",
+      "tendencies": [
+        "interesarse por entender cómo funcionan equipos, sistemas o procesos.",
+        "sentirse cómodo/a en tareas donde haya que observar, probar, medir, reparar o"
+      ],
+      "possibleJobs": "Mantenimiento técnico, pruebas de equipos, control técnico, laboratorio aplicado, diagnóstico de fallas, medición, reparación, asistencia técnica, seguimiento de funcionamiento.",
+      "relatedProfessions": "Ingeniería, Electromecánica, Tecnología Industrial, Ciencias Aplicadas, Mantenimiento Industrial."
+    },
+    {
+      "id": 174,
+      "title": "Desempeño físico + Mecánica + Ventas",
+      "categories": [
+        "Desempeño físico",
+        "Mecánica",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Mecánica y Ventas muestra potencial para trabajar en lugares donde se combine el trabajo práctico, el trato con personas y la comercialización de productos o servicios técnicos y que tu perfil tiende a: herramientas, equipos o servicios técnicos.",
+      "tendencies": [
+        "interesarse por ofrecer soluciones concretas y útiles.",
+        "sentirse cómodo/a en tareas donde haya que explicar, mostrar, vender o recomendar"
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento comercial, atención al cliente, venta de repuestos, venta de herramientas, mostrador técnico, promotor/a de productos, seguimiento de pedidos, soporte postventa.",
+      "relatedProfessions": "Comercialización, Marketing, Ingeniería, Mecánica, Gestión Comercial."
+    },
+    {
+      "id": 175,
+      "title": "Desempeño físico + Mecánica + Negocio",
+      "categories": [
+        "Desempeño físico",
+        "Mecánica",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Mecánica y Negocio muestra potencial para trabajar en lugares donde se combine el trabajo técnico, la organización y la gestión de recursos o actividades y que tu perfil tiende a: materiales o tareas técnicas.",
+      "tendencies": [
+        "interesarse por sostener el funcionamiento de tareas prácticas de manera ordenada.",
+        "sentirse cómodo/a en actividades donde haya que organizar herramientas, tiempos,"
+      ],
+      "possibleJobs": "Administración técnica, logística, organización de talleres, control de repuestos, gestión de mantenimiento, coordinación de tareas, compras técnicas, control de stock, archivo técnico.",
+      "relatedProfessions": "Administración, Ingeniería, Logística, Gestión de Operaciones, Mecánica."
+    },
+    {
+      "id": 176,
+      "title": "Desempeño físico + Plantas y animales + Liderazgo",
+      "categories": [
+        "Desempeño físico",
+        "Plantas y animales",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Plantas y animales y Liderazgo muestra potencial para trabajar en lugares donde se combine la actividad física, la naturaleza y la coordinación de personas y que tu perfil tiende a: sostener el trabajo en entornos naturales.",
+      "tendencies": [
+        "interesarse por organizar tareas en espacios abiertos o rurales.",
+        "sentirse cómodo/a en actividades donde haya que guiar grupos, distribuir tareas y"
+      ],
+      "possibleJobs": "Encargado/a de vivero, coordinador/a rural, jefe/a de cuadrilla, organización de huertas, mantenimiento de espacios verdes, referente de predio, responsable de campo, coordinador/a de tareas ambientales.",
+      "relatedProfessions": "Agronomía, Gestión Ambiental, Administración, Técnico Agropecuario."
+    },
+    {
+      "id": 177,
+      "title": "Desempeño físico + Plantas y animales + Científico",
+      "categories": [
+        "Desempeño físico",
+        "Plantas y animales",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Plantas y animales y Científico muestra potencial para trabajar en lugares donde se combine el trabajo de campo, la observación y el análisis del entorno natural y que tu perfil tiende a: ambientales. comportamiento de plantas, animales o espacios naturales.",
+      "tendencies": [
+        "interesarse por comprender cómo funciona la naturaleza y los procesos biológicos o",
+        "sentirse cómodo/a en tareas donde haya que observar, registrar, medir o seguir el"
+      ],
+      "possibleJobs": "Monitoreo ambiental, viveros, huertas, recolección de datos, análisis de plantas, seguimiento de cultivos, observación de animales, tareas de campo, laboratorio ambiental, control de especies.",
+      "relatedProfessions": "Biología, Agronomía, Veterinaria, Ciencias Ambientales, Técnico Forestal."
+    },
+    {
+      "id": 178,
+      "title": "Desempeño físico + Plantas y animales + Ventas",
+      "categories": [
+        "Desempeño físico",
+        "Plantas y animales",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Plantas y animales y Ventas muestra potencial para trabajar en lugares donde se combine la naturaleza, el movimiento y el trato con personas y que tu perfil tiende a: el cuidado animal. contextos dinámicos y concretos.",
+      "tendencies": [
+        "interesarse por ofrecer productos o servicios vinculados al ambiente, la jardinería o",
+        "sentirse cómodo/a en tareas donde haya que atender, mostrar, vender o asesorar en"
+      ],
+      "possibleJobs": "Venta en viveros, ferias, atención al cliente, comercialización de plantas, venta de insumos, asesoramiento básico, jardinería, productos para animales, reparto o promoción.",
+      "relatedProfessions": "Comercialización, Agronomía, Marketing, Veterinaria, Gestión Ambiental."
+    },
+    {
+      "id": 179,
+      "title": "Desempeño físico + Plantas y animales + Negocio",
+      "categories": [
+        "Desempeño físico",
+        "Plantas y animales",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Plantas y animales y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el trabajo activo y el entorno natural y que tu perfil tiende a: recursos y trabajo concreto con plantas, animales o espacios verdes.",
+      "tendencies": [
+        "interesarse por ordenar y sostener tareas en espacios productivos o ambientales.",
+        "sentirse cómodo/a en actividades donde haya que combinar movimiento, gestión de"
+      ],
+      "possibleJobs": "Gestión de viveros, organización de huertas, logística de insumos, administración rural, control de producción, mantenimiento de espacios verdes, registro de tareas, compras y stock.",
+      "relatedProfessions": "Administración, Agronomía, Gestión Ambiental, Logística, Producción Agropecuaria."
+    },
+    {
+      "id": 180,
+      "title": "Desempeño físico + Liderazgo + Científico",
+      "categories": [
+        "Desempeño físico",
+        "Liderazgo",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Liderazgo y Científico muestra potencial para trabajar en lugares donde se combine la coordinación de personas, el análisis y actividades dinámicas y que tu perfil tiende a: concretos. y tomar decisiones prácticas.",
+      "tendencies": [
+        "interesarse por organizar tareas con base en información, observación y objetivos",
+        "sentirse cómodo/a en actividades donde haya que guiar grupos, evaluar situaciones"
+      ],
+      "possibleJobs": "Supervisión, coordinación de actividades, análisis de datos simples, seguimiento de equipos, control de procesos, organización de tareas, asistencia en evaluaciones físicas o técnicas, registro y monitoreo.",
+      "relatedProfessions": "Educación Física, Administración, Ciencias, Kinesiología, Recursos Humanos."
+    },
+    {
+      "id": 181,
+      "title": "Desempeño físico + Liderazgo + Ventas",
+      "categories": [
+        "Desempeño físico",
+        "Liderazgo",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Liderazgo y Ventas muestra potencial para trabajar en lugares donde se combine la actividad, la comunicación y la coordinación de equipos o tareas comerciales y que tu perfil tiende a: conducir tareas vinculadas a la venta o la atención.",
+      "tendencies": [
+        "interesarse por organizar personas y sostener objetivos concretos.",
+        "sentirse cómodo/a en actividades dinámicas donde haya que motivar, negociar o"
+      ],
+      "possibleJobs": "Supervisor/a de ventas, promotor/a, coordinador/a comercial, jefe/a de equipo, atención al cliente, responsable de salón, organización de eventos, seguimiento de objetivos, encargado/a de local.",
+      "relatedProfessions": "Marketing, Comercialización, Administración, Recursos Humanos, Gestión de Servicios."
+    },
+    {
+      "id": 182,
+      "title": "Desempeño físico + Liderazgo + Negocio",
+      "categories": [
+        "Desempeño físico",
+        "Liderazgo",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Liderazgo y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el trabajo activo y la conducción de personas o tareas y que tu perfil tiende a: ritmos de trabajo y organizar el funcionamiento general.",
+      "tendencies": [
+        "interesarse por coordinar actividades concretas y ordenar recursos.",
+        "sentirse cómodo/a en tareas donde haya que distribuir responsabilidades, sostener"
+      ],
+      "possibleJobs": "Encargado/a, coordinador/a, organización de tareas, gestión operativa, logística, administración, control de equipos, jefe/a de turno, responsable de área.",
+      "relatedProfessions": "Administración, Recursos Humanos, Logística, Gestión Empresarial, Gestión de Operaciones."
+    },
+    {
+      "id": 183,
+      "title": "Desempeño físico + Científico + Ventas",
+      "categories": [
+        "Desempeño físico",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Científico y Ventas muestra potencial para trabajar en lugares donde se combine el análisis, el trato con personas y la promoción de productos o servicios y que tu perfil tiende a: contacto comercial con otros.",
+      "tendencies": [
+        "interesarse por explicar, mostrar o recomendar cosas de manera clara.",
+        "sentirse cómodo/a en tareas donde haya que combinar información, observación y"
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, promoción, demostración de productos, comercialización de servicios, seguimiento de ventas, soporte al cliente.",
+      "relatedProfessions": "Marketing, Comercialización, Ciencias, Kinesiología, Ingeniería."
+    },
+    {
+      "id": 184,
+      "title": "Desempeño físico + Científico + Negocio",
+      "categories": [
+        "Desempeño físico",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Científico y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, la organización y tareas concretas u operativas y que tu perfil tiende a: sostener el funcionamiento de procesos o recursos.",
+      "tendencies": [
+        "interesarse por trabajar con información útil para organizar actividades.",
+        "sentirse cómodo/a en tareas donde haya que registrar, planificar, observar y"
+      ],
+      "possibleJobs": "Administración, análisis de datos, organización de tareas, gestión, registro de información, planificación básica, control de procesos, logística, apoyo técnico-administrativo.",
+      "relatedProfessions": "Administración, Ciencias, Contabilidad, Logística, Ingeniería."
+    },
+    {
+      "id": 185,
+      "title": "Desempeño físico + Ventas + Negocio",
+      "categories": [
+        "Desempeño físico",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Desempeño físico, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine la actividad, la comercialización y la organización y que tu perfil tiende a: gestión básica.",
+      "tendencies": [
+        "interesarse por tareas donde haya contacto con personas y objetivos concretos.",
+        "sentirse cómodo/a en actividades donde se mezclen movimiento, ventas, atención y"
+      ],
+      "possibleJobs": "Ventas, atención al cliente, reposición, caja, organización de mercadería, comercialización, logística, control de stock, promoción, encargado/a de local.",
+      "relatedProfessions": "Marketing, Administración, Comercialización, Gestión Comercial, Logística."
+    },
+    {
+      "id": 186,
+      "title": "Industrial + Mecánica + Plantas y animales",
+      "categories": [
+        "Industrial",
+        "Mecánica",
+        "Plantas y animales"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Mecánica y Plantas y animales muestra potencial para trabajar en lugares donde se combine la producción, el trabajo técnico y el entorno natural y que tu perfil tiende a: funcionamiento de espacios productivos o rurales. instalaciones relacionadas con plantas, animales o producción natural.",
+      "tendencies": [
+        "interesarse por tareas concretas vinculadas al armado, mantenimiento o",
+        "sentirse cómodo/a en actividades prácticas donde haya herramientas, máquinas o"
+      ],
+      "possibleJobs": "Producción agrícola, mantenimiento rural, reparación de herramientas, instalación de riego, viveros, huertas, cuidado de maquinaria simple, tareas de campo, control de producción.",
+      "relatedProfessions": "Agronomía, Ingeniería, Mecánica, Técnico Agropecuario, Electromecánica."
+    },
+    {
+      "id": 187,
+      "title": "Industrial + Mecánica + Liderazgo",
+      "categories": [
+        "Industrial",
+        "Mecánica",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Mecánica y Liderazgo muestra potencial para trabajar en lugares donde se combine la producción, lo técnico y la conducción de personas y que tu perfil tiende a: problemas técnicos y sostener el funcionamiento de procesos.",
+      "tendencies": [
+        "interesarse por coordinar tareas prácticas o productivas.",
+        "sentirse cómodo/a en actividades donde haya que organizar equipos, resolver"
+      ],
+      "possibleJobs": "Supervisor/a, jefe/a de mantenimiento, encargado/a de planta, coordinador/a técnico, líder de cuadrilla, responsable de producción, organización de turnos, control de tareas.",
+      "relatedProfessions": "Ingeniería, Administración, Mecánica, Electromecánica, Gestión de Operaciones."
+    },
+    {
+      "id": 188,
+      "title": "Industrial + Mecánica + Científico",
+      "categories": [
+        "Industrial",
+        "Mecánica",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Mecánica y Científico muestra potencial para trabajar en lugares donde se combine lo técnico, el análisis y la producción y que tu perfil tiende a: funcionamiento de equipos o procedimientos.",
+      "tendencies": [
+        "interesarse por entender cómo funcionan máquinas, procesos o sistemas.",
+        "sentirse cómodo/a en tareas donde haya que controlar, medir, analizar o ajustar el"
+      ],
+      "possibleJobs": "Control de calidad, laboratorio, pruebas técnicas, análisis de procesos, mantenimiento técnico, diagnóstico de fallas, registro de datos, asistencia técnica, control de funcionamiento.",
+      "relatedProfessions": "Ingeniería, Ciencias, Tecnología Industrial, Electromecánica, Mantenimiento Industrial."
+    },
+    {
+      "id": 189,
+      "title": "Industrial + Mecánica + Ventas",
+      "categories": [
+        "Industrial",
+        "Mecánica",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Mecánica y Ventas muestra potencial para trabajar en lugares donde se combine lo técnico, la producción y la comercialización y que tu perfil tiende a: soluciones técnicas.",
+      "tendencies": [
+        "interesarse por ofrecer productos o servicios concretos y útiles.",
+        "sentirse cómodo/a en tareas donde haya que explicar, vender o recomendar"
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, mostrador técnico, venta de repuestos, comercialización de maquinaria, seguimiento de pedidos, soporte postventa, reposición técnica.",
+      "relatedProfessions": "Marketing, Comercialización, Ingeniería, Mecánica, Gestión Comercial."
+    },
+    {
+      "id": 190,
+      "title": "Industrial + Mecánica + Negocio",
+      "categories": [
+        "Industrial",
+        "Mecánica",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Mecánica y Negocio muestra potencial para trabajar en lugares donde se combine lo técnico, la producción y la organización de recursos o procesos y que tu perfil tiende a: organizar tareas o llevar registros técnicos.",
+      "tendencies": [
+        "interesarse por sostener el funcionamiento de tareas productivas de forma ordenada.",
+        "sentirse cómodo/a en actividades donde haya que planificar, controlar insumos,"
+      ],
+      "possibleJobs": "Administración técnica, logística, control de producción, gestión de mantenimiento, organización de talleres, compras técnicas, archivo, stock, coordinación operativa.",
+      "relatedProfessions": "Administración, Ingeniería, Logística, Contabilidad, Gestión de Operaciones."
+    },
+    {
+      "id": 191,
+      "title": "Industrial + Plantas y animales + Liderazgo",
+      "categories": [
+        "Industrial",
+        "Plantas y animales",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Plantas y animales y Liderazgo muestra potencial para trabajar en lugares donde se combine la producción, la naturaleza y la coordinación de personas y que tu perfil tiende a: de trabajo y coordinar grupos.",
+      "tendencies": [
+        "interesarse por organizar tareas productivas en entornos naturales o rurales.",
+        "sentirse cómodo/a en actividades donde haya que distribuir tareas, sostener ritmos"
+      ],
+      "possibleJobs": "Encargado/a rural, coordinador/a de vivero, jefe/a de cuadrilla, organización de huertas, responsable de predio, mantenimiento de espacios verdes, control de producción, gestión de equipos.",
+      "relatedProfessions": "Agronomía, Administración, Gestión Ambiental, Producción Agropecuaria."
+    },
+    {
+      "id": 192,
+      "title": "Industrial + Plantas y animales + Científico",
+      "categories": [
+        "Industrial",
+        "Plantas y animales",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Plantas y animales y Científico muestra potencial para trabajar en lugares donde se combine la producción, la naturaleza y el análisis y que tu perfil tiende a: seguimiento y control.",
+      "tendencies": [
+        "interesarse por observar, registrar o comprender procesos naturales o productivos.",
+        "sentirse cómodo/a en tareas donde haya que combinar trabajo concreto con análisis,"
+      ],
+      "possibleJobs": "Análisis de cultivos, viveros, laboratorio ambiental, recolección de datos, producción agrícola, seguimiento de especies, control de procesos naturales, tareas de campo.",
+      "relatedProfessions": "Agronomía, Biología, Ciencias Ambientales, Veterinaria, Producción Agropecuaria."
+    },
+    {
+      "id": 193,
+      "title": "Industrial + Plantas y animales + Ventas",
+      "categories": [
+        "Industrial",
+        "Plantas y animales",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Plantas y animales y Ventas muestra potencial para trabajar en lugares donde se combine la producción, la naturaleza y la comercialización y que tu perfil tiende a: sobre productos concretos.",
+      "tendencies": [
+        "interesarse por ofrecer productos o servicios vinculados al ámbito natural o rural.",
+        "sentirse cómodo/a en tareas donde haya que vender, atender, reponer o asesorar"
+      ],
+      "possibleJobs": "Venta de insumos, ferias, atención al cliente, comercialización de plantas, venta en viveros, productos para animales, reposición, asesoramiento básico, seguimiento de pedidos.",
+      "relatedProfessions": "Marketing, Comercialización, Agronomía, Gestión Comercial, Veterinaria."
+    },
+    {
+      "id": 194,
+      "title": "Industrial + Plantas y animales + Negocio",
+      "categories": [
+        "Industrial",
+        "Plantas y animales",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Plantas y animales y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la producción y el entorno natural y que tu perfil tiende a: trabajo concreto.",
+      "tendencies": [
+        "interesarse por ordenar tareas y recursos en espacios productivos o rurales.",
+        "sentirse cómodo/a en actividades donde haya que combinar gestión, seguimiento y"
+      ],
+      "possibleJobs": "Gestión agrícola, administración rural, logística, control de producción, organización de insumos, archivo, stock, seguimiento de tareas, compras y distribución.",
+      "relatedProfessions": "Administración, Agronomía, Logística, Contabilidad, Producción Agropecuaria."
+    },
+    {
+      "id": 195,
+      "title": "Industrial + Liderazgo + Científico",
+      "categories": [
+        "Industrial",
+        "Liderazgo",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Liderazgo y Científico muestra potencial para trabajar en lugares donde se combine la producción, el análisis y la coordinación de personas o procesos y que tu perfil tiende a: concretos. resultados y resolver problemas técnicos o productivos.",
+      "tendencies": [
+        "interesarse por supervisar tareas a partir de datos, observaciones y objetivos",
+        "sentirse cómodo/a en actividades donde haya que organizar equipos, controlar"
+      ],
+      "possibleJobs": "Supervisión, control de calidad, coordinación de procesos, organización de equipos, análisis de datos, seguimiento de producción, inspección, gestión técnica, planificación operativa.",
+      "relatedProfessions": "Ingeniería, Administración, Ciencias, Recursos Humanos, Tecnología Industrial."
+    },
+    {
+      "id": 196,
+      "title": "Industrial + Liderazgo + Ventas",
+      "categories": [
+        "Industrial",
+        "Liderazgo",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Liderazgo y Ventas muestra potencial para trabajar en lugares donde se combine la producción, la conducción de personas y la comercialización y que tu perfil tiende a: asegurar resultados concretos.",
+      "tendencies": [
+        "interesarse por organizar tareas y sostener objetivos de venta o distribución.",
+        "sentirse cómodo/a en actividades donde haya que negociar, coordinar equipos y"
+      ],
+      "possibleJobs": "Supervisor/a comercial, encargado/a de ventas, jefe/a de salón, líder de equipo, atención al cliente, seguimiento de objetivos, control de stock, organización de pedidos.",
+      "relatedProfessions": "Marketing, Administración, Comercialización, Recursos Humanos, Gestión Comercial."
+    },
+    {
+      "id": 197,
+      "title": "Industrial + Liderazgo + Negocio",
+      "categories": [
+        "Industrial",
+        "Liderazgo",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Liderazgo y Negocio muestra potencial para trabajar en lugares donde se combine la gestión, la producción y la coordinación de personas o recursos y que tu perfil tiende a: responsabilidades y ordenar procesos.",
+      "tendencies": [
+        "interesarse por organizar actividades productivas de forma eficiente.",
+        "sentirse cómodo/a en tareas donde haya que planificar, supervisar, distribuir"
+      ],
+      "possibleJobs": "Encargado/a, administración, coordinación, control de producción, logística, gestión operativa, organización de tareas, jefe/a de turno, responsable de área.",
+      "relatedProfessions": "Administración, Ingeniería Industrial, Recursos Humanos, Logística, Gestión Empresarial."
+    },
+    {
+      "id": 198,
+      "title": "Industrial + Científico + Ventas",
+      "categories": [
+        "Industrial",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Científico y Ventas muestra potencial para trabajar en lugares donde se combine el análisis, la producción y la comercialización y que tu perfil tiende a: observación y trato con personas.",
+      "tendencies": [
+        "interesarse por explicar o recomendar productos y procesos de manera clara.",
+        "sentirse cómodo/a en tareas donde haya que combinar conocimiento técnico,"
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, promoción, comercialización de productos industriales, seguimiento de ventas, soporte comercial, demostración de productos.",
+      "relatedProfessions": "Marketing, Comercialización, Ingeniería, Ciencias, Gestión Comercial."
+    },
+    {
+      "id": 199,
+      "title": "Industrial + Científico + Negocio",
+      "categories": [
+        "Industrial",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Científico y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, la organización y los procesos productivos y que tu perfil tiende a: el funcionamiento de procesos o recursos.",
+      "tendencies": [
+        "interesarse por trabajar con información útil para ordenar y mejorar actividades.",
+        "sentirse cómodo/a en tareas donde haya que registrar, analizar, planificar y sostener"
+      ],
+      "possibleJobs": "Administración, análisis de datos, control de procesos, gestión, organización, registro de información, planificación, logística, asistencia técnica-administrativa.",
+      "relatedProfessions": "Administración, Ciencias, Contabilidad, Ingeniería, Tecnología Industrial."
+    },
+    {
+      "id": 200,
+      "title": "Industrial + Ventas + Negocio",
+      "categories": [
+        "Industrial",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Industrial, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine la producción, la comercialización y la organización de recursos o actividades y que tu perfil tiende a: ordenada. seguimiento comercial y gestión operativa.",
+      "tendencies": [
+        "interesarse por vender, distribuir o sostener el movimiento de productos de manera",
+        "sentirse cómodo/a en tareas donde haya que combinar atención a personas,"
+      ],
+      "possibleJobs": "Ventas, gestión comercial, atención al cliente, reposición, control de stock, logística, administración, caja, seguimiento de pedidos, organización de mercadería.",
+      "relatedProfessions": "Marketing, Administración, Comercialización, Logística, Gestión Comercial."
+    },
+    {
+      "id": 201,
+      "title": "Mecánica + Plantas y animales + Liderazgo",
+      "categories": [
+        "Mecánica",
+        "Plantas y animales",
+        "Liderazgo"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Plantas y animales y Liderazgo muestra potencial para trabajar en lugares donde se combine lo técnico, la naturaleza y la conducción de personas y que tu perfil tiende a: problemas concretos y sostener instalaciones o herramientas.",
+      "tendencies": [
+        "interesarse por organizar tareas prácticas en entornos rurales o naturales.",
+        "sentirse cómodo/a en actividades donde haya que coordinar equipos, resolver"
+      ],
+      "possibleJobs": "Encargado/a rural, coordinador/a de mantenimiento, jefe/a de cuadrilla, instalación de riego, reparación de herramientas, viveros, huertas, organización de tareas de campo, mantenimiento de predios.",
+      "relatedProfessions": "Agronomía, Mecánica, Administración, Gestión Ambiental, Técnico Agropecuario."
+    },
+    {
+      "id": 202,
+      "title": "Mecánica + Plantas y animales + Científico",
+      "categories": [
+        "Mecánica",
+        "Plantas y animales",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Plantas y animales y Científico muestra potencial para trabajar en lugares donde se combine lo técnico, la observación y la naturaleza y que tu perfil tiende a: en entornos naturales. comportamiento de sistemas vinculados al campo, las plantas o los animales.",
+      "tendencies": [
+        "interesarse por comprender cómo funcionan herramientas, instalaciones o procesos",
+        "sentirse cómodo/a en tareas donde haya que reparar, medir, observar o seguir el"
+      ],
+      "possibleJobs": "Revisión de equipos, instalación de riego, mantenimiento rural, viveros, huertas, control de funcionamiento, laboratorio ambiental, seguimiento de cultivos, tareas de campo.",
+      "relatedProfessions": "Agronomía, Ingeniería, Ciencias Ambientales, Veterinaria, Electromecánica."
+    },
+    {
+      "id": 203,
+      "title": "Mecánica + Plantas y animales + Ventas",
+      "categories": [
+        "Mecánica",
+        "Plantas y animales",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Plantas y animales y Ventas muestra potencial para trabajar en lugares donde se combine lo técnico, la naturaleza y la comercialización y que tu perfil tiende a: ambiental o técnico. consultas sobre herramientas, insumos o equipos.",
+      "tendencies": [
+        "interesarse por ofrecer productos o servicios concretos vinculados al ámbito rural,",
+        "sentirse cómodo/a en tareas donde haya que mostrar, vender, asesorar o resolver"
+      ],
+      "possibleJobs": "Venta de insumos, venta de herramientas, asesoramiento básico, atención al cliente, comercialización de productos rurales, viveros, repuestos, seguimiento de pedidos, mostrador técnico.",
+      "relatedProfessions": "Comercialización, Agronomía, Marketing, Mecánica, Gestión Comercial."
+    },
+    {
+      "id": 204,
+      "title": "Mecánica + Plantas y animales + Negocio",
+      "categories": [
+        "Mecánica",
+        "Plantas y animales",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Plantas y animales y Negocio muestra potencial para trabajar en lugares donde se combine la organización, lo técnico y el entorno natural y que tu perfil tiende a: rurales. y trabajo práctico.",
+      "tendencies": [
+        "interesarse por ordenar recursos, herramientas y tareas en espacios productivos o",
+        "sentirse cómodo/a en actividades donde haya que combinar gestión, mantenimiento"
+      ],
+      "possibleJobs": "Administración rural, logística, control de herramientas, gestión de mantenimiento, organización de viveros, stock, compras técnicas, archivo, coordinación de tareas.",
+      "relatedProfessions": "Administración, Agronomía, Logística, Mecánica, Gestión de Operaciones."
+    },
+    {
+      "id": 205,
+      "title": "Mecánica + Liderazgo + Científico",
+      "categories": [
+        "Mecánica",
+        "Liderazgo",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Liderazgo y Científico muestra potencial para trabajar en lugares donde se combine lo técnico, el análisis y la coordinación de personas o procesos y que tu perfil tiende a: diagnóstico. técnicos y tomar decisiones a partir de datos o pruebas.",
+      "tendencies": [
+        "interesarse por supervisar actividades concretas basadas en observación y",
+        "sentirse cómodo/a en tareas donde haya que organizar equipos, resolver problemas"
+      ],
+      "possibleJobs": "Supervisión técnica, coordinación de mantenimiento, análisis de equipos, pruebas, laboratorio, control de funcionamiento, organización de tareas, seguimiento de procesos.",
+      "relatedProfessions": "Ingeniería, Electromecánica, Ciencias, Administración, Tecnología Industrial."
+    },
+    {
+      "id": 206,
+      "title": "Mecánica + Liderazgo + Ventas",
+      "categories": [
+        "Mecánica",
+        "Liderazgo",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Liderazgo y Ventas muestra potencial para trabajar en lugares donde se combine lo técnico, la conducción de personas y la comercialización y que tu perfil tiende a: asesorar a otros sobre productos o servicios concretos.",
+      "tendencies": [
+        "interesarse por organizar equipos y ofrecer soluciones técnicas.",
+        "sentirse cómodo/a en actividades donde haya que coordinar, negociar, vender o"
+      ],
+      "possibleJobs": "Supervisor/a comercial, encargado/a de ventas técnicas, líder de equipo, asesoramiento, atención al cliente, mostrador técnico, seguimiento de objetivos, organización de pedidos.",
+      "relatedProfessions": "Marketing, Comercialización, Ingeniería, Mecánica, Administración."
+    },
+    {
+      "id": 207,
+      "title": "Mecánica + Liderazgo + Negocio",
+      "categories": [
+        "Mecánica",
+        "Liderazgo",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Liderazgo y Negocio muestra potencial para trabajar en lugares donde se combine la gestión, lo técnico y la organización de personas o recursos y que tu perfil tiende a: tareas técnicas. ordenar procesos o insumos.",
+      "tendencies": [
+        "interesarse por administrar actividades concretas y sostener el funcionamiento de",
+        "sentirse cómodo/a en tareas donde haya que planificar, coordinar, supervisar y"
+      ],
+      "possibleJobs": "Administración técnica, jefe/a de taller, coordinación de mantenimiento, logística, control de tareas, organización de stock, compras, gestión operativa, responsable de área.",
+      "relatedProfessions": "Administración, Ingeniería, Logística, Gestión Empresarial, Mecánica."
+    },
+    {
+      "id": 208,
+      "title": "Mecánica + Científico + Ventas",
+      "categories": [
+        "Mecánica",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Científico y Ventas muestra potencial para trabajar en lugares donde se combine el análisis, lo técnico y la comercialización y que tu perfil tiende a: información práctica a otras personas.",
+      "tendencies": [
+        "interesarse por explicar o recomendar productos, servicios o soluciones técnicas.",
+        "sentirse cómodo/a en tareas donde haya que observar, comprender y comunicar"
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, atención al cliente, promoción, venta de repuestos, comercialización de equipos, demostración de productos, soporte comercial.",
+      "relatedProfessions": "Marketing, Comercialización, Ingeniería, Ciencias, Mecánica."
+    },
+    {
+      "id": 209,
+      "title": "Mecánica + Científico + Negocio",
+      "categories": [
+        "Mecánica",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Científico y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, lo técnico y la organización de procesos o recursos y que tu perfil tiende a: forma ordenada. el funcionamiento de herramientas, equipos o tareas.",
+      "tendencies": [
+        "interesarse por trabajar con información útil para sostener actividades técnicas de",
+        "sentirse cómodo/a en tareas donde haya que registrar, analizar, planificar y controlar"
+      ],
+      "possibleJobs": "Administración técnica, análisis de datos, gestión de mantenimiento, control de tareas, organización de procesos, stock, registro técnico, logística, seguimiento de funcionamiento.",
+      "relatedProfessions": "Administración, Ingeniería, Ciencias, Contabilidad, Tecnología Industrial."
+    },
+    {
+      "id": 210,
+      "title": "Mecánica + Ventas + Negocio",
+      "categories": [
+        "Mecánica",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Mecánica, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine lo técnico, la comercialización y la organización y que tu perfil tiende a: y organizar recursos o movimientos de mercadería.",
+      "tendencies": [
+        "interesarse por vender, ordenar y sostener actividades prácticas.",
+        "sentirse cómodo/a en tareas donde haya que atender a personas, explicar productos"
+      ],
+      "possibleJobs": "Ventas técnicas, administración comercial, atención al cliente, organización de stock, seguimiento de pedidos, caja, logística, reposición, mostrador técnico, gestión de compras.",
+      "relatedProfessions": "Marketing, Administración, Comercialización, Logística, Gestión Comercial."
+    },
+    {
+      "id": 211,
+      "title": "Plantas y animales + Liderazgo + Científico",
+      "categories": [
+        "Plantas y animales",
+        "Liderazgo",
+        "Científico"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Plantas y animales, Liderazgo y Científico muestra potencial para trabajar en lugares donde se combine la naturaleza, la observación y la coordinación de personas o tareas y que tu perfil tiende a: de seres vivos. función de objetivos concretos.",
+      "tendencies": [
+        "interesarse por organizar actividades vinculadas al ambiente, el campo o el cuidado",
+        "sentirse cómodo/a en tareas donde haya que observar, registrar y guiar grupos en"
+      ],
+      "possibleJobs": "Coordinación de viveros, organización de huertas, supervisión de tareas rurales, seguimiento de cultivos, control de especies, monitoreo ambiental, mantenimiento de espacios verdes, gestión de equipos.",
+      "relatedProfessions": "Agronomía, Biología, Gestión Ambiental, Veterinaria, Administración."
+    },
+    {
+      "id": 212,
+      "title": "Plantas y animales + Liderazgo + Ventas",
+      "categories": [
+        "Plantas y animales",
+        "Liderazgo",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Plantas y animales, Liderazgo y Ventas muestra potencial para trabajar en lugares donde se combine la naturaleza, el trato con personas y la coordinación de actividades comerciales o de servicio y que tu perfil tiende a: ambiente o al cuidado animal/vegetal. a otros.",
+      "tendencies": [
+        "interesarse por organizar tareas y ofrecer productos o servicios vinculados al",
+        "sentirse cómodo/a en actividades donde haya que guiar, atender, vender o asesorar"
+      ],
+      "possibleJobs": "Encargado/a de vivero, supervisor/a de ventas, atención al cliente, organización de ferias, comercialización de plantas, productos para animales, asesoramiento básico, coordinación de equipos, reposición.",
+      "relatedProfessions": "Comercialización, Agronomía, Marketing, Gestión Ambiental, Administración."
+    },
+    {
+      "id": 213,
+      "title": "Plantas y animales + Liderazgo + Negocio",
+      "categories": [
+        "Plantas y animales",
+        "Liderazgo",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Plantas y animales, Liderazgo y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la naturaleza y la gestión de personas, recursos o tareas y que tu perfil tiende a: el funcionamiento general de un espacio o servicio.",
+      "tendencies": [
+        "interesarse por administrar actividades en espacios naturales o productivos.",
+        "sentirse cómodo/a en tareas donde haya que planificar, coordinar grupos y sostener"
+      ],
+      "possibleJobs": "Administración rural, coordinación de viveros, organización de huertas, gestión de insumos, control de stock, logística, mantenimiento de espacios verdes, compras, seguimiento de tareas.",
+      "relatedProfessions": "Administración, Agronomía, Gestión Ambiental, Logística, Producción Agropecuaria."
+    },
+    {
+      "id": 214,
+      "title": "Plantas y animales + Científico + Ventas",
+      "categories": [
+        "Plantas y animales",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Plantas y animales, Científico y Ventas muestra potencial para trabajar en lugares donde se combine la naturaleza, el análisis y la comercialización y que tu perfil tiende a: vinculados al ambiente, las plantas o los animales. información práctica a otras personas.",
+      "tendencies": [
+        "interesarse por explicar o recomendar productos, servicios o conocimientos",
+        "sentirse cómodo/a en tareas donde haya que observar, comprender y comunicar"
+      ],
+      "possibleJobs": "Asesoramiento básico, venta en viveros, comercialización de productos naturales, atención al cliente, ferias, productos para animales, seguimiento de ventas, promoción, demostración de productos.",
+      "relatedProfessions": "Agronomía, Veterinaria, Marketing, Comercialización, Biología."
+    },
+    {
+      "id": 215,
+      "title": "Plantas y animales + Científico + Negocio",
+      "categories": [
+        "Plantas y animales",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Plantas y animales, Científico y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, la organización y el entorno natural y que tu perfil tiende a: ambientales o de cuidado de seres vivos. procesos o recursos.",
+      "tendencies": [
+        "interesarse por trabajar con información útil para sostener actividades rurales,",
+        "sentirse cómodo/a en tareas donde haya que registrar, analizar, organizar y planificar"
+      ],
+      "possibleJobs": "Administración rural, análisis de datos, control de cultivos, registro de información, logística, seguimiento de producción, organización de insumos, archivo, monitoreo ambiental.",
+      "relatedProfessions": "Administración, Agronomía, Ciencias Ambientales, Biología, Producción Agropecuaria."
+    },
+    {
+      "id": 216,
+      "title": "Plantas y animales + Ventas + Negocio",
+      "categories": [
+        "Plantas y animales",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Plantas y animales, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine la naturaleza, la comercialización y la organización y que tu perfil tiende a: plantas o los animales. productos e insumos y hacer seguimiento comercial.",
+      "tendencies": [
+        "interesarse por vender, ordenar y sostener actividades vinculadas al ambiente, las",
+        "sentirse cómodo/a en tareas donde haya que atender a personas, organizar"
+      ],
+      "possibleJobs": "Venta en viveros, atención al cliente, gestión comercial, reposición, administración básica, logística, organización de stock, productos para animales, ferias, compras.",
+      "relatedProfessions": "Administración, Comercialización, Marketing, Agronomía, Gestión Ambiental."
+    },
+    {
+      "id": 217,
+      "title": "Liderazgo + Científico + Ventas",
+      "categories": [
+        "Liderazgo",
+        "Científico",
+        "Ventas"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Liderazgo, Científico y Ventas muestra potencial para trabajar en lugares donde se combine la coordinación de personas, el análisis y la comunicación comercial y que tu perfil tiende a: concretos. decisiones, persuasión y conducción de equipos o actividades.",
+      "tendencies": [
+        "interesarse por explicar, organizar y orientar a otros en función de objetivos",
+        "sentirse cómodo/a en tareas donde haya que combinar información, toma de"
+      ],
+      "possibleJobs": "Supervisor/a comercial, coordinador/a, ventas técnicas, asesoramiento, atención al cliente, seguimiento de objetivos, organización de equipos, promoción, gestión de proyectos.",
+      "relatedProfessions": "Marketing, Administración, Ingeniería, Ciencias, Recursos Humanos."
+    },
+    {
+      "id": 218,
+      "title": "Liderazgo + Científico + Negocio",
+      "categories": [
+        "Liderazgo",
+        "Científico",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Liderazgo, Científico y Negocio muestra potencial para trabajar en lugares donde se combine la organización, el análisis y la conducción de personas, recursos o procesos y que tu perfil tiende a: decisiones.",
+      "tendencies": [
+        "interesarse por administrar actividades con base en información y objetivos claros.",
+        "sentirse cómodo/a en tareas donde haya que planificar, analizar, coordinar y tomar"
+      ],
+      "possibleJobs": "Coordinación, administración, análisis de datos, gestión, organización de equipos, planificación, control de procesos, seguimiento de tareas, responsable de área.",
+      "relatedProfessions": "Administración, Ingeniería, Ciencias, Contabilidad, Recursos Humanos."
+    },
+    {
+      "id": 219,
+      "title": "Liderazgo + Ventas + Negocio",
+      "categories": [
+        "Liderazgo",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Liderazgo, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine la organización, la comercialización y la conducción de personas o actividades y que tu perfil tiende a: y sostener el funcionamiento de un equipo o servicio.",
+      "tendencies": [
+        "interesarse por coordinar tareas con objetivos concretos y resultados visibles.",
+        "sentirse cómodo/a en actividades donde haya que guiar, negociar, vender, planificar"
+      ],
+      "possibleJobs": "Encargado/a de local, supervisor/a comercial, jefe/a de ventas, administración, atención al cliente, coordinación de equipos, gestión comercial, control de stock, seguimiento de objetivos, organización de tareas.",
+      "relatedProfessions": "Administración, Marketing, Comercialización, Recursos Humanos, Gestión Empresarial."
+    },
+    {
+      "id": 220,
+      "title": "Científico + Ventas + Negocio",
+      "categories": [
+        "Científico",
+        "Ventas",
+        "Negocio"
+      ],
+      "narrative": "La combinación de tus tres áreas de mayor interés, Científico, Ventas y Negocio muestra potencial para trabajar en lugares donde se combine el análisis, la organización y la comercialización y que tu perfil tiende a: productos y servicios. de manera clara para vender, asesorar o gestionar actividades.",
+      "tendencies": [
+        "interesarse por comprender información y usarla para orientar decisiones o explicar",
+        "sentirse cómodo/a en tareas donde haya que analizar, registrar, ordenar y comunicar"
+      ],
+      "possibleJobs": "Ventas técnicas, asesoramiento, administración, análisis de datos, gestión comercial, atención al cliente, promoción, organización de información, seguimiento de ventas, soporte comercial.",
+      "relatedProfessions": "Administración, Marketing, Comercialización, Ciencias, Ingeniería, Contabilidad."
+    }
+  ]
+}
