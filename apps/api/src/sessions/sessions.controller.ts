@@ -99,16 +99,16 @@ export class SessionsController {
         : payload.paymentStatus || undefined,
       reportUnlockedAt: voucher ? new Date() : undefined,
       results: (payload.resultPayload?.radar || []).map((r: any) => ({
-        categoryId: r.categoryId,
+        categoryId: this.normalizeCategoryId(r.categoryId),
         score: r.likes || r.score || 0,
         totalPossible: r.total || 0,
-        percentage: r.affinity || 0,
+        percentage: this.normalizePercentage(r.affinity),
         suggestedCareers:
-          enrichedResultsByCategory.get(r.categoryId)?.suggestedCareers ??
-          undefined,
+          enrichedResultsByCategory.get(this.normalizeCategoryId(r.categoryId))
+            ?.suggestedCareers ?? undefined,
         materialSnippet:
-          enrichedResultsByCategory.get(r.categoryId)?.materialSnippet ??
-          undefined,
+          enrichedResultsByCategory.get(this.normalizeCategoryId(r.categoryId))
+            ?.materialSnippet ?? undefined,
       })),
       swipes: (payload.swipes || []).map((s: any) => ({
         cardId: s.cardId,
@@ -239,10 +239,11 @@ export class SessionsController {
     ];
 
     for (const result of detailedResults) {
-      if (!result?.categoryId || map.has(result.categoryId)) {
+      const normalizedCategoryId = this.normalizeCategoryId(result?.categoryId);
+      if (!normalizedCategoryId || map.has(normalizedCategoryId)) {
         continue;
       }
-      map.set(result.categoryId, {
+      map.set(normalizedCategoryId, {
         suggestedCareers: Array.isArray(result.suggestedCareers)
           ? result.suggestedCareers
           : undefined,
@@ -263,6 +264,22 @@ export class SessionsController {
 
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private normalizeCategoryId(value: unknown): string {
+    if (typeof value !== 'string') {
+      return '';
+    }
+    return value.trim().toUpperCase();
+  }
+
+  private normalizePercentage(value: unknown): number {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+
+    const percentage = numeric <= 1 ? numeric * 100 : numeric;
+    const clamped = Math.max(0, Math.min(100, percentage));
+    return Math.round(clamped);
   }
 
   private assertAdmin(req?: AuthenticatedRequest) {

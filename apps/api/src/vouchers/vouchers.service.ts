@@ -20,7 +20,10 @@ import { ListVouchersDto } from './dto/list-vouchers.dto';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
 import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
-import { Session, SessionPaymentStatus } from '../sessions/entities/session.entity';
+import {
+  Session,
+  SessionPaymentStatus,
+} from '../sessions/entities/session.entity';
 
 type VoucherScope = {
   role?: string;
@@ -214,7 +217,10 @@ export class VouchersService {
     return voucher;
   }
 
-  async redeemForSession(code: string, sessionId: string): Promise<{
+  async redeemForSession(
+    code: string,
+    sessionId: string,
+  ): Promise<{
     success: boolean;
     status: 'REDEEMED' | 'ALREADY_REDEEMED_BY_THIS_SESSION';
     voucherCode: string;
@@ -243,7 +249,9 @@ export class VouchersService {
         `redeemForSession voucher-loaded id=${voucher.id} status=${voucher.status} ownerUserId=${voucher.ownerUserId ?? 'null'} ownerInstitutionId=${voucher.ownerInstitutionId ?? 'null'} redeemedSessionId=${voucher.redeemedSessionId ?? 'null'}`,
       );
 
-      const session = await sessionRepository.findOne({ where: { id: sessionId } });
+      const session = await sessionRepository.findOne({
+        where: { id: sessionId },
+      });
       if (!session) {
         this.logger.warn(
           `redeemForSession session-not-found code=${normalizedCode} sessionId=${sessionId}`,

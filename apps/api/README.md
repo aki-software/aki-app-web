@@ -33,6 +33,7 @@ Este proyecto soporta inicializacion en un solo paso para una base limpia:
 2. Crear/actualizar seed base idempotente:
    - Admin global (sin `institution_id`).
    - Institucion inicial.
+   - Categorias (`vocational_category`) desde `CotejoApp/app/src/main/assets/material_teorico.json`.
 
 ### Variables requeridas
 

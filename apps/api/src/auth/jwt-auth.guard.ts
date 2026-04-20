@@ -15,7 +15,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: unknown, user: unknown, info: unknown, context: ExecutionContext) {
+  handleRequest(
+    err: unknown,
+    user: unknown,
+    info: unknown,
+    context: ExecutionContext,
+  ) {
     const req = context.switchToHttp().getRequest<Request>();
     if (err || !user) {
       const reason =

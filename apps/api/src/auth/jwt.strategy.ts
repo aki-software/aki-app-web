@@ -29,14 +29,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             const header = this.decodeJwtHeader(rawJwtToken);
             const keyId = header.kid;
             if (!keyId) {
-              throw new UnauthorizedException('Firebase token sin key id (kid)');
+              throw new UnauthorizedException(
+                'Firebase token sin key id (kid)',
+              );
             }
 
             const cert = await this.getFirebasePublicCertByKid(keyId);
             return done(null, cert);
           }
 
-          const localJwtSecret = this.configService.getOrThrow<string>('JWT_SECRET');
+          const localJwtSecret =
+            this.configService.getOrThrow<string>('JWT_SECRET');
           return done(null, localJwtSecret);
         } catch (error) {
           return done(error as Error);
@@ -75,9 +78,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   private assertFirebaseClaims(payload: any) {
-    const expectedProjectId = this.firebaseProjectId || this.extractProjectIdFromIss(payload.iss);
+    const expectedProjectId =
+      this.firebaseProjectId || this.extractProjectIdFromIss(payload.iss);
     if (!expectedProjectId) {
-      throw new UnauthorizedException('No se pudo resolver FIREBASE_PROJECT_ID para validar token');
+      throw new UnauthorizedException(
+        'No se pudo resolver FIREBASE_PROJECT_ID para validar token',
+      );
     }
 
     const expectedIssuer = `https://securetoken.google.com/${expectedProjectId}`;
@@ -98,13 +104,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   private decodeJwtHeader(rawJwtToken: string): Record<string, any> {
     const [headerSegment] = rawJwtToken.split('.');
-    if (!headerSegment) throw new UnauthorizedException('JWT inválido: header ausente');
+    if (!headerSegment)
+      throw new UnauthorizedException('JWT inválido: header ausente');
     return this.decodeBase64UrlJson(headerSegment);
   }
 
   private decodeJwtPayload(rawJwtToken: string): Record<string, any> {
     const [, payloadSegment] = rawJwtToken.split('.');
-    if (!payloadSegment) throw new UnauthorizedException('JWT inválido: payload ausente');
+    if (!payloadSegment)
+      throw new UnauthorizedException('JWT inválido: payload ausente');
     return this.decodeBase64UrlJson(payloadSegment);
   }
 
@@ -134,7 +142,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const certsByKid = (await response.json()) as Record<string, string>;
     const cacheControl = response.headers.get('cache-control') || '';
     const maxAgeMatch = cacheControl.match(/max-age=(\d+)/i);
-    const maxAgeSeconds = maxAgeMatch ? Number.parseInt(maxAgeMatch[1], 10) : 300;
+    const maxAgeSeconds = maxAgeMatch
+      ? Number.parseInt(maxAgeMatch[1], 10)
+      : 300;
 
     this.firebaseCertCache = {
       certsByKid,

@@ -65,7 +65,8 @@ export async function upsertInstitution(
         where: { name },
       });
 
-  const institution = existingInstitution ??
+  const institution =
+    existingInstitution ??
     institutionRepo.create({
       name,
       billingEmail,

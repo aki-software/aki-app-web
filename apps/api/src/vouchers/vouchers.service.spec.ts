@@ -3,7 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { MailService } from '../mail/mail.service';
-import { Session, SessionPaymentStatus } from '../sessions/entities/session.entity';
+import {
+  Session,
+  SessionPaymentStatus,
+} from '../sessions/entities/session.entity';
 import { UsersService } from '../users/users.service';
 import { VoucherBatch } from './entities/voucher-batch.entity';
 import { Voucher } from './entities/voucher.entity';

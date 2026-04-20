@@ -8,6 +8,10 @@
       {
         "include": "**/*.pug",
         "watchAssets": true
+      },
+      {
+        "include": "common/assets/**/*.json",
+        "watchAssets": true
       }
     ]
   }
