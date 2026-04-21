@@ -12,6 +12,7 @@ import { Institution } from '../../institutions/entities/institution.entity';
 export enum UserRole {
   ADMIN = 'ADMIN',
   THERAPIST = 'THERAPIST',
+  INSTITUTION_ADMIN = 'INSTITUTION_ADMIN',
   PATIENT = 'PATIENT',
 }
 

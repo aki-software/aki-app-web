@@ -40,7 +40,11 @@ export class UsersService {
     });
     const savedUser = await this.userRepository.save(user);
 
-    if (normalizedRole === UserRole.THERAPIST && !savedUser.institutionId) {
+    if (
+      (normalizedRole === UserRole.THERAPIST ||
+        normalizedRole === UserRole.INSTITUTION_ADMIN) &&
+      !savedUser.institutionId
+    ) {
       return await this.ensureInstitutionOwner(savedUser);
     }
 
@@ -222,6 +226,9 @@ export class UsersService {
     const normalized = role?.toString().trim().toUpperCase();
     if (normalized === UserRole.ADMIN) {
       return UserRole.ADMIN;
+    }
+    if (normalized === UserRole.INSTITUTION_ADMIN) {
+      return UserRole.INSTITUTION_ADMIN;
     }
     if (normalized === UserRole.PATIENT || normalized === 'PACIENTE') {
       return UserRole.PATIENT;

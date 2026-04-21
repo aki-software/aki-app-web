@@ -54,20 +54,27 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (this.isFirebasePayload(payload)) {
       this.assertFirebaseClaims(payload);
 
+      const role = this.normalizeRole(payload.role ?? 'PATIENT');
       return {
         userId: payload.user_id ?? payload.sub,
         email: payload.email,
-        role: payload.role ?? 'PATIENT',
+        role,
         institutionId: payload.institutionId ?? null,
       };
     }
 
+    const role = this.normalizeRole(payload.role);
     return {
       userId: payload.sub,
       email: payload.email,
-      role: payload.role,
+      role,
       institutionId: payload.institutionId ?? null,
     };
+  }
+
+  private normalizeRole(role?: string): string {
+    if (!role) return 'PATIENT';
+    return role.toUpperCase();
   }
 
   private isFirebasePayload(payload: any): boolean {
