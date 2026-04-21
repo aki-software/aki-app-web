@@ -1,15 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import {
+  Repository,
+  DataSource,
+  MoreThanOrEqual,
+  Between,
+  IsNull,
+} from 'typeorm';
 import { Institution } from './entities/institution.entity';
 import { VoucherStatus } from '../vouchers/entities/voucher.enums';
 import { SessionPaymentStatus } from '../sessions/entities/session.entity';
+import { Voucher } from '../vouchers/entities/voucher.entity';
+import { Session } from '../sessions/entities/session.entity';
 
 @Injectable()
 export class InstitutionsService {
   constructor(
     @InjectRepository(Institution)
     private readonly institutionRepository: Repository<Institution>,
+    @InjectRepository(Voucher)
+    private readonly voucherRepository: Repository<Voucher>,
+    @InjectRepository(Session)
+    private readonly sessionRepository: Repository<Session>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -81,277 +93,162 @@ export class InstitutionsService {
   }
 
   async getStats(institutionId: string) {
-    const totalSessionsRes = await this.dataSource.query(
-      `SELECT count(*) as count FROM sessions WHERE institution_id = $1`,
-      [institutionId],
-    );
-    const vouchersRes = await this.dataSource.query(
-      `SELECT status, count(*) as count FROM vouchers WHERE owner_institution_id = $1 GROUP BY status`,
-      [institutionId],
-    );
-
-    const stats = {
-      totalSessions: parseInt(totalSessionsRes[0]?.count || '0', 10),
-      availableVouchers: 0,
-      redeemedVouchers: 0,
-    };
-
-    for (const row of vouchersRes) {
-      if (row.status === 'AVAILABLE') {
-        stats.availableVouchers = parseInt(row.count, 10);
-      } else if (row.status === 'USED') {
-        stats.redeemedVouchers = parseInt(row.count, 10);
-      }
-    }
-
-    return stats;
-  }
-
-  async getOverview(institutionId: string, periodDays: number) {
-    const now = new Date();
-    const next7Days = new Date(now);
-    next7Days.setDate(next7Days.getDate() + 7);
-    const periodStart = new Date(now);
-    periodStart.setHours(0, 0, 0, 0);
-    periodStart.setDate(periodStart.getDate() - (periodDays - 1));
-
-    const parseIntSafe = (value: unknown): number => {
-      if (typeof value === 'number' && Number.isFinite(value)) {
-        return Math.trunc(value);
-      }
-      if (typeof value === 'string') {
-        const parsed = parseInt(value, 10);
-        return Number.isFinite(parsed) ? parsed : 0;
-      }
-      return 0;
-    };
-
-    const toIso = (value: unknown): string | null => {
-      if (!value) return null;
-      const d = new Date(value as any);
-      const ms = d.getTime();
-      return Number.isFinite(ms) ? d.toISOString() : null;
-    };
-
-    const [
-      voucherTotalsRows,
-      vouchersIssuedPeriodRow,
-      vouchersRedeemedPeriodRow,
-      vouchersExpiringSoonRow,
-      vouchersUnassignedAvailableRow,
-      sessionsStartedPeriodRow,
-      sessionsCompletedPeriodRow,
-      reportsUnlockedPeriodRow,
-      voucherStartedPeriodRow,
-      voucherCompletedPeriodRow,
-      voucherUnlockedPeriodRow,
-      individualCompletedPeriodRow,
-      recentSessionsRows,
-    ] = await Promise.all([
-      this.dataSource.query(
-        `SELECT status, count(*) as count
-         FROM vouchers
-         WHERE owner_institution_id = $1
-         GROUP BY status`,
-        [institutionId],
-      ),
-      this.dataSource.query(
-        `SELECT count(*) as count
-         FROM vouchers
-         WHERE owner_institution_id = $1
-           AND created_at >= $2`,
-        [institutionId, periodStart],
-      ),
-      this.dataSource.query(
-        `SELECT count(*) as count
-         FROM vouchers
-         WHERE owner_institution_id = $1
-           AND status = $2
-           AND redeemed_at >= $3`,
-        [institutionId, VoucherStatus.USED, periodStart],
-      ),
-      this.dataSource.query(
-        `SELECT count(*) as count
-         FROM vouchers
-         WHERE owner_institution_id = $1
-           AND expires_at IS NOT NULL
-           AND expires_at >= $2
-           AND expires_at <= $3
-           AND status IN ('AVAILABLE', 'SENT')`,
-        [institutionId, now, next7Days],
-      ),
-      this.dataSource.query(
-        `SELECT count(*) as count
-         FROM vouchers
-         WHERE owner_institution_id = $1
-           AND status = $2
-           AND assigned_patient_name IS NULL
-           AND assigned_patient_email IS NULL`,
-        [institutionId, VoucherStatus.AVAILABLE],
-      ),
-      this.dataSource.query(
-        `SELECT count(*) as count
-         FROM sessions
-         WHERE institution_id = $1
-           AND created_at >= $2`,
-        [institutionId, periodStart],
-      ),
-      this.dataSource.query(
-        `SELECT count(DISTINCT s.id) as count
-         FROM sessions s
-         INNER JOIN session_results sr ON sr.session_id = s.id
-         WHERE s.institution_id = $1
-           AND s.created_at >= $2`,
-        [institutionId, periodStart],
-      ),
-      this.dataSource.query(
-        `SELECT count(*) as count
-         FROM sessions
-         WHERE institution_id = $1
-           AND report_unlocked_at IS NOT NULL
-           AND report_unlocked_at >= $2`,
-        [institutionId, periodStart],
-      ),
-      this.dataSource.query(
-        `SELECT count(*) as count
-         FROM sessions
-         WHERE institution_id = $1
-           AND created_at >= $2
-           AND (voucher_id IS NOT NULL OR payment_status = $3)`,
-        [institutionId, periodStart, SessionPaymentStatus.VOUCHER_REDEEMED],
-      ),
-      this.dataSource.query(
-        `SELECT count(DISTINCT s.id) as count
-         FROM sessions s
-         INNER JOIN session_results sr ON sr.session_id = s.id
-         WHERE s.institution_id = $1
-           AND s.created_at >= $2
-           AND (s.voucher_id IS NOT NULL OR s.payment_status = $3)`,
-        [institutionId, periodStart, SessionPaymentStatus.VOUCHER_REDEEMED],
-      ),
-      this.dataSource.query(
-        `SELECT count(*) as count
-         FROM sessions
-         WHERE institution_id = $1
-           AND report_unlocked_at IS NOT NULL
-           AND report_unlocked_at >= $2
-           AND (voucher_id IS NOT NULL OR payment_status = $3)`,
-        [institutionId, periodStart, SessionPaymentStatus.VOUCHER_REDEEMED],
-      ),
-      this.dataSource.query(
-        `SELECT count(DISTINCT s.id) as count
-         FROM sessions s
-         INNER JOIN session_results sr ON sr.session_id = s.id
-         WHERE s.institution_id = $1
-           AND s.created_at >= $2
-           AND (s.voucher_id IS NULL AND s.payment_status != $3)`,
-        [institutionId, periodStart, SessionPaymentStatus.VOUCHER_REDEEMED],
-      ),
-      this.dataSource.query(
-        `SELECT
-            s.id as id,
-            s.patient_name as "patientName",
-            s.created_at as "createdAt",
-            s.session_date as "sessionDate",
-            s.holland_code as "hollandCode",
-            s.payment_status as "paymentStatus",
-            s.report_unlocked_at as "reportUnlockedAt",
-            v.code as "voucherCode",
-            COUNT(sr.id) as "resultsCount"
-         FROM sessions s
-         LEFT JOIN vouchers v ON v.id = s.voucher_id
-         LEFT JOIN session_results sr ON sr.session_id = s.id
-         WHERE s.institution_id = $1
-         GROUP BY s.id, v.code
-         ORDER BY s.created_at DESC
-         LIMIT 10`,
-        [institutionId],
-      ),
-    ]);
-
-    const voucherTotals = {
-      total: 0,
-      available: 0,
-      used: 0,
-      expired: 0,
-      sent: 0,
-      revoked: 0,
-    };
-
-    for (const row of voucherTotalsRows as Array<any>) {
-      const status = String(row.status ?? '').toUpperCase();
-      const count = parseIntSafe(row.count);
-      voucherTotals.total += count;
-      if (status === VoucherStatus.AVAILABLE) voucherTotals.available = count;
-      else if (status === VoucherStatus.USED) voucherTotals.used = count;
-      else if (status === VoucherStatus.EXPIRED) voucherTotals.expired = count;
-      else if (status === VoucherStatus.SENT) voucherTotals.sent = count;
-      else if (status === VoucherStatus.REVOKED) voucherTotals.revoked = count;
-    }
-
-    const vouchersGeneratedPeriod = parseIntSafe(
-      (vouchersIssuedPeriodRow as any[])[0]?.count,
-    );
-    const vouchersRedeemedPeriod = parseIntSafe(
-      (vouchersRedeemedPeriodRow as any[])[0]?.count,
-    );
-    const vouchersExpiringSoon7d = parseIntSafe(
-      (vouchersExpiringSoonRow as any[])[0]?.count,
-    );
-    const vouchersUnassignedAvailable = parseIntSafe(
-      (vouchersUnassignedAvailableRow as any[])[0]?.count,
-    );
-    const voucherRedemptionRatePeriod = vouchersGeneratedPeriod
-      ? Math.round((vouchersRedeemedPeriod / vouchersGeneratedPeriod) * 100)
-      : 0;
-
-    const testsStartedPeriod = parseIntSafe(
-      (sessionsStartedPeriodRow as any[])[0]?.count,
-    );
-    const testsCompletedPeriod = parseIntSafe(
-      (sessionsCompletedPeriodRow as any[])[0]?.count,
-    );
-    const reportsUnlockedPeriod = parseIntSafe(
-      (reportsUnlockedPeriodRow as any[])[0]?.count,
-    );
-
-    const voucherStarted = parseIntSafe(
-      (voucherStartedPeriodRow as any[])[0]?.count,
-    );
-    const voucherCompleted = parseIntSafe(
-      (voucherCompletedPeriodRow as any[])[0]?.count,
-    );
-    const voucherUnlocked = parseIntSafe(
-      (voucherUnlockedPeriodRow as any[])[0]?.count,
-    );
-    const individualStarted = testsStartedPeriod - voucherStarted;
-    const individualCompleted = parseIntSafe(
-      (individualCompletedPeriodRow as any[])[0]?.count,
-    );
-    const individualUnlocked = reportsUnlockedPeriod - voucherUnlocked;
-
-    const recentSessions = (recentSessionsRows as Array<any>).map((row) => ({
-      id: String(row.id),
-      patientName: String(row.patientName ?? 'Paciente sin nombre'),
-      createdAt: toIso(row.createdAt),
-      sessionDate: toIso(row.sessionDate) ?? toIso(row.createdAt),
-      hollandCode: row.hollandCode ? String(row.hollandCode) : 'N/A',
-      paymentStatus: row.paymentStatus ? String(row.paymentStatus) : 'UNKNOWN',
-      voucherCode: row.voucherCode ? String(row.voucherCode) : null,
-      reportUnlockedAt: toIso(row.reportUnlockedAt),
-      resultsCount: parseIntSafe(row.resultsCount),
-    }));
+    const [totalVouchers, usedVouchers, totalSessions, paidSessions] =
+      await Promise.all([
+        this.voucherRepository.count({
+          where: { ownerInstitutionId: institutionId },
+        }),
+        this.voucherRepository.count({
+          where: {
+            ownerInstitutionId: institutionId,
+            status: VoucherStatus.USED,
+          },
+        }),
+        this.sessionRepository.count({
+          where: { institutionId },
+        }),
+        this.sessionRepository.count({
+          where: {
+            institutionId,
+            paymentStatus: SessionPaymentStatus.PAID,
+          },
+        }),
+      ]);
 
     return {
-      periodDays,
-      periodLabel: `Ultimos ${periodDays} dias`,
+      totalVouchers,
+      usedVouchers,
+      availableVouchers: totalVouchers - usedVouchers,
+      totalSessions,
+      paidSessions,
+      pendingSessions: totalSessions - paidSessions,
+    };
+  }
+
+  async getOverview(institutionId: string, days: number) {
+    const now = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+    const periodLabel = `Últimos ${days} días`;
+
+    // ── Voucher stats (all-time by status) ─────────────────────────────────
+    const [statusCounts, totalVouchers] = await Promise.all([
+      this.voucherRepository
+        .createQueryBuilder('v')
+        .select('v.status', 'status')
+        .addSelect('COUNT(*)', 'count')
+        .where('v.ownerInstitutionId = :institutionId', { institutionId })
+        .groupBy('v.status')
+        .getRawMany<{ status: VoucherStatus; count: string }>(),
+      this.voucherRepository.count({
+        where: { ownerInstitutionId: institutionId },
+      }),
+    ]);
+
+    const byStatus = statusCounts.reduce(
+      (acc, row) => {
+        acc[row.status] = parseInt(row.count, 10);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    // ── Voucher period metrics ──────────────────────────────────────────────
+    const [
+      vouchersGeneratedPeriod,
+      vouchersRedeemedPeriod,
+      vouchersExpiringSoon7d,
+      vouchersUnassignedAvailable,
+    ] = await Promise.all([
+      this.voucherRepository.count({
+        where: {
+          ownerInstitutionId: institutionId,
+          createdAt: MoreThanOrEqual(startDate),
+        },
+      }),
+      this.voucherRepository.count({
+        where: {
+          ownerInstitutionId: institutionId,
+          status: VoucherStatus.USED,
+          redeemedAt: MoreThanOrEqual(startDate),
+        },
+      }),
+      this.voucherRepository.count({
+        where: {
+          ownerInstitutionId: institutionId,
+          status: VoucherStatus.AVAILABLE,
+          expiresAt: Between(now, sevenDaysFromNow),
+        },
+      }),
+      this.voucherRepository.count({
+        where: {
+          ownerInstitutionId: institutionId,
+          status: VoucherStatus.AVAILABLE,
+          assignedPatientName: IsNull(),
+        },
+      }),
+    ]);
+
+    const voucherRedemptionRatePeriod =
+      vouchersGeneratedPeriod > 0
+        ? Math.round((vouchersRedeemedPeriod / vouchersGeneratedPeriod) * 100)
+        : 0;
+
+    // ── Sessions in period ──────────────────────────────────────────────────
+    const periodSessions = await this.sessionRepository.find({
+      where: {
+        institutionId,
+        createdAt: MoreThanOrEqual(startDate),
+      },
+      relations: ['voucher', 'results'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const testsStartedPeriod = periodSessions.length;
+    const testsCompletedPeriod = periodSessions.filter(
+      (s) => s.hollandCode,
+    ).length;
+    const reportsUnlockedPeriod = periodSessions.filter(
+      (s) => s.reportUnlockedAt,
+    ).length;
+
+    const channelBreakdown = {
+      voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
+      individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+    };
+
+    for (const s of periodSessions) {
+      const ch =
+        s.voucherId ||
+        s.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
+          ? 'voucher'
+          : 'individual';
+      channelBreakdown[ch].started++;
+      if (s.hollandCode) channelBreakdown[ch].completed++;
+      if (s.reportUnlockedAt) channelBreakdown[ch].reportsUnlocked++;
+    }
+
+    // ── Top 10 sessions (all-time) ──────────────────────────────────────────
+    const topSessions = await this.sessionRepository.find({
+      where: { institutionId },
+      relations: ['voucher', 'results'],
+      order: { createdAt: 'DESC' },
+      take: 10,
+    });
+
+    return {
+      periodDays: days,
+      periodLabel,
       vouchers: {
-        total: voucherTotals.total,
-        available: voucherTotals.available,
-        used: voucherTotals.used,
-        expired: voucherTotals.expired,
-        sent: voucherTotals.sent,
-        revoked: voucherTotals.revoked,
+        total: totalVouchers,
+        available: byStatus[VoucherStatus.AVAILABLE] ?? 0,
+        used: byStatus[VoucherStatus.USED] ?? 0,
+        expired: byStatus[VoucherStatus.EXPIRED] ?? 0,
+        sent: byStatus[VoucherStatus.SENT] ?? 0,
+        revoked: byStatus[VoucherStatus.REVOKED] ?? 0,
         vouchersGeneratedPeriod,
         vouchersRedeemedPeriod,
         voucherRedemptionRatePeriod,
@@ -362,20 +259,20 @@ export class InstitutionsService {
         testsStartedPeriod,
         testsCompletedPeriod,
         reportsUnlockedPeriod,
-        channelBreakdown: {
-          voucher: {
-            started: voucherStarted,
-            completed: voucherCompleted,
-            reportsUnlocked: voucherUnlocked,
-          },
-          individual: {
-            started: individualStarted,
-            completed: individualCompleted,
-            reportsUnlocked: individualUnlocked,
-          },
-        },
+        channelBreakdown,
       },
-      topSessions: recentSessions,
+      topSessions: topSessions.map((s) => ({
+        id: s.id,
+        patientName: s.patientName,
+        createdAt: s.createdAt?.toISOString() ?? null,
+        sessionDate: s.sessionDate?.toISOString() ?? null,
+        hollandCode: s.hollandCode ?? '',
+        paymentStatus: s.paymentStatus,
+        voucherCode: s.voucher?.code ?? null,
+        reportUnlockedAt: s.reportUnlockedAt?.toISOString() ?? null,
+        resultsCount: s.results?.length ?? 0,
+      })),
     };
   }
 }
+
