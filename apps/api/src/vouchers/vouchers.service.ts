@@ -70,11 +70,11 @@ type VoucherBatchDetail = {
 
 type RawVoucherBatchCountRow = { count: string };
 type RawVoucherBatchSummaryRow = {
-  batchId: string;
+  batch_id: string;
   ownerInstitutionName: string;
   ownerUserName: string;
-  createdAt: Date | string;
-  expiresAt: Date | string | null;
+  batchCreatedAt: Date | string;
+  batchExpiresAt: Date | string | null;
   total: string;
   available: string;
   used: string;
@@ -541,7 +541,7 @@ export class VouchersService {
 
     const rows = await baseQb
       .clone()
-      .select('voucher.batchId', 'batchId')
+      .select('voucher.batchId', 'batch_id')
       .addSelect(
         "COALESCE(MAX(ownerInstitution.name), 'Institución no informada')",
         'ownerInstitutionName',
@@ -550,8 +550,8 @@ export class VouchersService {
         "COALESCE(MAX(ownerUser.name), 'Cuenta operativa no informada')",
         'ownerUserName',
       )
-      .addSelect('MIN(voucher.createdAt)', 'createdAt')
-      .addSelect('MAX(voucher.expiresAt)', 'expiresAt')
+      .addSelect('MIN(voucher.createdAt)', 'batchCreatedAt')
+      .addSelect('MAX(voucher.expiresAt)', 'batchExpiresAt')
       .addSelect('COUNT(*)', 'total')
       .addSelect(
         `SUM(CASE WHEN voucher.status = :available THEN 1 ELSE 0 END)`,
@@ -571,17 +571,17 @@ export class VouchersService {
         expired: VoucherStatus.EXPIRED,
       })
       .groupBy('voucher.batchId')
-      .orderBy('createdAt', 'DESC')
+      .orderBy('MIN(voucher.createdAt)', 'DESC')
       .offset((page - 1) * limit)
       .limit(limit)
       .getRawMany<RawVoucherBatchSummaryRow>();
 
     const data: VoucherBatchSummary[] = (rows ?? []).map((row) => ({
-      batchId: row.batchId,
+      batchId: row.batch_id,
       ownerInstitutionName: row.ownerInstitutionName,
       ownerUserName: row.ownerUserName,
-      createdAt: row.createdAt,
-      expiresAt: row.expiresAt,
+      createdAt: row.batchCreatedAt,
+      expiresAt: row.batchExpiresAt,
       total: Number.parseInt(String(row.total ?? '0'), 10) || 0,
       available: Number.parseInt(String(row.available ?? '0'), 10) || 0,
       used: Number.parseInt(String(row.used ?? '0'), 10) || 0,

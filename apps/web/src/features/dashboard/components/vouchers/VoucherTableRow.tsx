@@ -4,16 +4,16 @@ import {
     Calendar,
     Check,
     Copy,
+    Eye,
     Mail,
     MessageCircle,
-    ShieldBan,
     Send,
-    Share2,
     Ticket,
     UserRound,
     X,
 } from "lucide-react";
 import { useState } from "react";
+import { PUBLIC_TEST_URL, WHATSAPP_BASE_URL } from "../../../../config/app-config";
 import type { VoucherData } from "../../api/dashboard";
 import { resendVoucherEmail, revokeVoucher } from "../../api/dashboard";
 
@@ -37,15 +37,15 @@ function statusLabel(status: string) {
 function statusClasses(status: string) {
   switch (status) {
     case "AVAILABLE":
-      return "text-emerald-500 border-emerald-500/20 bg-emerald-500/5 shadow-emerald-500/10";
+      return "text-rose-700 dark:text-rose-300 border-rose-500/40 bg-rose-200/60 dark:bg-rose-500/10 shadow-rose-500/10";
     case "SENT":
-      return "text-amber-400 border-amber-400/20 bg-amber-400/5 shadow-amber-400/10";
+      return "text-amber-700 dark:text-amber-300 border-amber-500/40 bg-amber-200/60 dark:bg-amber-500/10 shadow-amber-500/10";
     case "USED":
-      return "text-app-primary border-app-primary/20 bg-app-primary/5 shadow-app-primary/10";
+      return "text-rose-800 dark:text-rose-200 border-rose-600/50 bg-rose-300/70 dark:bg-rose-500/15 shadow-rose-500/10";
     case "EXPIRED":
-      return "text-rose-500 border-rose-500/20 bg-rose-500/5 shadow-rose-500/10";
+      return "text-rose-600 dark:text-rose-300 border-rose-500/40 bg-rose-200/60 dark:bg-rose-500/10 shadow-rose-500/10";
     case "REVOKED":
-      return "text-zinc-400 border-zinc-500/20 bg-zinc-500/5 shadow-zinc-500/10";
+      return "text-zinc-600 dark:text-zinc-300 border-zinc-500/30 bg-zinc-200/60 dark:bg-zinc-500/10 shadow-zinc-500/10";
     default:
       return "text-app-text-muted border-app-border bg-app-bg";
   }
@@ -66,10 +66,11 @@ interface Props {
   voucher: VoucherData;
   isAdmin?: boolean;
   onVoucherUpdated?: (result: { ok: boolean; message: string }) => void | Promise<void>;
+  onViewSessions?: () => void;
 }
 
-export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
-  const [copiedType, setCopiedType] = useState<"CODE" | "LINK" | "MAIL" | null>(
+export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSessions }: Props) {
+  const [copiedType, setCopiedType] = useState<"CODE" | "MAIL" | null>(
     null,
   );
   const [showEmailInput, setShowEmailInput] = useState(false);
@@ -77,7 +78,7 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [revoking, setRevoking] = useState(false);
 
-  const testUrl = `https://akit-test.com/v/${voucher.code}`;
+  const testUrl = `${PUBLIC_TEST_URL}/v/${voucher.code}`;
   const canSendOrResend = voucher.status === "AVAILABLE" || voucher.status === "SENT";
   const canRevoke = voucher.status === "AVAILABLE" || voucher.status === "SENT";
   const actionBusy = sendingEmail || revoking;
@@ -88,17 +89,12 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
     setTimeout(() => setCopiedType(null), 2000);
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(testUrl);
-    setCopiedType("LINK");
-    setTimeout(() => setCopiedType(null), 2000);
-  };
 
   const handleWhatsApp = () => {
     const message = encodeURIComponent(
       `Hola! Este es tu código para realizar el test vocacional en A.kit: ${voucher.code}\n\nPodés ingresar directamente aquí: ${testUrl}`,
     );
-    window.open(`https://wa.me/?text=${message}`, "_blank");
+    window.open(`${WHATSAPP_BASE_URL}?text=${message}`, "_blank");
   };
 
   const notifyVoucherUpdate = async (ok: boolean, message: string) => {
@@ -164,12 +160,9 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
           <div className="rounded-lg bg-app-text-main p-2.5 border border-app-text-main shadow-lg group-hover:scale-105 transition-transform">
             <Ticket className="h-4 w-4 text-app-surface" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-mono text-lg font-black text-app-text-main tracking-tight group-hover:text-app-primary transition-colors leading-none">
-              {voucher.code}
-            </span>
-            <span className="app-label opacity-40 mt-1">Código único</span>
-          </div>
+          <span className="font-mono text-lg font-black text-app-text-main tracking-tight group-hover:text-app-primary transition-colors leading-none">
+            {voucher.code}
+          </span>
         </div>
       </td>
 
@@ -200,23 +193,6 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
           </div>
         </td>
       )}
-
-      <td className="px-5 py-4">
-        {isAdmin ? (
-          <span className="app-label opacity-20 italic">Oculto para admin</span>
-        ) : voucher.assignedPatientName ? (
-          <div className="flex flex-col gap-0.5 px-3 py-1.5 rounded-lg bg-app-bg border border-app-border/40 group-hover:border-app-primary/20 transition-all">
-            <span className="text-[10px] font-black text-app-text-main uppercase tracking-tight line-clamp-1">
-              {voucher.assignedPatientName}
-            </span>
-            <span className="text-[9px] font-bold text-app-text-muted opacity-40 line-clamp-1 italic">
-              {voucher.assignedPatientEmail}
-            </span>
-          </div>
-        ) : (
-          <span className="app-label opacity-20 italic">Sin asignar</span>
-        )}
-      </td>
 
       <td className="px-5 py-4">
         <div className="flex flex-col gap-1 text-[9px] font-bold text-app-text-muted uppercase tracking-tighter">
@@ -300,19 +276,6 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
                 )}
               </button>
               <button
-                onClick={handleCopyLink}
-                disabled={actionBusy}
-                aria-label="Copiar enlace directo"
-                className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all disabled:opacity-40 ${copiedType === "LINK" ? "bg-app-primary text-white border-app-primary" : "bg-app-bg text-app-text-muted hover:text-app-primary hover:border-app-primary/20 shadow-sm"}`}
-                title="Copiar link directo"
-              >
-                {copiedType === "LINK" ? (
-                  <Check className="h-3.5 w-3.5" />
-                ) : (
-                  <Share2 className="h-3.5 w-3.5" />
-                )}
-              </button>
-              <button
                 onClick={handleWhatsApp}
                 disabled={actionBusy}
                 aria-label="Compartir por WhatsApp"
@@ -338,21 +301,18 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated }: Props) {
                   <Mail className="h-3.5 w-3.5" />
                 )}
               </button>
-              {canRevoke && (
+              {voucher.status === "USED" && onViewSessions && (
                 <button
-                  onClick={handleRevoke}
+                  onClick={onViewSessions}
                   disabled={actionBusy}
-                  aria-label="Revocar voucher"
-                  className="flex items-center justify-center p-2 rounded-lg border border-rose-500/20 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-rose-500 shadow-sm transition-all disabled:opacity-40"
-                  title="Revocar voucher"
+                  aria-label="Ver sesiones de este voucher"
+                  className="flex items-center justify-center p-2 rounded-lg border border-blue-500/20 bg-blue-500/5 text-blue-500 hover:bg-blue-500 hover:text-white hover:border-blue-500 shadow-sm transition-all disabled:opacity-40"
+                  title="Ver sesiones"
                 >
-                  {revoking ? (
-                    <div className="h-3.5 w-3.5 border-2 border-rose-200/50 border-t-current animate-spin rounded-full" />
-                  ) : (
-                    <ShieldBan className="h-3.5 w-3.5" />
-                  )}
+                  <Eye className="h-3.5 w-3.5" />
                 </button>
               )}
+              
             </>
           ) : (
             <div className="app-tag !px-3 !py-1 opacity-20 !bg-transparent border-dashed">

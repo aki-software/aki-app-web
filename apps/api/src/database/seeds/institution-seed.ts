@@ -16,7 +16,7 @@ type UpsertInstitutionParams = {
 function getInstitutionSeedParams(): UpsertInstitutionParams {
   const name =
     process.env.SEED_INSTITUTION_NAME?.trim() || 'Institucion Demo A.KIT';
-  const billingEmailRaw = process.env.SEED_INSTITUTION_BILLING_EMAIL?.trim();
+  const billingEmailRaw = process.env.SEED_INSTITUTION_EMAIL?.trim();
   const isActiveRaw = process.env.SEED_INSTITUTION_IS_ACTIVE?.trim();
   const userEmailRaw =
     process.env.SEED_INSTITUTION_USER_EMAIL?.trim().toLowerCase() ||

@@ -10,7 +10,7 @@ export function NotFoundFeature() {
 
   return (
     <div className="app-tech-grid min-h-full overflow-hidden p-8 text-center">
-      <div className="mx-auto flex min-h-full max-w-2xl flex-col items-center justify-center rounded-3xl border border-app-border bg-app-surface p-8 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.85)] backdrop-blur-xl">
+      <div className="mx-auto flex min-h-full max-w-2xl flex-col items-center justify-center rounded-3xl border border-app-border bg-app-surface p-8 shadow-[0_24px_60px_-28px_rgba(63,52,41,0.35)] dark:shadow-[0_24px_60px_-28px_rgba(0,0,0,0.85)] backdrop-blur-xl">
         <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-300">
           <AlertCircle className="w-10 h-10" />
         </div>

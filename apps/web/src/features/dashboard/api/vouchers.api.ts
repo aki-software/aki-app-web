@@ -37,9 +37,62 @@ export type {
   VoucherListResponse,
 } from "@akit/contracts";
 
+export type VoucherStats = {
+  totalBatches: number;
+  totalVouchers: number;
+  availableVouchers: number;
+  usedVouchers: number;
+  sentVouchers: number;
+  expiredVouchers: number;
+  revokedVouchers: number;
+  redemptionRate: number;
+};
+
+export type VoucherAlert = {
+  institutionId: string;
+  institutionName: string;
+  availableCount: number;
+  message: string;
+  severity: 'warning' | 'critical';
+};
+
+export async function fetchVoucherStats(institutionId?: string): Promise<{
+  stats: VoucherStats;
+  alerts: VoucherAlert[];
+}> {
+  try {
+    const params = new URLSearchParams();
+    if (institutionId) params.set("institutionId", institutionId);
+
+    const response = await fetch(
+      `${API_URL}/stats/vouchers${params.toString() ? `?${params.toString()}` : ""}`,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
+    if (!response.ok) throw new Error("Failed to fetch voucher stats");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching voucher stats:", error);
+    return {
+      stats: {
+        totalBatches: 0,
+        totalVouchers: 0,
+        availableVouchers: 0,
+        usedVouchers: 0,
+        sentVouchers: 0,
+        expiredVouchers: 0,
+        revokedVouchers: 0,
+        redemptionRate: 0,
+      },
+      alerts: [],
+    };
+  }
+}
+
 export async function fetchVouchersList(): Promise<VoucherData[]> {
   try {
-    const response = await fetch(`${API_URL}/vouchers`, {
+    const response = await fetch(`${API_URL}/vouchers?limit=1000`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) throw new Error("Failed to fetch vouchers");

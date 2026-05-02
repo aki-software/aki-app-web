@@ -5,8 +5,10 @@ import {
   Req,
   ForbiddenException,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/auth.types';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { StatsService } from './stats.service';
 
 @Controller('stats')
@@ -15,6 +17,7 @@ export class StatsController {
 
   constructor(private readonly statsService: StatsService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get('vouchers')
   async getVoucherStats(
     @Query('institutionId') institutionId: string | undefined,

@@ -9,14 +9,9 @@ export async function upsertAdminUser(provider: RepoProvider): Promise<User> {
   const userRepo = provider.getRepository(User);
 
   const adminEmail =
-    process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase() ||
-    process.env.ADMIN_USER?.trim().toLowerCase() ||
-    'admin@akit.app';
-  const adminName = process.env.SEED_ADMIN_NAME?.trim() || 'Platform Admin';
-  const adminPassword =
-    process.env.SEED_ADMIN_PASSWORD?.trim() ||
-    process.env.ADMIN_PASS?.trim() ||
-    'Admin1234!';
+    process.env.ADMIN_USER?.trim().toLowerCase() || 'admin@akit.app';
+  const adminName = process.env.ADMIN_NAME?.trim() || 'Platform Admin';
+  const adminPassword = process.env.ADMIN_PASS?.trim() || 'Admin1234!';
 
   const existingAdmin = await userRepo.findOne({
     where: { email: adminEmail },

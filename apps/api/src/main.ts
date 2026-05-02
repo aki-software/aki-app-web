@@ -6,7 +6,12 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { HttpAdapterHost } from '@nestjs/core';
 
 async function bootstrap() {
+  const start = Date.now();
+  console.log(`[Bootstrap] Starting application...`);
+
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  console.log(`[Bootstrap] NestFactory.create completed in ${Date.now() - start}ms`);
+
   app.useLogger(app.get(Logger));
 
   const httpAdapterHost = app.get(HttpAdapterHost);

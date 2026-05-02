@@ -34,7 +34,7 @@ export function SessionCategoryChart({ sortedResults, top3, categoriesMap }: Pro
               <div className="flex-1">
                 <div className="relative h-2 w-full overflow-hidden rounded-full bg-app-bg border border-app-border/30">
                   <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(0,0,0,0.05)]"
+                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(63,52,41,0.12)] dark:shadow-[0_0_8px_rgba(0,0,0,0.2)]"
                     style={{
                       width: `${pct}%`,
                       backgroundColor: colorInfo.color,

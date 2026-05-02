@@ -24,6 +24,14 @@ export class UsersService {
     email?: string,
     institutionId?: string | null,
   ): Promise<User> {
+    if (email) {
+      const existingUser = await this.findByEmail(email);
+      if (existingUser) {
+        existingUser.name = name;
+        return await this.userRepository.save(existingUser);
+      }
+    }
+
     const normalizedEmail =
       email ??
       `${name.toLowerCase().replace(/[^a-z0-9]+/g, '.')}.${Date.now()}@akit.local`;

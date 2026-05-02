@@ -19,7 +19,7 @@ export class CreateVoucherDto {
   code?: string;
 
   @IsEnum(VoucherOwnerType)
-  ownerType: VoucherOwnerType;
+  ownerType?: VoucherOwnerType;
 
   @IsOptional()
   @IsUUID()

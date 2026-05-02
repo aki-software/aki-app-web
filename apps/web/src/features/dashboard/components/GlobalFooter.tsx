@@ -1,5 +1,7 @@
 import { Linkedin, MessageCircle } from "lucide-react";
 import type { ReactNode } from "react";
+import logoTransparent from "../../../assets/Logo app transparente.png";
+import logoDark from "../../../assets/logo.png";
 
 export function GlobalFooter() {
   const currentYear = new Date().getFullYear();
@@ -10,29 +12,39 @@ export function GlobalFooter() {
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-app-border/60 to-transparent" />
 
       <div className="px-8 pb-5 pt-6 md:px-10 lg:px-12">
-        <div className="rounded-3xl border border-app-border/80 bg-black/25 px-5 py-5 shadow-[0_12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl md:px-6 md:py-6">
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-app-border bg-black/35 shadow-[0_0_22px_rgba(204,255,0,0.2)] overflow-hidden">
+        <div className="rounded-3xl border border-app-border/80 bg-app-surface/80 px-5 py-7 shadow-[0_12px_40px_rgba(63,52,41,0.2)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl md:px-8 md:py-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-20 w-32 items-center justify-center rounded-2xl border border-app-border bg-app-surface shadow-[0_0_26px_rgba(47,122,102,0.18)] dark:shadow-[0_0_26px_rgba(70,167,137,0.22)] overflow-hidden">
                   <img
-                    src="/logo2.fw.png"
+                    src={logoTransparent}
                     alt="ORIENT A.KI"
-                    className="h-full w-full object-contain object-center p-1"
+                    className="h-full w-full object-contain object-center p-2 dark:hidden"
+                  />
+                  <img
+                    src={logoDark}
+                    alt="ORIENT A.KI"
+                    className="h-full w-full object-contain object-center p-2 hidden dark:block"
                   />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-display font-bold tracking-tight text-app-text-main">
+                  <span className="text-2xl font-display font-bold tracking-tight text-app-text-main">
                     ORIENT A.KI
                   </span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-app-text-muted/85">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-app-text-muted/85">
                     Plataforma Vocacional
                   </span>
                 </div>
               </div>
-              <p className="max-w-2xl text-xs leading-relaxed text-app-text-muted/90">
-                © {currentYear} ORIENT A.KI. Todos los derechos reservados.
-              </p>
+              <div className="space-y-1">
+                <p className="text-xs text-app-text-muted/90">
+                  Cotejo ocupacional y orientación vocacional con enfoque humano.
+                </p>
+                <p className="text-xs text-app-text-muted/80">
+                  © {currentYear} ORIENT A.KI. Todos los derechos reservados.
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -74,7 +86,7 @@ function SocialLink({
       target="_blank"
       rel="noreferrer"
       aria-label={label}
-      className="inline-flex items-center gap-2 rounded-full border border-app-border/80 bg-black/20 px-3 py-1.5 text-[11px] font-medium text-app-text-muted transition-colors hover:border-app-primary/50 hover:text-app-text-main"
+      className="inline-flex items-center gap-2 rounded-full border border-app-border/80 bg-app-surface/70 px-3 py-1.5 text-[11px] font-medium text-app-text-muted transition-colors hover:border-app-primary/50 hover:text-app-text-main"
     >
       {icon}
       <span>{label}</span>

@@ -1,14 +1,13 @@
 import { DashboardStatsResponse } from "@akit/contracts";
-import {
-  Activity,
-  BarChart3,
-  Calendar,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+import { Activity, BarChart3, Calendar, Sparkles, TrendingUp } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { fetchDashboardStats } from "../api/dashboard";
+import { getFormattedCurrentDate } from "../../../utils/date";
+import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashboard.constants";
+import { Spinner } from "../../../components/atoms/Spinner";
+import { StatCard } from "../../../components/molecules/StatCard";
+import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
 import { ActivityFeed } from "../components/overview/ActivityFeed";
 import { AdminAlerts } from "../components/overview/AdminAlerts";
 import { OverviewHighlights } from "../components/overview/OverviewHighlights";
@@ -17,14 +16,8 @@ import { ResultsDistributionChart } from "../components/ResultsDistributionChart
 import { SessionsChart } from "../components/SessionsChart";
 import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 
-function AdminDashboardOverview({
-  isAdmin,
-}: {
-  isAdmin: boolean;
-}) {
-  const [adminStats, setAdminStats] = useState<DashboardStatsResponse | null>(
-    null,
-  );
+function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
+  const [adminStats, setAdminStats] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,62 +34,34 @@ function AdminDashboardOverview({
     loadStats();
   }, []);
 
+  const sessionsSummary = useMemo(() => {
+    if (!adminStats || adminStats.sessionsActivity.length === 0) return null;
+
+    const totalStarted = adminStats.sessionsActivity.reduce((acc, item) => acc + item.count, 0);
+    const daysCount = adminStats.sessionsActivity.length;
+    const DECIMALS = 1;
+    const factor = Math.pow(10, DECIMALS);
+    const dailyAverage = Math.round((totalStarted / daysCount) * factor) / factor;
+    
+    const peakDay = adminStats.sessionsActivity.reduce((best, item) => {
+      return item.count > best.count ? item : best;
+    }, adminStats.sessionsActivity[0]);
+
+    return { totalStarted, dailyAverage, peakDay };
+  }, [adminStats]);
+
   if (loading) {
     return (
       <div className="flex h-96 flex-col items-center justify-center gap-4 text-app-text-muted">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-app-primary border-t-transparent" />
+        <Spinner size="lg" className="border-app-primary" />
         <span className="app-label !text-xs tracking-[0.25em] animate-pulse">
           Sincronizando panel operativo
         </span>
       </div>
     );
   }
-
-  const displayStats = {
-    periodLabel: adminStats?.periodLabel || "Ultimos 7 dias",
-    vouchersGeneratedPeriod: adminStats?.vouchersGeneratedPeriod || 0,
-    vouchersRedeemedPeriod: adminStats?.vouchersRedeemedPeriod || 0,
-    testsStartedPeriod: adminStats?.testsStartedPeriod || 0,
-    testsCompletedPeriod: adminStats?.testsCompletedPeriod || 0,
-    voucherRedemptionRatePeriod: adminStats?.voucherRedemptionRatePeriod || 0,
-    reportsUnlockedPeriod: adminStats?.reportsUnlockedPeriod || 0,
-    channelBreakdown: adminStats?.channelBreakdown || {
-      voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
-      individual: { started: 0, completed: 0, reportsUnlocked: 0 },
-    },
-  };
-
-  const currentDate = new Intl.DateTimeFormat("es-AR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(new Date());
-  const sessionsActivitySummary = adminStats
-    ? (() => {
-        const totalStarted = adminStats.sessionsActivity.reduce(
-          (acc, item) => acc + item.count,
-          0,
-        );
-        const daysCount = adminStats.sessionsActivity.length;
-        const dailyAverage =
-          daysCount > 0 ? Math.round((totalStarted / daysCount) * 10) / 10 : 0;
-        const peakDay = adminStats.sessionsActivity.reduce<{
-          date: string;
-          count: number;
-        } | null>((best, item) => {
-          if (!best || item.count > best.count) {
-            return item;
-          }
-          return best;
-        }, null);
-
-        return {
-          totalStarted,
-          dailyAverage,
-          peakDay,
-        };
-      })()
-    : null;
+  const displayStats = adminStats || DEFAULT_DASHBOARD_STATS;
+  const uiTexts = DASHBOARD_UI_TEXTS;
 
   return (
     <div className="space-y-12 animate-in pb-20">
@@ -104,95 +69,51 @@ function AdminDashboardOverview({
         <div>
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="h-5 w-5 text-app-primary" />
-            <span className="app-label !text-app-primary">
-              Dashboard operativo
-            </span>
+            <span className="app-label !text-app-primary">{uiTexts.header.tag}</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-display font-bold text-app-text-main tracking-tight leading-none max-w-3xl">
-            Resumen Operativo
+            {uiTexts.header.title}
           </h2>
           <p className="mt-3 text-sm font-medium text-app-text-muted max-w-lg leading-relaxed">
-            Vista ejecutiva para seguir el flujo operativo, las alertas y la
-            actividad reciente de la plataforma.
+            {uiTexts.header.subtitle}
           </p>
         </div>
-        <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-black/25 border border-app-border backdrop-blur-xl">
+        <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-app-surface/80 border border-app-border backdrop-blur-xl">
           <Calendar className="h-4 w-4 text-app-text-muted opacity-40" />
           <span className="app-label !text-[10px] opacity-60 uppercase">
-            {currentDate}
+            {getFormattedCurrentDate()}
           </span>
         </div>
       </div>
 
-      <OverviewHighlights
-        periodLabel={displayStats.periodLabel}
-        vouchersGeneratedPeriod={displayStats.vouchersGeneratedPeriod}
-        vouchersRedeemedPeriod={displayStats.vouchersRedeemedPeriod}
-        testsCompletedPeriod={displayStats.testsCompletedPeriod}
-        voucherRedemptionRatePeriod={displayStats.voucherRedemptionRatePeriod}
-        reportsUnlockedPeriod={displayStats.reportsUnlockedPeriod}
-        channelBreakdown={displayStats.channelBreakdown}
-      />
-
+      <OverviewHighlights {...displayStats} />
       <div className="grid grid-cols-1 gap-6 xl:gap-8">
         {isAdmin && adminStats ? (
-          <div className="app-card min-w-0 !p-6 sm:!p-8 xl:!p-10 ring-1 ring-app-border/50">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 sm:mb-8 xl:mb-10 min-w-0">
-              <div className="min-w-0">
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="h-5 w-5 text-app-primary" />
-                  <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] text-app-text-muted truncate">
-                    Sesiones iniciadas por dia
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-app-text-muted/80 leading-relaxed">
-                  Cantidad diaria de sesiones iniciadas en la plataforma
-                  durante {displayStats.periodLabel.toLowerCase()}.
-                </p>
-              </div>
-            </div>
-            {sessionsActivitySummary ? (
+          <DashboardWidget
+            title={uiTexts.widgets.sessions.title}
+            description={`${uiTexts.widgets.sessions.description} ${displayStats.periodLabel.toLowerCase()}.`}
+            icon={BarChart3}
+          >
+            {sessionsSummary && (
               <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Total del periodo
-                  </p>
-                  <p className="mt-1 text-2xl font-black tracking-tight text-app-text-main">
-                    {sessionsActivitySummary.totalStarted}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Promedio diario
-                  </p>
-                  <p className="mt-1 text-2xl font-black tracking-tight text-app-text-main">
-                    {sessionsActivitySummary.dailyAverage}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Mejor dia
-                  </p>
-                  <p className="mt-1 text-2xl font-black tracking-tight text-app-text-main">
-                    {sessionsActivitySummary.peakDay?.date ?? "--"}
-                  </p>
-                  <p className="mt-1 text-xs text-app-text-muted/80">
-                    {sessionsActivitySummary.peakDay?.count ?? 0} iniciadas
-                  </p>
-                </div>
+                <StatCard label="Total del periodo" value={sessionsSummary.totalStarted} />
+                <StatCard label="Promedio diario" value={sessionsSummary.dailyAverage} />
+                <StatCard 
+                  label="Mejor día" 
+                  value={sessionsSummary.peakDay.date} 
+                  subtext={`${sessionsSummary.peakDay.count} iniciadas`} 
+                />
               </div>
-            ) : null}
-            <div className="h-[220px] sm:h-[260px] xl:h-[300px] min-w-0">
+            )}
+            <div className="h-[220px] sm:h-[260px] xl:h-[300px]">
               <SessionsChart data={adminStats.sessionsActivity} />
             </div>
-          </div>
+          </DashboardWidget>
         ) : (
-          <div className="col-span-full app-card !p-12 bg-black/20 flex items-center justify-center border-dashed">
+          <div className="col-span-full app-card !p-12 bg-app-surface/70 flex items-center justify-center border-dashed">
             <div className="text-center space-y-3 opacity-30">
               <Activity className="h-10 w-10 mx-auto" />
-              <p className="app-label text-xs">
-                Analitica operativa en preparacion
-              </p>
+              <p className="app-label text-xs">Analítica operativa en preparación</p>
             </div>
           </div>
         )}
@@ -200,49 +121,36 @@ function AdminDashboardOverview({
 
       <div className="space-y-6">
         <div className="flex items-center gap-3 px-1">
-          <span className="app-label opacity-60 tracking-[0.2em]">
-            Centro de operación
-          </span>
+          <span className="app-label opacity-60 tracking-[0.2em]">Centro de operación</span>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-7 xl:col-span-8 space-y-6">
-            {isAdmin ? <AdminAlerts alerts={adminStats?.alerts ?? []} /> : null}
+            {isAdmin && <AdminAlerts alerts={adminStats?.alerts ?? []} />}
             <QuickActions isAdmin={isAdmin} />
           </div>
-
           <div className="lg:col-span-5 xl:col-span-4 h-full">
             <ActivityFeed events={adminStats?.activity ?? []} />
           </div>
         </div>
       </div>
 
-      {isAdmin && adminStats ? (
+      {isAdmin && adminStats && (
         <div className="space-y-4">
           <div className="flex items-center gap-3 px-1">
-            <span className="app-label opacity-60 tracking-[0.2em]">
-              Insights secundarios
-            </span>
+            <span className="app-label opacity-60 tracking-[0.2em]">Insights secundarios</span>
           </div>
-          <div className="app-card min-w-0 !p-6 sm:!p-8 ring-1 ring-app-border/50">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 sm:mb-8 min-w-0">
-              <div className="min-w-0">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="h-5 w-5 text-emerald-500" />
-                  <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.12em] text-app-text-muted truncate">
-                    Resultados predominantes
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-app-text-muted/80 leading-relaxed">
-                  Cantidad de sesiones segun la categoria con mayor afinidad.
-                </p>
-              </div>
-            </div>
-            <div className="h-[220px] sm:h-[260px] min-w-0">
+          <DashboardWidget
+            title={uiTexts.widgets.results.title}
+            description={uiTexts.widgets.results.description}
+            icon={TrendingUp}
+            iconColorClass="text-emerald-500"
+          >
+            <div className="h-[220px] sm:h-[260px]">
               <ResultsDistributionChart data={adminStats.resultsDistribution} />
             </div>
-          </div>
+          </DashboardWidget>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
@@ -250,10 +158,8 @@ function AdminDashboardOverview({
 export function DashboardOverview() {
   const { user } = useAuth();
   const isAdmin = user?.role?.toUpperCase() === "ADMIN";
-  const isInstitution = !!user?.institutionId && !isAdmin;
 
-  // Institutions have a different dashboard: voucher ownership + recent tests.
-  if (isInstitution) {
+  if (!isAdmin) {
     return <InstitutionDashboardOverview />;
   }
 

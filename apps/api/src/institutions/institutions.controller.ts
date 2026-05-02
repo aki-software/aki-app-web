@@ -11,7 +11,7 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { AuthenticatedRequest } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -19,13 +19,6 @@ import { UserRole } from '../users/entities/user.entity';
 import { InstitutionsService } from './institutions.service';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
-
-type AuthenticatedRequest = Request & {
-  user?: {
-    role?: string;
-    institutionId?: string;
-  };
-};
 
 @Controller('institutions')
 @UseGuards(JwtAuthGuard, RolesGuard)

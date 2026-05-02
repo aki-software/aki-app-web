@@ -10,9 +10,14 @@ import { VouchersModule } from '../vouchers/vouchers.module';
 import { SessionResult } from './entities/session-result.entity';
 import { SessionSwipe } from './entities/session-swipe.entity';
 import { Session } from './entities/session.entity';
+import { SessionMetrics } from './entities/session-metrics.entity';
 import { SessionsController } from './sessions.controller';
 import { SessionsService } from './sessions.service';
+import { AdminDashboardService } from './services/admin-dashboard.service';
+import { ReportOrchestratorService } from './services/report-orchestrator.service';
 import { ReportService } from './services/report.service';
+import { SessionMetricsService } from './services/session-metrics.service';
+import { SessionReportService } from './services/session-report.service';
 
 @Module({
   imports: [
@@ -20,6 +25,7 @@ import { ReportService } from './services/report.service';
       Session,
       SessionResult,
       SessionSwipe,
+      SessionMetrics,
       Voucher,
       VocationalCategory,
     ]),
@@ -30,7 +36,15 @@ import { ReportService } from './services/report.service';
     VouchersModule,
   ],
   controllers: [SessionsController],
-  providers: [SessionsService, ReportService],
-  exports: [SessionsService],
+  providers: [
+    SessionsService,
+    ReportService,
+    AdminDashboardService,
+    ReportOrchestratorService,
+    SessionMetricsService,
+    SessionReportService,
+  ],
+  exports: [SessionsService, SessionMetricsService, SessionReportService],
 })
 export class SessionsModule {}
+

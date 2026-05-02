@@ -1,5 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Spinner } from '../../../components/atoms/Spinner';
+import { APP_ROUTES } from '../../../router/routes.constants';
 
 
 export function ProtectedRoute() {
@@ -8,14 +10,14 @@ export function ProtectedRoute() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent" />
+    <div className="flex h-screen w-full items-center justify-center bg-app-bg text-app-text-main">
+        <Spinner size="lg" className='border-blue-600' />
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to={APP_ROUTES.AUTH.LOGIN} state={{ from: location }} replace />;
   }
 
   return <Outlet />;

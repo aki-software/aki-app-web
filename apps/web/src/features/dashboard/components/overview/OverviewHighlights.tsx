@@ -77,7 +77,7 @@ export function OverviewHighlights({
             </p>
           </div>
 
-          <div className="rounded-3xl border border-app-primary/15 bg-black/20 p-5 sm:p-6">
+          <div className="rounded-3xl border border-app-primary/15 bg-app-surface/75 p-5 sm:p-6">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -118,7 +118,7 @@ export function OverviewHighlights({
             {flowItems.map((item) => (
               <div
                 key={item.label}
-                className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-4"
+                className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
               >
                 <p className="text-[10px] md:text-[11px] font-semibold text-app-text-muted/70 uppercase tracking-[0.06em] leading-[1.25] break-words">
                   {item.label}
@@ -154,7 +154,7 @@ export function OverviewHighlights({
 
         <div className="pt-2 border-t border-app-border">
           <div className="space-y-4">
-            <div className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-4">
+            <div className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4">
               <span className="app-label opacity-40 break-words">
                 Canal con voucher
               </span>
@@ -194,7 +194,7 @@ export function OverviewHighlights({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-app-border/70 bg-black/20 px-4 py-4">
+            <div className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4">
               <span className="app-label opacity-40">Canal sin voucher</span>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>

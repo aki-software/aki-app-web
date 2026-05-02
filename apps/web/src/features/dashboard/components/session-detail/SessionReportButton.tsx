@@ -1,5 +1,7 @@
 import { AlertTriangle, CheckCircle, Loader2, Mail } from "lucide-react";
 import { useState } from "react";
+import { API_URL } from "../../../../config/app-config";
+import { getStoredToken } from "../../../../utils/storage";
 
 interface Props {
   sessionId: string;
@@ -18,8 +20,7 @@ export function SessionReportButton({ sessionId }: Props) {
     setSendingReport(true);
     setReportStatus("idle");
     try {
-      const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
-      const token = localStorage.getItem("akit_access_token");
+      const token = getStoredToken();
       const res = await fetch(`${API_URL}/sessions/${sessionId}/send-report`, {
         method: "POST",
         headers: {

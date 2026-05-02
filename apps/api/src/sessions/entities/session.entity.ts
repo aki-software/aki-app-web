@@ -4,11 +4,13 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  OneToOne,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { SessionResult } from './session-result.entity';
 import { SessionSwipe } from './session-swipe.entity';
+import { SessionMetrics } from './session-metrics.entity';
 import { Voucher } from '../../vouchers/entities/voucher.entity';
 import { User } from '../../users/entities/user.entity';
 import { Institution } from '../../institutions/entities/institution.entity';
@@ -95,4 +97,8 @@ export class Session {
 
   @OneToMany('SessionSwipe', (swipe: any) => swipe.session, { cascade: true })
   swipes: SessionSwipe[];
+
+  @OneToOne(() => SessionMetrics, (metrics) => metrics.session, { cascade: true, eager: true })
+  @JoinColumn({ name: 'id' })
+  metrics?: SessionMetrics;
 }

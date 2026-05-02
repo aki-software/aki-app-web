@@ -1,5 +1,13 @@
-import { createContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { useState, useCallback, useMemo, type ReactNode } from 'react';
 import { loginRequest, logoutRequest, type AuthUser, type LoginCredentials } from '../api/auth';
+import {
+  clearStoredAuth,
+  getStoredToken,
+  getStoredUser,
+  setStoredToken,
+  setStoredUser,
+} from '../../../utils/storage';
+import { AuthContext } from './auth.context';
 
 export interface AuthContextValue {
   user: AuthUser | null;
@@ -9,65 +17,68 @@ export interface AuthContextValue {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
 }
-
-const TOKEN_KEY = 'akit_access_token';
-const USER_KEY = 'akit_user';
-
-export const AuthContext = createContext<AuthContextValue | null>(null);
-
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // true al inicio para rehidratar sesión
-
-  useEffect(() => {
+  const [user, setUser] = useState<AuthUser | null>(() => {
     try {
-      const storedToken = localStorage.getItem(TOKEN_KEY);
-      const storedUser = localStorage.getItem(USER_KEY);
-      if (storedToken && storedUser) {
-        setAccessToken(storedToken);
-        setUser(JSON.parse(storedUser) as AuthUser);
-      }
+      return getStoredUser<AuthUser>() || null;
     } catch {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
+      return null;
+    }
+  });
+  const [accessToken, setAccessToken] = useState<string | null>(() =>{
+    try {
+      return getStoredToken() || null;
+    } catch {
+      return null;
+    }
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+
+  const login = useCallback(async (credentials: LoginCredentials) => {
+    setIsLoading(true);
+    try {
+      const { user: loggedUser, tokens } = await loginRequest(credentials);
+      setStoredToken(tokens.accessToken);
+      setStoredUser(loggedUser);
+      setUser(loggedUser);
+      setAccessToken(tokens.accessToken);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    const { user: loggedUser, tokens } = await loginRequest(credentials);
-
-    localStorage.setItem(TOKEN_KEY, tokens.accessToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(loggedUser));
-
-    setUser(loggedUser);
-    setAccessToken(tokens.accessToken);
-  }, []);
-
   const logout = useCallback(async () => {
-    if (accessToken) {
-      await logoutRequest(accessToken);
+    setIsLoading(true);
+    try {
+      if (accessToken) {
+        await logoutRequest(accessToken);
+      }
+    } catch (error) {
+      console.error("Fallo al cerrar sesión en el servidor:", error);
+    } finally {
+      clearStoredAuth();
+      setUser(null);
+      setAccessToken(null);
+      setIsLoading(false);
     }
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setUser(null);
-    setAccessToken(null);
   }, [accessToken]);
 
-  const value: AuthContextValue = {
-    user,
-    accessToken,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    logout,
-  };
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      accessToken,
+      isAuthenticated: !!user,
+      isLoading,
+      login,
+      logout,
+    }),
+    [user, accessToken, isLoading, login, logout]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};

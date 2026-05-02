@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 import { Session } from '../sessions/entities/session.entity';
 import { SessionResult } from '../sessions/entities/session-result.entity';
 import { SessionSwipe } from '../sessions/entities/session-swipe.entity';
+import { SessionMetrics } from '../sessions/entities/session-metrics.entity';
 import { VocationalCategory } from '../categories/entities/vocational-category.entity';
 import { User } from '../users/entities/user.entity';
 import { Institution } from '../institutions/entities/institution.entity';
@@ -25,6 +26,7 @@ export const typeOrmConfig: PostgresConnectionOptions = {
     Session,
     SessionResult,
     SessionSwipe,
+    SessionMetrics,
     VocationalCategory,
     User,
     Institution,

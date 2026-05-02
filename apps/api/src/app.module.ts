@@ -12,6 +12,7 @@ import { MailModule } from './mail/mail.module';
 import { LoggerModule } from 'nestjs-pino';
 import { InstitutionsModule } from './institutions/institutions.module';
 import { VouchersModule } from './vouchers/vouchers.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { VouchersModule } from './vouchers/vouchers.module';
     AuthModule,
     InstitutionsModule,
     VouchersModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

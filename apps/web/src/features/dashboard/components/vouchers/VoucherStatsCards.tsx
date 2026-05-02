@@ -5,32 +5,26 @@ import {
     Ticket,
     TrendingUp,
 } from "lucide-react";
+import type { VoucherStats } from "../api/dashboard";
+
 
 interface Props {
   isAdmin?: boolean;
   showCreateForm: boolean;
   onToggleForm: () => void;
-  batchesEmittedInPeriod: number;
-  vouchersEmittedInPeriod: number;
-  vouchersRedeemedInPeriod: number;
-  expiringSoonCount: number;
-  redemptionRate: number;
+  stats: VoucherStats | null;
   periodDays: number;
-  usesHistoricalFallback?: boolean;
 }
+
 
 export function VoucherStatsCards({
   isAdmin,
   showCreateForm,
   onToggleForm,
-  batchesEmittedInPeriod,
-  vouchersEmittedInPeriod,
-  vouchersRedeemedInPeriod,
-  expiringSoonCount,
-  redemptionRate,
+  stats,
   periodDays,
-  usesHistoricalFallback = false,
 }: Props) {
+  const redemptionRate = stats?.redemptionRate ?? 0;
   const conversionTone =
     redemptionRate >= 40
       ? "text-emerald-500"
@@ -50,18 +44,12 @@ export function VoucherStatsCards({
               <Layers3 className="h-5 w-5 text-app-text-muted" />
             </div>
             <span className="app-label opacity-60 tracking-wider">
-              {usesHistoricalFallback
-                ? isAdmin
-                  ? "Lotes emitidos"
-                  : "Lotes recibidos"
-                : isAdmin
-                  ? `Lotes emitidos (${periodDays}d)`
-                  : `Lotes recibidos (${periodDays}d)`}
+              {isAdmin ? "Lotes emitidos" : "Lotes recibidos"}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="app-value !text-3xl font-black text-app-text-main tracking-tighter leading-none">
-              {batchesEmittedInPeriod}
+              {stats?.totalBatches ?? 0}
             </span>
           </div>
         </div>
@@ -77,18 +65,12 @@ export function VoucherStatsCards({
               <Ticket className="h-5 w-5 text-app-primary" />
             </div>
             <span className="app-label opacity-60 tracking-wider">
-              {usesHistoricalFallback
-                ? isAdmin
-                  ? "Vouchers emitidos"
-                  : "Vouchers recibidos"
-                : isAdmin
-                  ? `Vouchers emitidos (${periodDays}d)`
-                  : `Vouchers recibidos (${periodDays}d)`}
+              {isAdmin ? "Vouchers emitidos" : "Vouchers recibidos"}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="app-value !text-3xl font-black text-app-text-main tracking-tighter leading-none">
-              {vouchersEmittedInPeriod}
+              {stats?.totalVouchers ?? 0}
             </span>
             <span className="text-[10px] font-black text-app-text-muted/60 uppercase tracking-widest">
               codigos
@@ -107,39 +89,33 @@ export function VoucherStatsCards({
               <Ticket className="h-5 w-5 text-emerald-500" />
             </div>
             <span className="app-label opacity-60 tracking-wider">
-              {usesHistoricalFallback
-                ? isAdmin
-                  ? "Vouchers canjeados"
-                  : "Vouchers consumidos"
-                : isAdmin
-                  ? `Vouchers canjeados (${periodDays}d)`
-                  : `Vouchers consumidos (${periodDays}d)`}
+              {isAdmin ? "Vouchers canjeados" : "Vouchers consumidos"}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="app-value !text-3xl font-black text-emerald-500 tracking-tighter leading-none">
-              {vouchersRedeemedInPeriod}
+              {stats?.usedVouchers ?? 0}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="app-card !p-7 shadow-lg border-amber-400/15 bg-gradient-to-br from-app-surface to-amber-400/[0.02] group relative overflow-hidden">
+      <div className="app-card !p-7 shadow-lg border-sky-400/15 bg-gradient-to-br from-app-surface to-sky-400/[0.02] group relative overflow-hidden">
         <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
-          <AlertTriangle className="h-20 w-20 text-amber-400" />
+          <Ticket className="h-20 w-20 text-sky-400" />
         </div>
         <div className="flex flex-col gap-4 relative z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-400/10 rounded-xl border border-amber-400/30 shadow-sm">
-              <AlertTriangle className="h-5 w-5 text-amber-400" />
+            <div className="p-2.5 bg-sky-400/10 rounded-xl border border-sky-400/30 shadow-sm">
+              <Ticket className="h-5 w-5 text-sky-400" />
             </div>
             <span className="app-label opacity-60 tracking-wider">
-              Vencen en 7 dias
+              Vouchers Disponibles
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="app-value !text-3xl font-black text-amber-400 tracking-tighter leading-none">
-              {expiringSoonCount}
+            <span className="app-value !text-3xl font-black text-sky-400 tracking-tighter leading-none">
+              {stats?.availableVouchers ?? 0}
             </span>
           </div>
         </div>
@@ -155,13 +131,7 @@ export function VoucherStatsCards({
               <TrendingUp className="h-5 w-5 text-app-primary" />
             </div>
             <span className="app-label opacity-60 tracking-wider">
-              {usesHistoricalFallback
-                ? isAdmin
-                  ? "Tasa de Canje (Historico)"
-                  : "Tasa de Consumo (Historico)"
-                : isAdmin
-                  ? `Tasa de Canje (${periodDays}d)`
-                  : `Tasa de Consumo (${periodDays}d)`}
+              {isAdmin ? "Tasa de Canje" : "Tasa de Consumo"}
             </span>
           </div>
           <div className="flex items-baseline gap-2">
@@ -173,6 +143,7 @@ export function VoucherStatsCards({
           </div>
         </div>
       </div>
+
       {isAdmin ? (
         <button
           onClick={onToggleForm}

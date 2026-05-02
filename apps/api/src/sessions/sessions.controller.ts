@@ -1,16 +1,19 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
   Post,
   Query,
   Req,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
@@ -19,6 +22,8 @@ import { CreateSessionDto } from './dto/create-session.dto';
 import { SendReportDto } from './dto/send-report.dto';
 import { SessionPaymentStatus } from './entities/session.entity';
 import { SessionsService } from './sessions.service';
+import { SessionMetricsService } from './services/session-metrics.service';
+import { SessionReportService } from './services/session-report.service';
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -34,6 +39,8 @@ export class SessionsController {
     private readonly sessionsService: SessionsService,
     private readonly usersService: UsersService,
     private readonly vouchersService: VouchersService,
+    private readonly sessionMetricsService: SessionMetricsService,
+    private readonly sessionReportService: SessionReportService,
   ) {}
 
   @Post()
@@ -71,8 +78,10 @@ export class SessionsController {
     const enrichedResultsByCategory = this.indexResultsMetadata(
       payload.resultPayload,
     );
+    const payloadId = this.nullIfBlank(payload.id);
 
     const adaptedDto = {
+      id: payloadId || undefined,
       therapistUserId:
         payloadTherapistUserId ||
         voucher?.ownerUserId ||
@@ -286,5 +295,81 @@ export class SessionsController {
     if (req?.user?.role?.toUpperCase() !== UserRole.ADMIN) {
       throw new UnauthorizedException('Se requiere usuario administrador');
     }
+  }
+
+  @Get(':id/metrics')
+  @UseGuards(JwtAuthGuard)
+  async getSessionMetrics(@Param('id') sessionId: string) {
+    return this.sessionMetricsService.getMetricsBySessionId(sessionId);
+  }
+
+  @Get('voucher/:voucherId/sessions')
+  @UseGuards(JwtAuthGuard)
+  async getVoucherSessions(
+    @Param('voucherId') voucherId: string,
+    @Req() req: AuthenticatedRequest,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('minDuration') minDuration?: string,
+    @Query('maxDuration') maxDuration?: string,
+  ) {
+    // Verificar que el usuario es propietario del voucher o admin
+    const voucher = await this.vouchersService.findById(voucherId);
+
+    if (
+      voucher.ownerUserId !== req.user?.userId &&
+      req.user?.role?.toUpperCase() !== 'ADMIN'
+    ) {
+      throw new ForbiddenException('Cannot access voucher sessions');
+    }
+
+    // Construir query con filtros
+    let query = this.sessionsService['sessionRepository']
+      .createQueryBuilder('session')
+      .where('session.voucherId = :voucherId', { voucherId })
+      .leftJoinAndSelect('session.metrics', 'metrics')
+      .leftJoinAndSelect('session.results', 'results')
+      .orderBy('session.sessionDate', 'DESC');
+
+    // Filtro: rango de fechas
+    if (startDate) {
+      query = query.andWhere('session.sessionDate >= :startDate', {
+        startDate: new Date(startDate),
+      });
+    }
+    if (endDate) {
+      query = query.andWhere('session.sessionDate <= :endDate', {
+        endDate: new Date(endDate),
+      });
+    }
+
+    // Filtro: duración
+    if (minDuration) {
+      const minMs = parseInt(minDuration) * 60 * 1000;
+      query = query.andWhere('session.totalTimeMs >= :minDuration', {
+        minDuration: minMs,
+      });
+    }
+    if (maxDuration) {
+      const maxMs = parseInt(maxDuration) * 60 * 1000;
+      query = query.andWhere('session.totalTimeMs <= :maxDuration', {
+        maxDuration: maxMs,
+      });
+    }
+
+    return query.getMany();
+  }
+
+  @Get(':id/report/pdf')
+  @UseGuards(JwtAuthGuard)
+  async generateSessionPdf(
+    @Param('id') sessionId: string,
+    @Res() res: Response,
+  ) {
+    const html = await this.sessionReportService.generatePdf(sessionId);
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="session-${sessionId}.html"`);
+    res.send(html);
   }
 }

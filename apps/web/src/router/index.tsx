@@ -1,73 +1,80 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import { lazy } from "react";
+import { APP_ROUTES } from "./routes.constants";
 import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
-import { LoginPage } from "../features/auth/views/LoginPage";
-import { SetupPasswordPage } from "../features/auth/views/SetupPasswordPage";
 import { DashboardLayout } from "../features/dashboard/layouts/DashboardLayout";
-import { DashboardActivity } from "../features/dashboard/views/DashboardActivity";
-import { DashboardOverview } from "../features/dashboard/views/DashboardOverview";
-import { DashboardResults } from "../features/dashboard/views/DashboardResults";
-import { DashboardSettings } from "../features/dashboard/views/DashboardSettings";
-import { DashboardUsers } from "../features/dashboard/views/DashboardUsers";
-import { DashboardVouchers } from "../features/dashboard/views/DashboardVouchers";
-import { InstitutionDetailOverview } from "../features/dashboard/views/InstitutionDetailOverview";
 import { NotFoundFeature } from "../features/dashboard/views/NotFoundFeature";
-import { SessionDetailPage } from "../features/dashboard/views/SessionDetailPage";
+import { SuspenseWrapper } from "../components/atoms/SuspenseWrapper";
+import { AppErrorBoundary } from "../components/errors/AppErrorBoundary"; 
+
+// Auth Views
+const LoginPage = lazy(() => import("../features/auth/views/LoginPage").then(m => ({ default: m.LoginPage })));
+const SetupPasswordPage = lazy(() => import("../features/auth/views/SetupPasswordPage").then(m => ({ default: m.SetupPasswordPage })));
+
+// Dashboard Views
+const DashboardOverview = lazy(() => import("../features/dashboard/views/DashboardOverview").then(m => ({ default: m.DashboardOverview })));
+const DashboardResults = lazy(() => import("../features/dashboard/views/DashboardResults").then(m => ({ default: m.DashboardResults })));
+const SessionDetailPage = lazy(() => import("../features/dashboard/views/SessionDetailPage").then(m => ({ default: m.SessionDetailPage })));
+const DashboardVouchers = lazy(() => import("../features/dashboard/views/DashboardVouchers").then(m => ({ default: m.DashboardVouchers })));
+const DashboardUsers = lazy(() => import("../features/dashboard/views/DashboardUsers").then(m => ({ default: m.DashboardUsers })));
+const InstitutionDetailOverview = lazy(() => import("../features/dashboard/views/InstitutionDetailOverview").then(m => ({ default: m.InstitutionDetailOverview })));
+const DashboardSettings = lazy(() => import("../features/dashboard/views/DashboardSettings").then(m => ({ default: m.DashboardSettings })));
+const DashboardActivity = lazy(() => import("../features/dashboard/views/DashboardActivity").then(m => ({ default: m.DashboardActivity })));
+
 
 export const router = createBrowserRouter([
   {
-    /* Ruta raíz: redirigir al dashboard (ProtectedRoute se encargará del guard) */
-    path: "/",
-    element: <Navigate to="/dashboard" replace />,
+    path: APP_ROUTES.ROOT,
+    element: <Navigate to={APP_ROUTES.DASHBOARD.ROOT} replace />,
   },
   {
-    path: "/login",
-    element: <LoginPage />,
+    path: APP_ROUTES.AUTH.LOGIN,
+    element: <SuspenseWrapper><LoginPage /></SuspenseWrapper>,
   },
   {
-    path: "/setup-password",
-    element: <SetupPasswordPage />,
+    path: APP_ROUTES.AUTH.SETUP_PASSWORD,
+    element: <SuspenseWrapper><SetupPasswordPage /></SuspenseWrapper>,
   },
   {
-    /* Rutas protegidas: solo accesibles si el usuario está autenticado */
     element: <ProtectedRoute />,
-    errorElement: <NotFoundFeature />,
+    errorElement: <AppErrorBoundary />, 
     children: [
       {
-        path: "/dashboard",
+        path: APP_ROUTES.DASHBOARD.ROOT,
         element: <DashboardLayout />,
-        errorElement: <NotFoundFeature />,
+        errorElement: <AppErrorBoundary />,
         children: [
           {
             index: true,
-            element: <DashboardOverview />,
+            element: <SuspenseWrapper><DashboardOverview /></SuspenseWrapper>,
           },
           {
-            path: "results",
-            element: <DashboardResults />,
+            path: APP_ROUTES.DASHBOARD.RESULTS,
+            element: <SuspenseWrapper><DashboardResults /></SuspenseWrapper>,
           },
           {
-            path: "sessions/:id",
-            element: <SessionDetailPage />,
+            path: APP_ROUTES.DASHBOARD.SESSIONS,
+            element: <SuspenseWrapper><SessionDetailPage /></SuspenseWrapper>,
           },
           {
-            path: "vouchers",
-            element: <DashboardVouchers />,
+            path: APP_ROUTES.DASHBOARD.VOUCHERS,
+            element: <SuspenseWrapper><DashboardVouchers /></SuspenseWrapper>,
           },
           {
-            path: "users",
-            element: <DashboardUsers />,
+            path: APP_ROUTES.DASHBOARD.USERS,
+            element: <SuspenseWrapper><DashboardUsers /></SuspenseWrapper>,
           },
           {
-            path: "institutions/:id",
-            element: <InstitutionDetailOverview />,
+            path: APP_ROUTES.DASHBOARD.INSTITUTIONS,
+            element: <SuspenseWrapper><InstitutionDetailOverview /></SuspenseWrapper>,
           },
           {
-            path: "settings",
-            element: <DashboardSettings />,
+            path: APP_ROUTES.DASHBOARD.SETTINGS,
+            element: <SuspenseWrapper><DashboardSettings /></SuspenseWrapper>,
           },
           {
-            path: "activity",
-            element: <DashboardActivity />,
+            path: APP_ROUTES.DASHBOARD.ACTIVITY,
+            element: <SuspenseWrapper><DashboardActivity /></SuspenseWrapper>,
           },
           {
             path: "*",
