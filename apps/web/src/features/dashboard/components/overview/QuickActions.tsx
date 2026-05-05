@@ -1,13 +1,11 @@
 import { HelpCircle, Plus, Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface Props {
   isAdmin?: boolean;
 }
 
 export function QuickActions({ isAdmin }: Props) {
-  const navigate = useNavigate();
-
   const actions = [
     {
       id: "emit",
@@ -41,15 +39,15 @@ export function QuickActions({ isAdmin }: Props) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
       {actions.map((action) => (
-        <button
+        <Link
           key={action.id}
-          onClick={() => navigate(action.path)}
-          className="app-card-interactive !p-6 flex flex-col items-center text-center gap-4 border-app-border bg-app-surface/50 group relative overflow-hidden active:scale-95 transition-all"
+          to={action.path}
+          className="app-card-interactive !p-6 flex flex-col items-center text-center gap-4 border-app-border bg-app-surface/50 group relative overflow-hidden active:scale-95 transition-all outline-none focus-visible:ring-2 focus-visible:ring-app-primary"
         >
           <div
             className={`p-3 rounded-xl ${action.color} border shadow-inner group-hover:scale-110 transition-transform`}
           >
-            <action.icon className="h-5 w-5" />
+            <action.icon className="h-5 w-5" aria-hidden="true" />
           </div>
 
           <div className="space-y-1">
@@ -60,7 +58,7 @@ export function QuickActions({ isAdmin }: Props) {
               {action.desc}
             </p>
           </div>
-        </button>
+        </Link>
       ))}
     </div>
   );

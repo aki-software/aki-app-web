@@ -4,14 +4,12 @@ import { type InstitutionOverviewResponse } from "../../api/dashboard";
 
 type TopSession = InstitutionOverviewResponse["topSessions"][number];
 
-// 1. Tipamos estrictamente para evitar los 'any'
 const toMs = (val: string | Date | number | null | undefined): number | null => { 
   if (!val) return null;
   const ms = new Date(val).getTime(); 
   return Number.isFinite(ms) ? ms : null; 
 };
 
-// 2. Tipamos estrictamente la función de formateo
 const formatShortDate = (val: string | Date | number | null | undefined): string => { 
   const ms = toMs(val); 
   return ms 

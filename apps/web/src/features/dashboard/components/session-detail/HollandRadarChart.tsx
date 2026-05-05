@@ -1,18 +1,20 @@
 import { useMemo } from "react";
 import {
-    PolarAngleAxis,
-    PolarGrid,
-    Radar,
-    RadarChart,
-    ResponsiveContainer,
-    Tooltip,
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
 } from "recharts";
 
 interface HollandRadarChartProps {
   results: Record<string, number>;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
+// Lo exportamos por si alguna otra vista necesita consultar las traducciones de las siglas.
+// Idealmente, en un futuro esto vendría de una base de datos o un archivo de traducciones (i18n).
+export const HOLLAND_CATEGORY_LABELS: Record<string, string> = {
   ART: "Artístico",
   HUM: "Humano",
   SERV: "Servicios",
@@ -29,7 +31,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export function HollandRadarChart({ results }: HollandRadarChartProps) {
   const chartData = useMemo(() => {
-    return Object.entries(CATEGORY_LABELS).map(([id, label]) => {
+    return Object.entries(HOLLAND_CATEGORY_LABELS).map(([id, label]) => {
       return {
         subject: label,
         A: results[id.toUpperCase()] ?? 0,

@@ -1,5 +1,6 @@
 import { DashboardChannelBreakdown } from "@akit/contracts";
 import { ArrowRight, Target, TrendingUp } from "lucide-react";
+import { StatCard } from "../../../../components/molecules/StatCard";
 
 interface Props {
   periodLabel: string;
@@ -11,6 +12,16 @@ interface Props {
   channelBreakdown: DashboardChannelBreakdown;
 }
 
+// Micro-componente local para no repetir el mismo HTML 8 veces
+const MiniStat = ({ label, value }: { label: string; value: string | number }) => (
+  <div>
+    <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
+      {label}
+    </p>
+    <p className="mt-1 text-xl font-black text-app-text-main">{value}</p>
+  </div>
+);
+
 export function OverviewHighlights({
   periodLabel,
   vouchersGeneratedPeriod,
@@ -20,48 +31,19 @@ export function OverviewHighlights({
   reportsUnlockedPeriod,
   channelBreakdown,
 }: Props) {
-  const voucherCompletionRate =
-    channelBreakdown.voucher.started > 0
-      ? Math.round(
-          (channelBreakdown.voucher.completed /
-            channelBreakdown.voucher.started) *
-            100,
-        )
-      : 0;
-  const directCompletionRate =
-    channelBreakdown.individual.started > 0
-      ? Math.round(
-          (channelBreakdown.individual.completed /
-            channelBreakdown.individual.started) *
-            100,
-        )
-      : 0;
-
-  const flowItems = [
-    {
-      label: "Vouchers generados",
-      value: vouchersGeneratedPeriod,
-      helper: "Vouchers creados para instituciones o terapeutas.",
-    },
-    {
-      label: "Vouchers canjeados",
-      value: vouchersRedeemedPeriod,
-      helper: "Vouchers utilizados por pacientes durante el periodo.",
-    },
-    {
-      label: "Tests completados",
-      value: testsCompletedPeriod,
-      helper: "Evaluaciones finalizadas con resultados disponibles.",
-    },
-    {
-      label: "Informes desbloqueados",
-      value: reportsUnlockedPeriod,
-      helper: "Informes listos para consulta o entrega.",
-    },
-  ];
+  
+  const voucherCompletionRate = channelBreakdown.voucher.started > 0
+    ? Math.round((channelBreakdown.voucher.completed / channelBreakdown.voucher.started) * 100)
+    : 0;
+    
+  const directCompletionRate = channelBreakdown.individual.started > 0
+    ? Math.round((channelBreakdown.individual.completed / channelBreakdown.individual.started) * 100)
+    : 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 md:max-w-5xl md:mx-auto lg:max-w-none">
+      
+      {/* ─── Columna Izquierda: Flujo Operativo ─── */}
       <div className="lg:col-span-8 app-card !p-6 md:!p-8 lg:!p-10 bg-gradient-to-br from-app-surface to-app-bg/20 min-w-0">
         <div className="space-y-6 lg:space-y-8 min-w-0 w-full">
           <div className="max-w-2xl">
@@ -72,7 +54,7 @@ export function OverviewHighlights({
               </h3>
             </div>
             <p className="text-sm font-medium text-app-text-muted/80 leading-relaxed break-words">
-              Seguimiento del flujo desde la generacion del voucher hasta la
+              Seguimiento del flujo desde la generación del voucher hasta la
               disponibilidad del informe. Periodo activo: {periodLabel}.
             </p>
           </div>
@@ -94,6 +76,7 @@ export function OverviewHighlights({
                 </div>
               </div>
 
+              {/* Cinta de progresión */}
               <div className="flex flex-wrap items-center gap-3 text-app-text-main">
                 <span className="rounded-2xl border border-app-border/70 bg-app-surface/60 px-4 py-3 text-sm font-semibold">
                   {vouchersGeneratedPeriod} generados
@@ -114,27 +97,37 @@ export function OverviewHighlights({
             </div>
           </div>
 
+          {/* Reemplazamos el map por nuestras StatCards reutilizables */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
-            {flowItems.map((item) => (
-              <div
-                key={item.label}
-                className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
-              >
-                <p className="text-[10px] md:text-[11px] font-semibold text-app-text-muted/70 uppercase tracking-[0.06em] leading-[1.25] break-words">
-                  {item.label}
-                </p>
-                <p className="mt-2 text-3xl font-black tracking-tight text-app-text-main">
-                  {item.value}
-                </p>
-                <p className="mt-2 text-xs text-app-text-muted/80 leading-relaxed">
-                  {item.helper}
-                </p>
-              </div>
-            ))}
+            <StatCard 
+              label="Vouchers generados" 
+              value={vouchersGeneratedPeriod} 
+              description="Vouchers creados para instituciones o terapeutas."
+              className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
+            />
+            <StatCard 
+              label="Vouchers canjeados" 
+              value={vouchersRedeemedPeriod} 
+              description="Vouchers utilizados por pacientes durante el periodo."
+              className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
+            />
+            <StatCard 
+              label="Tests completados" 
+              value={testsCompletedPeriod} 
+              description="Evaluaciones finalizadas con resultados disponibles."
+              className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
+            />
+            <StatCard 
+              label="Informes desbloqueados" 
+              value={reportsUnlockedPeriod} 
+              description="Informes listos para consulta o entrega."
+              className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
+            />
           </div>
         </div>
       </div>
 
+      {/* ─── Columna Derecha: Rendimiento por Canal ─── */}
       <div className="lg:col-span-4 app-card !p-6 md:!p-7 lg:!p-8 border-2 border-app-primary/10 bg-app-surface flex flex-col justify-between group overflow-hidden min-w-0">
         <div className="space-y-6">
           <div className="flex items-center gap-4 min-w-0">
@@ -142,9 +135,7 @@ export function OverviewHighlights({
               <TrendingUp className="h-6 w-6 text-app-primary" />
             </div>
             <div className="min-w-0">
-              <span className="app-label opacity-40 break-words">
-                {periodLabel}
-              </span>
+              <span className="app-label opacity-40 break-words">{periodLabel}</span>
               <h4 className="text-xs font-black text-app-text-main uppercase tracking-wide mt-0.5 break-words leading-tight">
                 Rendimiento por canal
               </h4>
@@ -152,87 +143,32 @@ export function OverviewHighlights({
           </div>
         </div>
 
-        <div className="pt-2 border-t border-app-border">
+        <div className="pt-2 border-t border-app-border mt-6">
           <div className="space-y-4">
+            
+            {/* Canal con voucher */}
             <div className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4">
-              <span className="app-label opacity-40 break-words">
-                Canal con voucher
-              </span>
+              <span className="app-label opacity-40 break-words">Canal con voucher</span>
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Iniciados
-                  </p>
-                  <p className="mt-1 text-xl font-black text-app-text-main">
-                    {channelBreakdown.voucher.started}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Completados
-                  </p>
-                  <p className="mt-1 text-xl font-black text-app-text-main">
-                    {channelBreakdown.voucher.completed}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Informes
-                  </p>
-                  <p className="mt-1 text-xl font-black text-app-text-main">
-                    {channelBreakdown.voucher.reportsUnlocked}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Finalizacion
-                  </p>
-                  <p className="mt-1 text-xl font-black text-app-text-main">
-                    {voucherCompletionRate}%
-                  </p>
-                </div>
+                <MiniStat label="Iniciados" value={channelBreakdown.voucher.started} />
+                <MiniStat label="Completados" value={channelBreakdown.voucher.completed} />
+                <MiniStat label="Informes" value={channelBreakdown.voucher.reportsUnlocked} />
+                <MiniStat label="Finalización" value={`${voucherCompletionRate}%`} />
               </div>
             </div>
 
+            {/* Canal sin voucher */}
             <div className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4">
-              <span className="app-label opacity-40">Canal sin voucher</span>
+              <span className="app-label opacity-40 break-words">Canal sin voucher</span>
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Iniciados
-                  </p>
-                  <p className="mt-1 text-xl font-black text-app-text-main">
-                    {channelBreakdown.individual.started}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Completados
-                  </p>
-                  <p className="mt-1 text-xl font-black text-app-text-main">
-                    {channelBreakdown.individual.completed}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Informes
-                  </p>
-                  <p className="mt-1 text-xl font-black text-app-text-main">
-                    {channelBreakdown.individual.reportsUnlocked}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-app-text-muted/70">
-                    Finalizacion
-                  </p>
-                  <p className="mt-1 text-xl font-black text-app-text-main">
-                    {directCompletionRate}%
-                  </p>
-                </div>
+                <MiniStat label="Iniciados" value={channelBreakdown.individual.started} />
+                <MiniStat label="Completados" value={channelBreakdown.individual.completed} />
+                <MiniStat label="Informes" value={channelBreakdown.individual.reportsUnlocked} />
+                <MiniStat label="Finalización" value={`${directCompletionRate}%`} />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 text-app-primary">
+            <div className="flex items-center justify-end gap-2 text-app-primary mt-4">
               <TrendingUp className="h-4 w-4" />
               <span className="app-label !text-[9px] opacity-80">
                 comparativa de rendimiento por canal
@@ -241,6 +177,7 @@ export function OverviewHighlights({
           </div>
         </div>
       </div>
+
     </div>
   );
 }

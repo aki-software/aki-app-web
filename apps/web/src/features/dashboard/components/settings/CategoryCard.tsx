@@ -1,5 +1,6 @@
 import { BookOpen, ChevronDown, ChevronUp, Edit2 } from "lucide-react";
-import { CategoryData } from "../../api/dashboard";
+import type { CategoryData } from "../../api/dashboard";
+import { Button } from "../../../../components/atoms/Button";
 
 interface CategoryCardProps {
   category: CategoryData;
@@ -14,22 +15,26 @@ export const CategoryCard = ({ category, isExpanded, onToggleExpand, onEdit }: C
   const isLongText = category.description.length > PREVIEW_CHARS;
   
   return (
-    <div className="app-card !p-5 hover:border-app-primary/35 transition-all">
-      <div className="flex justify-between items-start gap-4">
-        <div className="flex items-start space-x-3 min-w-0">
-          <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-app-primary/20 bg-app-primary/10">
-            <BookOpen className="h-4 w-4 text-app-primary" />
+    <div className="app-card !p-6 hover:border-app-primary/35 transition-all group">
+      <div className="flex justify-between items-start gap-6">
+        <div className="flex items-start space-x-4 min-w-0">
+          {/* Icono de Categoría Lux */}
+          <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-app-primary/20 bg-app-primary/5 transition-colors group-hover:bg-app-primary/10">
+            <BookOpen className="h-5 w-5 text-app-primary" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center space-x-2">
-              <h3 className="truncate text-lg font-bold text-app-text-main">{category.title}</h3>
-              <span className="rounded border border-app-border bg-app-bg px-2 py-0.5 text-xs text-app-text-muted">
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-3">
+              <h3 className="truncate text-lg font-black tracking-tight text-app-text-main uppercase">
+                {category.title}
+              </h3>
+              <span className="rounded-lg border border-app-border bg-app-bg px-2.5 py-0.5 text-[10px] font-black tracking-widest text-app-text-muted uppercase">
                 {category.categoryId}
               </span>
             </div>
 
-            <div className="mt-2">
-              <p className="whitespace-pre-line text-sm text-app-text-muted">
+            <div className="mt-3">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-app-text-muted/80">
                 {isExpanded 
                   ? category.description 
                   : isLongText 
@@ -38,26 +43,31 @@ export const CategoryCard = ({ category, isExpanded, onToggleExpand, onEdit }: C
               </p>
 
               {isLongText && (
-                <button
+                <Button
+                  variant="outline"
                   onClick={onToggleExpand}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-app-border px-3 py-1.5 text-xs font-semibold text-app-text-main hover:text-app-primary transition-colors"
+                  className="mt-4 !py-1.5 !px-3 !text-[11px] !rounded-lg h-auto font-bold"
                 >
                   {isExpanded ? (
-                    <>Ver menos <ChevronUp className="h-4 w-4" /></>
+                    <>Ver menos <ChevronUp className="ml-1.5 h-3.5 w-3.5" /></>
                   ) : (
-                    <>Ver más <ChevronDown className="h-4 w-4" /></>
+                    <>Ver más <ChevronDown className="ml-1.5 h-3.5 w-3.5" /></>
                   )}
-                </button>
+                </Button>
               )}
             </div>
           </div>
         </div>
-        <button
+
+        {/* Botón de Acción Principal usando el Átomo */}
+        <Button
+          variant="outline"
           onClick={onEdit}
-          className="mt-1 flex shrink-0 items-center rounded-lg border border-app-border px-3 py-1.5 text-sm font-medium hover:text-app-primary transition-colors"
+          className="shrink-0 !py-2 !px-4 !rounded-xl !text-xs font-black uppercase tracking-wider group/edit"
         >
-          <Edit2 className="w-4 h-4 mr-1.5" /> Editar
-        </button>
+          <Edit2 className="w-3.5 h-3.5 mr-2 transition-transform group-hover/edit:-rotate-12" /> 
+          Editar
+        </Button>
       </div>
     </div>
   );
