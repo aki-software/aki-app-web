@@ -13,7 +13,7 @@ import {
 } from './services/admin-dashboard.service';
 import { ReportService } from './services/report.service';
 import { ReportOrchestratorService } from './services/report-orchestrator.service';
-import { QueueAdapter } from '../common/adapters/queue.adapter';
+import type { QueueAdapter } from '../common/adapters/queue.adapter';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
 import { JobNames, SendReportJobPayload } from '../common/jobs';
 import { SessionMetricsService } from './services/session-metrics.service';
@@ -40,14 +40,17 @@ export class SessionsService {
   async create(createSessionDto: CreateSessionDto): Promise<Session> {
     const session = this.sessionRepository.create(createSessionDto);
     const savedSession = await this.sessionRepository.save(session);
-    
+
     // Calcular métricas automáticamente
     try {
       await this.sessionMetricsService.calculateAndSaveMetrics(savedSession.id);
     } catch (error) {
-      this.logger.warn(`Failed to calculate metrics for session ${savedSession.id}:`, error);
+      this.logger.warn(
+        `Failed to calculate metrics for session ${savedSession.id}:`,
+        error,
+      );
     }
-    
+
     return savedSession;
   }
 
@@ -89,6 +92,15 @@ export class SessionsService {
     localReportPath?: string;
   }> {
     if (this.queueAdapter.isConfigured()) {
+      const normalizedScope = scope
+        ? {
+            role: scope.role,
+            patientId: scope.patientId,
+            therapistUserId: scope.therapistUserId,
+            institutionId: scope.institutionId ?? undefined,
+          }
+        : undefined;
+
       const payload: SendReportJobPayload = {
         attempts: 4,
         backoffMs: 60_000,
@@ -98,7 +110,7 @@ export class SessionsService {
         concurrencyLimit: 2,
         sessionId,
         targetEmail,
-        scope,
+        scope: normalizedScope,
       };
       await this.queueAdapter.enqueue(JobNames.SendReport, payload, {
         attempts: payload.attempts,
@@ -125,7 +137,9 @@ export class SessionsService {
     return await this.adminDashboardService.getAdminOverview();
   }
 
-  async getAdminActivity(limit: number = 50): Promise<DashboardStatsPayload['activity']> {
+  async getAdminActivity(
+    limit: number = 50,
+  ): Promise<DashboardStatsPayload['activity']> {
     return await this.adminDashboardService.getAdminActivity(limit);
   }
 
@@ -137,7 +151,10 @@ export class SessionsService {
 
     if (normalizedRole === 'ADMIN') {
       const adminWhere: FindOptionsWhere<Session> = {
-        paymentStatus: In([SessionPaymentStatus.PAID, SessionPaymentStatus.VOUCHER_REDEEMED]),
+        paymentStatus: In([
+          SessionPaymentStatus.PAID,
+          SessionPaymentStatus.VOUCHER_REDEEMED,
+        ]),
       };
       return sessionId ? { ...adminWhere, id: sessionId } : adminWhere;
     }
@@ -158,7 +175,10 @@ export class SessionsService {
 
     if (sessionId) {
       if (Array.isArray(scopedWhere)) {
-        return scopedWhere.map((condition) => ({ ...condition, id: sessionId }));
+        return scopedWhere.map((condition) => ({
+          ...condition,
+          id: sessionId,
+        }));
       }
       return { ...scopedWhere, id: sessionId };
     }

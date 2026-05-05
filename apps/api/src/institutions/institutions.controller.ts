@@ -20,7 +20,7 @@ import { UserRole } from '../users/entities/user.entity';
 import { InstitutionsService } from './institutions.service';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
-import { QueueAdapter } from '../common/adapters/queue.adapter';
+import type { QueueAdapter } from '../common/adapters/queue.adapter';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
 import { JobNames, SendEmailJobPayload } from '../common/jobs';
 

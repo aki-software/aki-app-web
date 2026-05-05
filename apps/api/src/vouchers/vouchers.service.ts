@@ -20,7 +20,7 @@ import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ListVouchersDto } from './dto/list-vouchers.dto';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
-import { QueueAdapter } from '../common/adapters/queue.adapter';
+import type { QueueAdapter } from '../common/adapters/queue.adapter';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
 import { JobNames, SendEmailJobPayload } from '../common/jobs';
 import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';

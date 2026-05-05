@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { MailService } from '../mail/mail.service';
-import { QueueAdapter } from '../common/adapters/queue.adapter';
+import type { QueueAdapter } from '../common/adapters/queue.adapter';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
 import { JobNames, SendEmailJobPayload } from '../common/jobs';
 
