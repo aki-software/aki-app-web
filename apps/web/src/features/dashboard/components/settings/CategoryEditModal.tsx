@@ -1,17 +1,27 @@
 import { Save, X } from "lucide-react";
 import { useState } from "react";
-import { CategoryData } from "../../api/dashboard";
-import { Button } from "../../../../components/atoms/Button";
 import { Alert } from "../../../../components/atoms/Alert";
+import { Button } from "../../../../components/atoms/Button";
 import { useEscapeKey } from "../../../../hooks/useEscapeKey";
+import { CategoryData } from "../../api/dashboard";
 interface ModalProps {
   category: CategoryData;
   onClose: () => void;
-  onSave: (id: string, form: { title: string; description: string }) => Promise<boolean>;
+  onSave: (
+    id: string,
+    form: { title: string; description: string },
+  ) => Promise<boolean>;
 }
 
-export const CategoryEditModal = ({ category, onClose, onSave }: ModalProps) => {
-  const [form, setForm] = useState({ title: category.title, description: category.description });
+export const CategoryEditModal = ({
+  category,
+  onClose,
+  onSave,
+}: ModalProps) => {
+  const [form, setForm] = useState({
+    title: category.title,
+    description: category.description,
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +37,7 @@ export const CategoryEditModal = ({ category, onClose, onSave }: ModalProps) => 
     setSaving(true);
     setError(null);
     const ok = await onSave(category.categoryId, form);
-    
+
     if (ok) {
       onClose();
     } else {
@@ -39,14 +49,13 @@ export const CategoryEditModal = ({ category, onClose, onSave }: ModalProps) => 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop con Blur Lux */}
-      <div 
-        className="absolute inset-0 bg-app-bg/80 backdrop-blur-md transition-opacity" 
-        onClick={() => !saving && onClose()} 
+      <div
+        className="absolute inset-0 bg-app-bg/80 backdrop-blur-md transition-opacity"
+        onClick={() => !saving && onClose()}
       />
-      
+
       {/* Contenedor del Modal */}
       <div className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-[2rem] border border-app-border bg-app-surface shadow-[0_32px_64px_-12px_rgba(0,0,0,0.4)] max-h-[90vh] animate-in zoom-in-95 duration-200">
-        
         {/* Header */}
         <div className="flex items-start justify-between border-b border-app-border bg-app-surface/95 px-8 py-6 backdrop-blur">
           <div>
@@ -60,9 +69,11 @@ export const CategoryEditModal = ({ category, onClose, onSave }: ModalProps) => 
               {category.title}
             </h3>
           </div>
-          <button 
-            onClick={onClose} 
-            disabled={saving} 
+          <button
+            onClick={onClose}
+            disabled={saving}
+            aria-label="Cerrar modal"
+            title="Cerrar modal"
             className="rounded-full p-2 text-app-text-muted hover:bg-app-bg hover:text-app-text-main transition-colors disabled:opacity-30"
           >
             <X className="h-5 w-5" />
@@ -72,9 +83,9 @@ export const CategoryEditModal = ({ category, onClose, onSave }: ModalProps) => 
         {/* Formulario Body */}
         <div className="flex-1 overflow-y-auto px-8 py-8 space-y-6 custom-scrollbar">
           {error && (
-            <Alert 
-              type="error" 
-              message={error} 
+            <Alert
+              type="error"
+              message={error}
               className="animate-in slide-in-from-top-2"
             />
           )}
@@ -88,7 +99,9 @@ export const CategoryEditModal = ({ category, onClose, onSave }: ModalProps) => 
               <input
                 type="text"
                 value={form.title}
-                onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, title: e.target.value }))
+                }
                 className="w-full rounded-xl border border-app-border bg-app-bg px-4 py-3 text-sm text-app-text-main outline-none focus:border-app-primary focus:ring-4 focus:ring-app-primary/10 transition-all font-bold"
                 placeholder="Ej: Naturalista"
                 autoFocus
@@ -107,7 +120,9 @@ export const CategoryEditModal = ({ category, onClose, onSave }: ModalProps) => 
               </div>
               <textarea
                 value={form.description}
-                onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, description: e.target.value }))
+                }
                 rows={12}
                 className="w-full rounded-xl border border-app-border bg-app-bg px-4 py-4 font-mono text-xs leading-relaxed text-app-text-main outline-none focus:border-app-primary focus:ring-4 focus:ring-app-primary/10 transition-all resize-none"
                 placeholder="Escribe la base científica o técnica aquí..."
@@ -118,21 +133,21 @@ export const CategoryEditModal = ({ category, onClose, onSave }: ModalProps) => 
 
         {/* Footer */}
         <div className="border-t border-app-border bg-app-surface/95 px-8 py-6 flex justify-end items-center gap-4">
-          <Button 
+          <Button
             variant="outline"
-            onClick={onClose} 
+            onClick={onClose}
             disabled={saving}
             className="border-transparent hover:bg-app-bg !text-app-text-muted hover:!text-app-text-main"
-  >
+          >
             Descartar cambios
-           </Button>
-          
-          <Button 
-            onClick={handleSubmit} 
+          </Button>
+
+          <Button
+            onClick={handleSubmit}
             isLoading={saving}
             className="!px-8 !py-3 shadow-lg shadow-app-primary/20"
           >
-            <Save className="w-4 h-4 mr-2" /> 
+            <Save className="w-4 h-4 mr-2" />
             Actualizar Dimensión
           </Button>
         </div>

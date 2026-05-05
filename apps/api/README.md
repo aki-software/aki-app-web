@@ -46,6 +46,13 @@ Configura `apps/api/.env` a partir de `apps/api/.env.example` y completa:
 - `SEED_INSTITUTION_USER_EMAIL`, `SEED_INSTITUTION_USER_PASSWORD`
 - `SEED_INSTITUTION_USER_NAME` (opcional)
 
+### Variables opcionales (cola BullMQ)
+
+Si no se configuran, la cola usa memoria y ejecuta los jobs en línea.
+
+- `REDIS_URL` (opcional)
+- `REDIS_HOST`, `REDIS_PORT` (opcional, alternativa a `REDIS_URL`)
+
 ### Comando unico (cross-platform)
 
 Desde la raiz del monorepo:

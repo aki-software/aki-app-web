@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
   ConflictException,
@@ -19,6 +20,9 @@ import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ListVouchersDto } from './dto/list-vouchers.dto';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
+import { QueueAdapter } from '../common/adapters/queue.adapter';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
+import { JobNames, SendEmailJobPayload } from '../common/jobs';
 import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
 import {
   Session,
@@ -93,6 +97,8 @@ export class VouchersService {
     private readonly dataSource: DataSource,
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
+    @Inject(QUEUE_ADAPTER)
+    private readonly queueAdapter: QueueAdapter,
   ) {}
 
   async create(createVoucherDto: CreateVoucherDto): Promise<{
@@ -170,11 +176,13 @@ export class VouchersService {
         'Se requiere un correo de destino para enviar el voucher',
       );
     }
-    const delivered = await this.mailService.sendVoucherCode(
-      targetEmail,
-      voucher.code,
-      voucher.assignedPatientName || undefined,
-    );
+    const delivered = this.queueAdapter.isConfigured()
+      ? await this.enqueueVoucherEmail(voucher, targetEmail)
+      : await this.mailService.sendVoucherCode(
+          targetEmail,
+          voucher.code,
+          voucher.assignedPatientName || undefined,
+        );
     if (!delivered) {
       return false;
     }
@@ -187,6 +195,39 @@ export class VouchersService {
       voucher.assignedPatientEmail = customEmail.trim();
     }
     await this.voucherRepository.save(voucher);
+    return true;
+  }
+
+  private async enqueueVoucherEmail(
+    voucher: Voucher,
+    targetEmail: string,
+  ): Promise<boolean> {
+    const payload: SendEmailJobPayload = {
+      attempts: 3,
+      backoffMs: 60_000,
+      backoffType: 'exponential',
+      timeoutMs: 20_000,
+      concurrencyKey: 'email',
+      concurrencyLimit: 10,
+      template: 'voucher-code',
+      payload: {
+        voucherCode: voucher.code,
+        patientName: voucher.assignedPatientName || undefined,
+      },
+      meta: {
+        to: targetEmail,
+        subject: '🔑 Tu código de acceso para A.kit',
+      },
+    };
+
+    await this.queueAdapter.enqueue(JobNames.SendEmail, payload, {
+      attempts: payload.attempts,
+      backoffMs: payload.backoffMs,
+      backoffType: payload.backoffType,
+      timeoutMs: payload.timeoutMs,
+      concurrencyKey: payload.concurrencyKey,
+      concurrencyLimit: payload.concurrencyLimit,
+    });
     return true;
   }
 

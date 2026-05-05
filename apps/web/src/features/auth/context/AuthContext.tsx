@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, type ReactNode } from 'react';
-import { loginRequest, logoutRequest, type AuthUser, type LoginCredentials } from '../api/auth';
+import { loginRequest, logoutRequest,} from '../api/auth';
 import {
   clearStoredAuth,
   getStoredToken,
@@ -8,6 +8,7 @@ import {
   setStoredUser,
 } from '../../../utils/storage';
 import { AuthContext } from './auth.context';
+import { AuthUser, LoginCredentials } from '../types/auth.types';
 
 export interface AuthContextValue {
   user: AuthUser | null;

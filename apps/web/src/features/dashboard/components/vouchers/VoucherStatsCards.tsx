@@ -1,12 +1,11 @@
 import {
-    AlertTriangle,
+   
     Layers3,
     Plus,
     Ticket,
     TrendingUp,
 } from "lucide-react";
-import type { VoucherStats } from "../api/dashboard";
-
+import { VoucherStats } from "../../api/dashboard";
 
 interface Props {
   isAdmin?: boolean;
@@ -22,7 +21,6 @@ export function VoucherStatsCards({
   showCreateForm,
   onToggleForm,
   stats,
-  periodDays,
 }: Props) {
   const redemptionRate = stats?.redemptionRate ?? 0;
   const conversionTone =

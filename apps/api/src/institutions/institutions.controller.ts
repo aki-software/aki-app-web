@@ -10,6 +10,7 @@ import {
   Param,
   Patch,
   Query,
+  Inject,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -19,6 +20,9 @@ import { UserRole } from '../users/entities/user.entity';
 import { InstitutionsService } from './institutions.service';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
+import { QueueAdapter } from '../common/adapters/queue.adapter';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
+import { JobNames, SendEmailJobPayload } from '../common/jobs';
 
 @Controller('institutions')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -27,6 +31,8 @@ export class InstitutionsController {
     private readonly institutionsService: InstitutionsService,
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
+    @Inject(QUEUE_ADAPTER)
+    private readonly queueAdapter: QueueAdapter,
   ) {}
 
   @Get()
@@ -100,14 +106,21 @@ export class InstitutionsController {
       );
 
       if (responsibleUser.passwordSetupToken) {
-        activationEmailSent = await this.mailService.sendAccountActivation(
-          responsibleUser.email,
-          responsibleUser.name,
-          this.usersService.buildPasswordSetupLink(
-            responsibleUser.passwordSetupToken,
-          ),
-          institution.name,
-        );
+        activationEmailSent = this.queueAdapter.isConfigured()
+          ? await this.enqueueActivationEmail(
+              responsibleUser.email,
+              responsibleUser.name,
+              institution.name,
+              responsibleUser,
+            )
+          : await this.mailService.sendAccountActivation(
+              responsibleUser.email,
+              responsibleUser.name,
+              this.usersService.buildPasswordSetupLink(
+                responsibleUser.passwordSetupToken,
+              ),
+              institution.name,
+            );
       }
     }
 
@@ -227,14 +240,21 @@ export class InstitutionsController {
 
     let activationEmailSent = false;
     if (responsibleUser.passwordSetupToken) {
-      activationEmailSent = await this.mailService.sendAccountActivation(
-        responsibleUser.email,
-        responsibleUser.name,
-        this.usersService.buildPasswordSetupLink(
-          responsibleUser.passwordSetupToken,
-        ),
-        institution.name,
-      );
+      activationEmailSent = this.queueAdapter.isConfigured()
+        ? await this.enqueueActivationEmail(
+            responsibleUser.email,
+            responsibleUser.name,
+            institution.name,
+            responsibleUser,
+          )
+        : await this.mailService.sendAccountActivation(
+            responsibleUser.email,
+            responsibleUser.name,
+            this.usersService.buildPasswordSetupLink(
+              responsibleUser.passwordSetupToken,
+            ),
+            institution.name,
+          );
     }
 
     return {
@@ -250,5 +270,45 @@ export class InstitutionsController {
         : false,
       activationEmailSent,
     };
+  }
+
+  private async enqueueActivationEmail(
+    email: string,
+    name: string,
+    institutionName: string | null,
+    user: { passwordSetupToken?: string | null },
+  ): Promise<boolean> {
+    if (!user.passwordSetupToken) return false;
+
+    const payload: SendEmailJobPayload = {
+      attempts: 3,
+      backoffMs: 60_000,
+      backoffType: 'exponential',
+      timeoutMs: 20_000,
+      concurrencyKey: 'email',
+      concurrencyLimit: 10,
+      template: 'account-activation',
+      payload: {
+        name,
+        activationLink: this.usersService.buildPasswordSetupLink(
+          user.passwordSetupToken,
+        ),
+        institutionName,
+      },
+      meta: {
+        to: email,
+        subject: 'Activá tu cuenta de A.kit',
+      },
+    };
+
+    await this.queueAdapter.enqueue(JobNames.SendEmail, payload, {
+      attempts: payload.attempts,
+      backoffMs: payload.backoffMs,
+      backoffType: payload.backoffType,
+      timeoutMs: payload.timeoutMs,
+      concurrencyKey: payload.concurrencyKey,
+      concurrencyLimit: payload.concurrencyLimit,
+    });
+    return true;
   }
 }

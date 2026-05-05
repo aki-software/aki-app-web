@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Download, ChevronDown } from 'lucide-react';
 import { API_URL } from '../../../../config/app-config';
 import { getStoredToken } from '../../../../utils/storage';
-import type { SessionData } from "../../api/sessions.api";
+
 
 interface SessionMetrics {
   id: number;
@@ -42,7 +42,6 @@ interface VoucherSessionsTableProps {
 }
 
 export function VoucherSessionsTable({
-  voucherId,
   sessions,
   loading,
 }: VoucherSessionsTableProps) {
@@ -214,7 +213,9 @@ export function VoucherSessionsTable({
                         </p>
                         <p>
                           <strong>Velocidad Promedio:</strong>{' '}
-                          {(session.metrics?.avgTimeBetweenSwipesMs / 1000).toFixed(2)}s
+                          {session.metrics?.avgTimeBetweenSwipesMs != null
+                            ? (session.metrics.avgTimeBetweenSwipesMs / 1000).toFixed(2) + 's'
+                            : 'N/A'}
                         </p>
                       </div>
                     </td>

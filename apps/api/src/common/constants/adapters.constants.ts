@@ -1,0 +1,4 @@
+export const QUEUE_ADAPTER = 'QUEUE_ADAPTER';
+export const MAIL_ADAPTER = 'MAIL_ADAPTER';
+export const PDF_GENERATOR = 'PDF_GENERATOR';
+export const STORAGE_ADAPTER = 'STORAGE_ADAPTER';

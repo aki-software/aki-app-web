@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Inject,
   Param,
   Post,
   Query,
@@ -14,12 +15,17 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { MailService } from '../mail/mail.service';
+import { QueueAdapter } from '../common/adapters/queue.adapter';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
+import { JobNames, SendEmailJobPayload } from '../common/jobs';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
+    @Inject(QUEUE_ADAPTER)
+    private readonly queueAdapter: QueueAdapter,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -66,12 +72,14 @@ export class UsersController {
     const activationEmailSent =
       !!user.passwordSetupToken &&
       !!user.email &&
-      (await this.mailService.sendAccountActivation(
-        user.email,
-        user.name,
-        this.usersService.buildPasswordSetupLink(user.passwordSetupToken),
-        null,
-      ));
+      (this.queueAdapter.isConfigured()
+        ? await this.enqueueActivationEmail(user.email, user.name, null, user)
+        : await this.mailService.sendAccountActivation(
+            user.email,
+            user.name,
+            this.usersService.buildPasswordSetupLink(user.passwordSetupToken),
+            null,
+          ));
 
     return {
       id: user.id,
@@ -114,12 +122,19 @@ export class UsersController {
       const user = await this.usersService.refreshPasswordSetupToken(id);
       const activationEmailSent =
         !!user.passwordSetupToken &&
-        (await this.mailService.sendAccountActivation(
-          user.email,
-          user.name,
-          this.usersService.buildPasswordSetupLink(user.passwordSetupToken),
-          user.institution?.name ?? null,
-        ));
+        (this.queueAdapter.isConfigured()
+          ? await this.enqueueActivationEmail(
+              user.email,
+              user.name,
+              user.institution?.name ?? null,
+              user,
+            )
+          : await this.mailService.sendAccountActivation(
+              user.email,
+              user.name,
+              this.usersService.buildPasswordSetupLink(user.passwordSetupToken),
+              user.institution?.name ?? null,
+            ));
 
       return {
         id: user.id,
@@ -132,5 +147,45 @@ export class UsersController {
           : 'No se pudo reenviar la invitación',
       );
     }
+  }
+
+  private async enqueueActivationEmail(
+    email: string,
+    name: string,
+    institutionName: string | null,
+    user: { passwordSetupToken?: string | null },
+  ): Promise<boolean> {
+    if (!user.passwordSetupToken) return false;
+
+    const payload: SendEmailJobPayload = {
+      attempts: 3,
+      backoffMs: 60_000,
+      backoffType: 'exponential',
+      timeoutMs: 20_000,
+      concurrencyKey: 'email',
+      concurrencyLimit: 10,
+      template: 'account-activation',
+      payload: {
+        name,
+        activationLink: this.usersService.buildPasswordSetupLink(
+          user.passwordSetupToken,
+        ),
+        institutionName,
+      },
+      meta: {
+        to: email,
+        subject: 'Activá tu cuenta de A.kit',
+      },
+    };
+
+    await this.queueAdapter.enqueue(JobNames.SendEmail, payload, {
+      attempts: payload.attempts,
+      backoffMs: payload.backoffMs,
+      backoffType: payload.backoffType,
+      timeoutMs: payload.timeoutMs,
+      concurrencyKey: payload.concurrencyKey,
+      concurrencyLimit: payload.concurrencyLimit,
+    });
+    return true;
   }
 }

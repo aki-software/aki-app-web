@@ -222,8 +222,7 @@ export class InstitutionsService {
 
     for (const s of periodSessions) {
       const ch =
-        s.voucherId ||
-        s.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
+        s.voucherId || s.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
           ? 'voucher'
           : 'individual';
       channelBreakdown[ch].started++;
@@ -275,4 +274,3 @@ export class InstitutionsService {
     };
   }
 }
-

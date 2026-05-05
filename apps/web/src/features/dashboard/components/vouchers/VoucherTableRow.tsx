@@ -312,6 +312,21 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
                   <Eye className="h-3.5 w-3.5" />
                 </button>
               )}
+              {canRevoke && (
+                <button
+                  onClick={handleRevoke}
+                  disabled={actionBusy}
+                  aria-label="Revocar voucher"
+                  className="flex items-center justify-center p-2 rounded-lg border border-app-border bg-rose-500/5 text-rose-600 hover:bg-rose-500 hover:text-white hover:border-rose-500 shadow-sm transition-all disabled:opacity-40"
+                  title="Revocar voucher"
+                >
+                  {revoking ? (
+                    <div className="h-4 w-4 border-2 border-white/50 border-t-white animate-spin rounded-full" />
+                  ) : (
+                    <X className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
               
             </>
           ) : (

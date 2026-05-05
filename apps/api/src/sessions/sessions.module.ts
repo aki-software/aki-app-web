@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoriesModule } from '../categories/categories.module';
 import { VocationalCategory } from '../categories/entities/vocational-category.entity';
@@ -32,7 +32,7 @@ import { SessionReportService } from './services/session-report.service';
     CategoriesModule,
     MailModule,
     UsersModule,
-    CommonModule,
+    forwardRef(() => CommonModule),
     VouchersModule,
   ],
   controllers: [SessionsController],
@@ -47,4 +47,3 @@ import { SessionReportService } from './services/session-report.service';
   exports: [SessionsService, SessionMetricsService, SessionReportService],
 })
 export class SessionsModule {}
-

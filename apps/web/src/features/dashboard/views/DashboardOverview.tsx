@@ -98,10 +98,9 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
               <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
                 <StatCard label="Total del periodo" value={sessionsSummary.totalStarted} />
                 <StatCard label="Promedio diario" value={sessionsSummary.dailyAverage} />
-                <StatCard 
-                  label="Mejor día" 
-                  value={sessionsSummary.peakDay.date} 
-                  subtext={`${sessionsSummary.peakDay.count} iniciadas`} 
+                <StatCard
+                  label="Mejor día"
+                  value={`${sessionsSummary.peakDay.date} (${sessionsSummary.peakDay.count} iniciadas)`}
                 />
               </div>
             )}

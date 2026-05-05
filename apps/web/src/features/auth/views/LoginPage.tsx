@@ -20,7 +20,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [darkMode, setDarkMode] = useState(true); 
+  const [darkMode] = useState(true); 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/dashboard";
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {

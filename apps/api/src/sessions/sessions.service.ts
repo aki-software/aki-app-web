@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository, In } from 'typeorm';
 import { MailService } from '../mail/mail.service';
@@ -13,6 +13,9 @@ import {
 } from './services/admin-dashboard.service';
 import { ReportService } from './services/report.service';
 import { ReportOrchestratorService } from './services/report-orchestrator.service';
+import { QueueAdapter } from '../common/adapters/queue.adapter';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
+import { JobNames, SendReportJobPayload } from '../common/jobs';
 import { SessionMetricsService } from './services/session-metrics.service';
 import { SessionScope } from './types/session-scope.type';
 
@@ -30,6 +33,8 @@ export class SessionsService {
     private readonly adminDashboardService: AdminDashboardService,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
+    @Inject(QUEUE_ADAPTER)
+    private readonly queueAdapter: QueueAdapter,
   ) {}
 
   async create(createSessionDto: CreateSessionDto): Promise<Session> {
@@ -83,7 +88,37 @@ export class SessionsService {
     message: string;
     localReportPath?: string;
   }> {
-    return await this.reportOrchestratorService.sendReport(sessionId, targetEmail, scope);
+    if (this.queueAdapter.isConfigured()) {
+      const payload: SendReportJobPayload = {
+        attempts: 4,
+        backoffMs: 60_000,
+        backoffType: 'exponential',
+        timeoutMs: 90_000,
+        concurrencyKey: 'report',
+        concurrencyLimit: 2,
+        sessionId,
+        targetEmail,
+        scope,
+      };
+      await this.queueAdapter.enqueue(JobNames.SendReport, payload, {
+        attempts: payload.attempts,
+        backoffMs: payload.backoffMs,
+        backoffType: payload.backoffType,
+        timeoutMs: payload.timeoutMs,
+        concurrencyKey: payload.concurrencyKey,
+        concurrencyLimit: payload.concurrencyLimit,
+      });
+      return {
+        success: true,
+        message: `Email encolado hacia ${targetEmail}`,
+      };
+    }
+
+    return await this.reportOrchestratorService.sendReport(
+      sessionId,
+      targetEmail,
+      scope,
+    );
   }
 
   async getAdminOverview(): Promise<DashboardStatsPayload> {
