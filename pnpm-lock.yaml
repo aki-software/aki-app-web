@@ -173,7 +173,7 @@ importers:
   apps/web:
     dependencies:
       '@akit/contracts':
-        specifier: workspace:*
+        specifier: file:../../packages/contracts
         version: link:../../packages/contracts
       '@tailwindcss/vite':
         specifier: ^4.2.1
