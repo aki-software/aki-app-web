@@ -203,6 +203,7 @@ export class VouchersService {
     targetEmail: string,
   ): Promise<boolean> {
     const payload: SendEmailJobPayload = {
+      jobId: `voucher-email-${voucher.id}-${Date.now()}`,
       attempts: 3,
       backoffMs: 60_000,
       backoffType: 'exponential',
@@ -217,6 +218,7 @@ export class VouchersService {
       meta: {
         to: targetEmail,
         subject: '🔑 Tu código de acceso para A.kit',
+        voucherId: voucher.id,
       },
     };
 

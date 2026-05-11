@@ -9,6 +9,7 @@ import { Institution } from '../institutions/entities/institution.entity';
 @Injectable()
 export class UsersService {
   private static readonly PASSWORD_SETUP_TTL_HOURS = 72;
+  private static readonly PASSWORD_RESET_TTL_HOURS = 2;
 
   constructor(
     private readonly configService: ConfigService,
@@ -44,6 +45,8 @@ export class UsersService {
       passwordSetupToken: this.generatePasswordSetupToken(),
       passwordSetupExpiresAt: this.buildPasswordSetupExpiry(),
       passwordSetAt: null,
+      passwordResetToken: null,
+      passwordResetExpiresAt: null,
       institutionId: institutionId ?? null,
     });
     const savedUser = await this.userRepository.save(user);
@@ -191,6 +194,49 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
+  async requestPasswordReset(email: string): Promise<User | null> {
+    const normalizedEmail = email.trim();
+    const user = await this.findByEmail(normalizedEmail);
+    if (!user) {
+      return null;
+    }
+
+    if (!this.hasPasswordConfigured(user)) {
+      return null;
+    }
+
+    user.passwordResetToken = this.generatePasswordResetToken();
+    user.passwordResetExpiresAt = this.buildPasswordResetExpiry();
+    return await this.userRepository.save(user);
+  }
+
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    return await this.userRepository.findOne({
+      where: { passwordResetToken: token },
+      relations: ['institution'],
+    });
+  }
+
+  async resetPassword(token: string, plainPassword: string): Promise<User> {
+    const user = await this.findByPasswordResetToken(token);
+    if (!user) {
+      throw new Error('Token de recuperación inválido');
+    }
+
+    if (
+      !user.passwordResetExpiresAt ||
+      user.passwordResetExpiresAt.getTime() < Date.now()
+    ) {
+      throw new Error('Token de recuperación expirado');
+    }
+
+    user.passwordHash = this.hashPassword(plainPassword);
+    user.passwordSetAt = new Date();
+    user.passwordResetToken = null;
+    user.passwordResetExpiresAt = null;
+    return await this.userRepository.save(user);
+  }
+
   async refreshPasswordSetupToken(userId: string): Promise<User> {
     const user = await this.findOneWithInstitution(userId);
     if (!user) {
@@ -230,6 +276,12 @@ export class UsersService {
     return `${baseUrl.replace(/\/$/, '')}/setup-password?token=${token}`;
   }
 
+  buildPasswordResetLink(token: string): string {
+    const baseUrl =
+      this.configService.get<string>('WEB_APP_URL') || 'http://localhost:5173';
+    return `${baseUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
+  }
+
   private normalizeRole(role?: UserRole | string): UserRole {
     const normalized = role?.toString().trim().toUpperCase();
     if (normalized === UserRole.ADMIN) {
@@ -248,10 +300,22 @@ export class UsersService {
     return randomBytes(24).toString('base64url');
   }
 
+  private generatePasswordResetToken(): string {
+    return randomBytes(24).toString('base64url');
+  }
+
   private buildPasswordSetupExpiry(): Date {
     const expiresAt = new Date();
     expiresAt.setHours(
       expiresAt.getHours() + UsersService.PASSWORD_SETUP_TTL_HOURS,
+    );
+    return expiresAt;
+  }
+
+  private buildPasswordResetExpiry(): Date {
+    const expiresAt = new Date();
+    expiresAt.setHours(
+      expiresAt.getHours() + UsersService.PASSWORD_RESET_TTL_HOURS,
     );
     return expiresAt;
   }

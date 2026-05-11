@@ -20,11 +20,10 @@ export const TechnicalDataAccordion = ({
   return (
     <div className="pt-16">
   
-      <Button
-        variant="secondary"
+      <button
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen ? "true" : "false"} 
-        className="flex h-auto w-full items-center justify-between p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-app-border bg-app-surface shadow-xl hover:shadow-2xl hover:scale-[1.005] transition-all group active:scale-[0.98]"
+        className="flex h-auto w-full items-center justify-between p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-app-border bg-app-surface text-app-text-main shadow-xl hover:shadow-2xl hover:scale-[1.005] transition-all group active:scale-[0.98] outline-none focus:ring-2 focus:ring-app-primary/20"
       >
         <div className="flex items-center gap-6">
           <div className="p-4 bg-app-bg rounded-2xl border border-app-border transition-colors group-hover:border-app-primary/30">
@@ -47,7 +46,7 @@ export const TechnicalDataAccordion = ({
         }`}>
           <ChevronDown className="h-6 w-6" />
         </div>
-      </Button>
+      </button>
 
       {/* Contenido Expandible */}
       {isOpen && (

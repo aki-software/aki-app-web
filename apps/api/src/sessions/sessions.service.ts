@@ -1,4 +1,11 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository, In } from 'typeorm';
 import { MailService } from '../mail/mail.service';
@@ -85,31 +92,46 @@ export class SessionsService {
   async sendReport(
     sessionId: string,
     targetEmail: string,
+    voucherId?: string | null,
     scope?: SessionScope,
   ): Promise<{
     success: boolean;
     message: string;
     localReportPath?: string;
   }> {
+    const session = await this.findOne(sessionId, scope);
+    const effectiveTargetEmail = this.resolveReportTargetEmail(
+      targetEmail,
+      scope,
+    );
+
+    if (!effectiveTargetEmail) {
+      throw new BadRequestException(
+        'Se requiere un correo de destino válido para enviar el informe',
+      );
+    }
+
     if (this.queueAdapter.isConfigured()) {
       const normalizedScope = scope
         ? {
             role: scope.role,
+            email: scope.email,
             patientId: scope.patientId,
             therapistUserId: scope.therapistUserId,
             institutionId: scope.institutionId ?? undefined,
           }
         : undefined;
-
       const payload: SendReportJobPayload = {
-        attempts: 4,
+        jobId: `report-${session.id}-${Date.now()}`,
+        attempts: 3,
         backoffMs: 60_000,
         backoffType: 'exponential',
         timeoutMs: 90_000,
         concurrencyKey: 'report',
         concurrencyLimit: 2,
-        sessionId,
-        targetEmail,
+        sessionId: session.id,
+        voucherId: voucherId ?? null,
+        targetEmail: effectiveTargetEmail,
         scope: normalizedScope,
       };
       await this.queueAdapter.enqueue(JobNames.SendReport, payload, {
@@ -122,19 +144,48 @@ export class SessionsService {
       });
       return {
         success: true,
-        message: `Email encolado hacia ${targetEmail}`,
+        message: `Email encolado hacia ${effectiveTargetEmail}`,
       };
     }
 
     return await this.reportOrchestratorService.sendReport(
-      sessionId,
-      targetEmail,
+      session.id,
+      effectiveTargetEmail,
+      voucherId,
       scope,
     );
   }
 
-  async getAdminOverview(): Promise<DashboardStatsPayload> {
-    return await this.adminDashboardService.getAdminOverview();
+  private resolveReportTargetEmail(
+    requestedEmail: string | null | undefined,
+    scope?: SessionScope,
+  ): string {
+    const role = scope?.role?.toUpperCase();
+    const normalizedRequested = requestedEmail?.trim() || '';
+    const normalizedScopeEmail = scope?.email?.trim() || '';
+
+    if (role === 'PATIENT') {
+      if (!normalizedScopeEmail) {
+        throw new ForbiddenException(
+          'No se pudo validar el correo del usuario autenticado',
+        );
+      }
+      if (
+        normalizedRequested &&
+        normalizedRequested.toLowerCase() !== normalizedScopeEmail.toLowerCase()
+      ) {
+        throw new ForbiddenException(
+          'No tienes permisos para enviar el informe a un correo distinto al tuyo',
+        );
+      }
+      return normalizedScopeEmail;
+    }
+
+    return normalizedRequested || normalizedScopeEmail;
+  }
+
+  async getAdminOverview(days: number = 7): Promise<DashboardStatsPayload> {
+    return await this.adminDashboardService.getAdminOverview(days);
   }
 
   async getAdminActivity(
@@ -148,6 +199,15 @@ export class SessionsService {
     sessionId?: string,
   ): FindOptionsWhere<Session> | FindOptionsWhere<Session>[] | undefined {
     const normalizedRole = scope?.role?.toUpperCase();
+    const scopedPatientId = this.isUuid(scope?.patientId)
+      ? scope?.patientId
+      : undefined;
+    const scopedTherapistUserId = this.isUuid(scope?.therapistUserId)
+      ? scope?.therapistUserId
+      : undefined;
+    const scopedInstitutionId = this.isUuid(scope?.institutionId)
+      ? scope?.institutionId
+      : undefined;
 
     if (normalizedRole === 'ADMIN') {
       const adminWhere: FindOptionsWhere<Session> = {
@@ -160,17 +220,17 @@ export class SessionsService {
     }
 
     const scopedWhere =
-      normalizedRole === 'PATIENT' && scope?.patientId
-        ? { patientId: scope.patientId }
-        : scope?.therapistUserId && scope?.institutionId
+      normalizedRole === 'PATIENT' && scopedPatientId
+        ? { patientId: scopedPatientId }
+        : scopedTherapistUserId && scopedInstitutionId
           ? [
-              { therapistUserId: scope.therapistUserId },
-              { institutionId: scope.institutionId },
+              { therapistUserId: scopedTherapistUserId },
+              { institutionId: scopedInstitutionId },
             ]
-          : scope?.therapistUserId
-            ? { therapistUserId: scope.therapistUserId }
-            : scope?.institutionId
-              ? { institutionId: scope.institutionId }
+          : scopedTherapistUserId
+            ? { therapistUserId: scopedTherapistUserId }
+            : scopedInstitutionId
+              ? { institutionId: scopedInstitutionId }
               : { id: '__forbidden__' };
 
     if (sessionId) {
@@ -183,5 +243,12 @@ export class SessionsService {
       return { ...scopedWhere, id: sessionId };
     }
     return scopedWhere;
+  }
+
+  private isUuid(value?: string | null): value is string {
+    if (!value) return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    );
   }
 }

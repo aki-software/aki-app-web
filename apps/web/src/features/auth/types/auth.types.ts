@@ -27,3 +27,10 @@ export interface ResolveSetupTokenResponse {
   };
   expiresAt: string;
 }
+
+export interface ResolveResetTokenResponse {
+  user: AuthUser & {
+    institutionName?: string | null;
+  };
+  expiresAt: string;
+}

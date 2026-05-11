@@ -14,6 +14,7 @@ import { Session, SessionPaymentStatus } from '../entities/session.entity';
 
 export type DashboardStatsPayload = {
   totalSessions: number;
+  totalHistoricalVouchers: number;
   completionRate: number;
   averageTimeSeconds: number;
   availableVouchers: number;
@@ -106,9 +107,8 @@ export class AdminDashboardService {
     private readonly categoriesService: CategoriesService,
   ) {}
 
-  async getAdminOverview(): Promise<DashboardStatsPayload> {
+  async getAdminOverview(periodDays: number = 7): Promise<DashboardStatsPayload> {
     const now = new Date();
-    const periodDays = 7;
     const periodStart = new Date(now);
     periodStart.setHours(0, 0, 0, 0);
     periodStart.setDate(periodStart.getDate() - (periodDays - 1));
@@ -119,6 +119,7 @@ export class AdminDashboardService {
     const [
       availableVouchers,
       redeemedVouchers,
+      totalHistoricalVouchers,
       issuedVouchersPeriod,
       redeemedVouchersPeriod,
       expiringSoonVouchers,
@@ -139,6 +140,7 @@ export class AdminDashboardService {
         where: { status: VoucherStatus.AVAILABLE },
       }),
       this.voucherRepository.count({ where: { status: VoucherStatus.USED } }),
+      this.voucherRepository.count(),
       this.voucherRepository.count({
         where: { createdAt: MoreThanOrEqual(periodStart) },
       }),
@@ -422,6 +424,7 @@ export class AdminDashboardService {
 
     return {
       totalSessions,
+      totalHistoricalVouchers,
       completionRate,
       averageTimeSeconds,
       availableVouchers,

@@ -159,9 +159,13 @@ export class SessionsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('admin/overview')
-  async getAdminOverview(@Req() req?: AuthenticatedRequest) {
+  async getAdminOverview(
+    @Req() req?: AuthenticatedRequest,
+    @Query('days') days?: string,
+  ) {
     this.assertAdmin(req);
-    return await this.sessionsService.getAdminOverview();
+    const parsedDays = days ? parseInt(days, 10) : 7;
+    return await this.sessionsService.getAdminOverview(parsedDays);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -218,12 +222,17 @@ export class SessionsController {
     @Body() sendReportDto: SendReportDto,
     @Req() req?: AuthenticatedRequest,
   ) {
-    return await this.sessionsService.sendReport(id, sendReportDto.email, {
-      role: req?.user?.role,
-      therapistUserId: req?.user?.userId,
-      patientId: req?.user?.userId,
-      institutionId: req?.user?.institutionId,
-    });
+    return await this.sessionsService.sendReport(
+      id,
+      sendReportDto.email,
+      null,
+      {
+        role: req?.user?.role,
+        therapistUserId: req?.user?.userId,
+        patientId: req?.user?.userId,
+        institutionId: req?.user?.institutionId,
+      },
+    );
   }
 
   private calculateDuration(start?: string, end?: string): number {

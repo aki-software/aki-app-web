@@ -9,7 +9,12 @@ import { Voucher } from '../vouchers/entities/voucher.entity';
 import { VouchersService } from '../vouchers/vouchers.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { Session } from './entities/session.entity';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
+import { JobNames } from '../common/jobs';
 import { ReportService } from './services/report.service';
+import { ReportOrchestratorService } from './services/report-orchestrator.service';
+import { AdminDashboardService } from './services/admin-dashboard.service';
+import { SessionMetricsService } from './services/session-metrics.service';
 import { SessionsService } from './sessions.service';
 
 describe('SessionsService', () => {
@@ -30,6 +35,19 @@ describe('SessionsService', () => {
   const mockVoucherRepository = {
     count: jest.fn(),
     find: jest.fn(),
+  };
+
+  const mockQueueAdapter = {
+    isConfigured: jest.fn(),
+    enqueue: jest.fn(),
+  };
+
+  const mockReportOrchestratorService = {
+    sendReport: jest.fn(),
+  };
+
+  const mockSessionMetricsService = {
+    calculateAndSaveMetrics: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -65,6 +83,22 @@ describe('SessionsService', () => {
           useValue: { buildReportData: jest.fn() },
         },
         {
+          provide: AdminDashboardService,
+          useValue: {},
+        },
+        {
+          provide: ReportOrchestratorService,
+          useValue: mockReportOrchestratorService,
+        },
+        {
+          provide: SessionMetricsService,
+          useValue: mockSessionMetricsService,
+        },
+        {
+          provide: QUEUE_ADAPTER,
+          useValue: mockQueueAdapter,
+        },
+        {
           provide: VouchersService,
           useValue: {},
         },
@@ -80,6 +114,9 @@ describe('SessionsService', () => {
 
   describe('create', () => {
     it('should successfully insert a session', async () => {
+      mockSessionMetricsService.calculateAndSaveMetrics.mockResolvedValueOnce(
+        undefined,
+      );
       const createSessionDto: CreateSessionDto = {
         patientName: 'Test Patient',
         sessionDate: new Date('2026-03-26T12:00:00.000Z'),
@@ -100,6 +137,64 @@ describe('SessionsService', () => {
         createSessionDto,
       );
       expect(mockSessionRepository.save).toHaveBeenCalledTimes(1);
+      expect(
+        mockSessionMetricsService.calculateAndSaveMetrics,
+      ).toHaveBeenCalledWith('uuid-123');
+    });
+  });
+
+  describe('sendReport', () => {
+    beforeEach(() => {
+      mockQueueAdapter.enqueue.mockReset();
+      mockQueueAdapter.isConfigured.mockReset();
+      mockReportOrchestratorService.sendReport.mockReset();
+    });
+
+    it('enqueues report when queue is configured', async () => {
+      mockQueueAdapter.isConfigured.mockReturnValue(true);
+      mockQueueAdapter.enqueue.mockResolvedValueOnce(undefined);
+
+      const result = await service.sendReport(
+        'session-1',
+        'test@example.com',
+        null,
+        { role: 'ADMIN' },
+      );
+
+      expect(mockQueueAdapter.enqueue).toHaveBeenCalledWith(
+        JobNames.SendReport,
+        expect.objectContaining({
+          sessionId: 'session-1',
+          targetEmail: 'test@example.com',
+        }),
+        expect.objectContaining({
+          attempts: 3,
+          backoffMs: 60_000,
+          backoffType: 'exponential',
+        }),
+      );
+      expect(result).toEqual({
+        success: true,
+        message: 'Email encolado hacia test@example.com',
+      });
+    });
+
+    it('dispatches report inline when queue is not configured', async () => {
+      mockQueueAdapter.isConfigured.mockReturnValue(false);
+      mockReportOrchestratorService.sendReport.mockResolvedValueOnce({
+        success: true,
+        message: 'ok',
+      });
+
+      const result = await service.sendReport('session-2', 'a@example.com');
+
+      expect(mockReportOrchestratorService.sendReport).toHaveBeenCalledWith(
+        'session-2',
+        'a@example.com',
+        undefined,
+        undefined,
+      );
+      expect(result).toEqual({ success: true, message: 'ok' });
     });
   });
 

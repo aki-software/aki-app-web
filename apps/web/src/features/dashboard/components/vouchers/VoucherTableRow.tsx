@@ -37,7 +37,7 @@ function statusLabel(status: string) {
 function statusClasses(status: string) {
   switch (status) {
     case "AVAILABLE":
-      return "text-rose-700 dark:text-rose-300 border-rose-500/40 bg-rose-200/60 dark:bg-rose-500/10 shadow-rose-500/10";
+      return "text-emerald-700 dark:text-emerald-300 border-emerald-500/40 bg-emerald-200/60 dark:bg-emerald-500/10 shadow-emerald-500/10";
     case "SENT":
       return "text-amber-700 dark:text-amber-300 border-amber-500/40 bg-amber-200/60 dark:bg-amber-500/10 shadow-amber-500/10";
     case "USED":
@@ -60,6 +60,11 @@ function formatDate(value: string | number | Date | null) {
     month: "2-digit",
     year: "numeric",
   }).format(date);
+}
+
+function formatVoucherCode(code: string) {
+  if (!code) return "";
+  return code.match(/.{1,4}/g)?.join("-") || "";
 }
 
 interface Props {
@@ -158,10 +163,10 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
       <td className="px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="rounded-lg bg-app-text-main p-2.5 border border-app-text-main shadow-lg group-hover:scale-105 transition-transform">
-            <Ticket className="h-4 w-4 text-app-surface" />
+            <Ticket className="h-4 w-4 text-app-bg" />
           </div>
           <span className="font-mono text-lg font-black text-app-text-main tracking-tight group-hover:text-app-primary transition-colors leading-none">
-            {voucher.code}
+            {formatVoucherCode(voucher.code)}
           </span>
         </div>
       </td>

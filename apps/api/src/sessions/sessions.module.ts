@@ -18,6 +18,7 @@ import { ReportOrchestratorService } from './services/report-orchestrator.servic
 import { ReportService } from './services/report.service';
 import { SessionMetricsService } from './services/session-metrics.service';
 import { SessionReportService } from './services/session-report.service';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SessionReportService } from './services/session-report.service';
     ReportOrchestratorService,
     SessionMetricsService,
     SessionReportService,
+    RateLimitGuard,
   ],
   exports: [SessionsService, SessionMetricsService, SessionReportService],
 })

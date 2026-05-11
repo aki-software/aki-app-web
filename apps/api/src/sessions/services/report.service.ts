@@ -50,7 +50,7 @@ export class ReportService {
     private readonly tresAreasService: TresAreasService,
   ) {}
 
-  async buildReportData(session: Session): Promise<ReportData> {
+  async buildReportData(session: Session, email?: string): Promise<ReportData> {
     const categories = await this.categoriesRepository.find();
     const categoriesById = new Map(
       categories.map((category) => [
@@ -63,43 +63,124 @@ export class ReportService {
       .sort((a, b) => b.percentage - a.percentage)
       .slice(0, 3);
 
-    const formattedResults: CategoryResult[] = topResults.map((res) => {
-      const normalizedCategoryId = this.normalizeCategoryId(res.categoryId);
-      const catInfo = categoriesById.get(normalizedCategoryId);
-      const description = catInfo
-        ? catInfo.description
-        : res.materialSnippet || 'Informacion no disponible.';
+    const strengths: string[] = [];
 
-      const parsedBlocks = this.parseCategoryDescription(description);
+    const formattedResults: CategoryResult[] = (session.results || [])
+      .sort((a, b) => b.percentage - a.percentage)
+      .slice(0, 3)
+      .map((res) => {
+        const normalizedCategoryId = this.normalizeCategoryId(res.categoryId);
+        const catInfo = categoriesById.get(normalizedCategoryId);
+        const description = catInfo
+          ? catInfo.description
+          : res.materialSnippet || 'Información no disponible.';
 
-      const uniqueCareers = Array.from(
-        new Set(
-          (res.suggestedCareers ?? [])
-            .map((career) => String(career).trim())
-            .filter(Boolean),
-        ),
-      );
+        const parsedBlocks = this.parseCategoryDescription(description);
 
-      return {
-        title: catInfo ? catInfo.title : normalizedCategoryId,
-        percentage: this.normalizePercentage(res.percentage),
-        description,
-        parsedBlocks,
-        suggestedCareers: uniqueCareers,
-        materialSnippet: res.materialSnippet,
-      };
-    });
+        // Extraer fortalezas de las competencias importantes
+        parsedBlocks.forEach((block) => {
+          if (
+            block.subtitle?.toLowerCase().includes('competencias') &&
+            block.content
+          ) {
+            // Dividir por puntos, comas o guiones para sacar frases cortas
+            const skills = block.content
+              .split(/[.;•-]/)
+              .map((s) => s.trim())
+              .filter((s) => s.length > 5 && s.length < 50);
+            strengths.push(...skills);
+          }
+        });
+
+        const uniqueCareers = Array.from(
+          new Set(
+            (res.suggestedCareers ?? [])
+              .map((career) => String(career).trim())
+              .filter(Boolean),
+          ),
+        );
+
+        return {
+          title: catInfo ? catInfo.title : normalizedCategoryId,
+          percentage: this.normalizePercentage(res.percentage),
+          description,
+          parsedBlocks,
+          suggestedCareers: uniqueCareers,
+          materialSnippet: res.materialSnippet,
+        };
+      });
 
     const summary = this.buildReportSummary(formattedResults);
-    const tripletInsight = await this.buildTripletInsight(topResults, categoriesById);
+    const tripletInsight = await this.buildTripletInsight(
+      topResults,
+      categoriesById,
+    );
+
+    // Calcular porcentajes Holland (RIASEC)
+    const hollandPercentages = this.calculateHollandPercentages(
+      session.results || [],
+    );
+
+    // Clean patient name if it contains email suffix
+    const cleanPatientName =
+      session.patientName?.split('(')[0]?.trim() || session.patientName;
 
     return {
-      patientName: session.patientName,
+      patientName: cleanPatientName,
+      patientEmail: email,
       hollandCode: session.hollandCode ?? undefined,
+      hollandPercentages,
       topResults: formattedResults,
       summary,
       tripletInsight,
+      strengths: Array.from(new Set(strengths)).slice(0, 6),
     };
+  }
+
+  private calculateHollandPercentages(results: any[]): Record<string, number> {
+    const scores: Record<string, number[]> = {
+      R: [], // MECH, PHYS, IND, NAT
+      I: [], // SCI
+      A: [], // ART, HUM
+      S: [], // SERV, PROT
+      E: [], // LEAD, SAL
+      C: [], // BUS
+    };
+
+    const mapping: Record<string, string> = {
+      MECH: 'R',
+      PHYS: 'R',
+      IND: 'R',
+      NAT: 'R',
+      SCI: 'I',
+      ART: 'A',
+      HUM: 'A',
+      SERV: 'S',
+      PROT: 'S',
+      LEAD: 'E',
+      SAL: 'E',
+      BUS: 'C',
+    };
+
+    results.forEach((res) => {
+      const type = mapping[res.categoryId.toUpperCase()];
+      if (type) {
+        scores[type].push(res.percentage);
+      }
+    });
+
+    const finalPercentages: Record<string, number> = {};
+    Object.keys(scores).forEach((type) => {
+      const typeScores = scores[type];
+      if (typeScores.length > 0) {
+        const avg = typeScores.reduce((a, b) => a + b, 0) / typeScores.length;
+        finalPercentages[type] = Math.round(avg);
+      } else {
+        finalPercentages[type] = 0;
+      }
+    });
+
+    return finalPercentages;
   }
 
   private normalizeCategoryId(value: string): string {
@@ -261,7 +342,9 @@ export class ReportService {
     };
   }
 
-  private buildReportSummary(formattedResults: CategoryResult[]): ReportSummary {
+  private buildReportSummary(
+    formattedResults: CategoryResult[],
+  ): ReportSummary {
     const primary = formattedResults[0];
     const rankedAreas = formattedResults.map((result) => ({
       title: result.title,

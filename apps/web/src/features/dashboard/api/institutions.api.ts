@@ -120,6 +120,11 @@ export type InstitutionOverviewResponse = {
     reportUnlockedAt: string | null;
     resultsCount: number;
   }>;
+  resultsDistribution: Array<{
+    categoryId: string;
+    name: string;
+    count: number;
+  }>;
 };
 
 export async function fetchInstitutions(): Promise<InstitutionOption[]> {

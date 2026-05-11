@@ -281,6 +281,7 @@ export class InstitutionsController {
     if (!user.passwordSetupToken) return false;
 
     const payload: SendEmailJobPayload = {
+      jobId: `activation-email-${email}-${Date.now()}`,
       attempts: 3,
       backoffMs: 60_000,
       backoffType: 'exponential',

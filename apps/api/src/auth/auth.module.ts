@@ -7,10 +7,13 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './roles.guard';
 import { UsersModule } from '../users/users.module';
+import { MailModule } from '../mail/mail.module';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 
 @Module({
   imports: [
     UsersModule,
+    MailModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -25,7 +28,7 @@ import { UsersModule } from '../users/users.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RolesGuard],
+  providers: [AuthService, JwtStrategy, RolesGuard, RateLimitGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

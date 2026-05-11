@@ -49,6 +49,21 @@ export class User {
   passwordSetAt: Date | null;
 
   @Column({
+    name: 'password_reset_token',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  passwordResetToken: string | null;
+
+  @Column({
+    name: 'password_reset_expires_at',
+    type: 'timestamp',
+    nullable: true,
+  })
+  passwordResetExpiresAt: Date | null;
+
+  @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.THERAPIST,

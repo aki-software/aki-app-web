@@ -16,7 +16,15 @@ export const SessionDetailHeader = ({
   sessionId,
   onBack,
   onDownloadPdf,
-}: SessionDetailHeaderProps) => {
+  patientEmail,
+}: SessionDetailHeaderProps & { patientEmail?: string }) => {
+  const hasEmailInName = patientName.includes('(') && patientName.includes('@');
+  const nameParts = patientName.split('(');
+  const displayName = hasEmailInName ? nameParts[0].trim() : patientName;
+  const displayEmail = hasEmailInName 
+    ? nameParts[1].replace(')', '').trim() 
+    : patientEmail;
+
   return (
     <div className="flex flex-col gap-12 lg:flex-row lg:items-center lg:justify-between border-b border-app-border pb-16 mb-16">
       <div className="flex items-center gap-10">
@@ -33,9 +41,16 @@ export const SessionDetailHeader = ({
             <div className="h-2 w-10 bg-app-primary rounded-full"></div>
             <span className="app-label">DETALLE DEL TEST</span>
           </div>
-          <h1 className="text-5xl font-black tracking-tighter text-app-text-main leading-none">
-            {patientName}
-          </h1>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-5xl font-black tracking-tighter text-app-text-main leading-none uppercase">
+              {displayName}
+            </h1>
+            {displayEmail && (
+              <span className="text-app-text-muted font-medium tracking-wide mt-1 lowercase">
+                {displayEmail}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -44,14 +59,13 @@ export const SessionDetailHeader = ({
           <span className="app-label mb-3 opacity-40">CÓDIGO HOLLAND</span>
           <span className="app-value !text-4xl">{hollandCode}</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
           <Button 
-            variant="outline" 
-            className="h-12 !rounded-2xl hover:border-green-500 hover:text-green-500" 
+            variant="outline"
             onClick={onDownloadPdf}
             title="Descargar reporte en PDF"
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4" />
             <span className="hidden sm:inline">Descargar PDF</span>
           </Button>
           <SessionReportButton sessionId={sessionId} />

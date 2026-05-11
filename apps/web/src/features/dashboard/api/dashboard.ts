@@ -7,9 +7,12 @@ export * from "./sessions.api";
 export * from "./users.api";
 export * from "./vouchers.api";
 
-export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
+export async function fetchDashboardStats(days?: number): Promise<DashboardStatsResponse> {
   try {
-    const response = await fetch(`${API_URL}/sessions/admin/overview`, {
+    const url = days 
+      ? `${API_URL}/sessions/admin/overview?days=${days}`
+      : `${API_URL}/sessions/admin/overview`;
+    const response = await fetch(url, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) throw new Error("Failed to fetch admin overview");
@@ -17,6 +20,7 @@ export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
 
     return {
       totalSessions: Number(data.totalSessions ?? 0),
+      totalHistoricalVouchers: Number(data.totalHistoricalVouchers ?? 0),
       completionRate: Number(data.completionRate ?? 0),
       averageTimeSeconds: Number(data.averageTimeSeconds ?? 0),
       availableVouchers: Number(data.availableVouchers ?? 0),
@@ -44,6 +48,7 @@ export async function fetchDashboardStats(): Promise<DashboardStatsResponse> {
     console.error("Admin overview unavailable, returning zeroes.", error);
     return {
       totalSessions: 0,
+      totalHistoricalVouchers: 0,
       completionRate: 0,
       averageTimeSeconds: 0,
       availableVouchers: 0,

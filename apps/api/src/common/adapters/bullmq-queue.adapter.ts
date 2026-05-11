@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
 import { QueueAdapter, QueueJobOptions } from './queue.adapter';
+import { JobNames } from '../jobs/job-names';
 import { InMemoryQueueAdapter } from './in-memory-queue.adapter';
 
 type RedisConnectionConfig =
@@ -46,7 +47,8 @@ export class BullMQQueueAdapter implements QueueAdapter {
       return;
     }
 
-    await this.queue.add(jobName, payload, this.mapJobOptions(options));
+    const resolvedOptions = this.applyDefaults(jobName, options);
+    await this.queue.add(jobName, payload, this.mapJobOptions(resolvedOptions));
   }
 
   private getRedisConnection(): RedisConnectionConfig {
@@ -127,5 +129,26 @@ export class BullMQQueueAdapter implements QueueAdapter {
     }
 
     return jobOptions;
+  }
+
+  private applyDefaults(
+    jobName: string,
+    options?: QueueJobOptions,
+  ): QueueJobOptions | undefined {
+    const shouldDefault =
+      jobName === JobNames.SendEmail ||
+      jobName === JobNames.SendReport ||
+      jobName === JobNames.GeneratePdf;
+
+    if (!shouldDefault) {
+      return options;
+    }
+
+    return {
+      ...options,
+      attempts: options?.attempts ?? 3,
+      backoffMs: options?.backoffMs ?? 60_000,
+      backoffType: options?.backoffType ?? 'exponential',
+    };
   }
 }

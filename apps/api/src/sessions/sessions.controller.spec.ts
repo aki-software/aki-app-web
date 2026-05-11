@@ -64,6 +64,7 @@ describe('SessionsController', () => {
       expect(mockSessionsService.sendReport).toHaveBeenCalledWith(
         'session-1',
         'patient@test.com',
+        undefined,
         {
           role: 'THERAPIST',
           therapistUserId: 'therapist-1',

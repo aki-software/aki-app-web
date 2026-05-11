@@ -1,5 +1,6 @@
 export interface DashboardStatsResponse {
   totalSessions: number;
+  totalHistoricalVouchers: number;
   completionRate: number;
   averageTimeSeconds: number;
   availableVouchers: number;

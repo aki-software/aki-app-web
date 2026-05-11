@@ -42,6 +42,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@akit/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       '@aws-sdk/client-s3':
         specifier: ^3.1014.0
         version: 3.1014.0
@@ -175,6 +178,9 @@ importers:
       '@akit/contracts':
         specifier: file:../../packages/contracts
         version: link:../../packages/contracts
+      '@akit/design-tokens':
+        specifier: file:../../packages/design-tokens
+        version: link:../../packages/design-tokens
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.1(vite@6.4.2(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))
@@ -255,6 +261,12 @@ importers:
       zod-to-json-schema:
         specifier: ^3.24.6
         version: 3.25.2(zod@3.25.76)
+
+  packages/design-tokens:
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
 
 packages:
 

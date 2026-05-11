@@ -33,8 +33,8 @@ export const DASHBOARD_UI_TEXTS = {
   },
   widgets: {
     sessions: {
-      title: "Sesiones iniciadas por día",
-      description: "Cantidad diaria de sesiones iniciadas en la plataforma durante",
+      title: "Volumen de Evaluaciones Diarias",
+      description: "Tráfico y uso de la plataforma (evaluaciones iniciadas) en",
     },
     results: {
       title: "Resultados predominantes",

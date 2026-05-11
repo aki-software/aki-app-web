@@ -12,6 +12,7 @@ import { VoucherStatus } from '../vouchers/entities/voucher.enums';
 import { SessionPaymentStatus } from '../sessions/entities/session.entity';
 import { Voucher } from '../vouchers/entities/voucher.entity';
 import { Session } from '../sessions/entities/session.entity';
+import { CategoriesService } from '../categories/categories.service';
 
 @Injectable()
 export class InstitutionsService {
@@ -22,6 +23,7 @@ export class InstitutionsService {
     private readonly voucherRepository: Repository<Voucher>,
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
+    private readonly categoriesService: CategoriesService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -238,6 +240,49 @@ export class InstitutionsService {
       take: 10,
     });
 
+    // ── Top categories distribution (all-time for this institution) ─────────
+    const categories = await this.categoriesService.findAll();
+    const categoryNames = new Map(
+      categories.map((category) => [
+        category.categoryId.toUpperCase(),
+        category.title,
+      ]),
+    );
+
+    const topResultsRows = await this.sessionRepository.manager
+      .createQueryBuilder()
+      .select('UPPER(t.category_id)', 'categoryId')
+      .addSelect('COUNT(*)', 'count')
+      .from(
+        (sub) =>
+          sub
+            .select('sr.category_id', 'category_id')
+            .addSelect('sr.session_id', 'session_id')
+            .addSelect(
+              'ROW_NUMBER() OVER (PARTITION BY sr.session_id ORDER BY sr.percentage DESC)',
+              'rn',
+            )
+            .from('session_results', 'sr')
+            .innerJoin('sessions', 's', 's.id = sr.session_id')
+            .where('s.institution_id = :institutionId', { institutionId }),
+        't',
+      )
+      .where('t.rn = 1')
+      .groupBy('UPPER(t.category_id)')
+      .getRawMany<{ categoryId: string; count: string }>();
+
+    const resultsDistribution = topResultsRows
+      .map((row) => {
+        const categoryId = String(row.categoryId ?? '').toUpperCase();
+        return {
+          categoryId,
+          name: categoryNames.get(categoryId) ?? `Categoría ${categoryId}`,
+          count: parseInt(row.count, 10) || 0,
+        };
+      })
+      .filter((item) => item.categoryId && item.count > 0)
+      .sort((a, b) => b.count - a.count);
+
     return {
       periodDays: days,
       periodLabel,
@@ -260,6 +305,7 @@ export class InstitutionsService {
         reportsUnlockedPeriod,
         channelBreakdown,
       },
+      resultsDistribution,
       topSessions: topSessions.map((s) => ({
         id: s.id,
         patientName: s.patientName,

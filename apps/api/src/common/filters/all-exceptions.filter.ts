@@ -41,7 +41,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: httpStatus,
       timestamp: new Date().toISOString(),
       path: httpAdapter.getRequestUrl(ctx.getRequest()),
-      message,
+      message:
+        httpStatus >= 500
+          ? 'Error interno del servidor'
+          : (message as string | string[]),
     };
 
     // Logueamos el error con contexto completo para Pino

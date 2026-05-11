@@ -19,11 +19,13 @@ import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
   const [adminStats, setAdminStats] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [periodDays, setPeriodDays] = useState<number>(7);
 
   useEffect(() => {
     const loadStats = async () => {
+      setLoading(true);
       try {
-        const data = await fetchDashboardStats();
+        const data = await fetchDashboardStats(periodDays);
         setAdminStats(data);
       } catch (error) {
         console.error("Error loading stats:", error);
@@ -32,7 +34,7 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
       }
     };
     loadStats();
-  }, []);
+  }, [periodDays]);
 
   const sessionsSummary = useMemo(() => {
     if (!adminStats || adminStats.sessionsActivity.length === 0) return null;
@@ -78,11 +80,24 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             {uiTexts.header.subtitle}
           </p>
         </div>
-        <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-app-surface/80 border border-app-border backdrop-blur-xl">
-          <Calendar className="h-4 w-4 text-app-text-muted opacity-40" />
-          <span className="app-label !text-[10px] opacity-60 uppercase">
-            {getFormattedCurrentDate()}
-          </span>
+        <div className="flex items-center gap-3">
+          <select 
+            value={periodDays} 
+            onChange={(e) => setPeriodDays(Number(e.target.value))}
+            className="px-4 py-3 rounded-2xl bg-app-surface border border-app-border text-xs font-bold text-app-text-main focus:outline-none focus:ring-2 focus:ring-app-primary/20 uppercase tracking-wider"
+          >
+            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={7}>Últimos 7 días</option>
+            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={15}>Últimos 15 días</option>
+            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={30}>Últimos 30 días</option>
+            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={90}>Últimos 90 días</option>
+            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={365}>Último año</option>
+          </select>
+          <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-app-surface/80 border border-app-border backdrop-blur-xl">
+            <Calendar className="h-4 w-4 text-app-text-muted opacity-40" />
+            <span className="app-label !text-[10px] opacity-60 uppercase">
+              {getFormattedCurrentDate()}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -99,8 +114,9 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
                 <StatCard label="Total del periodo" value={sessionsSummary.totalStarted} />
                 <StatCard label="Promedio diario" value={sessionsSummary.dailyAverage} />
                 <StatCard
-                  label="Mejor día"
-                  value={`${sessionsSummary.peakDay.date} (${sessionsSummary.peakDay.count} iniciadas)`}
+                  label="Pico de actividad"
+                  value={`${sessionsSummary.peakDay.count} evaluaciones`}
+                  description={`Registradas el ${sessionsSummary.peakDay.date}`}
                 />
               </div>
             )}

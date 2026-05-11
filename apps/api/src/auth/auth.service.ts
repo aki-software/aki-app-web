@@ -1,9 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
+import { MailService } from '../mail/mail.service';
+import type { QueueAdapter } from '../common/adapters/queue.adapter';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
+import { JobNames, SendEmailJobPayload } from '../common/jobs';
 
 @Injectable()
 export class AuthService {
@@ -11,6 +15,9 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly mailService: MailService,
+    @Inject(QUEUE_ADAPTER)
+    private readonly queueAdapter: QueueAdapter,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -74,6 +81,89 @@ export class AuthService {
 
   async setupPassword(token: string, password: string) {
     const user = await this.usersService.setupPassword(token, password);
+    return this.buildUserLoginResponse(user);
+  }
+
+  async requestPasswordReset(email: string) {
+    const user = await this.usersService.requestPasswordReset(email);
+    if (user?.passwordResetToken) {
+      const resetLink = this.usersService.buildPasswordResetLink(
+        user.passwordResetToken,
+      );
+      if (this.queueAdapter.isConfigured()) {
+        await this.enqueuePasswordResetEmail(user.email, user.name, resetLink);
+      } else {
+        await this.mailService.sendPasswordReset(user.email, user.name, resetLink);
+      }
+    }
+
+    return {
+      ok: true,
+      message:
+        'Si el email existe en la plataforma, vas a recibir instrucciones para restablecer tu contraseña.',
+    };
+  }
+
+  private async enqueuePasswordResetEmail(
+    email: string,
+    name: string,
+    resetLink: string,
+  ): Promise<boolean> {
+    const payload: SendEmailJobPayload = {
+      jobId: `password-reset-email-${email}-${Date.now()}`,
+      attempts: 3,
+      backoffMs: 60_000,
+      backoffType: 'exponential',
+      timeoutMs: 20_000,
+      concurrencyKey: 'email',
+      concurrencyLimit: 10,
+      template: 'password-reset',
+      payload: {
+        name,
+        resetLink,
+      },
+      meta: {
+        to: email,
+        subject: 'Restablecé tu contraseña de A.kit',
+      },
+    };
+
+    await this.queueAdapter.enqueue(JobNames.SendEmail, payload, {
+      attempts: payload.attempts,
+      backoffMs: payload.backoffMs,
+      backoffType: payload.backoffType,
+      timeoutMs: payload.timeoutMs,
+      concurrencyKey: payload.concurrencyKey,
+      concurrencyLimit: payload.concurrencyLimit,
+    });
+    return true;
+  }
+
+  async resolveResetToken(token: string) {
+    const user = await this.usersService.findByPasswordResetToken(token);
+    if (!user || !user.passwordResetExpiresAt) {
+      throw new UnauthorizedException('Token inválido');
+    }
+
+    if (user.passwordResetExpiresAt.getTime() < Date.now()) {
+      throw new UnauthorizedException('Token expirado');
+    }
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        institutionId: user.institutionId,
+        institutionName: user.institution?.name ?? null,
+      },
+      expiresAt: user.passwordResetExpiresAt,
+    };
+  }
+
+  async resetPassword(token: string, password: string) {
+    const user = await this.usersService.resetPassword(token, password);
     return this.buildUserLoginResponse(user);
   }
 

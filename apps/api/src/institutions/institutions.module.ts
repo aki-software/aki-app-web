@@ -5,6 +5,7 @@ import { InstitutionsController } from './institutions.controller';
 import { InstitutionsService } from './institutions.service';
 import { UsersModule } from '../users/users.module';
 import { MailModule } from '../mail/mail.module';
+import { CategoriesModule } from '../categories/categories.module';
 import { Voucher } from '../vouchers/entities/voucher.entity';
 import { Session } from '../sessions/entities/session.entity';
 
@@ -13,6 +14,7 @@ import { Session } from '../sessions/entities/session.entity';
     TypeOrmModule.forFeature([Institution, Voucher, Session]),
     UsersModule,
     MailModule,
+    CategoriesModule,
   ],
   controllers: [InstitutionsController],
   providers: [InstitutionsService],
