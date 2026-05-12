@@ -1,7 +1,3 @@
-import { IsString, Matches } from 'class-validator';
+import { VoucherCodeDto } from './shared/voucher-code.dto';
 
-export class ResolveVoucherDto {
-  @IsString()
-  @Matches(/^[A-Za-z0-9]{8}$/)
-  code: string;
-}
+export class ResolveVoucherDto extends VoucherCodeDto {}

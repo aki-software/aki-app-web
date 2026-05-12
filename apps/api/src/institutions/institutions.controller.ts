@@ -1,28 +1,28 @@
 import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  UnauthorizedException,
-  UseGuards,
-  Param,
-  Patch,
-  Query,
-  Inject,
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    Inject,
+    Param,
+    Patch,
+    Post,
+    Query,
+    Req,
+    UnauthorizedException,
+    UseGuards,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/auth.types';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
-import { UserRole } from '../users/entities/user.entity';
-import { InstitutionsService } from './institutions.service';
-import { UsersService } from '../users/users.service';
-import { MailService } from '../mail/mail.service';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import type { QueueAdapter } from '../common/adapters/queue.adapter';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
 import { JobNames, SendEmailJobPayload } from '../common/jobs';
+import { MailService } from '../mail/mail.service';
+import { UserRole } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
+import { InstitutionsService } from './institutions.service';
 
 @Controller('institutions')
 @UseGuards(JwtAuthGuard, RolesGuard)

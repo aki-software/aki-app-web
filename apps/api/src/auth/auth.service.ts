@@ -1,13 +1,19 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto } from './dto/login.dto';
+import { LoginDto } from './dto/auth-login.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
-import { MailService } from '../mail/mail.service';
-import type { QueueAdapter } from '../common/adapters/queue.adapter';
-import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
-import { JobNames, SendEmailJobPayload } from '../common/jobs';
+import { PasswordResetNotifierService } from '../common/notifications/password-reset-notifier.service';
+import {
+  AUTH_ADMIN,
+  AUTH_ERROR_MESSAGES,
+  AUTH_INFO_MESSAGES,
+} from './auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -15,9 +21,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
-    private readonly mailService: MailService,
-    @Inject(QUEUE_ADAPTER)
-    private readonly queueAdapter: QueueAdapter,
+    private readonly passwordResetNotifier: PasswordResetNotifierService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -36,12 +40,12 @@ export class AuthService {
     const user = await this.usersService.findByEmail(loginDto.email);
 
     if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidCredentials);
     }
 
     if (!this.usersService.hasPasswordConfigured(user)) {
       throw new UnauthorizedException(
-        'La cuenta todavía no activó su contraseña',
+        AUTH_ERROR_MESSAGES.passwordNotConfigured,
       );
     }
 
@@ -50,32 +54,22 @@ export class AuthService {
       user.passwordHash,
     );
     if (!validPassword) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidCredentials);
     }
 
     return this.buildUserLoginResponse(user);
   }
 
   async resolveSetupToken(token: string) {
-    const user = await this.usersService.findByPasswordSetupToken(token);
-    if (!user || !user.passwordSetupExpiresAt) {
-      throw new UnauthorizedException('Token inválido');
-    }
-
-    if (user.passwordSetupExpiresAt.getTime() < Date.now()) {
-      throw new UnauthorizedException('Token expirado');
-    }
+    const user = await this.resolveUserByToken(
+      token,
+      (value) => this.usersService.findByPasswordSetupToken(value),
+      'passwordSetupExpiresAt',
+    );
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        institutionId: user.institutionId,
-        institutionName: user.institution?.name ?? null,
-      },
-      expiresAt: user.passwordSetupExpiresAt,
+      user: this.buildUserSummary(user),
+      expiresAt: user.passwordSetupExpiresAt!,
     };
   }
 
@@ -90,75 +84,29 @@ export class AuthService {
       const resetLink = this.usersService.buildPasswordResetLink(
         user.passwordResetToken,
       );
-      if (this.queueAdapter.isConfigured()) {
-        await this.enqueuePasswordResetEmail(user.email, user.name, resetLink);
-      } else {
-        await this.mailService.sendPasswordReset(user.email, user.name, resetLink);
-      }
+      await this.passwordResetNotifier.notifyPasswordReset(
+        user.email,
+        user.name,
+        resetLink,
+      );
     }
 
     return {
       ok: true,
-      message:
-        'Si el email existe en la plataforma, vas a recibir instrucciones para restablecer tu contraseña.',
+      message: AUTH_INFO_MESSAGES.passwordReset,
     };
-  }
-
-  private async enqueuePasswordResetEmail(
-    email: string,
-    name: string,
-    resetLink: string,
-  ): Promise<boolean> {
-    const payload: SendEmailJobPayload = {
-      jobId: `password-reset-email-${email}-${Date.now()}`,
-      attempts: 3,
-      backoffMs: 60_000,
-      backoffType: 'exponential',
-      timeoutMs: 20_000,
-      concurrencyKey: 'email',
-      concurrencyLimit: 10,
-      template: 'password-reset',
-      payload: {
-        name,
-        resetLink,
-      },
-      meta: {
-        to: email,
-        subject: 'Restablecé tu contraseña de A.kit',
-      },
-    };
-
-    await this.queueAdapter.enqueue(JobNames.SendEmail, payload, {
-      attempts: payload.attempts,
-      backoffMs: payload.backoffMs,
-      backoffType: payload.backoffType,
-      timeoutMs: payload.timeoutMs,
-      concurrencyKey: payload.concurrencyKey,
-      concurrencyLimit: payload.concurrencyLimit,
-    });
-    return true;
   }
 
   async resolveResetToken(token: string) {
-    const user = await this.usersService.findByPasswordResetToken(token);
-    if (!user || !user.passwordResetExpiresAt) {
-      throw new UnauthorizedException('Token inválido');
-    }
-
-    if (user.passwordResetExpiresAt.getTime() < Date.now()) {
-      throw new UnauthorizedException('Token expirado');
-    }
+    const user = await this.resolveUserByToken(
+      token,
+      (value) => this.usersService.findByPasswordResetToken(value),
+      'passwordResetExpiresAt',
+    );
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        institutionId: user.institutionId,
-        institutionName: user.institution?.name ?? null,
-      },
-      expiresAt: user.passwordResetExpiresAt,
+      user: this.buildUserSummary(user),
+      expiresAt: user.passwordResetExpiresAt!,
     };
   }
 
@@ -173,13 +121,11 @@ export class AuthService {
     newPassword: string,
   ) {
     if (!userId) {
-      throw new UnauthorizedException('Sesión inválida');
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidSession);
     }
 
     if (currentPassword === newPassword) {
-      throw new UnauthorizedException(
-        'La nueva contraseña debe ser distinta a la actual',
-      );
+      throw new BadRequestException(AUTH_ERROR_MESSAGES.samePassword);
     }
 
     try {
@@ -190,53 +136,100 @@ export class AuthService {
       );
       return { ok: true };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'No autorizado';
-      throw new UnauthorizedException(message);
+      const message =
+        error instanceof Error
+          ? error.message
+          : AUTH_ERROR_MESSAGES.unauthorized;
+      if (
+        message === AUTH_ERROR_MESSAGES.passwordNotConfigured ||
+        message === AUTH_ERROR_MESSAGES.incorrectCurrentPassword
+      ) {
+        throw new UnauthorizedException(message);
+      }
+
+      if (message === AUTH_ERROR_MESSAGES.userNotFound) {
+        throw new BadRequestException(message);
+      }
+
+      throw new BadRequestException(message);
     }
   }
 
   private buildAdminLoginResponse(adminEmail: string) {
-    const payload = {
-      email: adminEmail,
-      sub: '1',
-      role: UserRole.ADMIN,
-      institutionId: null,
-    };
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      user: {
-        id: '1',
+    return this.buildLoginResponse(
+      {
+        id: AUTH_ADMIN.id,
         email: adminEmail,
-        name: 'Administrador',
+        name: AUTH_ADMIN.name,
         role: UserRole.ADMIN,
-        institutionId: null,
+        institutionId: AUTH_ADMIN.institutionId,
       },
-      tokens: {
-        accessToken,
+      {
+        email: adminEmail,
+        sub: AUTH_ADMIN.id,
+        role: UserRole.ADMIN,
+        institutionId: AUTH_ADMIN.institutionId,
       },
-    };
+    );
   }
 
   private buildUserLoginResponse(user: User) {
-    const payload = {
+    return this.buildLoginResponse(this.buildUserSummary(user), {
       email: user.email,
       sub: user.id,
       role: user.role,
       institutionId: user.institutionId ?? null,
-    };
-    const accessToken = this.jwtService.sign(payload);
+    });
+  }
 
+  private async resolveUserByToken(
+    token: string,
+    finder: (value: string) => Promise<User | null>,
+    expiresAtField: 'passwordSetupExpiresAt' | 'passwordResetExpiresAt',
+  ): Promise<User> {
+    const user = await finder(token);
+    const expiresAt = user?.[expiresAtField];
+    if (!user || !expiresAt) {
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidToken);
+    }
+
+    if (expiresAt.getTime() < Date.now()) {
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.expiredToken);
+    }
+
+    return user;
+  }
+
+  private buildUserSummary(user: User) {
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        institutionId: user.institutionId ?? null,
-      },
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      institutionId: user.institutionId ?? null,
+      institutionName: user.institution?.name ?? null,
+    };
+  }
+
+  private buildLoginResponse(
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role: UserRole;
+      institutionId: string | null;
+    },
+    payload: {
+      email: string;
+      sub: string;
+      role: UserRole;
+      institutionId: string | null;
+    },
+  ) {
+    return {
+      user,
       tokens: {
-        accessToken,
+        accessToken: this.jwtService.sign(payload),
       },
     };
   }

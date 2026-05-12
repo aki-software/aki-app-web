@@ -1,14 +1,14 @@
 import {
-  Controller,
-  Get,
-  Query,
-  Req,
-  ForbiddenException,
-  Logger,
-  UseGuards,
+    Controller,
+    ForbiddenException,
+    Get,
+    Logger,
+    Query,
+    Req,
+    UseGuards,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/auth.types';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { StatsService } from './stats.service';
 
 @Controller('stats')
@@ -36,7 +36,10 @@ export class StatsController {
     let targetInstitutionId = institutionId;
 
     // THERAPIST and INSTITUTION_ADMIN users can only access their own institution's stats
-    if (normalizedRole === 'THERAPIST' || normalizedRole === 'INSTITUTION_ADMIN') {
+    if (
+      normalizedRole === 'THERAPIST' ||
+      normalizedRole === 'INSTITUTION_ADMIN'
+    ) {
       if (!user.institutionId) {
         this.logger.warn(
           `${normalizedRole} user ${user.id} attempted to access stats without institutionId`,

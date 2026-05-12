@@ -86,9 +86,8 @@ export class CompleteSessionDto {
   @IsUUID()
   id?: string;
 
-  @IsOptional()
-  @IsString()
-  userId?: string;
+  @IsUUID()
+  userId: string;
 
   @IsOptional()
   @IsUUID()
@@ -117,9 +116,8 @@ export class CompleteSessionDto {
   @IsString()
   patientName: string;
 
-  @IsOptional()
   @IsString()
-  catalogVersion?: string;
+  catalogVersion: string;
 
   @IsISO8601()
   startedAt: string;

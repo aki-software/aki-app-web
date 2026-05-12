@@ -1,24 +1,24 @@
 import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Query,
-  Req,
-  UnauthorizedException,
-  UseGuards,
+    Body,
+    Controller,
+    Get,
+    Logger,
+    Param,
+    ParseUUIDPipe,
+    Post,
+    Query,
+    Req,
+    UnauthorizedException,
+    UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserRole } from '../users/entities/user.entity';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
 import { ListVouchersDto } from './dto/list-vouchers.dto';
-import { ResolveVoucherDto } from './dto/resolve-voucher.dto';
 import { RedeemVoucherDto } from './dto/redeem-voucher.dto';
+import { ResolveVoucherDto } from './dto/resolve-voucher.dto';
 import { SendVoucherEmailDto } from './dto/send-voucher-email.dto';
 import { VouchersService } from './vouchers.service';
 

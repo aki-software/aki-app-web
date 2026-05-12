@@ -49,6 +49,16 @@ export class Session {
   @Column({ name: 'session_date', type: 'timestamp' })
   sessionDate: Date;
 
+  @Column({
+    name: 'sync_key',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+    unique: true,
+    select: false,
+  })
+  syncKey: string | null;
+
   @Column({ name: 'holland_code', type: 'varchar', length: 20, nullable: true })
   hollandCode: string;
 

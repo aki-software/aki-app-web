@@ -6,18 +6,13 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  Matches,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { VoucherOwnerType } from '../entities/voucher.enums';
+import { VoucherCodeOptionalDto } from './shared/voucher-code-optional.dto';
 
-export class CreateVoucherDto {
-  @IsOptional()
-  @IsString()
-  @Matches(/^[A-Za-z0-9]{8}$/)
-  code?: string;
-
+export class CreateVoucherDto extends VoucherCodeOptionalDto {
   @IsEnum(VoucherOwnerType)
   ownerType?: VoucherOwnerType;
 

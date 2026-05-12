@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -25,6 +26,7 @@ import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
 import { JobNames, SendReportJobPayload } from '../common/jobs';
 import { SessionMetricsService } from './services/session-metrics.service';
 import { SessionScope } from './types/session-scope.type';
+import { VouchersService } from '../vouchers/vouchers.service';
 
 @Injectable()
 export class SessionsService {
@@ -40,13 +42,44 @@ export class SessionsService {
     private readonly adminDashboardService: AdminDashboardService,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
+    private readonly vouchersService: VouchersService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
   ) {}
 
-  async create(createSessionDto: CreateSessionDto): Promise<Session> {
-    const session = this.sessionRepository.create(createSessionDto);
-    const savedSession = await this.sessionRepository.save(session);
+  async create(
+    createSessionDto: CreateSessionDto,
+    options?: { idempotencyKey?: string },
+  ): Promise<{ session: Session; duplicated: boolean }> {
+    const idempotencyKey = options?.idempotencyKey?.trim();
+    if (idempotencyKey) {
+      const existing = await this.sessionRepository.findOne({
+        where: { syncKey: idempotencyKey },
+      });
+      if (existing) {
+        return { session: existing, duplicated: true };
+      }
+    }
+
+    const session = this.sessionRepository.create({
+      ...createSessionDto,
+      syncKey: idempotencyKey ?? null,
+    });
+
+    let savedSession: Session;
+    try {
+      savedSession = await this.sessionRepository.save(session);
+    } catch (error) {
+      if (idempotencyKey) {
+        const existing = await this.sessionRepository.findOne({
+          where: { syncKey: idempotencyKey },
+        });
+        if (existing) {
+          return { session: existing, duplicated: true };
+        }
+      }
+      throw new ConflictException('No se pudo crear la sesión');
+    }
 
     // Calcular métricas automáticamente
     try {
@@ -58,7 +91,7 @@ export class SessionsService {
       );
     }
 
-    return savedSession;
+    return { session: savedSession, duplicated: false };
   }
 
   async findAll(
@@ -250,5 +283,66 @@ export class SessionsService {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
       value,
     );
+  }
+
+  async findVoucherSessions(
+    voucherId: string,
+    scope: { role?: string; ownerUserId?: string; ownerInstitutionId?: string | null },
+    filters: {
+      startDate?: string;
+      endDate?: string;
+      minDuration?: string;
+      maxDuration?: string;
+    },
+  ): Promise<Session[]> {
+    const voucher = await this.vouchersService.findById(voucherId);
+    const isAdmin = scope.role?.toUpperCase() === 'ADMIN';
+    const isOwnerUser =
+      !!voucher.ownerUserId && voucher.ownerUserId === scope.ownerUserId;
+    const isOwnerInstitution =
+      !!voucher.ownerInstitutionId &&
+      voucher.ownerInstitutionId === scope.ownerInstitutionId;
+
+    if (!isAdmin && !isOwnerUser && !isOwnerInstitution) {
+      throw new ForbiddenException('Cannot access voucher sessions');
+    }
+
+    let query = this.sessionRepository
+      .createQueryBuilder('session')
+      .where('session.voucherId = :voucherId', { voucherId })
+      .leftJoinAndSelect('session.metrics', 'metrics')
+      .leftJoinAndSelect('session.results', 'results')
+      .orderBy('session.sessionDate', 'DESC');
+
+    const startDate = filters.startDate;
+    const endDate = filters.endDate;
+    const minDuration = filters.minDuration;
+    const maxDuration = filters.maxDuration;
+
+    if (startDate) {
+      query = query.andWhere('session.sessionDate >= :startDate', {
+        startDate: new Date(startDate),
+      });
+    }
+    if (endDate) {
+      query = query.andWhere('session.sessionDate <= :endDate', {
+        endDate: new Date(endDate),
+      });
+    }
+
+    if (minDuration) {
+      const minMs = parseInt(minDuration, 10) * 60 * 1000;
+      query = query.andWhere('session.totalTimeMs >= :minDuration', {
+        minDuration: minMs,
+      });
+    }
+    if (maxDuration) {
+      const maxMs = parseInt(maxDuration, 10) * 60 * 1000;
+      query = query.andWhere('session.totalTimeMs <= :maxDuration', {
+        maxDuration: maxMs,
+      });
+    }
+
+    return query.getMany();
   }
 }

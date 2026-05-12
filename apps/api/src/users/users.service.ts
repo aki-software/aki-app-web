@@ -5,6 +5,7 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
 import { Institution } from '../institutions/entities/institution.entity';
+import { USER_ERROR_MESSAGES } from './users.constants';
 
 @Injectable()
 export class UsersService {
@@ -128,9 +129,7 @@ export class UsersService {
       typeof userOrId === 'string' ? await this.findOne(userOrId) : userOrId;
 
     if (!user) {
-      throw new Error(
-        'Usuario no encontrado para asegurar ownership institucional',
-      );
+      throw new Error(USER_ERROR_MESSAGES.institutionOwnerMissing);
     }
 
     if (user.institutionId) {
@@ -153,14 +152,14 @@ export class UsersService {
   async setupPassword(token: string, plainPassword: string): Promise<User> {
     const user = await this.findByPasswordSetupToken(token);
     if (!user) {
-      throw new Error('Token de activación inválido');
+      throw new Error(USER_ERROR_MESSAGES.setupTokenInvalid);
     }
 
     if (
       !user.passwordSetupExpiresAt ||
       user.passwordSetupExpiresAt.getTime() < Date.now()
     ) {
-      throw new Error('Token de activación expirado');
+      throw new Error(USER_ERROR_MESSAGES.setupTokenExpired);
     }
 
     user.passwordHash = this.hashPassword(plainPassword);
@@ -177,16 +176,16 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.findOne(userId);
     if (!user) {
-      throw new Error('Usuario no encontrado');
+      throw new Error(USER_ERROR_MESSAGES.notFound);
     }
 
     if (!this.hasPasswordConfigured(user)) {
-      throw new Error('La cuenta todavía no activó su contraseña');
+      throw new Error(USER_ERROR_MESSAGES.passwordNotConfigured);
     }
 
     const ok = this.verifyPassword(currentPassword, user.passwordHash);
     if (!ok) {
-      throw new Error('La contraseña actual es incorrecta');
+      throw new Error(USER_ERROR_MESSAGES.incorrectCurrentPassword);
     }
 
     user.passwordHash = this.hashPassword(newPassword);
@@ -220,14 +219,14 @@ export class UsersService {
   async resetPassword(token: string, plainPassword: string): Promise<User> {
     const user = await this.findByPasswordResetToken(token);
     if (!user) {
-      throw new Error('Token de recuperación inválido');
+      throw new Error(USER_ERROR_MESSAGES.resetTokenInvalid);
     }
 
     if (
       !user.passwordResetExpiresAt ||
       user.passwordResetExpiresAt.getTime() < Date.now()
     ) {
-      throw new Error('Token de recuperación expirado');
+      throw new Error(USER_ERROR_MESSAGES.resetTokenExpired);
     }
 
     user.passwordHash = this.hashPassword(plainPassword);
@@ -240,11 +239,11 @@ export class UsersService {
   async refreshPasswordSetupToken(userId: string): Promise<User> {
     const user = await this.findOneWithInstitution(userId);
     if (!user) {
-      throw new Error('Usuario no encontrado');
+      throw new Error(USER_ERROR_MESSAGES.notFound);
     }
 
     if (this.hasPasswordConfigured(user)) {
-      throw new Error('La cuenta ya está activa');
+      throw new Error(USER_ERROR_MESSAGES.accountAlreadyActive);
     }
 
     user.passwordSetupToken = this.generatePasswordSetupToken();

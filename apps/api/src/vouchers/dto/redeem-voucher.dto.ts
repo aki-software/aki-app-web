@@ -1,10 +1,7 @@
-import { IsString, IsUUID, Matches } from 'class-validator';
+import { IsUUID } from 'class-validator';
+import { VoucherCodeDto } from './shared/voucher-code.dto';
 
-export class RedeemVoucherDto {
-  @IsString()
-  @Matches(/^[A-Za-z0-9]{8}$/)
-  code: string;
-
+export class RedeemVoucherDto extends VoucherCodeDto {
   @IsUUID('all')
-  sessionId: string;
+  sessionId!: string;
 }

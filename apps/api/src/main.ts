@@ -10,7 +10,9 @@ async function bootstrap() {
   console.log(`[Bootstrap] Starting application...`);
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  console.log(`[Bootstrap] NestFactory.create completed in ${Date.now() - start}ms`);
+  console.log(
+    `[Bootstrap] NestFactory.create completed in ${Date.now() - start}ms`,
+  );
 
   app.useLogger(app.get(Logger));
 
@@ -27,7 +29,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Habilitamos validación DTO global y rechazamos campos no permitidos.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
