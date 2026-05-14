@@ -3,6 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Institution } from './entities/institution.entity';
 import { InstitutionsController } from './institutions.controller';
 import { InstitutionsService } from './institutions.service';
+import { InstitutionAnalyticsService } from './services/institution-analytics.service';
+import { InstitutionOperationalAccountService } from './services/institution-operational-account.service';
+import { InstitutionPresenterService } from './services/institution-presenter.service';
 import { UsersModule } from '../users/users.module';
 import { MailModule } from '../mail/mail.module';
 import { CategoriesModule } from '../categories/categories.module';
@@ -17,7 +20,12 @@ import { Session } from '../sessions/entities/session.entity';
     CategoriesModule,
   ],
   controllers: [InstitutionsController],
-  providers: [InstitutionsService],
+  providers: [
+    InstitutionsService,
+    InstitutionOperationalAccountService,
+    InstitutionAnalyticsService,
+    InstitutionPresenterService,
+  ],
   exports: [TypeOrmModule, InstitutionsService],
 })
 export class InstitutionsModule {}

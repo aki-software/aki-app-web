@@ -1,47 +1,37 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard';
-import { PasswordResetNotifierService } from '../common/notifications/password-reset-notifier.service';
-import { MailModule } from '../mail/mail.module';
+import { NotificationsModule } from '../common/notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AuthJwtModule } from './config/auth-jwt.module';
+import { AuthResponseFactory } from './factories/auth-response.factory';
 import { AuthUserFactory } from './factories/auth-user.factory';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthLoginService } from './services/auth-login.service';
+import { AuthPasswordFlowService } from './services/auth-password-flow.service';
+import { AuthTokenService } from './services/auth-token.service';
 import { JwtTokenDecoderService } from './services/jwt-token-decoder.service';
 import { FirebaseCertService } from './services/firebase-cert.service';
 import { FirebaseClaimsValidatorService } from './services/firebase-claims-validator.service';
 import { RolesGuard } from './guards/roles.guard';
 
 @Module({
-  imports: [
-    UsersModule,
-    MailModule,
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.getOrThrow<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
-            '12h') as any,
-        },
-      }),
-    }),
-  ],
+  imports: [UsersModule, NotificationsModule, PassportModule, AuthJwtModule],
   controllers: [AuthController],
   providers: [
     AuthService,
     JwtStrategy,
     RolesGuard,
     RateLimitGuard,
-    PasswordResetNotifierService,
     FirebaseCertService,
     JwtTokenDecoderService,
     FirebaseClaimsValidatorService,
+    AuthTokenService,
+    AuthLoginService,
+    AuthPasswordFlowService,
+    AuthResponseFactory,
     AuthUserFactory,
   ],
   exports: [AuthService],

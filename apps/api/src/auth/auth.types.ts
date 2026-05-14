@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { UserRole } from '../users/entities/user.entity';
 
 export type AuthenticatedRequest = Request & {
   user?: {
@@ -30,4 +31,33 @@ export type AuthUserPayload = {
   email?: string;
   role: string;
   institutionId: string | null;
+};
+
+export type AuthUserSummary = {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  institutionId: string | null;
+  institutionName: string | null;
+};
+
+export type AuthLoginResponse = {
+  user: AuthUserSummary;
+  tokens: {
+    accessToken: string;
+  };
+};
+
+export type AuthTokenResolutionResponse = {
+  user: AuthUserSummary;
+  expiresAt: Date;
+};
+
+export type AuthOkResponse = {
+  ok: true;
+};
+
+export type AuthInfoResponse = AuthOkResponse & {
+  message: string;
 };
