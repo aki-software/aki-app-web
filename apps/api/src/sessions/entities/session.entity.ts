@@ -8,12 +8,12 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { SessionResult } from './session-result.entity';
-import { SessionSwipe } from './session-swipe.entity';
-import { SessionMetrics } from './session-metrics.entity';
-import { Voucher } from '../../vouchers/entities/voucher.entity';
-import { User } from '../../users/entities/user.entity';
-import { Institution } from '../../institutions/entities/institution.entity';
+import { SessionResult } from './session-result.entity.js';
+import { SessionSwipe } from './session-swipe.entity.js';
+import { SessionMetrics } from './session-metrics.entity.js';
+import { Voucher } from '../../vouchers/entities/voucher.entity.js';
+import { User } from '../../users/entities/user.entity.js';
+import { Institution } from '../../institutions/entities/institution.entity.js';
 
 export enum SessionPaymentStatus {
   PENDING = 'PENDING',

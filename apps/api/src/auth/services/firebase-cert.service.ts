@@ -1,5 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { AUTH_JWT_MESSAGES, FIREBASE_CERTS_URL } from '../auth.constants';
+import { AUTH_JWT_MESSAGES, FIREBASE_CERTS_URL } from '../auth.constants.js';
 
 @Injectable()
 export class FirebaseCertService {

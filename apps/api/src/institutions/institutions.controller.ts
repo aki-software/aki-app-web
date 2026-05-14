@@ -10,26 +10,26 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import type { AuthenticatedRequest } from '../auth/auth.types';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { UserRole } from '../users/entities/user.entity';
-import { CreateInstitutionDto } from './dto/create-institution.dto';
-import { CreateOperationalAccountDto } from './dto/create-operational-account.dto';
-import { InstitutionOverviewQueryDto } from './dto/institution-overview-query.dto';
-import { UpdateInstitutionDto } from './dto/update-institution.dto';
-import { UpdateInstitutionStatusDto } from './dto/update-institution-status.dto';
-import { InstitutionsService } from './institutions.service';
+import type { AuthenticatedRequest } from '../auth/auth.types.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { UserRole } from '../users/entities/user.entity.js';
+import { CreateInstitutionDto } from './dto/create-institution.dto.js';
+import { CreateOperationalAccountDto } from './dto/create-operational-account.dto.js';
+import { InstitutionOverviewQueryDto } from './dto/institution-overview-query.dto.js';
+import { UpdateInstitutionDto } from './dto/update-institution.dto.js';
+import { UpdateInstitutionStatusDto } from './dto/update-institution-status.dto.js';
+import { InstitutionsService } from './institutions.service.js';
 import type {
   InstitutionCreateResponse,
   InstitutionOperationalAccountResponse,
   InstitutionsListResponse,
   InstitutionStatusResponse,
-} from './institutions.types';
-import { InstitutionAnalyticsService } from './services/institution-analytics.service';
-import { InstitutionOperationalAccountService } from './services/institution-operational-account.service';
-import { InstitutionPresenterService } from './services/institution-presenter.service';
+} from './institutions.types.js';
+import { InstitutionAnalyticsService } from './services/institution-analytics.service.js';
+import { InstitutionOperationalAccountService } from './services/institution-operational-account.service.js';
+import { InstitutionPresenterService } from './services/institution-presenter.service.js';
 
 @Controller('institutions')
 @UseGuards(JwtAuthGuard, RolesGuard)

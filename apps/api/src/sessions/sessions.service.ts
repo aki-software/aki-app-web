@@ -9,24 +9,24 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository, In } from 'typeorm';
-import { MailService } from '../mail/mail.service';
-import { CreateSessionDto } from './dto/create-session.dto';
-import { Session, SessionPaymentStatus } from './entities/session.entity';
+import { MailService } from '../mail/mail.service.js';
+import { CreateSessionDto } from './dto/create-session.dto.js';
+import { Session, SessionPaymentStatus } from './entities/session.entity.js';
 
-import { PdfService } from '../common/services/pdf.service';
-import { StorageService } from '../common/services/storage.service';
+import { PdfService } from '../common/services/pdf.service.js';
+import { StorageService } from '../common/services/storage.service.js';
 import {
   AdminDashboardService,
   DashboardStatsPayload,
-} from './services/admin-dashboard.service';
-import { ReportService } from './services/report.service';
-import { ReportOrchestratorService } from './services/report-orchestrator.service';
-import type { QueueAdapter } from '../common/adapters/queue.adapter';
-import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
-import { JobNames, SendReportJobPayload } from '../common/jobs';
-import { SessionMetricsService } from './services/session-metrics.service';
-import { SessionScope } from './types/session-scope.type';
-import { VouchersService } from '../vouchers/vouchers.service';
+} from './services/admin-dashboard.service.js';
+import { ReportService } from './services/report.service.js';
+import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
+import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
+import { JobNames, SendReportJobPayload } from '../common/jobs/index.js';
+import { SessionMetricsService } from './services/session-metrics.service.js';
+import { SessionScope } from './types/session-scope.type.js';
+import { VouchersService } from '../vouchers/vouchers.service.js';
 
 @Injectable()
 export class SessionsService {

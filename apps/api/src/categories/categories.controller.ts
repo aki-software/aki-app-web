@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CategoriesService } from './categories.service';
-import { UpdateCategoryDto } from './dto/update-category.dto';
-import type { CategoryMaterialListResponse } from './categories.types';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { CategoriesService } from './categories.service.js';
+import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import type { CategoryMaterialListResponse } from './categories.types.js';
 
 @Controller('categories')
 export class CategoriesController {

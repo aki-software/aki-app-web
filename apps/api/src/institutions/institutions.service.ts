@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Institution } from './entities/institution.entity';
-import type { CreateInstitutionDto } from './dto/create-institution.dto';
-import type { UpdateInstitutionDto } from './dto/update-institution.dto';
+import { Institution } from './entities/institution.entity.js';
+import type { CreateInstitutionDto } from './dto/create-institution.dto.js';
+import type { UpdateInstitutionDto } from './dto/update-institution.dto.js';
 
 @Injectable()
 export class InstitutionsService {

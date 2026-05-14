@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { LoginDto } from './dto/auth-login.dto';
+import { LoginDto } from './dto/auth-login.dto.js';
 import type {
   AuthInfoResponse,
   AuthLoginResponse,
   AuthOkResponse,
   AuthTokenResolutionResponse,
-} from './auth.types';
-import { AuthLoginService } from './services/auth-login.service';
-import { AuthPasswordFlowService } from './services/auth-password-flow.service';
+} from './auth.types.js';
+import { AuthLoginService } from './services/auth-login.service.js';
+import { AuthPasswordFlowService } from './services/auth-password-flow.service.js';
 
 @Injectable()
 export class AuthService {

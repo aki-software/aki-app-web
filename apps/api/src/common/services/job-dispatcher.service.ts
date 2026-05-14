@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { MailService } from '../../mail/mail.service';
-import { PdfService } from './pdf.service';
-import { ReportOrchestratorService } from '../../sessions/services/report-orchestrator.service';
-import { JobNames } from '../jobs/job-names';
-import { SendEmailJobPayload } from '../jobs/send-email.job';
-import { SendReportJobPayload } from '../jobs/send-report.job';
-import { GeneratePdfJobPayload } from '../jobs/generate-pdf.job';
+import { MailService } from '../../mail/mail.service.js';
+import { PdfService } from './pdf.service.js';
+import { ReportOrchestratorService } from '../../sessions/services/report-orchestrator.service.js';
+import { JobNames } from '../jobs/job-names.js';
+import { SendEmailJobPayload } from '../jobs/send-email.job.js';
+import { SendReportJobPayload } from '../jobs/send-report.job.js';
+import { GeneratePdfJobPayload } from '../jobs/generate-pdf.job.js';
 
 @Injectable()
 export class JobDispatcherService {

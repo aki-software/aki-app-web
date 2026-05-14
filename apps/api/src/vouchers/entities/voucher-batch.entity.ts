@@ -6,9 +6,9 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Institution } from '../../institutions/entities/institution.entity';
-import { VoucherBatchStatus, VoucherOwnerType } from './voucher.enums';
+import { User } from '../../users/entities/user.entity.js';
+import { Institution } from '../../institutions/entities/institution.entity.js';
+import { VoucherBatchStatus, VoucherOwnerType } from './voucher.enums.js';
 
 @Entity('voucher_batches')
 export class VoucherBatch {

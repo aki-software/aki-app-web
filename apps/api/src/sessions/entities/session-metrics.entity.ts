@@ -6,7 +6,7 @@ import {
   JoinColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { Session } from './session.entity';
+import { Session } from './session.entity.js';
 
 @Entity('session_metrics')
 export class SessionMetrics {

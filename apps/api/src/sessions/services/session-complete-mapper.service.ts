@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../../users/users.service';
-import { VouchersService } from '../../vouchers/vouchers.service';
-import { UserRole } from '../../users/entities/user.entity';
-import { CompleteSessionDto } from '../dto/complete-session.dto';
-import { CreateSessionDto } from '../dto/create-session.dto';
-import { SessionPaymentStatus } from '../entities/session.entity';
+import { UsersService } from '../../users/users.service.js';
+import { UserRegistrationService } from '../../users/user-registration.service.js';
+import { VouchersService } from '../../vouchers/vouchers.service.js';
+import { UserRole } from '../../users/entities/user.entity.js';
+import { CompleteSessionDto } from '../dto/complete-session.dto.js';
+import { CreateSessionDto } from '../dto/create-session.dto.js';
+import { SessionPaymentStatus } from '../entities/session.entity.js';
 
 export type CompleteSessionAdapted = {
   createSessionDto: CreateSessionDto;
@@ -19,6 +20,7 @@ export type CompleteSessionAdapted = {
 export class SessionCompleteMapperService {
   constructor(
     private readonly usersService: UsersService,
+    private readonly userRegistrationService: UserRegistrationService,
     private readonly vouchersService: VouchersService,
   ) {}
 
@@ -48,7 +50,7 @@ export class SessionCompleteMapperService {
       !payloadInstitutionId &&
       !voucher &&
       (!user || isPatientUser)
-        ? await this.usersService.getOrCreateIndividualTestsOwner()
+        ? await this.userRegistrationService.getOrCreateIndividualTestsOwner()
         : null;
     const enrichedResultsByCategory = this.indexResultsMetadata(
       payload.resultPayload,

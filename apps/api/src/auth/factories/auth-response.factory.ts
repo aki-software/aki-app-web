@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { AUTH_ADMIN } from '../auth.constants';
-import type { AuthLoginResponse, AuthUserSummary } from '../auth.types';
-import { User, UserRole } from '../../users/entities/user.entity';
-import { AuthTokenService } from '../services/auth-token.service';
+import { AUTH_ADMIN } from '../auth.constants.js';
+import type { AuthLoginResponse, AuthUserSummary } from '../auth.types.js';
+import { User, UserRole } from '../../users/entities/user.entity.js';
+import { AuthTokenService } from '../services/auth-token.service.js';
 
 @Injectable()
 export class AuthResponseFactory {

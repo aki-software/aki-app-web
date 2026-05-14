@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { VocationalCategory } from '../../categories/entities/vocational-category.entity';
-import { TresAreasService } from '../../common/services/tres-areas.service';
-import { Session } from '../entities/session.entity';
-import { ReportService } from './report.service';
+import { VocationalCategory } from '../../categories/entities/vocational-category.entity.js';
+import { TresAreasService } from '../../common/services/tres-areas.service.js';
+import { Session } from '../entities/session.entity.js';
+import { ReportService } from './report.service.js';
 
 describe('ReportService', () => {
   let service: ReportService;

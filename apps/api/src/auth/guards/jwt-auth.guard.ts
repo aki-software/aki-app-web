@@ -1,7 +1,7 @@
 import { ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AUTH_JWT_LOG_MESSAGES } from '../auth.constants';
-import type { AuthenticatedRequest } from '../auth.types';
+import { AUTH_JWT_LOG_MESSAGES } from '../auth.constants.js';
+import type { AuthenticatedRequest } from '../auth.types.js';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {

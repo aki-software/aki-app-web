@@ -10,7 +10,7 @@ import {
   IsEnum,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { SessionPaymentStatus } from '../entities/session.entity';
+import { SessionPaymentStatus } from '../entities/session.entity.js';
 
 export class CreateSessionSwipeDto {
   @IsString()

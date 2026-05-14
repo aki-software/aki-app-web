@@ -3,22 +3,24 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PasswordResetNotifierService } from '../../common/notifications/password-reset-notifier.service';
-import { User } from '../../users/entities/user.entity';
-import { UsersService } from '../../users/users.service';
-import { AUTH_ERROR_MESSAGES, AUTH_INFO_MESSAGES } from '../auth.constants';
+import { PasswordResetNotifierService } from '../../common/notifications/password-reset-notifier.service.js';
+import { User } from '../../users/entities/user.entity.js';
+import { UsersService } from '../../users/users.service.js';
+import { CryptoService } from '../../common/services/crypto.service.js';
+import { AUTH_ERROR_MESSAGES, AUTH_INFO_MESSAGES } from '../auth.constants.js';
 import type {
   AuthInfoResponse,
   AuthLoginResponse,
   AuthOkResponse,
   AuthTokenResolutionResponse,
-} from '../auth.types';
-import { AuthResponseFactory } from '../factories/auth-response.factory';
+} from '../auth.types.js';
+import { AuthResponseFactory } from '../factories/auth-response.factory.js';
 
 @Injectable()
 export class AuthPasswordFlowService {
   constructor(
     private readonly usersService: UsersService,
+    private readonly cryptoService: CryptoService,
     private readonly passwordResetNotifier: PasswordResetNotifierService,
     private readonly authResponseFactory: AuthResponseFactory,
   ) {}
@@ -40,22 +42,51 @@ export class AuthPasswordFlowService {
     token: string,
     password: string,
   ): Promise<AuthLoginResponse> {
-    const user = await this.usersService.setupPassword(token, password);
-    return this.authResponseFactory.buildUserLoginResponse(user);
+    const user = await this.usersService.findByPasswordSetupToken(token);
+    if (!user) {
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidToken);
+    }
+
+    if (
+      !user.passwordSetupExpiresAt ||
+      user.passwordSetupExpiresAt.getTime() < Date.now()
+    ) {
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.expiredToken);
+    }
+
+    const updatedUser = await this.usersService.register({
+      ...user,
+      passwordHash: this.cryptoService.hash(password),
+      passwordSetAt: new Date(),
+      passwordSetupToken: null,
+      passwordSetupExpiresAt: null,
+    });
+
+    return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
 
   async requestPasswordReset(email: string): Promise<AuthInfoResponse> {
-    const user = await this.usersService.requestPasswordReset(email);
-    if (user?.passwordResetToken) {
-      const resetLink = this.usersService.buildPasswordResetLink(
-        user.passwordResetToken,
-      );
-      await this.passwordResetNotifier.notifyPasswordReset(
-        user.email,
-        user.name,
-        resetLink,
-      );
+    const user = await this.usersService.findByEmail(email.trim());
+    if (!user || !this.usersService.hasPasswordConfigured(user)) {
+      return { ok: true, message: AUTH_INFO_MESSAGES.passwordReset };
     }
+
+    const resetToken = this.cryptoService.generateToken(24);
+    const resetExpiresAt = new Date();
+    resetExpiresAt.setHours(resetExpiresAt.getHours() + 2); // 2h reset TTL
+
+    const updatedUser = await this.usersService.register({
+      ...user,
+      passwordResetToken: resetToken,
+      passwordResetExpiresAt: resetExpiresAt,
+    });
+
+    const resetLink = this.usersService.buildPasswordResetLink(resetToken);
+    await this.passwordResetNotifier.notifyPasswordReset(
+      updatedUser.email,
+      updatedUser.name,
+      resetLink,
+    );
 
     return {
       ok: true,
@@ -80,8 +111,27 @@ export class AuthPasswordFlowService {
     token: string,
     password: string,
   ): Promise<AuthLoginResponse> {
-    const user = await this.usersService.resetPassword(token, password);
-    return this.authResponseFactory.buildUserLoginResponse(user);
+    const user = await this.usersService.findByPasswordResetToken(token);
+    if (!user) {
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidToken);
+    }
+
+    if (
+      !user.passwordResetExpiresAt ||
+      user.passwordResetExpiresAt.getTime() < Date.now()
+    ) {
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.expiredToken);
+    }
+
+    const updatedUser = await this.usersService.register({
+      ...user,
+      passwordHash: this.cryptoService.hash(password),
+      passwordSetAt: new Date(),
+      passwordResetToken: null,
+      passwordResetExpiresAt: null,
+    });
+
+    return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
 
   async changePassword(
@@ -93,20 +143,31 @@ export class AuthPasswordFlowService {
       throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidSession);
     }
 
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new BadRequestException(AUTH_ERROR_MESSAGES.userNotFound);
+    }
+
+    if (!this.usersService.hasPasswordConfigured(user)) {
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.passwordNotConfigured);
+    }
+
     if (currentPassword === newPassword) {
       throw new BadRequestException(AUTH_ERROR_MESSAGES.samePassword);
     }
 
-    try {
-      await this.usersService.changePassword(
-        userId,
-        currentPassword,
-        newPassword,
-      );
-      return { ok: true };
-    } catch (error) {
-      this.rethrowChangePasswordError(error);
+    const valid = this.cryptoService.verify(currentPassword, user.passwordHash);
+    if (!valid) {
+      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.incorrectCurrentPassword);
     }
+
+    await this.usersService.register({
+      ...user,
+      passwordHash: this.cryptoService.hash(newPassword),
+      passwordSetAt: new Date(),
+    });
+
+    return { ok: true };
   }
 
   private async resolveUserByToken(
@@ -125,20 +186,5 @@ export class AuthPasswordFlowService {
     }
 
     return user;
-  }
-
-  private rethrowChangePasswordError(error: unknown): never {
-    const message =
-      error instanceof Error ? error.message : AUTH_ERROR_MESSAGES.unauthorized;
-
-    switch (message) {
-      case AUTH_ERROR_MESSAGES.passwordNotConfigured:
-      case AUTH_ERROR_MESSAGES.incorrectCurrentPassword:
-        throw new UnauthorizedException(message);
-      case AUTH_ERROR_MESSAGES.userNotFound:
-        throw new BadRequestException(message);
-      default:
-        throw new BadRequestException(message);
-    }
   }
 }

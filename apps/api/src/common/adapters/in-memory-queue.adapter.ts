@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { QueueAdapter, QueueJobOptions } from './queue.adapter';
-import { JobNames } from '../jobs/job-names';
-import { JobDispatcherService } from '../services/job-dispatcher.service';
+import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
+import { JobNames } from '../jobs/job-names.js';
+import { JobDispatcherService } from '../services/job-dispatcher.service.js';
 
 @Injectable()
 export class InMemoryQueueAdapter implements QueueAdapter {
@@ -43,17 +43,19 @@ export class InMemoryQueueAdapter implements QueueAdapter {
     const backoffType = options?.backoffType ?? 'fixed';
     const delayMs = options?.delayMs ?? 0;
 
-    void this.dispatcher
-      .dispatchWithRetry(jobName as JobNames, payload, {
-        attempts,
-        backoffMs,
-        backoffType,
-        delayMs,
-      })
-      .catch((error) => {
+    const promise = this.dispatcher.dispatchWithRetry(jobName as JobNames, payload, {
+      attempts,
+      backoffMs,
+      backoffType,
+      delayMs,
+    });
+
+    if (promise && typeof (promise as any).catch === 'function') {
+      (promise as any).catch((error: any) => {
         const message = error instanceof Error ? error.message : String(error);
         this.logger.error(`Inline job failed job=${jobName} error=${message}`);
       });
+    }
 
     return Promise.resolve();
   }

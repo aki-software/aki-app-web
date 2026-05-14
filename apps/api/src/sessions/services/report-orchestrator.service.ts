@@ -3,12 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { mkdir, writeFile } from 'fs/promises';
 import { join, resolve } from 'path';
-import { Session } from '../entities/session.entity';
-import { ReportService } from './report.service';
-import { MailService } from '../../mail/mail.service';
-import { PdfService } from '../../common/services/pdf.service';
-import { StorageService } from '../../common/services/storage.service';
-import { SessionScope } from '../types/session-scope.type';
+import { Session } from '../entities/session.entity.js';
+import { ReportService } from './report.service.js';
+import { MailService } from '../../mail/mail.service.js';
+import { PdfService } from '../../common/services/pdf.service.js';
+import { StorageService } from '../../common/services/storage.service.js';
+import { SessionScope } from '../types/session-scope.type.js';
 
 @Injectable()
 export class ReportOrchestratorService {

@@ -3,7 +3,7 @@ import type {
   AuthUserPayload,
   FirebaseJwtPayload,
   JwtPayload,
-} from '../auth.types';
+} from '../auth.types.js';
 
 @Injectable()
 export class AuthUserFactory {

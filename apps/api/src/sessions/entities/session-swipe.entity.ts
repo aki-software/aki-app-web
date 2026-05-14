@@ -6,7 +6,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Session } from './session.entity';
+import { Session } from './session.entity.js';
 
 @Entity('session_swipes')
 export class SessionSwipe {

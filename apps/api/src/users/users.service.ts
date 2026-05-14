@@ -3,64 +3,28 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { Repository } from 'typeorm';
-import { User, UserRole } from './entities/user.entity';
-import { Institution } from '../institutions/entities/institution.entity';
-import { USER_ERROR_MESSAGES } from './users.constants';
+import { User, UserRole } from './entities/user.entity.js';
+import { Institution } from '../institutions/entities/institution.entity.js';
+import { USER_ERROR_MESSAGES } from './users.constants.js';
 
 @Injectable()
 export class UsersService {
-  private static readonly PASSWORD_SETUP_TTL_HOURS = 72;
-  private static readonly PASSWORD_RESET_TTL_HOURS = 2;
-
   constructor(
     private readonly configService: ConfigService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(Institution)
-    private institutionRepository: Repository<Institution>,
   ) {}
 
-  async register(
-    name: string,
-    role?: UserRole | string,
-    email?: string,
-    institutionId?: string | null,
-  ): Promise<User> {
-    if (email) {
-      const existingUser = await this.findByEmail(email);
-      if (existingUser) {
-        existingUser.name = name;
-        return await this.userRepository.save(existingUser);
-      }
+  async register(userData: Partial<User>): Promise<User> {
+    const user = userData.id
+      ? await this.userRepository.preload(userData)
+      : this.userRepository.create(userData);
+
+    if (!user) {
+      throw new Error(USER_ERROR_MESSAGES.notFound);
     }
 
-    const normalizedEmail =
-      email ??
-      `${name.toLowerCase().replace(/[^a-z0-9]+/g, '.')}.${Date.now()}@akit.local`;
-    const normalizedRole = this.normalizeRole(role);
-    const user = this.userRepository.create({
-      name,
-      role: normalizedRole,
-      email: normalizedEmail,
-      passwordHash: 'pending-password-setup',
-      passwordSetupToken: this.generatePasswordSetupToken(),
-      passwordSetupExpiresAt: this.buildPasswordSetupExpiry(),
-      passwordSetAt: null,
-      passwordResetToken: null,
-      passwordResetExpiresAt: null,
-      institutionId: institutionId ?? null,
-    });
-    const savedUser = await this.userRepository.save(user);
-
-    if (
-      (normalizedRole === UserRole.THERAPIST ||
-        normalizedRole === UserRole.INSTITUTION_ADMIN) &&
-      !savedUser.institutionId
-    ) {
-      return await this.ensureInstitutionOwner(savedUser);
-    }
-
-    return savedUser;
+    return await this.userRepository.save(user);
   }
 
   async findOne(id: string): Promise<User | null> {
@@ -93,180 +57,11 @@ export class UsersService {
     });
   }
 
-  async findInstitutions(): Promise<Institution[]> {
-    return await this.institutionRepository.find({
-      relations: ['responsibleTherapist'],
-      order: { name: 'ASC' },
-    });
-  }
-
-  async getOrCreateIndividualTestsOwner(): Promise<User> {
-    const email =
-      this.configService.get<string>('INDIVIDUAL_TEST_OWNER_EMAIL') ||
-      this.configService.get<string>('ADMIN_USER') ||
-      'owner@akit.app';
-    const name =
-      this.configService.get<string>('INDIVIDUAL_TEST_OWNER_NAME') ||
-      'Owner Plataforma';
-    const role = this.normalizeRole(
-      this.configService.get<string>('INDIVIDUAL_TEST_OWNER_ROLE') ||
-        UserRole.THERAPIST,
-    );
-    const institutionId =
-      this.configService.get<string>('INDIVIDUAL_TEST_OWNER_INSTITUTION_ID') ||
-      null;
-
-    const existingUser = await this.findByEmail(email);
-    if (existingUser) {
-      return existingUser;
-    }
-
-    return await this.register(name, role, email, institutionId);
-  }
-
-  async ensureInstitutionOwner(userOrId: User | string): Promise<User> {
-    const user =
-      typeof userOrId === 'string' ? await this.findOne(userOrId) : userOrId;
-
-    if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.institutionOwnerMissing);
-    }
-
-    if (user.institutionId) {
-      return user;
-    }
-
-    const privateInstitution = await this.institutionRepository.save(
-      this.institutionRepository.create({
-        name: `Consultorio ${user.name}`,
-        billingEmail: user.email,
-        responsibleTherapistUserId: user.id,
-        isActive: true,
-      }),
-    );
-
-    user.institutionId = privateInstitution.id;
-    return await this.userRepository.save(user);
-  }
-
-  async setupPassword(token: string, plainPassword: string): Promise<User> {
-    const user = await this.findByPasswordSetupToken(token);
-    if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.setupTokenInvalid);
-    }
-
-    if (
-      !user.passwordSetupExpiresAt ||
-      user.passwordSetupExpiresAt.getTime() < Date.now()
-    ) {
-      throw new Error(USER_ERROR_MESSAGES.setupTokenExpired);
-    }
-
-    user.passwordHash = this.hashPassword(plainPassword);
-    user.passwordSetAt = new Date();
-    user.passwordSetupToken = null;
-    user.passwordSetupExpiresAt = null;
-    return await this.userRepository.save(user);
-  }
-
-  async changePassword(
-    userId: string,
-    currentPassword: string,
-    newPassword: string,
-  ): Promise<User> {
-    const user = await this.findOne(userId);
-    if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.notFound);
-    }
-
-    if (!this.hasPasswordConfigured(user)) {
-      throw new Error(USER_ERROR_MESSAGES.passwordNotConfigured);
-    }
-
-    const ok = this.verifyPassword(currentPassword, user.passwordHash);
-    if (!ok) {
-      throw new Error(USER_ERROR_MESSAGES.incorrectCurrentPassword);
-    }
-
-    user.passwordHash = this.hashPassword(newPassword);
-    user.passwordSetAt = new Date();
-    return await this.userRepository.save(user);
-  }
-
-  async requestPasswordReset(email: string): Promise<User | null> {
-    const normalizedEmail = email.trim();
-    const user = await this.findByEmail(normalizedEmail);
-    if (!user) {
-      return null;
-    }
-
-    if (!this.hasPasswordConfigured(user)) {
-      return null;
-    }
-
-    user.passwordResetToken = this.generatePasswordResetToken();
-    user.passwordResetExpiresAt = this.buildPasswordResetExpiry();
-    return await this.userRepository.save(user);
-  }
-
   async findByPasswordResetToken(token: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { passwordResetToken: token },
       relations: ['institution'],
     });
-  }
-
-  async resetPassword(token: string, plainPassword: string): Promise<User> {
-    const user = await this.findByPasswordResetToken(token);
-    if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.resetTokenInvalid);
-    }
-
-    if (
-      !user.passwordResetExpiresAt ||
-      user.passwordResetExpiresAt.getTime() < Date.now()
-    ) {
-      throw new Error(USER_ERROR_MESSAGES.resetTokenExpired);
-    }
-
-    user.passwordHash = this.hashPassword(plainPassword);
-    user.passwordSetAt = new Date();
-    user.passwordResetToken = null;
-    user.passwordResetExpiresAt = null;
-    return await this.userRepository.save(user);
-  }
-
-  async refreshPasswordSetupToken(userId: string): Promise<User> {
-    const user = await this.findOneWithInstitution(userId);
-    if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.notFound);
-    }
-
-    if (this.hasPasswordConfigured(user)) {
-      throw new Error(USER_ERROR_MESSAGES.accountAlreadyActive);
-    }
-
-    user.passwordSetupToken = this.generatePasswordSetupToken();
-    user.passwordSetupExpiresAt = this.buildPasswordSetupExpiry();
-    return await this.userRepository.save(user);
-  }
-
-  verifyPassword(plainPassword: string, passwordHash: string): boolean {
-    if (!passwordHash.startsWith('scrypt$')) {
-      return false;
-    }
-
-    const [, salt, storedHash] = passwordHash.split('$');
-    if (!salt || !storedHash) {
-      return false;
-    }
-
-    const derived = scryptSync(plainPassword, salt, 64).toString('hex');
-    return timingSafeEqual(Buffer.from(derived), Buffer.from(storedHash));
-  }
-
-  hasPasswordConfigured(user: User): boolean {
-    return !!user.passwordSetAt && user.passwordHash.startsWith('scrypt$');
   }
 
   buildPasswordSetupLink(token: string): string {
@@ -281,47 +76,7 @@ export class UsersService {
     return `${baseUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
   }
 
-  private normalizeRole(role?: UserRole | string): UserRole {
-    const normalized = role?.toString().trim().toUpperCase();
-    if (normalized === UserRole.ADMIN) {
-      return UserRole.ADMIN;
-    }
-    if (normalized === UserRole.INSTITUTION_ADMIN) {
-      return UserRole.INSTITUTION_ADMIN;
-    }
-    if (normalized === UserRole.PATIENT || normalized === 'PACIENTE') {
-      return UserRole.PATIENT;
-    }
-    return UserRole.THERAPIST;
-  }
-
-  private generatePasswordSetupToken(): string {
-    return randomBytes(24).toString('base64url');
-  }
-
-  private generatePasswordResetToken(): string {
-    return randomBytes(24).toString('base64url');
-  }
-
-  private buildPasswordSetupExpiry(): Date {
-    const expiresAt = new Date();
-    expiresAt.setHours(
-      expiresAt.getHours() + UsersService.PASSWORD_SETUP_TTL_HOURS,
-    );
-    return expiresAt;
-  }
-
-  private buildPasswordResetExpiry(): Date {
-    const expiresAt = new Date();
-    expiresAt.setHours(
-      expiresAt.getHours() + UsersService.PASSWORD_RESET_TTL_HOURS,
-    );
-    return expiresAt;
-  }
-
-  private hashPassword(plainPassword: string): string {
-    const salt = randomBytes(16).toString('hex');
-    const hash = scryptSync(plainPassword, salt, 64).toString('hex');
-    return `scrypt$${salt}$${hash}`;
+  hasPasswordConfigured(user: User): boolean {
+    return !!user.passwordSetAt && user.passwordHash.startsWith('scrypt$');
   }
 }

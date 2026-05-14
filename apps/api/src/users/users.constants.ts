@@ -1,6 +1,7 @@
 export const USER_ERROR_MESSAGES = {
   notFound: 'Usuario no encontrado',
-  institutionOwnerMissing: 'Usuario no encontrado para asegurar ownership institucional',
+  institutionOwnerMissing:
+    'Usuario no encontrado para asegurar ownership institucional',
   setupTokenInvalid: 'Token de activación inválido',
   setupTokenExpired: 'Token de activación expirado',
   passwordNotConfigured: 'La cuenta todavía no activó su contraseña',

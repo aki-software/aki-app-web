@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { HttpAdapterHost } from '@nestjs/core';
 
 async function bootstrap() {
@@ -19,7 +19,6 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
-  // Habilitamos CORS restrictivo (VULN-06 Fix)
   const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? [
     'http://localhost:5173',
   ];

@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
-import { InMemoryQueueAdapter } from './in-memory-queue.adapter';
-import { JobDispatcherService } from '../services/job-dispatcher.service';
-import { JobNames } from '../jobs/job-names';
+import { InMemoryQueueAdapter } from './in-memory-queue.adapter.js';
+import { JobDispatcherService } from '../services/job-dispatcher.service.js';
+import { JobNames } from '../jobs/job-names.js';
 
 describe('InMemoryQueueAdapter', () => {
   const dispatcher = {

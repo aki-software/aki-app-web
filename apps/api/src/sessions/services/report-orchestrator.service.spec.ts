@@ -1,12 +1,12 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Repository } from 'typeorm';
-import { Session } from '../entities/session.entity';
-import { ReportOrchestratorService } from './report-orchestrator.service';
-import { ReportService } from './report.service';
-import { MailService } from '../../mail/mail.service';
-import { PdfService } from '../../common/services/pdf.service';
-import { StorageService } from '../../common/services/storage.service';
+import { Session } from '../entities/session.entity.js';
+import { ReportOrchestratorService } from './report-orchestrator.service.js';
+import { ReportService } from './report.service.js';
+import { MailService } from '../../mail/mail.service.js';
+import { PdfService } from '../../common/services/pdf.service.js';
+import { StorageService } from '../../common/services/storage.service.js';
 
 describe('ReportOrchestratorService', () => {
   let service: ReportOrchestratorService;
@@ -74,7 +74,7 @@ describe('ReportOrchestratorService', () => {
       reportUrl: null,
       voucherId: null,
       paymentStatus: null,
-    } as Session;
+    } as unknown as Session;
 
     mockSessionRepository.findOne.mockResolvedValue(session);
     reportService.buildReportData = jest.fn().mockResolvedValue({
@@ -110,7 +110,7 @@ describe('ReportOrchestratorService', () => {
       reportUrl: null,
       voucherId: null,
       paymentStatus: null,
-    } as Session;
+    } as unknown as Session;
 
     mockSessionRepository.findOne.mockResolvedValue(session);
     reportService.buildReportData = jest.fn().mockResolvedValue({

@@ -1,7 +1,7 @@
 import { DataSource, EntityManager } from 'typeorm';
-import { typeOrmConfig } from '../../config/typeorm.config';
-import { User, UserRole } from '../../users/entities/user.entity';
-import { buildSeedPasswordHash } from './seed-password';
+import { typeOrmConfig } from '../../config/typeorm.config.js';
+import { User, UserRole } from '../../users/entities/user.entity.js';
+import { buildSeedPasswordHash } from './seed-password.js';
 
 type RepoProvider = Pick<DataSource, 'getRepository'> | EntityManager;
 

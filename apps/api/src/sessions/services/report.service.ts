@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { VocationalCategory } from '../../categories/entities/vocational-category.entity';
-import { TresAreasService } from '../../common/services/tres-areas.service';
+import { VocationalCategory } from '../../categories/entities/vocational-category.entity.js';
+import { TresAreasService } from '../../common/services/tres-areas.service.js';
 import {
   CategoryResult,
   ReportData,
   ReportSummary,
   ReportTripletInsight,
-} from '../../common/types/report.types';
-import { Session } from '../entities/session.entity';
+} from '../../common/types/report.types.js';
+import { Session } from '../entities/session.entity.js';
 
 type CategoryEntityLike = {
   categoryId: string;

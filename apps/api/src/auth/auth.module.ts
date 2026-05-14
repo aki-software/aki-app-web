@@ -1,21 +1,21 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { RateLimitGuard } from '../common/guards/rate-limit.guard';
-import { NotificationsModule } from '../common/notifications/notifications.module';
-import { UsersModule } from '../users/users.module';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { AuthJwtModule } from './config/auth-jwt.module';
-import { AuthResponseFactory } from './factories/auth-response.factory';
-import { AuthUserFactory } from './factories/auth-user.factory';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { AuthLoginService } from './services/auth-login.service';
-import { AuthPasswordFlowService } from './services/auth-password-flow.service';
-import { AuthTokenService } from './services/auth-token.service';
-import { JwtTokenDecoderService } from './services/jwt-token-decoder.service';
-import { FirebaseCertService } from './services/firebase-cert.service';
-import { FirebaseClaimsValidatorService } from './services/firebase-claims-validator.service';
-import { RolesGuard } from './guards/roles.guard';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
+import { NotificationsModule } from '../common/notifications/notifications.module.js';
+import { UsersModule } from '../users/users.module.js';
+import { AuthController } from './auth.controller.js';
+import { AuthService } from './auth.service.js';
+import { AuthJwtModule } from './config/auth-jwt.module.js';
+import { AuthResponseFactory } from './factories/auth-response.factory.js';
+import { AuthUserFactory } from './factories/auth-user.factory.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
+import { AuthLoginService } from './services/auth-login.service.js';
+import { AuthPasswordFlowService } from './services/auth-password-flow.service.js';
+import { AuthTokenService } from './services/auth-token.service.js';
+import { JwtTokenDecoderService } from './services/jwt-token-decoder.service.js';
+import { FirebaseCertService } from './services/firebase-cert.service.js';
+import { FirebaseClaimsValidatorService } from './services/firebase-claims-validator.service.js';
+import { RolesGuard } from './guards/roles.guard.js';
 
 @Module({
   imports: [UsersModule, NotificationsModule, PassportModule, AuthJwtModule],

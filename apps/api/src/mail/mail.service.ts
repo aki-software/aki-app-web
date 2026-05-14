@@ -9,7 +9,7 @@ import {
   CategoryResult,
   ReportSummary,
   ReportTripletInsight,
-} from '../common/types/report.types';
+} from '../common/types/report.types.js';
 
 @Injectable()
 export class MailService {

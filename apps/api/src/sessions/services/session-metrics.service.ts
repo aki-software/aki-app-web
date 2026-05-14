@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SessionMetrics } from '../entities/session-metrics.entity';
-import { Session } from '../entities/session.entity';
+import { SessionMetrics } from '../entities/session-metrics.entity.js';
+import { Session } from '../entities/session.entity.js';
 
 @Injectable()
 export class SessionMetricsService {

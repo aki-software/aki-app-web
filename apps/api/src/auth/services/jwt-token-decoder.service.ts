@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { AUTH_JWT_MESSAGES } from '../auth.constants';
+import { AUTH_JWT_MESSAGES } from '../auth.constants.js';
 
 @Injectable()
 export class JwtTokenDecoderService {

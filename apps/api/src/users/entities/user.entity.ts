@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Institution } from '../../institutions/entities/institution.entity';
+import { Institution } from '../../institutions/entities/institution.entity.js';
 
 export enum UserRole {
   ADMIN = 'ADMIN',

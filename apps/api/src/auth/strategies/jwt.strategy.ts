@@ -2,12 +2,12 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AUTH_JWT_MESSAGES } from '../auth.constants';
-import type { FirebaseJwtPayload, JwtPayload } from '../auth.types';
-import { AuthUserFactory } from '../factories/auth-user.factory';
-import { FirebaseClaimsValidatorService } from '../services/firebase-claims-validator.service';
-import { FirebaseCertService } from '../services/firebase-cert.service';
-import { JwtTokenDecoderService } from '../services/jwt-token-decoder.service';
+import { AUTH_JWT_MESSAGES } from '../auth.constants.js';
+import type { FirebaseJwtPayload, JwtPayload } from '../auth.types.js';
+import { AuthUserFactory } from '../factories/auth-user.factory.js';
+import { FirebaseClaimsValidatorService } from '../services/firebase-claims-validator.service.js';
+import { FirebaseCertService } from '../services/firebase-cert.service.js';
+import { JwtTokenDecoderService } from '../services/jwt-token-decoder.service.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -60,8 +60,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     done: (err: Error | null, key?: string) => void,
   ) {
     try {
-      const payload =
-        this.jwtTokenDecoder.decodePayload(rawJwtToken) as JwtPayload;
+      const payload = this.jwtTokenDecoder.decodePayload(
+        rawJwtToken,
+      ) as JwtPayload;
 
       if (!this.isFirebasePayload(payload)) {
         const localJwtSecret =

@@ -1,89 +1,36 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
   ConflictException,
   Logger,
 } from '@nestjs/common';
-import { randomBytes } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, FindOptionsWhere, Repository } from 'typeorm';
-import { Voucher } from './entities/voucher.entity';
-import { VoucherBatch } from './entities/voucher-batch.entity';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import { Voucher } from './entities/voucher.entity.js';
+import { VoucherBatch } from './entities/voucher-batch.entity.js';
 import {
   VoucherBatchStatus,
   VoucherOwnerType,
   VoucherStatus,
-} from './entities/voucher.enums';
-import { CreateVoucherDto } from './dto/create-voucher.dto';
-import { ListVouchersDto } from './dto/list-vouchers.dto';
-import { UsersService } from '../users/users.service';
-import { MailService } from '../mail/mail.service';
-import type { QueueAdapter } from '../common/adapters/queue.adapter';
-import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
-import { JobNames, SendEmailJobPayload } from '../common/jobs';
-import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
+} from './entities/voucher.enums.js';
+import {
+  CreateVoucherDto,
+  ListVoucherBatchesDto,
+  ListVouchersDto,
+} from './dto/voucher.dto.js';
 import {
   Session,
   SessionPaymentStatus,
-} from '../sessions/entities/session.entity';
-
-type VoucherScope = {
-  role?: string;
-  ownerUserId?: string;
-  ownerInstitutionId?: string | null;
-};
-
-type VoucherBatchSummary = {
-  batchId: string;
-  ownerInstitutionName: string;
-  ownerUserName: string;
-  createdAt: Date | string;
-  expiresAt: Date | string | null;
-  total: number;
-  available: number;
-  used: number;
-  pending: number;
-};
-
-type VoucherBatchDetailItem = {
-  id: string;
-  code: string;
-  status: VoucherStatus;
-  assignedPatientName: string | null;
-  assignedPatientEmail: string | null;
-  redeemedSessionId: string | null;
-  createdAt: Date | string;
-  redeemedAt: Date | string | null;
-  expiresAt: Date | string | null;
-};
-
-type VoucherBatchDetail = {
-  batchId: string;
-  ownerInstitutionName: string;
-  ownerUserName: string;
-  createdAt: Date | string;
-  expiresAt: Date | string | null;
-  total: number;
-  available: number;
-  used: number;
-  pending: number;
-  vouchers: VoucherBatchDetailItem[];
-};
-
-type RawVoucherBatchCountRow = { count: string };
-type RawVoucherBatchSummaryRow = {
-  batch_id: string;
-  ownerInstitutionName: string;
-  ownerUserName: string;
-  batchCreatedAt: Date | string;
-  batchExpiresAt: Date | string | null;
-  total: string;
-  available: string;
-  used: string;
-  pending: string;
-};
+} from '../sessions/entities/session.entity.js';
+import { VoucherNotifierService } from './voucher-notifier.service.js';
+import {
+  VoucherBatchDetail,
+  VoucherQueryService,
+  VoucherScope,
+} from './voucher-query.service.js';
+import { VoucherCodeGenerator } from './services/voucher-code-generator.service.js';
+import { VoucherOwnerResolver } from './services/voucher-owner-resolver.service.js';
 
 @Injectable()
 export class VouchersService {
@@ -95,10 +42,10 @@ export class VouchersService {
     @InjectRepository(VoucherBatch)
     private readonly voucherBatchRepository: Repository<VoucherBatch>,
     private readonly dataSource: DataSource,
-    private readonly usersService: UsersService,
-    private readonly mailService: MailService,
-    @Inject(QUEUE_ADAPTER)
-    private readonly queueAdapter: QueueAdapter,
+    private readonly notifierService: VoucherNotifierService,
+    private readonly queryService: VoucherQueryService,
+    private readonly codeGenerator: VoucherCodeGenerator,
+    private readonly ownerResolver: VoucherOwnerResolver,
   ) {}
 
   async create(createVoucherDto: CreateVoucherDto): Promise<{
@@ -110,17 +57,19 @@ export class VouchersService {
     ownerInstitutionId: string | null;
     expiresAt: Date | null;
   }> {
-    const normalizedOwnership = await this.normalizeOwner(
+    const normalizedOwnership = await this.ownerResolver.resolve(
       createVoucherDto.ownerType,
       createVoucherDto.ownerUserId,
       createVoucherDto.ownerInstitutionId,
     );
+
     const quantity = createVoucherDto.quantity ?? 1;
     if (quantity > 1 && createVoucherDto.code) {
       throw new BadRequestException(
         'No se puede definir un código manual cuando se crea un lote',
       );
     }
+
     const batch = await this.voucherBatchRepository.save(
       this.voucherBatchRepository.create({
         ownerType: normalizedOwnership.ownerType,
@@ -133,16 +82,20 @@ export class VouchersService {
         paidAt: new Date(),
       }),
     );
+
     const expiresAt = createVoucherDto.expiresAt
       ? new Date(createVoucherDto.expiresAt)
       : null;
+
     const vouchersToCreate: Voucher[] = [];
     for (let index = 0; index < quantity; index++) {
+      const code = createVoucherDto.code
+        ? this.codeGenerator.normalize(createVoucherDto.code)
+        : await this.codeGenerator.generateUniqueCode();
+
       vouchersToCreate.push(
         this.voucherRepository.create({
-          code: this.normalizeCode(
-            createVoucherDto.code ?? (await this.generateVoucherCode()),
-          ),
+          code,
           batchId: batch.id,
           ownerType: normalizedOwnership.ownerType,
           ownerUserId: normalizedOwnership.ownerUserId,
@@ -154,7 +107,9 @@ export class VouchersService {
         }),
       );
     }
+
     const savedVouchers = await this.voucherRepository.save(vouchersToCreate);
+
     return {
       batchId: batch.id,
       createdCount: savedVouchers.length,
@@ -166,92 +121,66 @@ export class VouchersService {
     };
   }
 
-  async sendEmail(id: string, customEmail?: string): Promise<boolean> {
-    const voucher = await this.voucherRepository.findOne({ where: { id } });
+  async findById(id: string, scope?: VoucherScope): Promise<Voucher> {
+    const where = this.queryService.buildScopedWhere(scope);
+    const scopedWhere = { ...where, id };
+
+    const voucher = await this.voucherRepository.findOne({
+      where: scopedWhere as FindOptionsWhere<Voucher>,
+      relations: ['ownerUser', 'ownerInstitution'],
+    });
+
     if (!voucher) throw new NotFoundException('Voucher no encontrado');
-    this.assertVoucherCanSendEmail(voucher);
+    return voucher;
+  }
+
+  async sendEmail(
+    id: string,
+    scope?: VoucherScope,
+    customEmail?: string,
+  ): Promise<boolean> {
+    const voucher = await this.findById(id, scope);
     const targetEmail = customEmail || voucher.assignedPatientEmail;
+
     if (!targetEmail) {
       throw new BadRequestException(
         'Se requiere un correo de destino para enviar el voucher',
       );
     }
-    const delivered = this.queueAdapter.isConfigured()
-      ? await this.enqueueVoucherEmail(voucher, targetEmail)
-      : await this.mailService.sendVoucherCode(
-          targetEmail,
-          voucher.code,
-          voucher.assignedPatientName || undefined,
-        );
-    if (!delivered) {
-      return false;
+
+    try {
+      voucher.markAsSent(customEmail);
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
     }
 
-    voucher.sentAt = new Date();
-    if (voucher.status === VoucherStatus.AVAILABLE) {
-      voucher.status = VoucherStatus.SENT;
-    }
-    if (customEmail?.trim()) {
-      voucher.assignedPatientEmail = customEmail.trim();
-    }
+    const delivered = await this.notifierService.sendVoucherEmail(
+      voucher,
+      targetEmail,
+    );
+
+    if (!delivered) return false;
+
     await this.voucherRepository.save(voucher);
     return true;
   }
 
-  private async enqueueVoucherEmail(
-    voucher: Voucher,
-    targetEmail: string,
+  async resendEmail(
+    id: string,
+    scope?: VoucherScope,
+    customEmail?: string,
   ): Promise<boolean> {
-    const payload: SendEmailJobPayload = {
-      jobId: `voucher-email-${voucher.id}-${Date.now()}`,
-      attempts: 3,
-      backoffMs: 60_000,
-      backoffType: 'exponential',
-      timeoutMs: 20_000,
-      concurrencyKey: 'email',
-      concurrencyLimit: 10,
-      template: 'voucher-code',
-      payload: {
-        voucherCode: voucher.code,
-        patientName: voucher.assignedPatientName || undefined,
-      },
-      meta: {
-        to: targetEmail,
-        subject: '🔑 Tu código de acceso para A.kit',
-        voucherId: voucher.id,
-      },
-    };
-
-    await this.queueAdapter.enqueue(JobNames.SendEmail, payload, {
-      attempts: payload.attempts,
-      backoffMs: payload.backoffMs,
-      backoffType: payload.backoffType,
-      timeoutMs: payload.timeoutMs,
-      concurrencyKey: payload.concurrencyKey,
-      concurrencyLimit: payload.concurrencyLimit,
-    });
-    return true;
+    return await this.sendEmail(id, scope, customEmail);
   }
 
-  async resendEmail(id: string, customEmail?: string): Promise<boolean> {
-    return await this.sendEmail(id, customEmail);
-  }
-
-  async revoke(id: string): Promise<Voucher> {
-    const voucher = await this.voucherRepository.findOne({ where: { id } });
-    if (!voucher) throw new NotFoundException('Voucher no encontrado');
-    this.assertVoucherCanBeRevoked(voucher);
-    voucher.revoke();
+  async revoke(id: string, scope?: VoucherScope): Promise<Voucher> {
+    const voucher = await this.findById(id, scope);
+    try {
+      voucher.revoke();
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
     return await this.voucherRepository.save(voucher);
-  }
-
-  async findById(id: string): Promise<Voucher> {
-    const voucher = await this.voucherRepository.findOne({
-      where: { id },
-      relations: ['ownerUser', 'ownerInstitution'],
-    });
-    if (!voucher) throw new NotFoundException('Voucher no encontrado');
-    return voucher;
   }
 
   async resolveAvailableVoucher(code: string): Promise<Voucher> {
@@ -269,7 +198,7 @@ export class VouchersService {
     voucherCode: string;
     sessionId: string;
   }> {
-    const normalizedCode = this.normalizeCode(code);
+    const normalizedCode = this.codeGenerator.normalize(code);
     this.logger.debug(
       `redeemForSession start code=${normalizedCode} sessionId=${sessionId}`,
     );
@@ -288,10 +217,6 @@ export class VouchersService {
         throw new NotFoundException('INVALID_CODE');
       }
 
-      this.logger.debug(
-        `redeemForSession voucher-loaded id=${voucher.id} status=${voucher.status} ownerUserId=${voucher.ownerUserId ?? 'null'} ownerInstitutionId=${voucher.ownerInstitutionId ?? 'null'} redeemedSessionId=${voucher.redeemedSessionId ?? 'null'}`,
-      );
-
       const session = await sessionRepository.findOne({
         where: { id: sessionId },
       });
@@ -302,14 +227,7 @@ export class VouchersService {
         throw new NotFoundException('SESSION_NOT_FOUND');
       }
 
-      this.logger.debug(
-        `redeemForSession session-loaded id=${session.id} patientId=${session.patientId ?? 'null'} therapistUserId=${session.therapistUserId ?? 'null'} institutionId=${session.institutionId ?? 'null'} paymentStatus=${session.paymentStatus}`,
-      );
-
       if (voucher.redeemedSessionId === sessionId) {
-        this.logger.debug(
-          `redeemForSession already-redeemed-same-session code=${normalizedCode} sessionId=${sessionId}`,
-        );
         this.applyVoucherRedemptionToSession(session, voucher, new Date());
         await sessionRepository.save(session);
         return {
@@ -321,26 +239,23 @@ export class VouchersService {
       }
 
       if (voucher.status === VoucherStatus.USED) {
-        this.logger.warn(
-          `redeemForSession voucher-already-used code=${normalizedCode} voucherId=${voucher.id} redeemedSessionId=${voucher.redeemedSessionId ?? 'null'} requestedSessionId=${sessionId}`,
-        );
         throw new ConflictException('ALREADY_USED');
       }
 
-      this.assertVoucherAvailable(voucher);
-      const redeemedAt = new Date();
-      voucher.status = VoucherStatus.USED;
-      voucher.redeemedSessionId = sessionId;
-      voucher.redeemedAt = redeemedAt;
+      try {
+        voucher.redeem(sessionId);
+      } catch (error: any) {
+        throw new BadRequestException(error.message);
+      }
 
-      this.applyVoucherRedemptionToSession(session, voucher, redeemedAt);
+      this.applyVoucherRedemptionToSession(
+        session,
+        voucher,
+        voucher.redeemedAt!,
+      );
 
       await voucherRepository.save(voucher);
       await sessionRepository.save(session);
-
-      this.logger.log(
-        `redeemForSession success code=${normalizedCode} voucherId=${voucher.id} sessionId=${sessionId}`,
-      );
 
       return {
         success: true,
@@ -373,9 +288,13 @@ export class VouchersService {
     patientName?: string | null,
   ): Promise<Voucher> {
     const voucher = await this.resolveAvailableVoucher(code);
-    voucher.status = VoucherStatus.USED;
-    voucher.redeemedSessionId = sessionId;
-    voucher.redeemedAt = new Date();
+
+    try {
+      voucher.redeem(sessionId);
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+
     if (patientName && !voucher.assignedPatientName) {
       voucher.assignedPatientName = patientName;
     }
@@ -385,7 +304,7 @@ export class VouchersService {
   async findAll(
     scope?: VoucherScope,
   ): Promise<{ data: Voucher[]; count: number }> {
-    const where = this.buildScopedWhere(scope);
+    const where = this.queryService.buildScopedWhere(scope);
     const [data, count] = await this.voucherRepository.findAndCount({
       where,
       relations: ['ownerUser', 'ownerInstitution', 'redeemedSession'],
@@ -394,254 +313,23 @@ export class VouchersService {
     return { data, count };
   }
 
-  async findAllFiltered(
-    filters: ListVouchersDto,
-    scope?: VoucherScope,
-  ): Promise<{
-    data: Voucher[];
-    count: number;
-    page: number;
-    limit: number;
-  }> {
-    const page = Number.isFinite(filters.page)
-      ? Math.max(1, filters.page ?? 1)
-      : 1;
-    const limit = Number.isFinite(filters.limit)
-      ? Math.min(Math.max(1, filters.limit ?? 10), 100)
-      : 10;
-
-    const qb = this.voucherRepository
-      .createQueryBuilder('voucher')
-      .leftJoinAndSelect('voucher.ownerUser', 'ownerUser')
-      .leftJoinAndSelect('voucher.ownerInstitution', 'ownerInstitution')
-      .leftJoinAndSelect('voucher.redeemedSession', 'redeemedSession')
-      .orderBy('voucher.createdAt', 'DESC');
-
-    const normalizedRole = scope?.role?.toUpperCase();
-    if (normalizedRole === 'ADMIN') {
-      if (scope?.ownerInstitutionId) {
-        qb.andWhere('voucher.ownerInstitutionId = :ownerInstitutionId', {
-          ownerInstitutionId: scope.ownerInstitutionId,
-        });
-      }
-    } else if (scope?.ownerInstitutionId) {
-      qb.andWhere('voucher.ownerInstitutionId = :ownerInstitutionId', {
-        ownerInstitutionId: scope.ownerInstitutionId,
-      });
-    } else if (scope?.ownerUserId) {
-      qb.andWhere('voucher.ownerUserId = :ownerUserId', {
-        ownerUserId: scope.ownerUserId,
-      });
-    } else {
-      qb.andWhere('voucher.id = :forbidden', { forbidden: '__forbidden__' });
-    }
-
-    const search = filters.search?.trim();
-    if (search) {
-      const normalized = `%${search.toLowerCase()}%`;
-      qb.andWhere(
-        new Brackets((inner) => {
-          inner
-            .where('LOWER(voucher.code) LIKE :search', { search: normalized })
-            .orWhere('LOWER(CAST(voucher.status AS text)) LIKE :search', {
-              search: normalized,
-            })
-            .orWhere('LOWER(CAST(voucher.batchId AS text)) LIKE :search', {
-              search: normalized,
-            })
-            .orWhere('LOWER(ownerInstitution.name) LIKE :search', {
-              search: normalized,
-            })
-            .orWhere('LOWER(ownerUser.name) LIKE :search', {
-              search: normalized,
-            })
-            .orWhere(
-              "LOWER(COALESCE(voucher.assignedPatientName, '')) LIKE :search",
-              { search: normalized },
-            )
-            .orWhere(
-              "LOWER(COALESCE(voucher.assignedPatientEmail, '')) LIKE :search",
-              { search: normalized },
-            );
-        }),
-      );
-    }
-
-    if (filters.status) {
-      qb.andWhere('voucher.status = :status', { status: filters.status });
-    }
-
-    const expiration = filters.expiration?.trim();
-    if (expiration && expiration !== 'ALL') {
-      if (expiration === 'EXPIRING_7D') {
-        const now = new Date();
-        const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        qb.andWhere('voucher.expiresAt IS NOT NULL')
-          .andWhere('voucher.expiresAt >= :now', { now })
-          .andWhere('voucher.expiresAt <= :next7Days', { next7Days });
-      } else if (expiration === 'NO_EXPIRATION') {
-        qb.andWhere('voucher.expiresAt IS NULL');
-      }
-    }
-
-    const [data, count] = await qb
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
-
-    return { data, count, page, limit };
+  async findAllFiltered(filters: ListVouchersDto, scope?: VoucherScope) {
+    return this.queryService.findAllFiltered(filters, scope);
   }
 
   async findBatchSummaries(
     filters: ListVoucherBatchesDto,
     scope?: VoucherScope,
-  ): Promise<{
-    data: VoucherBatchSummary[];
-    count: number;
-    page: number;
-    limit: number;
-  }> {
-    const page = Number.isFinite(filters.page)
-      ? Math.max(1, filters.page ?? 1)
-      : 1;
-    const limit = Number.isFinite(filters.limit)
-      ? Math.min(Math.max(1, filters.limit ?? 10), 100)
-      : 10;
-
-    const baseQb = this.voucherRepository
-      .createQueryBuilder('voucher')
-      .leftJoin('voucher.ownerInstitution', 'ownerInstitution')
-      .leftJoin('voucher.ownerUser', 'ownerUser');
-
-    const normalizedRole = scope?.role?.toUpperCase();
-    if (normalizedRole === 'ADMIN') {
-      if (scope?.ownerInstitutionId) {
-        baseQb.andWhere('voucher.ownerInstitutionId = :ownerInstitutionId', {
-          ownerInstitutionId: scope.ownerInstitutionId,
-        });
-      }
-    } else if (scope?.ownerInstitutionId) {
-      baseQb.andWhere('voucher.ownerInstitutionId = :ownerInstitutionId', {
-        ownerInstitutionId: scope.ownerInstitutionId,
-      });
-    } else if (scope?.ownerUserId) {
-      baseQb.andWhere('voucher.ownerUserId = :ownerUserId', {
-        ownerUserId: scope.ownerUserId,
-      });
-    } else {
-      baseQb.andWhere('voucher.id = :forbidden', {
-        forbidden: '__forbidden__',
-      });
-    }
-
-    if (filters.clientId?.trim()) {
-      baseQb.andWhere('voucher.ownerInstitutionId = :clientId', {
-        clientId: filters.clientId.trim(),
-      });
-    }
-
-    const search = filters.search?.trim();
-    if (search) {
-      const normalized = `%${search.toLowerCase()}%`;
-      baseQb.andWhere(
-        new Brackets((inner) => {
-          inner
-            .where('LOWER(CAST(voucher.batchId AS text)) LIKE :search', {
-              search: normalized,
-            })
-            .orWhere('LOWER(voucher.code) LIKE :search', {
-              search: normalized,
-            })
-            .orWhere('LOWER(ownerInstitution.name) LIKE :search', {
-              search: normalized,
-            })
-            .orWhere('LOWER(ownerUser.name) LIKE :search', {
-              search: normalized,
-            });
-        }),
-      );
-    }
-
-    const expiration = filters.expiration?.trim();
-    if (expiration && expiration !== 'ALL') {
-      if (expiration === 'EXPIRING_7D') {
-        const now = new Date();
-        const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        baseQb
-          .andWhere('voucher.expiresAt IS NOT NULL')
-          .andWhere('voucher.expiresAt >= :now', { now })
-          .andWhere('voucher.expiresAt <= :next7Days', { next7Days });
-      } else if (expiration === 'NO_EXPIRATION') {
-        baseQb.andWhere('voucher.expiresAt IS NULL');
-      }
-    }
-
-    const countRow = await baseQb
-      .clone()
-      .select('COUNT(DISTINCT voucher.batchId)', 'count')
-      .getRawOne<RawVoucherBatchCountRow>();
-    const count = Number.parseInt(String(countRow?.count ?? '0'), 10) || 0;
-
-    const rows = await baseQb
-      .clone()
-      .select('voucher.batchId', 'batch_id')
-      .addSelect(
-        "COALESCE(MAX(ownerInstitution.name), 'Institución no informada')",
-        'ownerInstitutionName',
-      )
-      .addSelect(
-        "COALESCE(MAX(ownerUser.name), 'Cuenta operativa no informada')",
-        'ownerUserName',
-      )
-      .addSelect('MIN(voucher.createdAt)', 'batchCreatedAt')
-      .addSelect('MAX(voucher.expiresAt)', 'batchExpiresAt')
-      .addSelect('COUNT(*)', 'total')
-      .addSelect(
-        `SUM(CASE WHEN voucher.status = :available THEN 1 ELSE 0 END)`,
-        'available',
-      )
-      .addSelect(
-        `SUM(CASE WHEN voucher.status = :used THEN 1 ELSE 0 END)`,
-        'used',
-      )
-      .addSelect(
-        `SUM(CASE WHEN voucher.status = :used OR voucher.status = :expired THEN 0 ELSE 1 END)`,
-        'pending',
-      )
-      .setParameters({
-        available: VoucherStatus.AVAILABLE,
-        used: VoucherStatus.USED,
-        expired: VoucherStatus.EXPIRED,
-      })
-      .groupBy('voucher.batchId')
-      .orderBy('MIN(voucher.createdAt)', 'DESC')
-      .offset((page - 1) * limit)
-      .limit(limit)
-      .getRawMany<RawVoucherBatchSummaryRow>();
-
-    const data: VoucherBatchSummary[] = (rows ?? []).map((row) => ({
-      batchId: row.batch_id,
-      ownerInstitutionName: row.ownerInstitutionName,
-      ownerUserName: row.ownerUserName,
-      createdAt: row.batchCreatedAt,
-      expiresAt: row.batchExpiresAt,
-      total: Number.parseInt(String(row.total ?? '0'), 10) || 0,
-      available: Number.parseInt(String(row.available ?? '0'), 10) || 0,
-      used: Number.parseInt(String(row.used ?? '0'), 10) || 0,
-      pending: Number.parseInt(String(row.pending ?? '0'), 10) || 0,
-    }));
-
-    return { data, count, page, limit };
+  ) {
+    return this.queryService.findBatchSummaries(filters, scope);
   }
 
   async findBatchDetail(
     batchId: string,
     scope?: VoucherScope,
   ): Promise<VoucherBatchDetail> {
-    const where = this.buildScopedWhere(scope);
-    const scopedWhere = where
-      ? ({ ...where, batchId } as FindOptionsWhere<Voucher>)
-      : ({ batchId } as FindOptionsWhere<Voucher>);
+    const where = this.queryService.buildScopedWhere(scope);
+    const scopedWhere = { ...where, batchId } as FindOptionsWhere<Voucher>;
 
     const vouchers = await this.voucherRepository.find({
       where: scopedWhere,
@@ -694,7 +382,7 @@ export class VouchersService {
 
   async findByCode(code: string): Promise<Voucher> {
     const voucher = await this.voucherRepository.findOne({
-      where: { code: this.normalizeCode(code) },
+      where: { code: this.codeGenerator.normalize(code) },
       relations: ['ownerUser', 'ownerInstitution'],
     });
     if (!voucher) throw new NotFoundException('Voucher no encontrado');
@@ -706,95 +394,5 @@ export class VouchersService {
       throw new BadRequestException('Voucher no disponible');
     if (voucher.expiresAt && voucher.expiresAt.getTime() < Date.now())
       throw new BadRequestException('Voucher expirado');
-  }
-
-  private assertVoucherCanSendEmail(voucher: Voucher) {
-    if (
-      voucher.status === VoucherStatus.USED ||
-      voucher.status === VoucherStatus.EXPIRED ||
-      voucher.status === VoucherStatus.REVOKED
-    ) {
-      throw new BadRequestException(
-        'El voucher no admite envío en su estado actual',
-      );
-    }
-    if (voucher.expiresAt && voucher.expiresAt.getTime() < Date.now()) {
-      throw new BadRequestException('El voucher está vencido');
-    }
-  }
-
-  private assertVoucherCanBeRevoked(voucher: Voucher) {
-    if (
-      voucher.status !== VoucherStatus.AVAILABLE &&
-      voucher.status !== VoucherStatus.SENT
-    ) {
-      throw new BadRequestException(
-        'Solo se pueden revocar vouchers disponibles o enviados',
-      );
-    }
-  }
-
-  private async normalizeOwner(
-    ownerType?: VoucherOwnerType,
-    ownerUserId?: string | null,
-    ownerInstitutionId?: string | null,
-  ) {
-    if (!ownerType)
-      throw new BadRequestException('ownerType es obligatorio para vouchers');
-    if (ownerType === VoucherOwnerType.THERAPIST && !ownerUserId)
-      throw new BadRequestException(
-        'ownerUserId es obligatorio para vouchers de terapeuta',
-      );
-    if (ownerType === VoucherOwnerType.THERAPIST && ownerUserId) {
-      const therapist =
-        await this.usersService.ensureInstitutionOwner(ownerUserId);
-      return {
-        ownerType: VoucherOwnerType.INSTITUTION,
-        ownerUserId: therapist.id,
-        ownerInstitutionId: therapist.institutionId,
-      };
-    }
-    if (ownerType === VoucherOwnerType.INSTITUTION && !ownerInstitutionId)
-      throw new BadRequestException(
-        'ownerInstitutionId es obligatorio para vouchers de institución',
-      );
-    return {
-      ownerType,
-      ownerUserId: ownerUserId ?? null,
-      ownerInstitutionId: ownerInstitutionId ?? null,
-    };
-  }
-
-  private normalizeCode(code: string): string {
-    return code.trim().toUpperCase();
-  }
-
-  private async generateVoucherCode(): Promise<string> {
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const raw = randomBytes(6).toString('base64url').toUpperCase();
-      const code = raw.replace(/[^A-Z0-9]/g, '').slice(0, 8);
-      if (code.length !== 8) continue;
-      const existing = await this.voucherRepository.findOne({
-        where: { code },
-      });
-      if (!existing) return code;
-    }
-    throw new BadRequestException(
-      'No se pudo generar un código de voucher único',
-    );
-  }
-
-  private buildScopedWhere(
-    scope?: VoucherScope,
-  ): FindOptionsWhere<Voucher> | undefined {
-    const normalizedRole = scope?.role?.toUpperCase();
-    if (normalizedRole === 'ADMIN')
-      return scope?.ownerInstitutionId
-        ? { ownerInstitutionId: scope.ownerInstitutionId }
-        : undefined;
-    if (scope?.ownerInstitutionId)
-      return { ownerInstitutionId: scope.ownerInstitutionId };
-    if (scope?.ownerUserId) return { ownerUserId: scope.ownerUserId };
-    return { id: '__forbidden__' };
   }
 }

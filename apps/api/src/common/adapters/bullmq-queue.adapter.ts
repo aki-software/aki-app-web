@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
-import { QueueAdapter, QueueJobOptions } from './queue.adapter';
-import { JobNames } from '../jobs/job-names';
-import { InMemoryQueueAdapter } from './in-memory-queue.adapter';
+import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
+import { JobNames } from '../jobs/job-names.js';
+import { InMemoryQueueAdapter } from './in-memory-queue.adapter.js';
 
 type RedisConnectionConfig =
   | { url: string }

@@ -1,26 +1,29 @@
 import {
-    Body,
-    Controller,
-    Get,
-    Logger,
-    Param,
-    ParseUUIDPipe,
-    Post,
-    Query,
-    Req,
-    UnauthorizedException,
-    UseGuards,
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { UserRole } from '../users/entities/user.entity';
-import { CreateVoucherDto } from './dto/create-voucher.dto';
-import { ListVoucherBatchesDto } from './dto/list-voucher-batches.dto';
-import { ListVouchersDto } from './dto/list-vouchers.dto';
-import { RedeemVoucherDto } from './dto/redeem-voucher.dto';
-import { ResolveVoucherDto } from './dto/resolve-voucher.dto';
-import { SendVoucherEmailDto } from './dto/send-voucher-email.dto';
-import { VouchersService } from './vouchers.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { UserRole } from '../users/entities/user.entity.js';
+import {
+  CreateVoucherDto,
+  ListVoucherBatchesDto,
+  ListVouchersDto,
+  RedeemVoucherDto,
+  ResolveVoucherDto,
+  SendVoucherEmailDto,
+} from './dto/voucher.dto.js';
+import { VouchersService } from './vouchers.service.js';
+import { VoucherScope } from './voucher-query.service.js';
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -53,10 +56,11 @@ export class VouchersController {
     @Body() body: SendVoucherEmailDto,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const voucher = await this.vouchersService.findById(id);
-    this.assertVoucherOwnership(voucher, req, 'enviar este voucher');
-
-    return await this.vouchersService.sendEmail(id, body.email);
+    return await this.vouchersService.sendEmail(
+      id,
+      this.getVoucherScope(req),
+      body.email,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -66,9 +70,11 @@ export class VouchersController {
     @Body() body: SendVoucherEmailDto,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const voucher = await this.vouchersService.findById(id);
-    this.assertVoucherOwnership(voucher, req, 'reenviar este voucher');
-    return await this.vouchersService.resendEmail(id, body.email);
+    return await this.vouchersService.resendEmail(
+      id,
+      this.getVoucherScope(req),
+      body.email,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -77,9 +83,10 @@ export class VouchersController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const voucher = await this.vouchersService.findById(id);
-    this.assertVoucherOwnership(voucher, req, 'revocar este voucher');
-    const revoked = await this.vouchersService.revoke(id);
+    const revoked = await this.vouchersService.revoke(
+      id,
+      this.getVoucherScope(req),
+    );
     return {
       id: revoked.id,
       code: revoked.code,
@@ -128,14 +135,10 @@ export class VouchersController {
     @Query() query: ListVoucherBatchesDto,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
-    return await this.vouchersService.findBatchSummaries(query, {
-      role: req?.user?.role,
-      ownerUserId: req?.user?.userId,
-      ownerInstitutionId: isAdmin
-        ? query.clientId || undefined
-        : req?.user?.institutionId,
-    });
+    return await this.vouchersService.findBatchSummaries(
+      query,
+      this.getVoucherScope(req, query.clientId),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -144,12 +147,10 @@ export class VouchersController {
     @Param('batchId', new ParseUUIDPipe()) batchId: string,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
-    return await this.vouchersService.findBatchDetail(batchId, {
-      role: req?.user?.role,
-      ownerUserId: req?.user?.userId,
-      ownerInstitutionId: isAdmin ? undefined : req?.user?.institutionId,
-    });
+    return await this.vouchersService.findBatchDetail(
+      batchId,
+      this.getVoucherScope(req),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -158,14 +159,10 @@ export class VouchersController {
     @Query() query?: ListVouchersDto,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
-    return await this.vouchersService.findAllFiltered(query ?? {}, {
-      role: req?.user?.role,
-      ownerUserId: req?.user?.userId,
-      ownerInstitutionId: isAdmin
-        ? query?.clientId || undefined
-        : req?.user?.institutionId,
-    });
+    return await this.vouchersService.findAllFiltered(
+      query ?? {},
+      this.getVoucherScope(req, query?.clientId),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -195,23 +192,15 @@ export class VouchersController {
     }
   }
 
-  private assertVoucherOwnership(
-    voucher: {
-      ownerInstitutionId?: string | null;
-      ownerUserId?: string | null;
-    },
-    req: AuthenticatedRequest | undefined,
-    action: string,
-  ) {
+  private getVoucherScope(
+    req?: AuthenticatedRequest,
+    clientId?: string,
+  ): VoucherScope {
     const isAdmin = req?.user?.role?.toUpperCase() === UserRole.ADMIN;
-    const isInstitutionOwner =
-      !!voucher.ownerInstitutionId &&
-      req?.user?.institutionId === voucher.ownerInstitutionId;
-    const isDirectOwnerUser =
-      !!voucher.ownerUserId && req?.user?.userId === voucher.ownerUserId;
-
-    if (!isAdmin && !isInstitutionOwner && !isDirectOwnerUser) {
-      throw new UnauthorizedException(`No tienes permisos para ${action}`);
-    }
+    return {
+      role: req?.user?.role,
+      ownerUserId: req?.user?.userId,
+      ownerInstitutionId: isAdmin ? clientId : req?.user?.institutionId,
+    };
   }
 }

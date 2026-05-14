@@ -1,19 +1,20 @@
 import { Module, Global, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MailModule } from '../mail/mail.module';
-import { SessionsModule } from '../sessions/sessions.module';
-import { PdfService } from './services/pdf.service';
-import { StorageService } from './services/storage.service';
-import { TresAreasService } from './services/tres-areas.service';
+import { MailModule } from '../mail/mail.module.js';
+import { SessionsModule } from '../sessions/sessions.module.js';
+import { PdfService } from './services/pdf.service.js';
+import { StorageService } from './services/storage.service.js';
+import { TresAreasService } from './services/tres-areas.service.js';
+import { CryptoService } from './services/crypto.service.js';
 import {
   PDF_GENERATOR,
   STORAGE_ADAPTER,
   QUEUE_ADAPTER,
-} from './constants/adapters.constants';
-import { TresAreasCombination } from './entities/tres-areas-combination.entity';
-import { InMemoryQueueAdapter } from './adapters/in-memory-queue.adapter';
-import { BullMQQueueAdapter } from './adapters/bullmq-queue.adapter';
-import { JobDispatcherService } from './services/job-dispatcher.service';
+} from './constants/adapters.constants.js';
+import { TresAreasCombination } from './entities/tres-areas-combination.entity.js';
+import { InMemoryQueueAdapter } from './adapters/in-memory-queue.adapter.js';
+import { BullMQQueueAdapter } from './adapters/bullmq-queue.adapter.js';
+import { JobDispatcherService } from './services/job-dispatcher.service.js';
 
 @Global()
 @Module({
@@ -26,6 +27,7 @@ import { JobDispatcherService } from './services/job-dispatcher.service';
     PdfService,
     StorageService,
     TresAreasService,
+    CryptoService,
     JobDispatcherService,
     InMemoryQueueAdapter,
     BullMQQueueAdapter,
@@ -44,6 +46,7 @@ import { JobDispatcherService } from './services/job-dispatcher.service';
     PdfService,
     StorageService,
     TresAreasService,
+    CryptoService,
     JobDispatcherService,
     PDF_GENERATOR,
     STORAGE_ADAPTER,

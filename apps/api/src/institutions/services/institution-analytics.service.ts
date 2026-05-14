@@ -6,10 +6,10 @@ import {
   MoreThanOrEqual,
   Repository,
 } from 'typeorm';
-import { CategoriesService } from '../../categories/categories.service';
-import { Session, SessionPaymentStatus } from '../../sessions/entities/session.entity';
-import { Voucher } from '../../vouchers/entities/voucher.entity';
-import { VoucherStatus } from '../../vouchers/entities/voucher.enums';
+import { CategoriesService } from '../../categories/categories.service.js';
+import { Session, SessionPaymentStatus } from '../../sessions/entities/session.entity.js';
+import { Voucher } from '../../vouchers/entities/voucher.entity.js';
+import { VoucherStatus } from '../../vouchers/entities/voucher.enums.js';
 
 @Injectable()
 export class InstitutionAnalyticsService {

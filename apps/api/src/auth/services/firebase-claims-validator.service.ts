@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AUTH_JWT_MESSAGES } from '../auth.constants';
-import type { FirebaseJwtPayload } from '../auth.types';
+import { AUTH_JWT_MESSAGES } from '../auth.constants.js';
+import type { FirebaseJwtPayload } from '../auth.types.js';
 
 @Injectable()
 export class FirebaseClaimsValidatorService {
@@ -16,7 +16,9 @@ export class FirebaseClaimsValidatorService {
     const expectedProjectId =
       this.firebaseProjectId || this.extractProjectIdFromIss(payload.iss);
     if (!expectedProjectId) {
-      throw new UnauthorizedException(AUTH_JWT_MESSAGES.firebaseProjectIdMissing);
+      throw new UnauthorizedException(
+        AUTH_JWT_MESSAGES.firebaseProjectIdMissing,
+      );
     }
 
     const expectedIssuer = `https://securetoken.google.com/${expectedProjectId}`;
@@ -25,7 +27,9 @@ export class FirebaseClaimsValidatorService {
     }
 
     if (payload.aud !== expectedProjectId) {
-      throw new UnauthorizedException(AUTH_JWT_MESSAGES.firebaseAudienceInvalid);
+      throw new UnauthorizedException(
+        AUTH_JWT_MESSAGES.firebaseAudienceInvalid,
+      );
     }
   }
 

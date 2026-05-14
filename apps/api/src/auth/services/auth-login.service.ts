@@ -1,16 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../../users/users.service';
-import { AUTH_ERROR_MESSAGES } from '../auth.constants';
-import { LoginDto } from '../dto/auth-login.dto';
-import type { AuthLoginResponse } from '../auth.types';
-import { AuthResponseFactory } from '../factories/auth-response.factory';
+import { UsersService } from '../../users/users.service.js';
+import { CryptoService } from '../../common/services/crypto.service.js';
+import { AUTH_ERROR_MESSAGES } from '../auth.constants.js';
+import { LoginDto } from '../dto/auth-login.dto.js';
+import type { AuthLoginResponse } from '../auth.types.js';
+import { AuthResponseFactory } from '../factories/auth-response.factory.js';
 
 @Injectable()
 export class AuthLoginService {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly cryptoService: CryptoService,
     private readonly authResponseFactory: AuthResponseFactory,
   ) {}
 
@@ -39,7 +41,7 @@ export class AuthLoginService {
       );
     }
 
-    const validPassword = this.usersService.verifyPassword(
+    const validPassword = this.cryptoService.verify(
       loginDto.password,
       user.passwordHash,
     );

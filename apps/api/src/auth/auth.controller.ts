@@ -1,17 +1,17 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { RateLimit } from '../common/decorators/rate-limit.decorator';
-import { RateLimitGuard } from '../common/guards/rate-limit.guard';
-import { AUTH_RATE_LIMITS } from './auth.constants';
-import { AuthService } from './auth.service';
-import type { AuthenticatedRequest } from './auth.types';
-import { LoginDto } from './dto/auth-login.dto';
+import { RateLimit } from '../common/decorators/rate-limit.decorator.js';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
+import { AUTH_RATE_LIMITS } from './auth.constants.js';
+import { AuthService } from './auth.service.js';
+import type { AuthenticatedRequest } from './auth.types.js';
+import { LoginDto } from './dto/auth-login.dto.js';
 import {
   ChangePasswordDto,
   RequestPasswordResetDto,
   TokenPasswordDto,
-} from './dto/auth-password.dto';
-import { TokenDto } from './dto/auth-token.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+} from './dto/auth-password.dto.js';
+import { TokenDto } from './dto/auth-token.dto.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 
 @Controller('auth')
 export class AuthController {

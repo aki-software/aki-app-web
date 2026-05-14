@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { UsersService } from '../../users/users.service';
-import { Institution } from '../entities/institution.entity';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { UsersService } from '../../users/users.service.js';
+import { Institution } from '../entities/institution.entity.js';
 import type {
   InstitutionListItemResponse,
   InstitutionResponse,
-} from '../institutions.types';
+} from '../institutions.types.js';
 
 @Injectable()
 export class InstitutionPresenterService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+  ) {}
 
   toInstitutionResponse(institution: Institution): InstitutionResponse {
     return {

@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import {
   RATE_LIMIT_METADATA_KEY,
   RateLimitMeta,
-} from '../decorators/rate-limit.decorator';
+} from '../decorators/rate-limit.decorator.js';
 
 type Bucket = { count: number; resetAt: number };
 

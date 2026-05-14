@@ -1,22 +1,15 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import type { QueueAdapter } from '../../common/adapters/queue.adapter';
-import { QUEUE_ADAPTER } from '../../common/constants/adapters.constants';
-import { JobNames, SendEmailJobPayload } from '../../common/jobs';
-import { MailService } from '../../mail/mail.service';
-import { UserRole } from '../../users/entities/user.entity';
-import { UsersService } from '../../users/users.service';
-import { CreateInstitutionDto } from '../dto/create-institution.dto';
-import { Institution } from '../entities/institution.entity';
-import { InstitutionsService } from '../institutions.service';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRegistrationService } from '../../users/user-registration.service.js';
+import { CreateInstitutionDto } from '../dto/create-institution.dto.js';
+import { Institution } from '../entities/institution.entity.js';
+import { InstitutionsService } from '../institutions.service.js';
 
 @Injectable()
 export class InstitutionOperationalAccountService {
   constructor(
     private readonly institutionsService: InstitutionsService,
-    private readonly usersService: UsersService,
-    private readonly mailService: MailService,
-    @Inject(QUEUE_ADAPTER)
-    private readonly queueAdapter: QueueAdapter,
+    private readonly userRegistrationService: UserRegistrationService,
   ) {}
 
   async createInstitutionWithOperationalAccount(
@@ -43,28 +36,21 @@ export class InstitutionOperationalAccountService {
       };
     }
 
-    const responsibleUser = await this.usersService.register(
-      payload.email.trim(),
-      UserRole.THERAPIST,
-      payload.email.trim(),
-      institution.id,
-    );
+    const responsibleUser = await this.userRegistrationService.register({
+      name: payload.email.trim(),
+      role: UserRole.THERAPIST,
+      email: payload.email.trim(),
+      institutionId: institution.id,
+    });
 
     institution = await this.institutionsService.assignResponsibleTherapist(
       institution.id,
       responsibleUser.id,
     );
 
-    const activationEmailSent = await this.sendActivationEmailIfNeeded(
-      responsibleUser.email,
-      responsibleUser.name,
-      institution.name,
-      responsibleUser.passwordSetupToken,
-    );
-
     return {
       institution,
-      activationEmailSent,
+      activationEmailSent: !!responsibleUser.passwordSetupToken,
     };
   }
 
@@ -82,12 +68,12 @@ export class InstitutionOperationalAccountService {
     }
 
     const normalizedEmail = email.trim();
-    const responsibleUser = await this.usersService.register(
-      normalizedEmail,
-      UserRole.THERAPIST,
-      normalizedEmail,
-      existingInstitution.id,
-    );
+    const responsibleUser = await this.userRegistrationService.register({
+      name: normalizedEmail,
+      role: UserRole.THERAPIST,
+      email: normalizedEmail,
+      institutionId: existingInstitution.id,
+    });
 
     const institution =
       await this.institutionsService.assignResponsibleTherapist(
@@ -95,82 +81,9 @@ export class InstitutionOperationalAccountService {
         responsibleUser.id,
       );
 
-    const activationEmailSent = await this.sendActivationEmailIfNeeded(
-      responsibleUser.email,
-      responsibleUser.name,
-      institution.name,
-      responsibleUser.passwordSetupToken,
-    );
-
     return {
       institution,
-      activationEmailSent,
+      activationEmailSent: !!responsibleUser.passwordSetupToken,
     };
-  }
-
-  private async sendActivationEmailIfNeeded(
-    email: string,
-    name: string,
-    institutionName: string | null,
-    passwordSetupToken?: string | null,
-  ): Promise<boolean> {
-    if (!passwordSetupToken) {
-      return false;
-    }
-
-    if (this.queueAdapter.isConfigured()) {
-      await this.enqueueActivationEmail(
-        email,
-        name,
-        institutionName,
-        passwordSetupToken,
-      );
-
-      return true;
-    }
-
-    return this.mailService.sendAccountActivation(
-      email,
-      name,
-      this.usersService.buildPasswordSetupLink(passwordSetupToken),
-      institutionName,
-    );
-  }
-
-  private async enqueueActivationEmail(
-    email: string,
-    name: string,
-    institutionName: string | null,
-    passwordSetupToken: string,
-  ): Promise<void> {
-    const payload: SendEmailJobPayload = {
-      jobId: `activation-email-${email}-${Date.now()}`,
-      attempts: 3,
-      backoffMs: 60_000,
-      backoffType: 'exponential',
-      timeoutMs: 20_000,
-      concurrencyKey: 'email',
-      concurrencyLimit: 10,
-      template: 'account-activation',
-      payload: {
-        name,
-        activationLink:
-          this.usersService.buildPasswordSetupLink(passwordSetupToken),
-        institutionName,
-      },
-      meta: {
-        to: email,
-        subject: 'Activá tu cuenta de A.kit',
-      },
-    };
-
-    await this.queueAdapter.enqueue(JobNames.SendEmail, payload, {
-      attempts: payload.attempts,
-      backoffMs: payload.backoffMs,
-      backoffType: payload.backoffType,
-      timeoutMs: payload.timeoutMs,
-      concurrencyKey: payload.concurrencyKey,
-      concurrencyLimit: payload.concurrencyLimit,
-    });
   }
 }

@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { MailService } from '../../mail/mail.service';
-import type { QueueAdapter } from '../adapters/queue.adapter';
-import { QUEUE_ADAPTER } from '../constants/adapters.constants';
-import { PASSWORD_RESET_EMAIL_OPTIONS } from '../constants/notifications.constants';
-import { JobNames, SendEmailJobPayload } from '../jobs';
+import { MailService } from '../../mail/mail.service.js';
+import type { QueueAdapter } from '../adapters/queue.adapter.js';
+import { QUEUE_ADAPTER } from '../constants/adapters.constants.js';
+import { PASSWORD_RESET_EMAIL_OPTIONS } from '../constants/notifications.constants.js';
+import { JobNames, SendEmailJobPayload } from '../jobs/index.js';
 
 @Injectable()
 export class PasswordResetNotifierService {

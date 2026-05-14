@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { UserRole } from '../users/entities/user.entity';
+import { UserRole } from '../users/entities/user.entity.js';
 
 export type AuthenticatedRequest = Request & {
   user?: {

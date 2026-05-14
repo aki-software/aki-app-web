@@ -13,15 +13,15 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { Request } from 'express';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { UserRole } from '../users/entities/user.entity';
-import { CompleteSessionDto } from './dto/complete-session.dto';
-import { CreateSessionDto } from './dto/create-session.dto';
-import { SendReportDto } from './dto/send-report.dto';
-import { SessionCompleteMapperService } from './services/session-complete-mapper.service';
-import { SessionMetricsService } from './services/session-metrics.service';
-import { SessionReportService } from './services/session-report.service';
-import { SessionsService } from './sessions.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { UserRole } from '../users/entities/user.entity.js';
+import { CompleteSessionDto } from './dto/complete-session.dto.js';
+import { CreateSessionDto } from './dto/create-session.dto.js';
+import { SendReportDto } from './dto/send-report.dto.js';
+import { SessionCompleteMapperService } from './services/session-complete-mapper.service.js';
+import { SessionMetricsService } from './services/session-metrics.service.js';
+import { SessionReportService } from './services/session-report.service.js';
+import { SessionsService } from './sessions.service.js';
 
 type AuthenticatedRequest = Request & {
   user?: {

@@ -7,10 +7,10 @@ import {
   MoreThanOrEqual,
   Repository,
 } from 'typeorm';
-import { CategoriesService } from '../../categories/categories.service';
-import { Voucher } from '../../vouchers/entities/voucher.entity';
-import { VoucherStatus } from '../../vouchers/entities/voucher.enums';
-import { Session, SessionPaymentStatus } from '../entities/session.entity';
+import { CategoriesService } from '../../categories/categories.service.js';
+import { Voucher } from '../../vouchers/entities/voucher.entity.js';
+import { VoucherStatus } from '../../vouchers/entities/voucher.enums.js';
+import { Session, SessionPaymentStatus } from '../entities/session.entity.js';
 
 export type DashboardStatsPayload = {
   totalSessions: number;
