@@ -10,7 +10,7 @@ import {
   RawCompletedSessionsRow,
   RawSessionsActivityRow,
   RawTopCategoryRow,
-} from '../types/dashboard.types.js';
+} from '@akit/contracts';
 
 @Injectable()
 export class AdminDashboardStatsService {

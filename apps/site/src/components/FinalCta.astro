@@ -1,4 +1,12 @@
 ---
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { t } = Astro.props;
 const webUrl = import.meta.env.PUBLIC_WEB_URL || 'http://localhost:5173';
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
@@ -6,10 +14,10 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
 <section class="py-20 md:py-24 bg-bg" id="cta-final">
   <div class="container text-center">
     <h2 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-text mb-6">
-      Tu futuro comienza aquí
+      {t.finalCta.title}
     </h2>
     <p class="text-lg text-text-muted mb-10 max-w-lg mx-auto">
-      Empezá el test ahora y descubrí qué carreras van con vos.
+      {t.finalCta.subtitle}
     </p>
 
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
@@ -18,7 +26,7 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
         class="inline-flex items-center gap-3 px-8 py-4 text-base font-bold text-surface bg-primary rounded-2xl hover:bg-primary-dark transition-all hover:shadow-lg hover:shadow-primary/20"
       >
         <span class="text-xl">▶</span>
-        Google Play
+        {t.finalCta.googlePlay}
       </a>
       <a
         href={webUrl}
@@ -26,7 +34,7 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
         rel="noopener noreferrer"
         class="inline-flex items-center gap-3 px-8 py-4 text-base font-semibold text-primary bg-surface border-2 border-primary rounded-2xl hover:bg-primary-light/30 transition-all"
       >
-        Versión web
+        {t.finalCta.webVersion}
       </a>
     </div>
 
@@ -35,14 +43,14 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
       <div class="w-[100px] h-[100px] rounded-2xl bg-surface border border-border flex items-center justify-center p-3">
         <img
           src="/qr-playstore.svg"
-          alt="Código QR para descargar en Google Play"
+          alt={t.finalCta.qrLabel}
           class="w-full h-full object-contain rounded-lg"
           loading="lazy"
         />
       </div>
       <div class="text-left">
-        <p class="text-sm font-semibold text-text">Escaneá para descargar</p>
-        <p class="text-xs text-text-muted">Disponible en Google Play</p>
+        <p class="text-sm font-semibold text-text">{t.finalCta.qrLabel}</p>
+        <p class="text-xs text-text-muted">{t.finalCta.qrSublabel}</p>
       </div>
     </div>
   </div>

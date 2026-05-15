@@ -4,7 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { parseIntOrZero } from '../../common/utils/parse.utils.js';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
 import { VoucherStatus } from '../../vouchers/entities/voucher.enums.js';
-import type { VoucherAlert } from '../stats.types.js';
+import { VoucherAlert } from '@akit/contracts';
 
 type InstitutionAlertRaw = { id: string; name: string; count: string };
 

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import { VoucherStatus } from '../vouchers/entities/voucher.enums.js';
 import { parseIntOrZero } from '../common/utils/parse.utils.js';
-import type { VoucherStats } from './stats.types.js';
+import { VoucherStats } from '@akit/contracts';
 
 type BatchCountRaw = { count: string };
 type StatusCountRaw = { status: VoucherStatus; count: string };

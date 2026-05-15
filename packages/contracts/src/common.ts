@@ -1,10 +1,14 @@
-export interface PaginationQuery {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
-}
+import { z } from 'zod';
+
+export const paginationQuerySchema = z.object({
+  page: z.number().int().min(1).optional(),
+  limit: z.number().int().min(1).max(100).optional(),
+  search: z.string().optional(),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['ASC', 'DESC']).optional(),
+});
+
+export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -15,11 +19,13 @@ export interface PaginatedResponse<T> {
   totalPages?: number;
 }
 
-export interface ApiErrorResponse {
-  statusCode: number;
-  message: string;
-  error?: string;
-  code?: string;
-  timestamp: string;
-  path?: string;
-}
+export const apiErrorResponseSchema = z.object({
+  statusCode: z.number(),
+  message: z.string(),
+  error: z.string().optional(),
+  code: z.string().optional(),
+  timestamp: z.string(),
+  path: z.string().optional(),
+});
+
+export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;

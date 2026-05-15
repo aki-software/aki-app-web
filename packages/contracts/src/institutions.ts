@@ -1,13 +1,18 @@
-export interface InstitutionOption {
+export interface InstitutionResponse {
   id: string;
   name: string;
-  createdAt?: string | null;
-  billingEmail?: string | null;
+  billingEmail: string | null;
+  isActive: boolean;
+  createdAt: string | Date;
   responsibleTherapistUserId?: string | null;
   responsibleTherapistName?: string | null;
-  responsibleTherapistActive?: boolean;
-  activationEmailSent?: boolean;
 }
+
+export interface InstitutionListItemResponse extends InstitutionResponse {
+  responsibleTherapistActive: boolean;
+}
+
+export type InstitutionOption = InstitutionListItemResponse;
 
 export interface InstitutionStats {
   totalSessions: number;

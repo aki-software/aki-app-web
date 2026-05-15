@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SelectQueryBuilder, FindOptionsWhere } from 'typeorm';
 import { Voucher } from '../entities/voucher.entity.js';
-import { VoucherScope } from '../types/voucher-query.types.js';
+import { VoucherScope } from '@akit/contracts';
 
 @Injectable()
 export class VoucherAccessService {

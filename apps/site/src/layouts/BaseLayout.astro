@@ -1,19 +1,24 @@
 ---
 import '../styles/global.css';
+import type { Locale, Translation } from '../i18n/translations';
 
 interface Props {
+  locale: Locale;
+  t: Translation;
   title: string;
   description?: string;
 }
 
-const { title, description = 'Descubrí tu vocación en 10 minutos con ORIENT A.KI. Test vocacional basado en el modelo Holland RIASEC.' } = Astro.props;
+const { locale, t, title, description = locale === 'es'
+  ? 'Descubrí tu vocación en 10 minutos con ORIENT A.KI. Test vocacional basado en el modelo Holland RIASEC.'
+  : 'Discover your vocation in 10 minutes with ORIENT A.KI. Vocational test based on the Holland RIASEC model.' } = Astro.props;
 
 const siteUrl = 'https://orientaki.com';
 const ogImage = '/og-image.png';
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,10 +45,17 @@ const ogImage = '/og-image.png';
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@700;800&display=swap"
     />
 
+    <!-- Alternate language links -->
+    <link rel="alternate" hreflang="es" href={`${siteUrl}/`} />
+    <link rel="alternate" hreflang="en" href={`${siteUrl}/en/`} />
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/`} />
+
     <title>{title}</title>
   </head>
   <body>
-    <a href="#main" class="skip-link">Saltar al contenido</a>
+    <a href="#main" class="skip-link">
+      {locale === 'es' ? 'Saltar al contenido' : 'Skip to content'}
+    </a>
     <slot />
   </body>
 </html>

@@ -13,7 +13,7 @@ import {
   VOUCHER_CONFIG,
   VoucherExpirationFilter,
 } from './vouchers.constants.js';
-import type { VoucherScope } from './types/voucher-query.types.js';
+import { VoucherScope } from '@akit/contracts';
 import { VoucherAccessService } from './services/voucher-access.service.js';
 
 @Injectable()

@@ -14,7 +14,7 @@ import {
   VoucherBatchDetail,
   VoucherBatchSummary,
   VoucherScope,
-} from '../types/voucher-query.types.js';
+} from '@akit/contracts';
 import { VoucherAccessService } from './voucher-access.service.js';
 
 @Injectable()

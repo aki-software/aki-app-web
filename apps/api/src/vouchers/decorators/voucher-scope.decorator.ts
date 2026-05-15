@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { UserRole } from '../../users/entities/user.entity.js';
-import type { VoucherScope } from '../types/voucher-query.types.js';
+import { VoucherScope } from '@akit/contracts';
 
 export const CurrentVoucherScope = createParamDecorator(
   (clientId: string | undefined, ctx: ExecutionContext): VoucherScope => {

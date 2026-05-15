@@ -1,28 +1,31 @@
 ---
-const features = [
-  { icon: '📴', title: 'Funciona offline', description: 'Hacé el test sin conexión. Se sincroniza cuando volvés a tener internet.' },
-  { icon: '♿', title: 'Accesibilidad integrada', description: 'TTS, alto contraste, lectura fácil y velocidad de swipe ajustable.' },
-  { icon: '🌐', title: 'Español e Inglés', description: 'Disponible en ambos idiomas para llegar a más personas.' },
-  { icon: '📊', title: 'Reporte PDF profesional', description: 'Perfil vocacional detallado con gráficos y recomendaciones.' },
-  { icon: '🔒', title: 'Datos seguros', description: 'Base de datos encriptada. Tu información está protegida.' },
-  { icon: '🎯', title: 'Recomendaciones personalizadas', description: 'Carreras sugeridas basadas en tu perfil único de afinidades.' },
-];
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { t } = Astro.props;
 ---
 
 <section class="py-20 md:py-24 bg-bg" id="features">
   <div class="container">
     <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-text text-center mb-14">
-      Todo lo que necesitás
+      {t.features.title}
     </h2>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {features.map((feature) => (
-        <div class="bg-surface rounded-3xl border border-border p-7 flex flex-col gap-3 hover:shadow-md transition-shadow">
-          <span class="text-3xl">{feature.icon}</span>
-          <h3 class="font-display font-bold text-lg text-text">{feature.title}</h3>
-          <p class="text-sm text-text-muted leading-relaxed">{feature.description}</p>
-        </div>
-      ))}
+      {t.features.items.map((feature, i) => {
+        const icons = ['📴', '♿', '🌐', '📊', '🔒', '🎯'];
+        return (
+          <div class="bg-surface rounded-3xl border border-border p-7 flex flex-col gap-3 hover:shadow-md transition-shadow">
+            <span class="text-3xl">{icons[i]}</span>
+            <h3 class="font-display font-bold text-lg text-text">{feature.title}</h3>
+            <p class="text-sm text-text-muted leading-relaxed">{feature.desc}</p>
+          </div>
+        );
+      })}
     </div>
   </div>
 </section>

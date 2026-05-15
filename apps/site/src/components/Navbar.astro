@@ -1,6 +1,16 @@
 ---
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { locale, t } = Astro.props;
 const webUrl = import.meta.env.PUBLIC_WEB_URL || 'http://localhost:5173';
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
+
+const langPath = locale === 'es' ? '/en' : '/';
 ---
 
 <nav class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border/50" role="navigation" aria-label="Navegación principal">
@@ -16,13 +26,13 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
     <!-- Desktop Links -->
     <div class="hidden md:flex items-center gap-8">
       <a href="#como-funciona" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
-        Cómo funciona
+        {t.nav.howItWorks}
       </a>
       <a href="#instituciones" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
-        Para instituciones
+        {t.nav.forInstitutions}
       </a>
       <a href="#precios" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
-        Precios
+        {t.nav.pricing}
       </a>
     </div>
 
@@ -34,13 +44,21 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
         rel="noopener noreferrer"
         class="px-5 py-2.5 text-sm font-semibold text-primary border border-primary rounded-xl hover:bg-primary/5 transition-colors"
       >
-        Ingresar
+        {t.nav.login}
       </a>
       <a
         href={playStoreUrl}
         class="px-5 py-2.5 text-sm font-semibold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-colors"
       >
-        Empezá gratis
+        {t.nav.startFree}
+      </a>
+      <!-- Language Switcher -->
+      <a
+        href={langPath}
+        class="px-3 py-2 text-sm font-semibold text-text-muted hover:text-primary transition-colors"
+        aria-label={locale === 'es' ? 'Switch to English' : 'Cambiar a español'}
+      >
+        {t.langSwitch}
       </a>
     </div>
 
@@ -60,17 +78,13 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
   <!-- Mobile Menu -->
   <div id="mobile-menu" class="hidden md:hidden bg-surface border-t border-border">
     <div class="container py-4 flex flex-col gap-4">
-      <a href="#como-funciona" class="py-2 text-text-muted hover:text-primary">Cómo funciona</a>
-      <a href="#instituciones" class="py-2 text-text-muted hover:text-primary">Para instituciones</a>
-      <a href="#precios" class="py-2 text-text-muted hover:text-primary">Precios</a>
+      <a href="#como-funciona" class="py-2 text-text-muted hover:text-primary">{t.nav.howItWorks}</a>
+      <a href="#instituciones" class="py-2 text-text-muted hover:text-primary">{t.nav.forInstitutions}</a>
+      <a href="#precios" class="py-2 text-text-muted hover:text-primary">{t.nav.pricing}</a>
       <hr class="border-border" />
-      <a href={webUrl} target="_blank" rel="noopener noreferrer" class="py-2 text-center text-primary font-semibold">Ingresar</a>
-      <a
-        href={playStoreUrl}
-        class="py-3 text-center text-surface bg-primary rounded-xl font-semibold"
-      >
-        Empezá gratis
-      </a>
+      <a href={webUrl} target="_blank" rel="noopener noreferrer" class="py-2 text-center text-primary font-semibold">{t.nav.login}</a>
+      <a href={playStoreUrl} class="py-3 text-center text-surface bg-primary rounded-xl font-semibold">{t.nav.startFree}</a>
+      <a href={langPath} class="py-2 text-center text-text-muted font-semibold">{t.langSwitch}</a>
     </div>
   </div>
 </nav>
@@ -84,7 +98,6 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
     btn.setAttribute('aria-expanded', String(isOpen));
   });
 
-  // Close menu on link click
   menu?.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', () => {
       menu?.classList.add('hidden');

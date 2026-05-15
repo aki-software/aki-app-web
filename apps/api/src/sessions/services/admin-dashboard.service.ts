@@ -5,7 +5,7 @@ import { VouchersService } from '../../vouchers/vouchers.service.js';
 import {
   DashboardStatsPayload,
   AdminActivityItem,
-} from '../types/dashboard.types.js';
+} from '@akit/contracts';
 import { AdminDashboardStatsService } from './admin-dashboard-stats.service.js';
 
 @Injectable()

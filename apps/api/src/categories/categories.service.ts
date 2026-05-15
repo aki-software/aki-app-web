@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { UpdateCategoryDto } from './dto/update-category.dto.js';
 import { VocationalCategory } from './entities/vocational-category.entity.js';
-import type { CategoryResponse } from './categories.types.js';
+import { CategoryResponse } from '@akit/contracts';
 
 @Injectable()
 export class CategoriesService {

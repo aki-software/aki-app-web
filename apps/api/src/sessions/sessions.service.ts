@@ -28,7 +28,7 @@ import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
 import {
   AdminActivityItem,
   RawRecentSessionRow,
-} from './types/dashboard.types.js';
+} from '@akit/contracts';
 
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 

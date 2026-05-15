@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { StatsService } from './stats.service.js';
 import { StatsAccessService } from './services/stats-access.service.js';
 import { VoucherAlertsService } from './services/voucher-alerts.service.js';
-import type { VoucherStatsResponse } from './stats.types.js';
+import { VoucherStatsResponse } from '@akit/contracts';
 
 @Controller('stats')
 export class StatsController {

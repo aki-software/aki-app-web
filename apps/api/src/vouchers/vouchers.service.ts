@@ -24,11 +24,11 @@ import { VoucherNotifierService } from './voucher-notifier.service.js';
 import { VoucherQueryService } from './voucher-query.service.js';
 import { VoucherCodeGenerator } from './services/voucher-code-generator.service.js';
 import { VoucherOwnerResolver } from './services/voucher-owner-resolver.service.js';
-import { type VoucherScope } from './types/voucher-query.types.js';
 import {
   AdminActivityItem,
   RawRecentVoucherRow,
-} from '../sessions/types/dashboard.types.js';
+  VoucherScope,
+} from '@akit/contracts';
 
 @Injectable()
 export class VouchersService {

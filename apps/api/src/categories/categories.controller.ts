@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CategoriesService } from './categories.service.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
-import type { CategoryMaterialListResponse } from './categories.types.js';
+import { CategoryMaterialListResponse } from '@akit/contracts';
 
 @Controller('categories')
 export class CategoriesController {
@@ -17,10 +17,12 @@ export class CategoriesController {
   async getMaterial(): Promise<CategoryMaterialListResponse> {
     const categories = await this.categoriesService.findAll();
     return {
-      items: categories.map((c) => ({
-        categoryId: c.categoryId,
+      categoryId: 'ALL',
+      materials: categories.map((c) => ({
+        id: c.categoryId,
         title: c.title,
-        text: c.description,
+        url: '#',
+        type: 'TEXT',
       })),
     };
   }

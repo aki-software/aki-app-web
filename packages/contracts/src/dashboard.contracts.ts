@@ -66,3 +66,29 @@ export interface AdminActivityEvent {
   description: string;
   occurredAt: string;
 }
+
+export type AdminActivityItem = AdminActivityEvent;
+
+export type RawCountRow = { count: string };
+export type RawTotalsRow = { totalSessions: string; totalTimeMs: string };
+export type RawCompletedSessionsRow = { completedSessions: string };
+export type RawSessionsActivityRow = { day: string; count: string };
+export type RawTopCategoryRow = { categoryId: string; count: string };
+
+export type RawRecentSessionRow = {
+  id: string;
+  patientName: string;
+  createdAt: string;
+  sessionDate: string;
+  hollandCode: string;
+  paymentStatus: string;
+  voucherCode: string | null;
+  voucherId: string | null;
+  reportUnlockedAt: string | null;
+  paidAt: string | null;
+  resultsCount: string;
+};
+
+export interface DashboardStatsPayload extends DashboardStatsResponse {
+  activity: AdminActivityEvent[];
+}

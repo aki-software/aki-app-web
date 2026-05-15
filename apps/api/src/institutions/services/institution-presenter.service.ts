@@ -1,10 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UsersService } from '../../users/users.service.js';
 import { Institution } from '../entities/institution.entity.js';
-import type {
+import {
   InstitutionListItemResponse,
   InstitutionResponse,
-} from '../institutions.types.js';
+} from '@akit/contracts';
 
 @Injectable()
 export class InstitutionPresenterService {

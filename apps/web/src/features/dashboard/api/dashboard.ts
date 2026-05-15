@@ -4,6 +4,7 @@ import { API_URL, getAuthHeaders } from "./client";
 export * from "./categories.api";
 export * from "./institutions.api";
 export * from "./sessions.api";
+export { SessionPaymentStatus } from "@akit/contracts";
 export * from "./users.api";
 export * from "./vouchers.api";
 

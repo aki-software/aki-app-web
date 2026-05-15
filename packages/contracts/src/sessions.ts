@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const SessionPaymentStatus = {
   PENDING: 'PENDING',
   PAID: 'PAID',
@@ -6,31 +8,52 @@ export const SessionPaymentStatus = {
 
 export type SessionPaymentStatus = (typeof SessionPaymentStatus)[keyof typeof SessionPaymentStatus];
 
-export interface SessionResultData {
-  categoryId: string;
-  percentage: number;
-}
+export const sessionResultDataSchema = z.object({
+  categoryId: z.string(),
+  percentage: z.number(),
+});
 
-export interface SessionSwipeData {
-  cardId: string;
-  categoryId: string;
-  isLiked: boolean;
-  timestamp?: string | Date;
-}
+export interface SessionResultData extends z.infer<typeof sessionResultDataSchema> {}
 
-export interface SessionMetrics {
-  id: number;
-  totalDurationMs: number;
-  totalSwipes: number;
-  uniqueCards: number;
-  revertedMatches: number;
-  avgTimeBetweenSwipesMs: number;
-  minTimeBetweenSwipesMs: number;
-  maxTimeBetweenSwipesMs: number;
-  reliabilityScore: number;
-  reliabilityLevel: 'Muy Alta' | 'Alta' | 'Variable' | 'Baja';
-  calculatedAt: string | Date;
-}
+export const sessionSwipeDataSchema = z.object({
+  cardId: z.string(),
+  categoryId: z.string(),
+  isLiked: z.boolean(),
+  timestamp: z.union([z.string(), z.instanceof(Date)]).optional(),
+});
+
+export interface SessionSwipeData extends z.infer<typeof sessionSwipeDataSchema> {}
+
+export const sessionMetricsSchema = z.object({
+  id: z.number(),
+  totalDurationMs: z.number(),
+  totalSwipes: z.number(),
+  uniqueCards: z.number(),
+  revertedMatches: z.number(),
+  avgTimeBetweenSwipesMs: z.number(),
+  minTimeBetweenSwipesMs: z.number(),
+  maxTimeBetweenSwipesMs: z.number(),
+  reliabilityScore: z.number(),
+  reliabilityLevel: z.enum(['Muy Alta', 'Alta', 'Variable', 'Baja']),
+  calculatedAt: z.union([z.string(), z.instanceof(Date)]),
+});
+
+export interface SessionMetrics extends z.infer<typeof sessionMetricsSchema> {}
+
+export const sessionApiSchema = z.object({
+  id: z.string().uuid(),
+  patientName: z.string(),
+  createdAt: z.union([z.string(), z.instanceof(Date), z.number()]).optional(),
+  totalTimeMs: z.union([z.string(), z.number()]).optional(),
+  paymentStatus: z.string().optional(),
+  reportUnlockedAt: z.string().nullable().optional(),
+  results: z.array(sessionResultDataSchema).optional(),
+  institution: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
+  therapist: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
+  voucher: z.object({ code: z.string().nullable().optional() }).nullable().optional(),
+});
+
+export type SessionApi = z.infer<typeof sessionApiSchema>;
 
 export interface SessionData {
   id: string;
@@ -75,5 +98,4 @@ export interface CompleteSessionDto {
 }
 
 // Legacy aliases
-export type SessionApi = any;
 export type SessionResultApi = SessionResultData;

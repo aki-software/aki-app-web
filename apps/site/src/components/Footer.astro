@@ -1,4 +1,12 @@
 ---
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { t } = Astro.props;
 const currentYear = new Date().getFullYear();
 ---
 
@@ -11,13 +19,13 @@ const currentYear = new Date().getFullYear();
       <!-- Links -->
       <nav class="flex items-center gap-8" aria-label="Footer navigation">
         <a href="mailto:contacto@orientaki.com" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
-          Contacto
+          {t.footer.contact}
         </a>
         <a href="/privacidad" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
-          Privacidad
+          {t.footer.privacy}
         </a>
         <a href="/terminos" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
-          Términos
+          {t.footer.terms}
         </a>
       </nav>
     </div>
@@ -25,7 +33,7 @@ const currentYear = new Date().getFullYear();
     <hr class="border-dark-border mb-6" />
 
     <p class="text-center text-xs text-dark-muted">
-      © {currentYear} Orient A.KI — Tu futuro comienza aquí.
+      © {currentYear} Orient A.KI — {t.footer.copyright}
     </p>
   </div>
 </footer>

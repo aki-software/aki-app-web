@@ -213,7 +213,7 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
           )}
           <div className="flex items-center gap-1.5 opacity-60">
             <Calendar className="h-3 w-3" />
-            Venc.: {formatDate(voucher.expiresAt)}
+            Venc.: {formatDate(voucher.expiresAt ?? null)}
           </div>
         </div>
       </td>
