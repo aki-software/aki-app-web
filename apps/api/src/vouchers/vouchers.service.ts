@@ -3,10 +3,15 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import {
+  type EntityManager,
+  type FindOptionsWhere,
+  Repository,
+  In,
+  Between,
+} from 'typeorm';
 import { Voucher } from './entities/voucher.entity.js';
 import { VoucherBatch } from './entities/voucher-batch.entity.js';
 import {
@@ -14,39 +19,98 @@ import {
   VoucherOwnerType,
   VoucherStatus,
 } from './entities/voucher.enums.js';
-import {
-  CreateVoucherDto,
-  ListVoucherBatchesDto,
-  ListVouchersDto,
-} from './dto/voucher.dto.js';
-import {
-  Session,
-  SessionPaymentStatus,
-} from '../sessions/entities/session.entity.js';
+import { CreateVoucherDto } from './dto/voucher.dto.js';
 import { VoucherNotifierService } from './voucher-notifier.service.js';
-import {
-  VoucherBatchDetail,
-  VoucherQueryService,
-  VoucherScope,
-} from './voucher-query.service.js';
+import { VoucherQueryService } from './voucher-query.service.js';
 import { VoucherCodeGenerator } from './services/voucher-code-generator.service.js';
 import { VoucherOwnerResolver } from './services/voucher-owner-resolver.service.js';
+import { type VoucherScope } from './types/voucher-query.types.js';
+import {
+  AdminActivityItem,
+  RawRecentVoucherRow,
+} from '../sessions/types/dashboard.types.js';
 
 @Injectable()
 export class VouchersService {
-  private readonly logger = new Logger(VouchersService.name);
-
   constructor(
     @InjectRepository(Voucher)
     private readonly voucherRepository: Repository<Voucher>,
     @InjectRepository(VoucherBatch)
     private readonly voucherBatchRepository: Repository<VoucherBatch>,
-    private readonly dataSource: DataSource,
     private readonly notifierService: VoucherNotifierService,
     private readonly queryService: VoucherQueryService,
     private readonly codeGenerator: VoucherCodeGenerator,
     private readonly ownerResolver: VoucherOwnerResolver,
   ) {}
+
+  async getRecentActivity(limit: number = 50): Promise<AdminActivityItem[]> {
+    const vouchers = await this.voucherRepository
+      .createQueryBuilder('voucher')
+      .select('voucher.id', 'id')
+      .addSelect('voucher.code', 'code')
+      .addSelect('voucher.status', 'status')
+      .addSelect('voucher.createdAt', 'createdAt')
+      .addSelect('voucher.sentAt', 'sentAt')
+      .addSelect('voucher.redeemedAt', 'redeemedAt')
+      .addSelect('ownerInstitution.name', 'ownerInstitutionName')
+      .addSelect('ownerUser.name', 'ownerUserName')
+      .leftJoin('voucher.ownerInstitution', 'ownerInstitution')
+      .leftJoin('voucher.ownerUser', 'ownerUser')
+      .orderBy('voucher.createdAt', 'DESC')
+      .limit(limit)
+      .getRawMany<RawRecentVoucherRow>();
+
+    return vouchers.map((voucher) => {
+      const redeemed =
+        Boolean(voucher.redeemedAt) || voucher.status === VoucherStatus.USED;
+      const occurredAt = redeemed
+        ? this.toIso(voucher.redeemedAt, voucher.sentAt, voucher.createdAt)
+        : this.toIso(voucher.sentAt, voucher.createdAt);
+
+      return {
+        id: `voucher-${voucher.id}`,
+        type: redeemed ? 'VOUCHER_REDEEMED' : 'VOUCHER_ISSUED',
+        title: redeemed ? 'Voucher canjeado' : 'Voucher emitido',
+        description: redeemed
+          ? `El código ${voucher.code} fue canjeado para ${this.describeVoucherOwner(voucher)}.`
+          : `Se emitió el código ${voucher.code} para ${this.describeVoucherOwner(voucher)}.`,
+        occurredAt,
+      };
+    });
+  }
+
+  async getExpiringSoonCount(): Promise<number> {
+    const now = new Date();
+    const weekAhead = new Date(now);
+    weekAhead.setDate(weekAhead.getDate() + 7);
+
+    return await this.voucherRepository.count({
+      where: {
+        status: In([VoucherStatus.AVAILABLE, VoucherStatus.SENT]),
+        expiresAt: Between(now, weekAhead),
+      },
+    });
+  }
+
+  private toIso(...values: Array<Date | string | null | undefined>): string {
+    for (const value of values) {
+      if (!value) continue;
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString();
+      }
+    }
+    return new Date(0).toISOString();
+  }
+
+  private describeVoucherOwner(voucher: {
+    ownerInstitutionName: string | null;
+    ownerUserName: string | null;
+  }): string {
+    const institutionName = voucher.ownerInstitutionName?.trim();
+    const ownerName = voucher.ownerUserName?.trim();
+    return institutionName || ownerName || 'cliente no informado';
+  }
 
   async create(createVoucherDto: CreateVoucherDto): Promise<{
     batchId: string;
@@ -64,56 +128,30 @@ export class VouchersService {
     );
 
     const quantity = createVoucherDto.quantity ?? 1;
-    if (quantity > 1 && createVoucherDto.code) {
-      throw new BadRequestException(
-        'No se puede definir un código manual cuando se crea un lote',
-      );
-    }
-
-    const batch = await this.voucherBatchRepository.save(
-      this.voucherBatchRepository.create({
-        ownerType: normalizedOwnership.ownerType,
-        ownerUserId: normalizedOwnership.ownerUserId,
-        ownerInstitutionId: normalizedOwnership.ownerInstitutionId,
-        quantity,
-        unitPrice: '0',
-        totalPrice: '0',
-        status: VoucherBatchStatus.PAID,
-        paidAt: new Date(),
-      }),
-    );
+    this.validateCreationQuantity(quantity, createVoucherDto.code);
 
     const expiresAt = createVoucherDto.expiresAt
       ? new Date(createVoucherDto.expiresAt)
       : null;
 
-    const vouchersToCreate: Voucher[] = [];
-    for (let index = 0; index < quantity; index++) {
-      const code = createVoucherDto.code
-        ? this.codeGenerator.normalize(createVoucherDto.code)
-        : await this.codeGenerator.generateUniqueCode();
+    const batch = await this.createBatch(normalizedOwnership, quantity);
 
-      vouchersToCreate.push(
-        this.voucherRepository.create({
-          code,
-          batchId: batch.id,
-          ownerType: normalizedOwnership.ownerType,
-          ownerUserId: normalizedOwnership.ownerUserId,
-          ownerInstitutionId: normalizedOwnership.ownerInstitutionId,
-          status: VoucherStatus.AVAILABLE,
-          assignedPatientName: createVoucherDto.assignedPatientName ?? null,
-          assignedPatientEmail: createVoucherDto.assignedPatientEmail ?? null,
-          expiresAt,
-        }),
-      );
-    }
+    const vouchersToCreate = await this.prepareVouchers(
+      batch.id,
+      normalizedOwnership,
+      quantity,
+      expiresAt,
+      createVoucherDto.code,
+      createVoucherDto.assignedPatientName,
+      createVoucherDto.assignedPatientEmail,
+    );
 
     const savedVouchers = await this.voucherRepository.save(vouchersToCreate);
 
     return {
       batchId: batch.id,
       createdCount: savedVouchers.length,
-      codes: savedVouchers.map((voucher) => voucher.code),
+      codes: savedVouchers.map((v) => v.code),
       ownerType: normalizedOwnership.ownerType,
       ownerUserId: normalizedOwnership.ownerUserId,
       ownerInstitutionId: normalizedOwnership.ownerInstitutionId,
@@ -121,8 +159,74 @@ export class VouchersService {
     };
   }
 
+  private validateCreationQuantity(quantity: number, manualCode?: string) {
+    if (quantity > 1 && manualCode) {
+      throw new BadRequestException(
+        'No se puede definir un código manual cuando se crea un lote',
+      );
+    }
+  }
+
+  private async createBatch(
+    ownership: {
+      ownerType: VoucherOwnerType;
+      ownerUserId: string | null;
+      ownerInstitutionId: string | null;
+    },
+    quantity: number,
+  ): Promise<VoucherBatch> {
+    return await this.voucherBatchRepository.save(
+      this.voucherBatchRepository.create({
+        ...ownership,
+        quantity,
+        unitPrice: '0',
+        totalPrice: '0',
+        status: VoucherBatchStatus.PAID,
+        paidAt: new Date(),
+      }),
+    );
+  }
+
+  private async prepareVouchers(
+    batchId: string,
+    ownership: {
+      ownerType: VoucherOwnerType;
+      ownerUserId: string | null;
+      ownerInstitutionId: string | null;
+    },
+    quantity: number,
+    expiresAt: Date | null,
+    manualCode?: string,
+    patientName?: string,
+    patientEmail?: string,
+  ): Promise<Voucher[]> {
+    const vouchers: Voucher[] = [];
+
+    for (let i = 0; i < quantity; i++) {
+      const code = manualCode
+        ? this.codeGenerator.normalize(manualCode)
+        : await this.codeGenerator.generateUniqueCode();
+
+      vouchers.push(
+        this.voucherRepository.create({
+          ...ownership,
+          code,
+          batchId,
+          status: VoucherStatus.AVAILABLE,
+          assignedPatientName: patientName ?? null,
+          assignedPatientEmail: patientEmail ?? null,
+          expiresAt,
+        }),
+      );
+    }
+
+    return vouchers;
+  }
+
   async findById(id: string, scope?: VoucherScope): Promise<Voucher> {
     const where = this.queryService.buildScopedWhere(scope);
+    if (where === null) throw new NotFoundException('Voucher no encontrado');
+
     const scopedWhere = { ...where, id };
 
     const voucher = await this.voucherRepository.findOne({
@@ -150,19 +254,14 @@ export class VouchersService {
 
     try {
       voucher.markAsSent(customEmail);
-    } catch (error: any) {
-      throw new BadRequestException(error.message);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Error al enviar el email';
+      throw new BadRequestException(message);
     }
 
-    const delivered = await this.notifierService.sendVoucherEmail(
-      voucher,
-      targetEmail,
-    );
-
-    if (!delivered) return false;
-
     await this.voucherRepository.save(voucher);
-    return true;
+    return await this.notifierService.sendVoucherEmail(voucher, targetEmail);
   }
 
   async resendEmail(
@@ -170,15 +269,17 @@ export class VouchersService {
     scope?: VoucherScope,
     customEmail?: string,
   ): Promise<boolean> {
-    return await this.sendEmail(id, scope, customEmail);
+    return this.sendEmail(id, scope, customEmail);
   }
 
   async revoke(id: string, scope?: VoucherScope): Promise<Voucher> {
     const voucher = await this.findById(id, scope);
     try {
       voucher.revoke();
-    } catch (error: any) {
-      throw new BadRequestException(error.message);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Error al revocar el voucher';
+      throw new BadRequestException(message);
     }
     return await this.voucherRepository.save(voucher);
   }
@@ -189,97 +290,40 @@ export class VouchersService {
     return voucher;
   }
 
-  async redeemForSession(
+  async redeemVoucher(
+    manager: EntityManager,
     code: string,
     sessionId: string,
-  ): Promise<{
-    success: boolean;
-    status: 'REDEEMED' | 'ALREADY_REDEEMED_BY_THIS_SESSION';
-    voucherCode: string;
-    sessionId: string;
-  }> {
+  ): Promise<{ voucher: Voucher; action: 'REDEEMED' | 'ALREADY_REDEEMED' }> {
     const normalizedCode = this.codeGenerator.normalize(code);
-    this.logger.debug(
-      `redeemForSession start code=${normalizedCode} sessionId=${sessionId}`,
-    );
+    const voucherRepository = manager.getRepository(Voucher);
 
-    return await this.dataSource.transaction(async (manager) => {
-      const voucherRepository = manager.getRepository(Voucher);
-      const sessionRepository = manager.getRepository(Session);
-
-      const voucher = await voucherRepository.findOne({
-        where: { code: normalizedCode },
-      });
-      if (!voucher) {
-        this.logger.warn(
-          `redeemForSession voucher-not-found code=${normalizedCode} sessionId=${sessionId}`,
-        );
-        throw new NotFoundException('INVALID_CODE');
-      }
-
-      const session = await sessionRepository.findOne({
-        where: { id: sessionId },
-      });
-      if (!session) {
-        this.logger.warn(
-          `redeemForSession session-not-found code=${normalizedCode} sessionId=${sessionId}`,
-        );
-        throw new NotFoundException('SESSION_NOT_FOUND');
-      }
-
-      if (voucher.redeemedSessionId === sessionId) {
-        this.applyVoucherRedemptionToSession(session, voucher, new Date());
-        await sessionRepository.save(session);
-        return {
-          success: true,
-          status: 'ALREADY_REDEEMED_BY_THIS_SESSION' as const,
-          voucherCode: voucher.code,
-          sessionId,
-        };
-      }
-
-      if (voucher.status === VoucherStatus.USED) {
-        throw new ConflictException('ALREADY_USED');
-      }
-
-      try {
-        voucher.redeem(sessionId);
-      } catch (error: any) {
-        throw new BadRequestException(error.message);
-      }
-
-      this.applyVoucherRedemptionToSession(
-        session,
-        voucher,
-        voucher.redeemedAt!,
-      );
-
-      await voucherRepository.save(voucher);
-      await sessionRepository.save(session);
-
-      return {
-        success: true,
-        status: 'REDEEMED' as const,
-        voucherCode: voucher.code,
-        sessionId,
-      };
+    const voucher = await voucherRepository.findOne({
+      where: { code: normalizedCode },
     });
-  }
 
-  private applyVoucherRedemptionToSession(
-    session: Session,
-    voucher: Voucher,
-    redeemedAt: Date,
-  ) {
-    session.voucherId = voucher.id;
-    session.paymentStatus = SessionPaymentStatus.VOUCHER_REDEEMED;
-    session.reportUnlockedAt = session.reportUnlockedAt ?? redeemedAt;
-    if (!session.institutionId && voucher.ownerInstitutionId) {
-      session.institutionId = voucher.ownerInstitutionId;
+    if (!voucher) {
+      throw new NotFoundException('INVALID_CODE');
     }
-    if (!session.therapistUserId && voucher.ownerUserId) {
-      session.therapistUserId = voucher.ownerUserId;
+
+    if (voucher.redeemedSessionId === sessionId) {
+      return { voucher, action: 'ALREADY_REDEEMED' };
     }
+
+    if (voucher.status === VoucherStatus.USED) {
+      throw new ConflictException('ALREADY_USED');
+    }
+
+    try {
+      voucher.redeem(sessionId);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Error al redimir el voucher';
+      throw new BadRequestException(message);
+    }
+
+    const savedVoucher = await voucherRepository.save(voucher);
+    return { voucher: savedVoucher, action: 'REDEEMED' };
   }
 
   async attachVoucherToSession(
@@ -291,93 +335,16 @@ export class VouchersService {
 
     try {
       voucher.redeem(sessionId);
-    } catch (error: any) {
-      throw new BadRequestException(error.message);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Error al adjuntar el voucher';
+      throw new BadRequestException(message);
     }
 
     if (patientName && !voucher.assignedPatientName) {
       voucher.assignedPatientName = patientName;
     }
     return await this.voucherRepository.save(voucher);
-  }
-
-  async findAll(
-    scope?: VoucherScope,
-  ): Promise<{ data: Voucher[]; count: number }> {
-    const where = this.queryService.buildScopedWhere(scope);
-    const [data, count] = await this.voucherRepository.findAndCount({
-      where,
-      relations: ['ownerUser', 'ownerInstitution', 'redeemedSession'],
-      order: { createdAt: 'DESC' },
-    });
-    return { data, count };
-  }
-
-  async findAllFiltered(filters: ListVouchersDto, scope?: VoucherScope) {
-    return this.queryService.findAllFiltered(filters, scope);
-  }
-
-  async findBatchSummaries(
-    filters: ListVoucherBatchesDto,
-    scope?: VoucherScope,
-  ) {
-    return this.queryService.findBatchSummaries(filters, scope);
-  }
-
-  async findBatchDetail(
-    batchId: string,
-    scope?: VoucherScope,
-  ): Promise<VoucherBatchDetail> {
-    const where = this.queryService.buildScopedWhere(scope);
-    const scopedWhere = { ...where, batchId } as FindOptionsWhere<Voucher>;
-
-    const vouchers = await this.voucherRepository.find({
-      where: scopedWhere,
-      relations: ['ownerUser', 'ownerInstitution'],
-      order: { createdAt: 'DESC' },
-    });
-
-    if (vouchers.length === 0) {
-      throw new NotFoundException('Lote no encontrado');
-    }
-
-    const firstVoucher = vouchers[0];
-    const available = vouchers.filter(
-      (voucher) => voucher.status === VoucherStatus.AVAILABLE,
-    ).length;
-    const used = vouchers.filter(
-      (voucher) => voucher.status === VoucherStatus.USED,
-    ).length;
-    const pending = vouchers.filter(
-      (voucher) =>
-        voucher.status !== VoucherStatus.USED &&
-        voucher.status !== VoucherStatus.EXPIRED,
-    ).length;
-
-    return {
-      batchId,
-      ownerInstitutionName:
-        firstVoucher.ownerInstitution?.name ?? 'Institución no informada',
-      ownerUserName:
-        firstVoucher.ownerUser?.name ?? 'Cuenta operativa no informada',
-      createdAt: firstVoucher.createdAt,
-      expiresAt: firstVoucher.expiresAt,
-      total: vouchers.length,
-      available,
-      used,
-      pending,
-      vouchers: vouchers.map((voucher) => ({
-        id: voucher.id,
-        code: voucher.code,
-        status: voucher.status,
-        assignedPatientName: voucher.assignedPatientName,
-        assignedPatientEmail: voucher.assignedPatientEmail,
-        redeemedSessionId: voucher.redeemedSessionId,
-        createdAt: voucher.createdAt,
-        redeemedAt: voucher.redeemedAt,
-        expiresAt: voucher.expiresAt,
-      })),
-    };
   }
 
   async findByCode(code: string): Promise<Voucher> {
