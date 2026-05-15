@@ -1,31 +1,17 @@
 import { API_URL, getAuthHeaders } from "./client";
 import type {
   VoucherBatchCreateResult,
+  VoucherBatchDetailItem,
   VoucherBatchDetailResponse,
   VoucherBatchListResponse,
+  VoucherBatchSummary,
   VoucherOwnerType,
   VoucherStatus,
   VoucherData,
   VoucherListResponse,
+  VoucherStats,
+  VoucherAlert,
 } from "@akit/contracts";
-
-export type VoucherApi = {
-  id: string;
-  code: string;
-  batchId: string;
-  status: string;
-  ownerType: string;
-  ownerInstitutionId?: string | null;
-  ownerInstitution?: { name?: string | null } | null;
-  ownerUserId?: string | null;
-  ownerUser?: { name?: string | null } | null;
-  assignedPatientName?: string | null;
-  assignedPatientEmail?: string | null;
-  redeemedSessionId?: string | null;
-  createdAt: string | Date | number;
-  redeemedAt?: string | Date | number | null;
-  expiresAt?: string | Date | number | null;
-};
 
 export type {
   VoucherBatchCreateResult,
@@ -33,28 +19,15 @@ export type {
   VoucherBatchDetailResponse,
   VoucherBatchListResponse,
   VoucherBatchSummary,
+  VoucherOwnerType,
+  VoucherStatus,
   VoucherData,
   VoucherListResponse,
-} from "@akit/contracts";
-
-export type VoucherStats = {
-  totalBatches: number;
-  totalVouchers: number;
-  availableVouchers: number;
-  usedVouchers: number;
-  sentVouchers: number;
-  expiredVouchers: number;
-  revokedVouchers: number;
-  redemptionRate: number;
+  VoucherStats,
+  VoucherAlert,
 };
 
-export type VoucherAlert = {
-  institutionId: string;
-  institutionName: string;
-  availableCount: number;
-  message: string;
-  severity: 'warning' | 'critical';
-};
+export type VoucherApi = any;
 
 export async function fetchVoucherStats(institutionId?: string): Promise<{
   stats: VoucherStats;

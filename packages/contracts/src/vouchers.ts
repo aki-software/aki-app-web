@@ -149,3 +149,22 @@ export type RedeemVoucherRequest = z.infer<typeof redeemVoucherRequestSchema>;
 export type RedeemVoucherResponse = z.infer<typeof redeemVoucherResponseSchema>;
 export type ListVouchersQuery = z.infer<typeof listVouchersQuerySchema>;
 export type ListVoucherBatchesQuery = z.infer<typeof listVoucherBatchesQuerySchema>;
+
+export interface VoucherStats {
+  totalBatches: number;
+  totalVouchers: number;
+  availableVouchers: number;
+  usedVouchers: number;
+  sentVouchers: number;
+  expiredVouchers: number;
+  revokedVouchers: number;
+  redemptionRate: number;
+}
+
+export interface VoucherAlert {
+  institutionId: string;
+  institutionName: string;
+  availableCount: number;
+  message: string;
+  severity: 'warning' | 'critical';
+}
