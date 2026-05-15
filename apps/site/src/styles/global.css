@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* ============================================
+   ORIENT A.KI — Design Tokens
+   "Earth Evolved" Palette
+   ============================================ */
+
+@theme {
+  /* Colors — Earth Evolved */
+  --color-primary: #0F6B68;
+  --color-primary-light: #B7ECE7;
+  --color-primary-dark: #083B39;
+  --color-secondary: #8E5A12;
+  --color-secondary-light: #FFDDB5;
+  --color-tertiary: #4E7F52;
+  --color-bg: #F5EFE7;
+  --color-surface: #FAF6F0;
+  --color-text: #1D1914;
+  --color-text-muted: #6B6560;
+  --color-border: #E0D8CE;
+  --color-dark-bg: #151C1A;
+  --color-dark-surface: #1B2422;
+  --color-dark-text: #F5F1EC;
+  --color-dark-muted: #A09890;
+  --color-dark-border: #2A3530;
+  --color-confirm: #43A047;
+  --color-destructive: #E53935;
+  --color-warning: #F59E0B;
+
+  /* Fonts */
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 5rem;
+  }
+}
+
+/* Glass card effect */
+.glass {
+  background: rgba(250, 246, 240, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(224, 216, 206, 0.5);
+}
+
+/* Gradient backgrounds */
+.gradient-radial {
+  background: radial-gradient(ellipse at top, var(--tw-gradient-stops));
+}
+
+/* Smooth transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip to content link (a11y) */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 16px;
+  z-index: 100;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}

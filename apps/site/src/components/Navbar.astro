@@ -1,0 +1,90 @@
+---
+---
+
+<nav class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border/50" role="navigation" aria-label="Navegación principal">
+  <div class="container flex items-center justify-between h-[72px]">
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2" aria-label="ORIENT A.KI - Inicio">
+      <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+        <span class="text-surface font-display font-bold text-lg">A</span>
+      </div>
+      <span class="font-display font-extrabold text-xl text-text">ORIENT A.KI</span>
+    </a>
+
+    <!-- Desktop Links -->
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#como-funciona" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
+        Cómo funciona
+      </a>
+      <a href="#instituciones" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
+        Para instituciones
+      </a>
+      <a href="#precios" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
+        Precios
+      </a>
+    </div>
+
+    <!-- CTA Buttons -->
+    <div class="hidden md:flex items-center gap-3">
+      <a
+        href="https://app.orientaki.com"
+        class="px-5 py-2.5 text-sm font-semibold text-primary border border-primary rounded-xl hover:bg-primary/5 transition-colors"
+      >
+        Ingresar
+      </a>
+      <a
+        href="https://play.google.com/store/apps/details?id=com.akit.app"
+        class="px-5 py-2.5 text-sm font-semibold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-colors"
+      >
+        Empezá gratis
+      </a>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button
+      id="mobile-menu-btn"
+      class="md:hidden p-2 text-text"
+      aria-label="Abrir menú"
+      aria-expanded="false"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="hidden md:hidden bg-surface border-t border-border">
+    <div class="container py-4 flex flex-col gap-4">
+      <a href="#como-funciona" class="py-2 text-text-muted hover:text-primary">Cómo funciona</a>
+      <a href="#instituciones" class="py-2 text-text-muted hover:text-primary">Para instituciones</a>
+      <a href="#precios" class="py-2 text-text-muted hover:text-primary">Precios</a>
+      <hr class="border-border" />
+      <a href="https://app.orientaki.com" class="py-2 text-center text-primary font-semibold">Ingresar</a>
+      <a
+        href="https://play.google.com/store/apps/details?id=com.akit.app"
+        class="py-3 text-center text-surface bg-primary rounded-xl font-semibold"
+      >
+        Empezá gratis
+      </a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const btn = document.getElementById('mobile-menu-btn');
+  const menu = document.getElementById('mobile-menu');
+
+  btn?.addEventListener('click', () => {
+    const isOpen = menu?.classList.toggle('hidden') === false;
+    btn.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  // Close menu on link click
+  menu?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      menu?.classList.add('hidden');
+      btn?.setAttribute('aria-expanded', 'false');
+    });
+  });
+</script>

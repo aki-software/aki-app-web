@@ -1,0 +1,80 @@
+---
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.akit.app';
+---
+
+<section class="py-20 md:py-24 bg-bg" id="precios">
+  <div class="container">
+    <div class="text-center mb-14">
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-text mb-4">
+        Simple y accesible
+      </h2>
+      <p class="text-lg text-text-muted">
+        Empezá gratis. Pagá solo si querés el reporte completo.
+      </p>
+    </div>
+
+    <div class="flex flex-col md:flex-row items-center justify-center gap-6 lg:gap-8">
+      <!-- Free Plan -->
+      <div class="w-full md:w-[340px] bg-surface rounded-3xl border border-border p-9 flex flex-col gap-5">
+        <span class="text-sm font-semibold text-text-muted">Gratis</span>
+        <span class="font-display font-extrabold text-5xl text-text">$0</span>
+
+        <div class="flex flex-col gap-3 pt-2">
+          {[
+            'Test vocacional completo',
+            'Perfil Holland RIASEC',
+            '13 categorías ocupacionales',
+            'Funciona offline',
+          ].map((feature) => (
+            <div class="flex items-center gap-2">
+              <span class="text-tertiary font-bold">✓</span>
+              <span class="text-sm text-text">{feature}</span>
+            </div>
+          ))}
+        </div>
+
+        <a
+          href={PLAY_STORE_URL}
+          class="mt-2 w-full py-3 text-center text-sm font-bold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-colors"
+        >
+          Empezá ahora
+        </a>
+      </div>
+
+      <!-- Premium Plan -->
+      <div class="w-full md:w-[380px] bg-primary rounded-3xl border-2 border-primary p-9 flex flex-col gap-5 relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span class="px-3 py-1 bg-primary-light text-primary text-xs font-bold rounded-full">
+            Premium
+          </span>
+        </div>
+
+        <span class="text-sm font-semibold text-primary-light">Reporte completo</span>
+        <span class="font-display font-extrabold text-4xl text-surface">Consultá</span>
+        <span class="text-sm text-primary-light">Con vouchers o pago directo en la app</span>
+
+        <div class="flex flex-col gap-3 pt-2">
+          {[
+            'Todo lo del plan gratis',
+            'Reporte PDF detallado',
+            'Recomendaciones de carreras',
+            'Gráficos de afinidad',
+            'Enviado por email',
+          ].map((feature) => (
+            <div class="flex items-center gap-2">
+              <span class="text-primary-light font-bold">✓</span>
+              <span class="text-sm text-surface">{feature}</span>
+            </div>
+          ))}
+        </div>
+
+        <a
+          href={PLAY_STORE_URL}
+          class="mt-2 w-full py-3 text-center text-sm font-bold text-primary bg-surface rounded-xl hover:bg-primary-light transition-colors"
+        >
+          Descargá la app
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

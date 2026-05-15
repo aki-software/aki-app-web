@@ -10,7 +10,12 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "dev": "turbo run dev"
+    "dev": "turbo run dev",
+    "dev:site": "pnpm --filter @akit/site dev",
+    "dev:api": "pnpm --filter @akit/api dev",
+    "dev:web": "pnpm --filter @akit/web dev",
+    "build:site": "pnpm --filter @akit/site build",
+    "preview:site": "pnpm --filter @akit/site preview"
   },
   "devDependencies": {
     "@types/passport-jwt": "^4.0.1",

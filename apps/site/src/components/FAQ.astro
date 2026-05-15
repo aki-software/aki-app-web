@@ -1,0 +1,46 @@
+---
+const faqs = [
+  {
+    question: '¿El test es realmente gratis?',
+    answer: 'Sí. El test vocacional completo es 100% gratuito. Solo el reporte PDF detallado con recomendaciones de carreras requiere un voucher o pago en la app.',
+  },
+  {
+    question: '¿Cuánto tarda el test?',
+    answer: 'Entre 8 y 12 minutos. Es mucho más rápido que un test tradicional porque usa una interfaz visual de tarjetas que hace el proceso ágil y entretenido.',
+  },
+  {
+    question: '¿Qué es el código Holland RIASEC?',
+    answer: 'Es un modelo científico de orientación vocacional desarrollado por John Holland en 1959. Clasifica las personas en 6 tipos: Realistic, Investigative, Artistic, Social, Enterprising y Conventional, y las relaciona con entornos laborales compatibles.',
+  },
+  {
+    question: '¿Cómo funcionan los vouchers?',
+    answer: 'Las instituciones (escuelas, therapists) pueden generar códigos de voucher para que sus estudiantes accedan al reporte completo sin costo individual. También podés comprar acceso directamente en la app.',
+  },
+  {
+    question: '¿Está disponible en mi país?',
+    answer: 'Sí. La app está disponible en Google Play para todos los países de habla hispana. El test funciona offline, así que no necesitás conexión constante.',
+  },
+];
+---
+
+<section class="py-20 md:py-24 bg-bg" id="faq">
+  <div class="container">
+    <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-text text-center mb-14">
+      Preguntas frecuentes
+    </h2>
+
+    <div class="max-w-2xl mx-auto flex flex-col gap-3">
+      {faqs.map((faq, index) => (
+        <details class="group bg-surface rounded-2xl border border-border open:border-primary/30 transition-colors">
+          <summary class="flex items-center justify-between cursor-pointer p-6 list-none">
+            <span class="font-semibold text-text text-base">{faq.question}</span>
+            <span class="text-primary text-xl font-bold transition-transform group-open:rotate-45">+</span>
+          </summary>
+          <div class="px-6 pb-6">
+            <p class="text-sm text-text-muted leading-relaxed">{faq.answer}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

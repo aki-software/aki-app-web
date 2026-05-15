@@ -1,0 +1,39 @@
+---
+const painPoints = [
+  {
+    icon: '🎓',
+    title: 'Miles de carreras y ninguna certeza',
+    description: 'Elegir mal cuesta tiempo, plata y frustración. No tiene que ser así.',
+  },
+  {
+    icon: '😴',
+    title: 'Tests aburridos de 200 preguntas',
+    description: 'Nadie quiere contestar cuestionarios eternos. Nuestro test es ágil y visual.',
+  },
+  {
+    icon: '💰',
+    title: 'Orientación cara y para pocos',
+    description: 'La orientación vocacional debería ser accesible para todos.',
+  },
+];
+---
+
+<section class="py-20 md:py-24 bg-primary-light" id="problema">
+  <div class="container">
+    <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-text text-center mb-14">
+      ¿No sabés qué estudiar?
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+      {painPoints.map((point) => (
+        <div class="bg-surface rounded-3xl p-8 flex flex-col gap-4 shadow-sm">
+          <div class="w-12 h-12 rounded-2xl bg-secondary-light flex items-center justify-center">
+            <span class="text-2xl">{point.icon}</span>
+          </div>
+          <h3 class="font-display font-bold text-lg text-text">{point.title}</h3>
+          <p class="text-sm text-text-muted leading-relaxed">{point.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

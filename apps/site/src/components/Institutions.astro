@@ -1,0 +1,79 @@
+---
+const features = [
+  'Gestión de grupos y sesiones masivas',
+  'Dashboard con analytics por institución',
+  'Vouchers y reportes personalizados',
+];
+---
+
+<section class="py-20 md:py-24 bg-dark-bg" id="instituciones">
+  <div class="container">
+    <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+      <!-- Content -->
+      <div class="flex-1">
+        <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-dark-surface mb-6">
+          <span class="text-xs font-semibold text-primary-light tracking-wide uppercase">
+            Para instituciones
+          </span>
+        </div>
+
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-dark-text leading-tight mb-6">
+          ¿Trabajás en una escuela<br />o sos therapist?
+        </h2>
+
+        <p class="text-base text-dark-muted leading-relaxed mb-8">
+          Gestioná grupos de estudiantes, generá vouchers y accedé a analytics
+          en tiempo real. Todo desde un dashboard intuitivo.
+        </p>
+
+        <ul class="flex flex-col gap-3 mb-8">
+          {features.map((feature) => (
+            <li class="flex items-center gap-3">
+              <span class="text-tertiary text-lg font-bold">✓</span>
+              <span class="text-dark-text text-sm">{feature}</span>
+            </li>
+          ))}
+        </ul>
+
+        <a
+          href="mailto:contacto@orientaki.com"
+          class="inline-block px-6 py-3 text-sm font-bold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-colors"
+        >
+          Contactanos
+        </a>
+      </div>
+
+      <!-- Dashboard Mockup -->
+      <div class="flex-shrink-0 w-full lg:w-[520px]">
+        <div class="bg-dark-surface rounded-2xl border border-dark-border p-5 shadow-2xl">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-5">
+            <span class="text-dark-text font-bold text-sm">Dashboard</span>
+            <span class="text-dark-muted text-xs">Mayo 2026</span>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-3 gap-3 mb-5">
+            <div class="bg-dark-border rounded-xl p-3">
+              <p class="text-primary-light font-extrabold text-xl">1,247</p>
+              <p class="text-dark-muted text-[10px]">Tests completados</p>
+            </div>
+            <div class="bg-dark-border rounded-xl p-3">
+              <p class="text-tertiary font-extrabold text-xl">89%</p>
+              <p class="text-dark-muted text-[10px]">Completitud</p>
+            </div>
+            <div class="bg-dark-border rounded-xl p-3">
+              <p class="text-secondary-light font-extrabold text-xl">342</p>
+              <p class="text-dark-muted text-[10px]">Reportes</p>
+            </div>
+          </div>
+
+          <!-- Chart placeholder -->
+          <div class="bg-dark-border rounded-xl h-44 flex items-center justify-center">
+            <span class="text-dark-muted text-sm">📊 Gráfico de distribución RIASEC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

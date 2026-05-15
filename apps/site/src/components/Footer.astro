@@ -1,0 +1,31 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-text py-12" role="contentinfo">
+  <div class="container">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+      <!-- Logo -->
+      <span class="font-display font-extrabold text-xl text-dark-text">ORIENT A.KI</span>
+
+      <!-- Links -->
+      <nav class="flex items-center gap-8" aria-label="Footer navigation">
+        <a href="mailto:contacto@orientaki.com" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
+          Contacto
+        </a>
+        <a href="/privacidad" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
+          Privacidad
+        </a>
+        <a href="/terminos" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
+          Términos
+        </a>
+      </nav>
+    </div>
+
+    <hr class="border-dark-border mb-6" />
+
+    <p class="text-center text-xs text-dark-muted">
+      © {currentYear} Orient A.KI — Tu futuro comienza aquí.
+    </p>
+  </div>
+</footer>

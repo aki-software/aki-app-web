@@ -1,0 +1,46 @@
+---
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.akit.app';
+---
+
+<section class="py-20 md:py-24 bg-bg" id="cta-final">
+  <div class="container text-center">
+    <h2 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-text mb-6">
+      Tu futuro comienza aquí
+    </h2>
+    <p class="text-lg text-text-muted mb-10 max-w-lg mx-auto">
+      Empezá el test ahora y descubrí qué carreras van con vos.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+      <a
+        href={PLAY_STORE_URL}
+        class="inline-flex items-center gap-3 px-8 py-4 text-base font-bold text-surface bg-primary rounded-2xl hover:bg-primary-dark transition-all hover:shadow-lg hover:shadow-primary/20"
+      >
+        <span class="text-xl">▶</span>
+        Google Play
+      </a>
+      <a
+        href="https://app.orientaki.com"
+        class="inline-flex items-center gap-3 px-8 py-4 text-base font-semibold text-primary bg-surface border-2 border-primary rounded-2xl hover:bg-primary-light/30 transition-all"
+      >
+        Versión web
+      </a>
+    </div>
+
+    <!-- QR Code -->
+    <div class="flex items-center gap-4 justify-center">
+      <div class="w-[100px] h-[100px] rounded-2xl bg-surface border border-border flex items-center justify-center p-3">
+        <img
+          src="/qr-playstore.svg"
+          alt="Código QR para descargar en Google Play"
+          class="w-full h-full object-contain rounded-lg"
+          loading="lazy"
+        />
+      </div>
+      <div class="text-left">
+        <p class="text-sm font-semibold text-text">Escaneá para descargar</p>
+        <p class="text-xs text-text-muted">Disponible en Google Play</p>
+      </div>
+    </div>
+  </div>
+</section>
