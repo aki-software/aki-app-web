@@ -38,9 +38,7 @@ export class CategoriesService {
     return this.toCategoryResponse(savedCategory);
   }
 
-  private toCategoryResponse(
-    category: VocationalCategory,
-  ): CategoryResponse {
+  private toCategoryResponse(category: VocationalCategory): CategoryResponse {
     return {
       categoryId: category.categoryId,
       title: category.title,

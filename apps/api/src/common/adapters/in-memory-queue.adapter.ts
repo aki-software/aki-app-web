@@ -43,12 +43,16 @@ export class InMemoryQueueAdapter implements QueueAdapter {
     const backoffType = options?.backoffType ?? 'fixed';
     const delayMs = options?.delayMs ?? 0;
 
-    const promise = this.dispatcher.dispatchWithRetry(jobName as JobNames, payload, {
-      attempts,
-      backoffMs,
-      backoffType,
-      delayMs,
-    });
+    const promise = this.dispatcher.dispatchWithRetry(
+      jobName as JobNames,
+      payload,
+      {
+        attempts,
+        backoffMs,
+        backoffType,
+        delayMs,
+      },
+    );
 
     if (promise && typeof (promise as any).catch === 'function') {
       (promise as any).catch((error: any) => {

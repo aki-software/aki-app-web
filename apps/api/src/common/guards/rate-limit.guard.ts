@@ -10,16 +10,16 @@ import {
   RATE_LIMIT_METADATA_KEY,
   RateLimitMeta,
 } from '../decorators/rate-limit.decorator.js';
-
-type Bucket = { count: number; resetAt: number };
+import { RateLimitService } from '../services/rate-limit.service.js';
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {
-  private readonly buckets = new Map<string, Bucket>();
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly rateLimitService: RateLimitService,
+  ) {}
 
-  constructor(private readonly reflector: Reflector) {}
-
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const meta = this.reflector.getAllAndOverride<RateLimitMeta>(
       RATE_LIMIT_METADATA_KEY,
       [context.getHandler(), context.getClass()],
@@ -33,27 +33,30 @@ export class RateLimitGuard implements CanActivate {
       originalUrl?: string;
       user?: { userId?: string };
     }>();
+    const res = context.switchToHttp().getResponse();
 
     const actor = req.user?.userId || req.ip || 'unknown';
     const route = req.route?.path || req.originalUrl || 'unknown-route';
     const key = `${actor}:${route}`;
-    const now = Date.now();
 
-    const bucket = this.buckets.get(key);
-    if (!bucket || bucket.resetAt <= now) {
-      this.buckets.set(key, { count: 1, resetAt: now + meta.windowMs });
-      return true;
-    }
+    const result = await this.rateLimitService.checkRateLimit(
+      key,
+      meta.limit,
+      meta.windowMs,
+    );
 
-    if (bucket.count >= meta.limit) {
+    // Set rate limit headers
+    res.set('X-RateLimit-Limit', meta.limit.toString());
+    res.set('X-RateLimit-Remaining', result.remaining.toString());
+    res.set('X-RateLimit-Reset', Math.ceil(result.resetAt / 1000).toString());
+
+    if (!result.allowed) {
       throw new HttpException(
         'Demasiadas solicitudes. Intenta nuevamente en unos minutos.',
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
 
-    bucket.count += 1;
-    this.buckets.set(key, bucket);
     return true;
   }
 }

@@ -85,30 +85,6 @@ export class MailService {
     }
   }
 
-  renderReportPdfTemplate(
-    patientName: string,
-    formattedResults: CategoryResult[],
-    hollandCode?: string,
-    reportUrl?: string,
-    summary?: ReportSummary,
-    tripletInsight?: ReportTripletInsight,
-    patientEmail?: string,
-    hollandPercentages?: Record<string, number>,
-    strengths?: string[],
-  ): string {
-    return this.renderTemplate('report-pdf.pug', {
-      patientName,
-      patientEmail: patientEmail || null,
-      topResults: formattedResults,
-      hollandCode: hollandCode || null,
-      reportUrl: reportUrl || null,
-      summary: summary || null,
-      tripletInsight: tripletInsight || null,
-      hollandPercentages: hollandPercentages || null,
-      strengths: strengths || [],
-    });
-  }
-
   renderReportEmailTemplate(
     patientName: string,
     patientEmail?: string,

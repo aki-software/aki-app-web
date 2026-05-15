@@ -26,7 +26,9 @@ describe('AccountActivationNotifierService', () => {
       ],
     }).compile();
 
-    service = module.get<AccountActivationNotifierService>(AccountActivationNotifierService);
+    service = module.get<AccountActivationNotifierService>(
+      AccountActivationNotifierService,
+    );
   });
 
   it('should be defined', () => {
@@ -42,7 +44,12 @@ describe('AccountActivationNotifierService', () => {
     it('should send email directly if queue is not configured', async () => {
       queueAdapter.isConfigured.mockReturnValue(false);
 
-      await service.notifyAccountActivation(email, name, activationLink, institutionName);
+      await service.notifyAccountActivation(
+        email,
+        name,
+        activationLink,
+        institutionName,
+      );
 
       expect(mailService.sendAccountActivation).toHaveBeenCalledWith(
         email,
@@ -56,7 +63,12 @@ describe('AccountActivationNotifierService', () => {
     it('should enqueue email if queue is configured', async () => {
       queueAdapter.isConfigured.mockReturnValue(true);
 
-      await service.notifyAccountActivation(email, name, activationLink, institutionName);
+      await service.notifyAccountActivation(
+        email,
+        name,
+        activationLink,
+        institutionName,
+      );
 
       expect(queueAdapter.enqueue).toHaveBeenCalledWith(
         JobNames.SendEmail,

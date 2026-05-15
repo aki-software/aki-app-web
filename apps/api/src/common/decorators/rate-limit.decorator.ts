@@ -8,4 +8,7 @@ export type RateLimitMeta = {
 };
 
 export const RateLimit = (limit: number, windowMs: number) =>
-  SetMetadata(RATE_LIMIT_METADATA_KEY, { limit, windowMs } satisfies RateLimitMeta);
+  SetMetadata(RATE_LIMIT_METADATA_KEY, {
+    limit,
+    windowMs,
+  } satisfies RateLimitMeta);

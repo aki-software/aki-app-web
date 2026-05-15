@@ -149,7 +149,9 @@ export class AuthPasswordFlowService {
     }
 
     if (!this.usersService.hasPasswordConfigured(user)) {
-      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.passwordNotConfigured);
+      throw new UnauthorizedException(
+        AUTH_ERROR_MESSAGES.passwordNotConfigured,
+      );
     }
 
     if (currentPassword === newPassword) {
@@ -158,7 +160,9 @@ export class AuthPasswordFlowService {
 
     const valid = this.cryptoService.verify(currentPassword, user.passwordHash);
     if (!valid) {
-      throw new UnauthorizedException(AUTH_ERROR_MESSAGES.incorrectCurrentPassword);
+      throw new UnauthorizedException(
+        AUTH_ERROR_MESSAGES.incorrectCurrentPassword,
+      );
     }
 
     await this.usersService.register({

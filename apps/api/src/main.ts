@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { HttpAdapterHost } from '@nestjs/core';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const start = Date.now();
@@ -12,6 +13,20 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   console.log(
     `[Bootstrap] NestFactory.create completed in ${Date.now() - start}ms`,
+  );
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    }),
   );
 
   app.useLogger(app.get(Logger));

@@ -20,7 +20,12 @@ export class AccountActivationNotifierService {
     institutionName: string | null,
   ) {
     if (this.queueAdapter.isConfigured()) {
-      await this.enqueueActivationEmail(email, name, activationLink, institutionName);
+      await this.enqueueActivationEmail(
+        email,
+        name,
+        activationLink,
+        institutionName,
+      );
       return true;
     }
 
