@@ -11,42 +11,55 @@ const webUrl = import.meta.env.PUBLIC_WEB_URL || 'http://localhost:5173';
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
-<section class="py-20 md:py-24 bg-bg" id="cta-final">
-  <div class="container text-center">
-    <h2 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-text mb-6">
+<section class="py-20 md:py-28 bg-bg relative overflow-hidden" id="cta-final">
+  <!-- Background accent -->
+  <div class="absolute inset-0 gradient-mesh pointer-events-none"></div>
+
+  <div class="container relative z-10 text-center">
+    {/* Big number social proof */}
+    <div class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-surface border border-border mb-8 reveal">
+      <div class="flex -space-x-2">
+        <div class="w-7 h-7 rounded-full bg-primary-light border-2 border-surface flex items-center justify-center text-xs">🎨</div>
+        <div class="w-7 h-7 rounded-full bg-secondary-light border-2 border-surface flex items-center justify-center text-xs">🔬</div>
+        <div class="w-7 h-7 rounded-full bg-tertiary/30 border-2 border-surface flex items-center justify-center text-xs">💼</div>
+      </div>
+      <span class="text-sm text-text-muted">
+        <span class="font-bold text-text">+1,200</span> perfiles generados
+      </span>
+    </div>
+
+    <h2 class="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-text mb-6 leading-[1.05] reveal reveal-delay-1">
       {t.finalCta.title}
     </h2>
-    <p class="text-lg text-text-muted mb-10 max-w-lg mx-auto">
+
+    <p class="text-lg text-text-muted mb-10 max-w-lg mx-auto reveal reveal-delay-2">
       {t.finalCta.subtitle}
     </p>
 
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 reveal reveal-delay-3">
       <a
         href={playStoreUrl}
-        class="inline-flex items-center gap-3 px-8 py-4 text-base font-bold text-surface bg-primary rounded-2xl hover:bg-primary-dark transition-all hover:shadow-lg hover:shadow-primary/20"
+        class="group inline-flex items-center gap-3 px-8 py-4 text-base font-bold text-surface bg-primary rounded-2xl hover:bg-primary-dark transition-all hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5"
       >
-        <span class="text-xl">▶</span>
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
+        </svg>
         {t.finalCta.googlePlay}
       </a>
       <a
         href={webUrl}
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-3 px-8 py-4 text-base font-semibold text-primary bg-surface border-2 border-primary rounded-2xl hover:bg-primary-light/30 transition-all"
+        class="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold text-primary bg-surface border-2 border-primary rounded-2xl hover:bg-primary-light/30 transition-all"
       >
         {t.finalCta.webVersion}
       </a>
     </div>
 
-    <!-- QR Code -->
-    <div class="flex items-center gap-4 justify-center">
-      <div class="w-[100px] h-[100px] rounded-2xl bg-surface border border-border flex items-center justify-center p-3">
-        <img
-          src="/qr-playstore.svg"
-          alt={t.finalCta.qrLabel}
-          class="w-full h-full object-contain rounded-lg"
-          loading="lazy"
-        />
+    {/* QR */}
+    <div class="flex items-center gap-4 justify-center reveal reveal-delay-4">
+      <div class="w-24 h-24 rounded-2xl bg-surface border border-border flex items-center justify-center p-3 hover:shadow-md transition-shadow">
+        <img src="/qr-playstore.svg" alt={t.finalCta.qrLabel} class="w-full h-full object-contain rounded-lg" loading="lazy" />
       </div>
       <div class="text-left">
         <p class="text-sm font-semibold text-text">{t.finalCta.qrLabel}</p>
@@ -55,3 +68,25 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
     </div>
   </div>
 </section>
+
+<!-- Sticky mobile CTA bar */}
+<div class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-surface/95 backdrop-blur-md border-t border-border p-4 safe-area-bottom">
+  <a
+    href={playStoreUrl}
+    class="flex items-center justify-center gap-2 w-full py-3.5 text-base font-bold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-colors"
+  >
+    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
+    </svg>
+    {t.finalCta.googlePlay} — {t.pricing.free.label}
+  </a>
+</div>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+</script>

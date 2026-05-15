@@ -9,8 +9,16 @@ interface VouchersIndividualTableProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  onVoucherUpdated: (result: { ok: boolean; message: string }) => Promise<void>;
+  onVoucherUpdated: (result: { ok: boolean; message: string }) => void | Promise<void>;
   onViewSessions: (voucherId: string) => void;
+  actionManager: {
+    actionBusy: boolean;
+    copiedType: "CODE" | "MAIL" | null;
+    handleWhatsApp: (v: VoucherData) => void;
+    handleCopyCode: (c: string) => void;
+    handleSendEmail: (id: string, c: string, e: string, resend: boolean) => Promise<boolean>;
+    handleRevokeAction: (id: string, c: string) => Promise<boolean>;
+  };
 }
 
 export const VouchersIndividualTable = ({
@@ -19,8 +27,8 @@ export const VouchersIndividualTable = ({
   currentPage,
   totalPages,
   onPageChange,
-  onVoucherUpdated,
   onViewSessions,
+  actionManager
 }: VouchersIndividualTableProps) => {
   return (
     <div className="space-y-8">
@@ -52,7 +60,19 @@ export const VouchersIndividualTable = ({
                     key={voucher.id}
                     voucher={voucher}
                     isAdmin={isAdmin}
-                    onVoucherUpdated={onVoucherUpdated}
+                    actionBusy={actionManager.actionBusy}
+                    copiedType={actionManager.copiedType}
+                    onWhatsApp={() => actionManager.handleWhatsApp(voucher)}
+                    onCopyCode={() => actionManager.handleCopyCode(voucher.code)}
+                    onSendEmail={(email) => 
+                      actionManager.handleSendEmail(
+                        voucher.id, 
+                        voucher.code, 
+                        email || voucher.assignedPatientEmail || "", 
+                        voucher.status === "SENT"
+                      )
+                    }
+                    onRevoke={() => actionManager.handleRevokeAction(voucher.id, voucher.code)}
                     onViewSessions={() => onViewSessions(voucher.id)}
                   />
                 ))

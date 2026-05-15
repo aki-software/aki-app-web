@@ -9,18 +9,20 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-<section class="py-20 md:py-24 bg-bg" id="faq">
+<section class="py-20 md:py-28 bg-bg" id="faq">
   <div class="container">
-    <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-text text-center mb-14">
-      {t.faq.title}
-    </h2>
+    <div class="text-center mb-14 reveal">
+      <h2 class="font-display font-extrabold text-4xl sm:text-5xl text-text mb-4">
+        {t.faq.title}
+      </h2>
+    </div>
 
     <div class="max-w-2xl mx-auto flex flex-col gap-3">
-      {t.faq.items.map((faq) => (
-        <details class="group bg-surface rounded-2xl border border-border open:border-primary/30 transition-colors">
+      {t.faq.items.map((faq, index) => (
+        <details class="group bg-surface rounded-2xl border border-border open:border-primary/30 open:shadow-md transition-all reveal" style={`transition-delay: ${index * 0.05}s;`}>
           <summary class="flex items-center justify-between cursor-pointer p-6 list-none">
-            <span class="font-semibold text-text text-base">{faq.q}</span>
-            <span class="text-primary text-xl font-bold transition-transform group-open:rotate-45">+</span>
+            <span class="font-semibold text-text text-base pr-4">{faq.q}</span>
+            <span class="text-primary text-2xl font-light transition-transform duration-300 group-open:rotate-45 flex-shrink-0">+</span>
           </summary>
           <div class="px-6 pb-6">
             <p class="text-sm text-text-muted leading-relaxed">{faq.a}</p>
@@ -30,3 +32,12 @@ const { t } = Astro.props;
     </div>
   </div>
 </section>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+</script>

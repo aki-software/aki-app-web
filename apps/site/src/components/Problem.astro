@@ -9,25 +9,63 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-<section class="py-20 md:py-24 bg-primary-light" id="problema">
-  <div class="container">
-    <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-text text-center mb-14">
+<section class="py-20 md:py-28 bg-primary-dark overflow-hidden" id="problema">
+  <div class="container mb-12">
+    <h2 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-dark-text text-center reveal">
       {t.problem.title}
     </h2>
+  </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+  <!-- Marquee with pain points -->
+  <div class="relative">
+    <div class="flex animate-marquee">
+      <!-- First set -->
       {t.problem.cards.map((card, i) => {
         const icons = ['🎓', '😴', '💰'];
         return (
-          <div class="bg-surface rounded-3xl p-8 flex flex-col gap-4 shadow-sm">
-            <div class="w-12 h-12 rounded-2xl bg-secondary-light flex items-center justify-center">
-              <span class="text-2xl">{icons[i]}</span>
+          <div class="flex-shrink-0 mx-4 px-8 py-6 bg-dark-surface/50 border border-dark-border rounded-2xl backdrop-blur-sm" style="width: 380px;">
+            <div class="flex items-center gap-4">
+              <span class="text-3xl">{icons[i]}</span>
+              <div>
+                <p class="font-display font-bold text-dark-text text-lg">{card.title}</p>
+                <p class="text-sm text-dark-muted mt-1">{card.desc}</p>
+              </div>
             </div>
-            <h3 class="font-display font-bold text-lg text-text">{card.title}</h3>
-            <p class="text-sm text-text-muted leading-relaxed">{card.desc}</p>
+          </div>
+        );
+      })}
+      <!-- Duplicate set for seamless loop -->
+      {t.problem.cards.map((card, i) => {
+        const icons = ['🎓', '😴', '💰'];
+        return (
+          <div class="flex-shrink-0 mx-4 px-8 py-6 bg-dark-surface/50 border border-dark-border rounded-2xl backdrop-blur-sm" style="width: 380px;">
+            <div class="flex items-center gap-4">
+              <span class="text-3xl">{icons[i]}</span>
+              <div>
+                <p class="font-display font-bold text-dark-text text-lg">{card.title}</p>
+                <p class="text-sm text-dark-muted mt-1">{card.desc}</p>
+              </div>
+            </div>
           </div>
         );
       })}
     </div>
   </div>
+
+  <!-- Big statement -->
+  <div class="container mt-16 text-center reveal">
+    <p class="text-xl md:text-2xl text-dark-muted font-medium max-w-2xl mx-auto">
+      <span class="text-primary-light font-semibold">No tiene que ser así.</span>
+      {t.locale === 'es' ? ' Creamos ORIENT A.KI para que elegir tu camino sea simple, visual y hasta divertido.' : ' We created ORIENT A.KI to make choosing your path simple, visual and even fun.'}
+    </p>
+  </div>
 </section>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+</script>
