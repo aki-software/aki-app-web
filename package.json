@@ -12,8 +12,9 @@
     "test": "turbo run test",
     "dev": "turbo run dev",
     "dev:site": "pnpm --filter @akit/site dev",
-    "dev:web": "pnpm --filter @akit/web dev",
-    "dev:marketing": "turbo run dev --filter=@akit/site --filter=@akit/web",
+    "dev:api": "pnpm --filter api dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:marketing": "turbo run dev --filter=@akit/site --filter=web",
     "build:site": "pnpm --filter @akit/site build",
     "preview:site": "pnpm --filter @akit/site preview"
   },
