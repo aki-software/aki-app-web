@@ -1,10 +1,7 @@
 import { API_URL, getAuthHeaders } from "./client";
+import type { CategoryData } from "@akit/contracts";
 
-export interface CategoryData {
-  categoryId: string;
-  title: string;
-  description: string;
-}
+export type { CategoryData };
 
 export async function fetchCategories(): Promise<CategoryData[]> {
   try {
