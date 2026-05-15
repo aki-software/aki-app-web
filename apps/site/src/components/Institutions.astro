@@ -9,79 +9,31 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-<section class="py-16 md:py-24 bg-dark-bg" id="instituciones">
+<section class="py-24 md:py-32 bg-surface" id="instituciones">
   <div class="container">
-    <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
-      <!-- Content -->
-      <div class="flex-1">
-        <span class="inline-block text-xs font-medium text-primary-light tracking-wide uppercase mb-4 reveal">
-          {t.institutions.badge}
-        </span>
+    <div class="max-w-2xl mx-auto text-center mb-12">
+      <span class="text-xs font-medium text-primary tracking-wider uppercase reveal">{t.institutions.badge}</span>
+      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mt-3 mb-4 reveal reveal-delay-1 whitespace-pre-line">
+        {t.institutions.title}
+      </h2>
+      <p class="text-sm text-text-muted leading-relaxed reveal reveal-delay-2">{t.institutions.desc}</p>
+    </div>
 
-        <h2 class="font-display font-bold text-2xl md:text-3xl lg:text-4xl text-dark-text leading-tight mb-4 reveal reveal-delay-1">
-          {t.institutions.title}
-        </h2>
-
-        <p class="text-sm text-dark-muted leading-relaxed mb-6 max-w-lg reveal reveal-delay-2">
-          {t.institutions.desc}
-        </p>
-
-        <ul class="flex flex-col gap-3 mb-8 reveal reveal-delay-3">
-          {t.institutions.features.map((feature) => (
-            <li class="flex items-start gap-3">
-              <svg class="w-5 h-5 text-tertiary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-              <span class="text-sm text-dark-text">{feature}</span>
-            </li>
-          ))}
-        </ul>
-
-        <a href="mailto:contacto@orientaki.com" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-surface bg-primary rounded-lg hover:bg-primary-dark transition-colors reveal reveal-delay-4">
-          {t.institutions.cta}
-        </a>
-      </div>
-
-      <!-- Dashboard mockup -->
-      <div class="flex-shrink-0 w-full lg:w-[460px] reveal reveal-delay-2">
-        <div class="bg-dark-surface rounded-xl border border-dark-border p-4">
-          <!-- Header -->
-          <div class="flex items-center justify-between mb-4">
-            <span class="text-dark-text font-semibold text-sm">{t.institutions.dashboard}</span>
-            <span class="text-dark-muted text-xs">Mayo 2026</span>
-          </div>
-
-          <!-- Stats -->
-          <div class="grid grid-cols-3 gap-2.5 mb-4">
-            <div class="bg-dark-border/50 rounded-lg p-3">
-              <p class="text-primary-light font-bold text-lg">1,247</p>
-              <p class="text-dark-muted text-[10px]">{t.institutions.stats.tests}</p>
-            </div>
-            <div class="bg-dark-border/50 rounded-lg p-3">
-              <p class="text-tertiary font-bold text-lg">89%</p>
-              <p class="text-dark-muted text-[10px]">{t.institutions.stats.completion}</p>
-            </div>
-            <div class="bg-dark-border/50 rounded-lg p-3">
-              <p class="text-secondary-light font-bold text-lg">342</p>
-              <p class="text-dark-muted text-[10px]">{t.institutions.stats.reports}</p>
-            </div>
-          </div>
-
-          <!-- RIASEC bars -->
-          <div class="bg-dark-border/50 rounded-lg p-4 h-40 flex items-end justify-between gap-2">
-            {['R', 'I', 'A', 'S', 'E', 'C'].map((letter, i) => {
-              const heights = ['60%', '80%', '45%', '90%', '70%', '55%'];
-              const colors = ['bg-primary', 'bg-primary-light', 'bg-secondary', 'bg-tertiary', 'bg-secondary-light', 'bg-primary/60'];
-              return (
-                <div class="flex flex-col items-center gap-1.5 flex-1">
-                  <div class={`w-full rounded-t ${colors[i]}`} style={`height: ${heights[i]}; opacity: 0.7;`}></div>
-                  <span class="text-dark-muted text-[10px] font-mono">{letter}</span>
-                </div>
-              );
-            })}
-          </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+      {t.institutions.features.map((feature, i) => (
+        <div class="bg-bg rounded-lg border border-border/60 p-5 text-center reveal" style={`transition-delay: ${i * 0.1}s;`}>
+          <svg class="w-5 h-5 text-primary mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          <p class="text-sm text-text">{feature}</p>
         </div>
-      </div>
+      ))}
+    </div>
+
+    <div class="text-center mt-8 reveal reveal-delay-3">
+      <a href="mailto:contacto@orientaki.com" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-surface bg-primary rounded-lg hover:bg-primary-dark transition-colors">
+        {t.institutions.cta}
+      </a>
     </div>
   </div>
 </section>

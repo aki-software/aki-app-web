@@ -13,45 +13,27 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
 const langPath = locale === 'es' ? '/en' : '/';
 ---
 
-<nav class="fixed top-0 left-0 right-0 z-50 bg-bg/90 backdrop-blur-sm border-b border-border/40" role="navigation" aria-label="Navegación principal">
-  <div class="container flex items-center justify-between h-16">
-    <!-- Logo -->
-    <a href="/" class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-        <span class="text-surface font-display font-bold text-sm">A</span>
+<nav class="fixed top-0 left-0 right-0 z-50 bg-bg/90 backdrop-blur-md" role="navigation">
+  <div class="container flex items-center justify-between h-14">
+    <a href="/" class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
+        <span class="text-white font-display font-bold text-xs">A</span>
       </div>
-      <span class="font-display font-bold text-base text-text hidden sm:block">ORIENT A.KI</span>
+      <span class="font-display font-bold text-sm text-text hidden sm:block">ORIENT A.KI</span>
     </a>
 
-    <!-- Desktop nav -->
-    <div class="hidden md:flex items-center gap-8">
-      <a href="#como-funciona" class="text-sm text-text-muted hover:text-primary transition-colors">
-        {t.nav.howItWorks}
-      </a>
-      <a href="#instituciones" class="text-sm text-text-muted hover:text-primary transition-colors">
-        {t.nav.forInstitutions}
-      </a>
-      <a href="#precios" class="text-sm text-text-muted hover:text-primary transition-colors">
-        {t.nav.pricing}
-      </a>
-
-      <div class="w-px h-5 bg-border"></div>
-
-      <a href={langPath} class="text-xs font-medium text-text-muted hover:text-primary transition-colors" aria-label="Switch language">
-        {t.langSwitch}
-      </a>
-      <a href={webUrl} target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-text hover:text-primary transition-colors">
-        {t.nav.login}
-      </a>
-      <a href={playStoreUrl} class="px-4 py-2 text-sm font-semibold text-surface bg-primary rounded-lg hover:bg-primary-dark transition-colors">
+    <div class="hidden md:flex items-center gap-6">
+      <a href="#como-funciona" class="text-xs text-text-muted hover:text-primary transition-colors">{t.nav.howItWorks}</a>
+      <a href="#instituciones" class="text-xs text-text-muted hover:text-primary transition-colors">{t.nav.forInstitutions}</a>
+      <a href={langPath} class="text-xs text-text-muted hover:text-primary transition-colors">{t.langSwitch}</a>
+      <a href={playStoreUrl} class="px-4 py-1.5 text-xs font-semibold text-surface bg-primary rounded-md hover:bg-primary-dark transition-colors">
         {t.nav.startFree}
       </a>
     </div>
 
-    <!-- Mobile menu button -->
     <div class="flex items-center gap-2 md:hidden">
-      <a href={langPath} class="text-xs font-medium text-text-muted px-2 py-1">{t.langSwitch}</a>
-      <button id="mobile-menu-btn" class="p-2 text-text" aria-label="Abrir menú" aria-expanded="false">
+      <a href={langPath} class="text-xs text-text-muted px-2">{t.langSwitch}</a>
+      <button id="mobile-menu-btn" class="p-1.5 text-text" aria-label="Menu">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -59,15 +41,11 @@ const langPath = locale === 'es' ? '/en' : '/';
     </div>
   </div>
 
-  <!-- Mobile menu -->
   <div id="mobile-menu" class="hidden md:hidden bg-surface border-t border-border">
     <div class="container py-3 flex flex-col gap-1">
-      <a href="#como-funciona" class="py-2.5 text-sm text-text-muted hover:text-primary">{t.nav.howItWorks}</a>
-      <a href="#instituciones" class="py-2.5 text-sm text-text-muted hover:text-primary">{t.nav.forInstitutions}</a>
-      <a href="#precios" class="py-2.5 text-sm text-text-muted hover:text-primary">{t.nav.pricing}</a>
-      <hr class="border-border my-1" />
-      <a href={webUrl} target="_blank" rel="noopener noreferrer" class="py-2.5 text-sm text-center text-primary font-medium">{t.nav.login}</a>
-      <a href={playStoreUrl} class="py-2.5 text-sm text-center text-surface bg-primary rounded-lg font-semibold">{t.nav.startFree}</a>
+      <a href="#como-funciona" class="py-2 text-sm text-text-muted">{t.nav.howItWorks}</a>
+      <a href="#instituciones" class="py-2 text-sm text-text-muted">{t.nav.forInstitutions}</a>
+      <a href={playStoreUrl} class="py-2.5 text-sm text-center text-surface bg-primary rounded-md font-semibold mt-2">{t.nav.startFree}</a>
     </div>
   </div>
 </nav>
@@ -80,9 +58,6 @@ const langPath = locale === 'es' ? '/en' : '/';
     btn.setAttribute('aria-expanded', String(isOpen));
   });
   menu?.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => {
-      menu?.classList.add('hidden');
-      btn?.setAttribute('aria-expanded', 'false');
-    });
+    link.addEventListener('click', () => { menu?.classList.add('hidden'); btn?.setAttribute('aria-expanded', 'false'); });
   });
 </script>

@@ -10,72 +10,83 @@ const { t } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
-<section class="pt-24 pb-16 md:pt-32 md:pb-24 bg-bg" id="hero">
-  <div class="container">
-    <div class="max-w-3xl mx-auto text-center">
-      <!-- Trust badge -->
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-light/50 mb-6 reveal">
-        <svg class="w-3.5 h-3.5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-        </svg>
-        <span class="text-xs font-medium text-primary">{t.hero.badge}</span>
+<section class="min-h-screen flex flex-col justify-center bg-dark-bg text-dark-text relative overflow-hidden" id="hero">
+  <!-- Subtle grid background -->
+  <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+  <div class="container relative z-10">
+    <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      <!-- Left: Bold typography + CTA -->
+      <div class="flex-1 text-center lg:text-left">
+        <p class="text-xs font-medium text-primary-light tracking-wider uppercase mb-6 reveal">
+          {t.hero.badge}
+        </p>
+
+        <h1 class="font-display font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 reveal reveal-delay-1">
+          {t.hero.title}<br />
+          <span class="text-primary">{t.hero.titleAccent}</span>
+        </h1>
+
+        <p class="text-base text-dark-muted leading-relaxed max-w-md mx-auto lg:mx-0 mb-8 reveal reveal-delay-2">
+          {t.hero.subtitle}
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start reveal reveal-delay-3">
+          <a href={playStoreUrl} class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-dark-bg bg-primary rounded-lg hover:bg-primary-light transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
+            </svg>
+            {t.hero.ctaPrimary}
+          </a>
+        </div>
+
+        <p class="text-xs text-dark-muted mt-4 reveal reveal-delay-3">
+          {t.locale === 'es' ? 'Gratis · Sin registro · 10 minutos' : 'Free · No signup · 10 minutes'}
+        </p>
       </div>
 
-      <!-- Headline -->
-      <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-text leading-tight mb-6 reveal reveal-delay-1">
-        {t.hero.title}{' '}
-        <span class="text-primary">{t.hero.titleAccent}</span>
-      </h1>
+      <!-- Right: Swipe cards demo -->
+      <div class="flex-shrink-0 w-full max-w-sm lg:max-w-none lg:w-[340px] reveal reveal-delay-2">
+        <div class="relative" style="height: 400px;">
+          <!-- Background card -->
+          <div class="absolute inset-x-4 top-8 bottom-8 rounded-2xl bg-dark-surface border border-dark-border opacity-30 rotate-6"></div>
 
-      <!-- Subtitle -->
-      <p class="text-base md:text-lg text-text-muted leading-relaxed max-w-xl mx-auto mb-8 reveal reveal-delay-2">
-        {t.hero.subtitle}
-      </p>
+          <!-- Middle card -->
+          <div class="absolute inset-x-2 top-4 bottom-4 rounded-2xl bg-dark-surface border border-dark-border opacity-50 -rotate-3"></div>
 
-      <!-- CTAs -->
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10 reveal reveal-delay-3">
-        <a href={playStoreUrl} class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-surface bg-primary rounded-lg hover:bg-primary-dark transition-colors">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
-          </svg>
-          {t.hero.ctaPrimary}
-        </a>
-        <a href="#como-funciona" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-text-muted hover:text-primary transition-colors">
-          {t.hero.ctaSecondary}
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </a>
-      </div>
+          <!-- Front card - animated swipe -->
+          <div class="absolute inset-0 rounded-2xl bg-dark-surface border border-dark-border shadow-2xl flex flex-col items-center justify-center p-8 animate-swipe">
+            <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-6">
+              <span class="text-3xl">🎨</span>
+            </div>
+            <p class="font-display font-bold text-lg text-dark-text text-center leading-tight mb-2 whitespace-pre-line">
+              {t.hero.phoneCardTitle}
+            </p>
+            <p class="text-sm text-dark-muted text-center">{t.hero.phoneCardSub}</p>
 
-      <!-- Trust stats -->
-      <div class="flex items-center justify-center gap-8 md:gap-12 reveal reveal-delay-3">
-        <div class="text-center">
-          <p class="font-display font-bold text-2xl text-text">+1,200</p>
-          <p class="text-xs text-text-muted mt-0.5">{t.locale === 'es' ? 'Perfiles generados' : 'Profiles generated'}</p>
-        </div>
-        <div class="w-px h-10 bg-border"></div>
-        <div class="text-center">
-          <p class="font-display font-bold text-2xl text-text">6</p>
-          <p class="text-xs text-text-muted mt-0.5">Tipos RIASEC</p>
-        </div>
-        <div class="w-px h-10 bg-border"></div>
-        <div class="text-center">
-          <p class="font-display font-bold text-2xl text-text">13</p>
-          <p class="text-xs text-text-muted mt-0.5">{t.locale === 'es' ? 'Categorías ocupacionales' : 'Occupational categories'}</p>
+            <!-- Swipe indicators -->
+            <div class="flex items-center gap-4 mt-8">
+              <div class="w-12 h-12 rounded-full border-2 border-destructive/40 flex items-center justify-center">
+                <svg class="w-5 h-5 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </div>
+              <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- QR code — centered below stats -->
-    <div class="flex items-center justify-center gap-3 mt-10 reveal reveal-delay-3">
-      <div class="w-14 h-14 rounded-lg bg-surface border border-border flex items-center justify-center p-1.5">
-        <img src="/qr-playstore.svg" alt={t.hero.qrLabel} class="w-full h-full object-contain rounded" loading="lazy" />
-      </div>
-      <div class="text-left">
-        <p class="text-sm font-medium text-text">{t.hero.qrLabel}</p>
-        <p class="text-xs text-text-muted">{t.hero.qrSublabel}</p>
-      </div>
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
+    <div class="w-5 h-8 rounded-full border border-dark-muted/30 flex justify-center pt-1.5">
+      <div class="w-1 h-1.5 rounded-full bg-dark-muted/50 animate-bounce"></div>
     </div>
   </div>
 </section>

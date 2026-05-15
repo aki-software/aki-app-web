@@ -10,55 +10,45 @@ const { t } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
-<section class="py-16 md:py-24 bg-bg" id="precios">
+<section class="py-24 md:py-32 bg-bg" id="precios">
   <div class="container">
     <div class="text-center mb-12">
-      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mb-3 reveal">
-        {t.pricing.title}
-      </h2>
+      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mb-3 reveal">{t.pricing.title}</h2>
       <p class="text-text-muted reveal reveal-delay-1">{t.pricing.subtitle}</p>
     </div>
 
-    <div class="flex flex-col md:flex-row items-center justify-center gap-5 max-w-3xl mx-auto">
+    <div class="flex flex-col md:flex-row items-center justify-center gap-4 max-w-xl mx-auto">
       <!-- Free -->
-      <div class="w-full md:w-[300px] bg-surface rounded-xl border border-border/60 p-6 reveal">
-        <span class="text-sm font-medium text-text-muted">{t.pricing.free.label}</span>
-        <p class="font-display font-bold text-4xl text-text mt-2 mb-4">$0</p>
-
-        <div class="flex flex-col gap-2.5 mb-6">
-          {t.pricing.free.features.map((feature) => (
-            <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4 text-tertiary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-              <span class="text-sm text-text">{feature}</span>
+      <div class="w-full md:w-[280px] bg-surface rounded-xl border border-border/60 p-6 reveal">
+        <p class="text-sm text-text-muted mb-1">{t.pricing.free.label}</p>
+        <p class="font-display font-bold text-3xl text-text mb-4">$0</p>
+        <div class="flex flex-col gap-2 mb-6">
+          {t.pricing.free.features.map((f) => (
+            <div class="flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-xs text-text">{f}</span>
             </div>
           ))}
         </div>
-
-        <a href={playStoreUrl} class="block w-full py-2.5 text-center text-sm font-semibold text-surface bg-primary rounded-lg hover:bg-primary-dark transition-colors">
+        <a href={playStoreUrl} class="block w-full py-2.5 text-center text-xs font-semibold text-surface bg-primary rounded-lg hover:bg-primary-dark transition-colors">
           {t.pricing.free.cta}
         </a>
       </div>
 
       <!-- Premium -->
-      <div class="w-full md:w-[320px] bg-primary rounded-xl p-6 text-surface reveal reveal-delay-1">
-        <span class="text-sm font-medium text-primary-light">{t.pricing.premium.label}</span>
-        <p class="font-display font-bold text-3xl mt-2 mb-1">{t.pricing.premium.price}</p>
-        <p class="text-sm text-primary-light/80 mb-5">{t.pricing.premium.desc}</p>
-
-        <div class="flex flex-col gap-2.5 mb-6">
-          {t.pricing.premium.features.map((feature) => (
-            <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4 text-primary-light flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-              <span class="text-sm">{feature}</span>
+      <div class="w-full md:w-[280px] bg-dark-bg rounded-xl border border-dark-border p-6 text-dark-text reveal reveal-delay-1">
+        <p class="text-sm text-dark-muted mb-1">{t.pricing.premium.label}</p>
+        <p class="font-display font-bold text-2xl mb-1">{t.pricing.premium.price}</p>
+        <p class="text-xs text-dark-muted mb-4">{t.pricing.premium.desc}</p>
+        <div class="flex flex-col gap-2 mb-6">
+          {t.pricing.premium.features.map((f) => (
+            <div class="flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span class="text-xs">{f}</span>
             </div>
           ))}
         </div>
-
-        <a href={playStoreUrl} class="block w-full py-2.5 text-center text-sm font-semibold text-primary bg-surface rounded-lg hover:bg-primary-light transition-colors">
+        <a href={playStoreUrl} class="block w-full py-2.5 text-center text-xs font-semibold text-dark-bg bg-primary rounded-lg hover:bg-primary-light transition-colors">
           {t.pricing.premium.cta}
         </a>
       </div>
