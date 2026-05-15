@@ -5,3 +5,4 @@ export * from './sessions';
 export * from './vouchers';
 export * from './institutions';
 export * from './categories';
+export * from './common';
