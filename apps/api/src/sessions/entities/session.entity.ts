@@ -108,7 +108,10 @@ export class Session {
   @OneToMany('SessionSwipe', (swipe: any) => swipe.session, { cascade: true })
   swipes: SessionSwipe[];
 
-  @OneToOne(() => SessionMetrics, (metrics) => metrics.session, { cascade: true, eager: true })
+  @OneToOne(() => SessionMetrics, (metrics) => metrics.session, {
+    cascade: true,
+    eager: true,
+  })
   @JoinColumn({ name: 'id' })
   metrics?: SessionMetrics;
 }

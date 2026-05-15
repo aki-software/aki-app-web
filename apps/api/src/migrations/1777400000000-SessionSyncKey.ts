@@ -5,10 +5,10 @@ export class SessionSyncKey1777400000000 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "sessions" ADD COLUMN "sync_key" varchar(128)`
+      `ALTER TABLE "sessions" ADD COLUMN "sync_key" varchar(128)`,
     );
     await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_sessions_sync_key" ON "sessions" ("sync_key") WHERE "sync_key" IS NOT NULL`
+      `CREATE UNIQUE INDEX "IDX_sessions_sync_key" ON "sessions" ("sync_key") WHERE "sync_key" IS NOT NULL`,
     );
   }
 

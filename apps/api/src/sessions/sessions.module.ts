@@ -13,11 +13,11 @@ import { SessionMetrics } from './entities/session-metrics.entity.js';
 import { SessionsController } from './sessions.controller.js';
 import { SessionsService } from './sessions.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
+import { AdminDashboardStatsService } from './services/admin-dashboard-stats.service.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import { ReportService } from './services/report.service.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { SessionCompleteMapperService } from './services/session-complete-mapper.service.js';
-import { SessionReportService } from './services/session-report.service.js';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 
 @Module({
@@ -40,12 +40,12 @@ import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
     SessionsService,
     ReportService,
     AdminDashboardService,
+    AdminDashboardStatsService,
     ReportOrchestratorService,
     SessionMetricsService,
     SessionCompleteMapperService,
-    SessionReportService,
     RateLimitGuard,
   ],
-  exports: [SessionsService, SessionMetricsService, SessionReportService],
+  exports: [SessionsService, SessionMetricsService],
 })
 export class SessionsModule {}

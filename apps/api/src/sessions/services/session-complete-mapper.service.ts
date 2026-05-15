@@ -62,7 +62,7 @@ export class SessionCompleteMapperService {
       therapistUserId:
         payloadTherapistUserId ||
         voucher?.ownerUserId ||
-        (isTherapistUser ? user?.id ?? undefined : undefined) ||
+        (isTherapistUser ? (user?.id ?? undefined) : undefined) ||
         fallbackOwner?.id ||
         undefined,
       institutionId:
@@ -73,11 +73,14 @@ export class SessionCompleteMapperService {
         undefined,
       patientId:
         (payloadPatientId ?? undefined) ||
-        (!isTherapistUser ? payloadUserId ?? undefined : undefined),
+        (!isTherapistUser ? (payloadUserId ?? undefined) : undefined),
       patientName: inferredPatientName,
       sessionDate: new Date(payload.startedAt || new Date()),
       hollandCode: payload.resultPayload?.hollandCode,
-      totalTimeMs: this.calculateDuration(payload.startedAt, payload.finishedAt),
+      totalTimeMs: this.calculateDuration(
+        payload.startedAt,
+        payload.finishedAt,
+      ),
       voucherId: voucher?.id || payloadVoucherId || undefined,
       paymentStatus: voucher
         ? SessionPaymentStatus.VOUCHER_REDEEMED

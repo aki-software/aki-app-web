@@ -1,32 +1,36 @@
 import {
-  BadRequestException,
   ConflictException,
-  ForbiddenException,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository, In } from 'typeorm';
-import { MailService } from '../mail/mail.service.js';
+import {
+  type FindOptionsWhere,
+  Repository,
+  In,
+  DataSource,
+  type EntityManager,
+} from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { Session, SessionPaymentStatus } from './entities/session.entity.js';
 
-import { PdfService } from '../common/services/pdf.service.js';
-import { StorageService } from '../common/services/storage.service.js';
-import {
-  AdminDashboardService,
-  DashboardStatsPayload,
-} from './services/admin-dashboard.service.js';
-import { ReportService } from './services/report.service.js';
+import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
-import { JobNames, SendReportJobPayload } from '../common/jobs/index.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { SessionScope } from './types/session-scope.type.js';
 import { VouchersService } from '../vouchers/vouchers.service.js';
+import { Voucher } from '../vouchers/entities/voucher.entity.js';
+import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
+import {
+  AdminActivityItem,
+  RawRecentSessionRow,
+} from './types/dashboard.types.js';
+
+import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 
 @Injectable()
 export class SessionsService {
@@ -35,17 +39,117 @@ export class SessionsService {
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-    private readonly mailService: MailService,
-    private readonly pdfService: PdfService,
-    private readonly storageService: StorageService,
-    private readonly reportService: ReportService,
     private readonly adminDashboardService: AdminDashboardService,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
     private readonly vouchersService: VouchersService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
+    private readonly dataSource: DataSource,
   ) {}
+
+  async getRecentActivity(limit: number = 50): Promise<AdminActivityItem[]> {
+    const sessions = await this.sessionRepository
+      .createQueryBuilder('session')
+      .select('session.id', 'id')
+      .addSelect('session.patientName', 'patientName')
+      .addSelect('session.createdAt', 'createdAt')
+      .addSelect('session.sessionDate', 'sessionDate')
+      .addSelect('session.reportUnlockedAt', 'reportUnlockedAt')
+      .addSelect('session.paidAt', 'paidAt')
+      .addSelect('session.voucherId', 'voucherId')
+      .addSelect('session.paymentStatus', 'paymentStatus')
+      .addSelect('COUNT(result.id)', 'resultsCount')
+      .leftJoin('session.results', 'result')
+      .groupBy('session.id')
+      .addGroupBy('session.patientName')
+      .addGroupBy('session.createdAt')
+      .addGroupBy('session.sessionDate')
+      .addGroupBy('session.reportUnlockedAt')
+      .addGroupBy('session.paidAt')
+      .addGroupBy('session.voucherId')
+      .addGroupBy('session.paymentStatus')
+      .orderBy('session.createdAt', 'DESC')
+      .limit(limit)
+      .getRawMany<RawRecentSessionRow>();
+
+    return sessions.map((session) => {
+      const resultsCount = parseInt(session.resultsCount ?? '0', 10);
+      const isCompleted = resultsCount > 0;
+      const channelLabel =
+        session.voucherId ||
+        session.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
+          ? 'con voucher'
+          : 'sin voucher';
+      const occurredAt = isCompleted
+        ? this.toIso(
+            session.reportUnlockedAt,
+            session.paidAt,
+            session.sessionDate,
+            session.createdAt,
+          )
+        : this.toIso(session.sessionDate, session.createdAt);
+
+      return {
+        id: `session-${session.id}`,
+        type: isCompleted ? 'SESSION_COMPLETED' : 'SESSION_STARTED',
+        title: isCompleted ? 'Sesión completada' : 'Sesión iniciada',
+        description: isCompleted
+          ? `${session.patientName || 'Paciente sin nombre'} completó un test ${channelLabel}.`
+          : `${session.patientName || 'Paciente sin nombre'} inició un test ${channelLabel}.`,
+        occurredAt,
+      };
+    });
+  }
+
+  async getStalledSessionsCount(): Promise<number> {
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const countRow = await this.sessionRepository
+      .createQueryBuilder('session')
+      .where('session.createdAt < :dayAgo', { dayAgo })
+      .andWhere((qb) => {
+        const subquery = qb
+          .subQuery()
+          .select('1')
+          .from('session_results', 'sr')
+          .where('sr.session_id = session.id')
+          .getQuery();
+        return `NOT EXISTS (${subquery})`;
+      })
+      .select('COUNT(*)', 'count')
+      .getRawOne<{ count: string }>();
+
+    return parseInt(countRow?.count ?? '0', 10);
+  }
+
+  private toIso(...values: Array<Date | string | null | undefined>): string {
+    for (const value of values) {
+      if (!value) continue;
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString();
+      }
+    }
+    return new Date(0).toISOString();
+  }
+
+  private applyScope(scope?: SessionScope): FindOptionsWhere<Session> {
+    const where: FindOptionsWhere<Session> = {};
+
+    if (scope) {
+      if (scope.institutionId) {
+        where.institutionId = scope.institutionId;
+      } else if (scope.therapistUserId) {
+        where.therapistUserId = scope.therapistUserId;
+      } else if (scope.patientId && scope.role?.toUpperCase() === 'PATIENT') {
+        where.patientId = scope.patientId;
+      }
+    }
+
+    return where;
+  }
 
   async create(
     createSessionDto: CreateSessionDto,
@@ -69,7 +173,7 @@ export class SessionsService {
     let savedSession: Session;
     try {
       savedSession = await this.sessionRepository.save(session);
-    } catch (error) {
+    } catch (_error: unknown) {
       if (idempotencyKey) {
         const existing = await this.sessionRepository.findOne({
           where: { syncKey: idempotencyKey },
@@ -80,11 +184,9 @@ export class SessionsService {
       }
       throw new ConflictException('No se pudo crear la sesión');
     }
-
-    // Calcular métricas automáticamente
     try {
       await this.sessionMetricsService.calculateAndSaveMetrics(savedSession.id);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(
         `Failed to calculate metrics for session ${savedSession.id}:`,
         error,
@@ -95,254 +197,197 @@ export class SessionsService {
   }
 
   async findAll(
-    page: number = 1,
-    limit: number = 20,
+    page: number = SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE,
+    limit: number = SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
     scope?: SessionScope,
   ): Promise<{ data: Session[]; count: number }> {
-    const where = this.buildScopedWhere(scope);
+    const where = this.applyScope(scope);
 
     const [data, count] = await this.sessionRepository.findAndCount({
-      relations: ['results', 'institution', 'therapist', 'voucher'],
       where,
-      order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
+      order: { createdAt: 'DESC' },
     });
+
     return { data, count };
   }
 
   async findOne(id: string, scope?: SessionScope): Promise<Session> {
-    const session = await this.sessionRepository.findOne({
-      where: this.buildScopedWhere(scope, id),
-      relations: ['results', 'swipes', 'institution', 'therapist', 'voucher'],
-    });
+    const where = { ...this.applyScope(scope), id };
+
+    const session = await this.sessionRepository.findOne({ where });
     if (!session) {
-      throw new NotFoundException('Session not found');
+      throw new NotFoundException('Sesión no encontrada');
     }
+
     return session;
   }
 
-  async sendReport(
-    sessionId: string,
-    targetEmail: string,
-    voucherId?: string | null,
+  async update(
+    id: string,
+    updateSessionDto: Partial<CreateSessionDto>,
     scope?: SessionScope,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    localReportPath?: string;
-  }> {
-    const session = await this.findOne(sessionId, scope);
-    const effectiveTargetEmail = this.resolveReportTargetEmail(
-      targetEmail,
-      scope,
-    );
-
-    if (!effectiveTargetEmail) {
-      throw new BadRequestException(
-        'Se requiere un correo de destino válido para enviar el informe',
-      );
-    }
-
-    if (this.queueAdapter.isConfigured()) {
-      const normalizedScope = scope
-        ? {
-            role: scope.role,
-            email: scope.email,
-            patientId: scope.patientId,
-            therapistUserId: scope.therapistUserId,
-            institutionId: scope.institutionId ?? undefined,
-          }
-        : undefined;
-      const payload: SendReportJobPayload = {
-        jobId: `report-${session.id}-${Date.now()}`,
-        attempts: 3,
-        backoffMs: 60_000,
-        backoffType: 'exponential',
-        timeoutMs: 90_000,
-        concurrencyKey: 'report',
-        concurrencyLimit: 2,
-        sessionId: session.id,
-        voucherId: voucherId ?? null,
-        targetEmail: effectiveTargetEmail,
-        scope: normalizedScope,
-      };
-      await this.queueAdapter.enqueue(JobNames.SendReport, payload, {
-        attempts: payload.attempts,
-        backoffMs: payload.backoffMs,
-        backoffType: payload.backoffType,
-        timeoutMs: payload.timeoutMs,
-        concurrencyKey: payload.concurrencyKey,
-        concurrencyLimit: payload.concurrencyLimit,
-      });
-      return {
-        success: true,
-        message: `Email encolado hacia ${effectiveTargetEmail}`,
-      };
-    }
-
-    return await this.reportOrchestratorService.sendReport(
-      session.id,
-      effectiveTargetEmail,
-      voucherId,
-      scope,
-    );
+  ): Promise<Session> {
+    const session = await this.findOne(id, scope);
+    Object.assign(session, updateSessionDto);
+    return await this.sessionRepository.save(session);
   }
 
-  private resolveReportTargetEmail(
-    requestedEmail: string | null | undefined,
-    scope?: SessionScope,
-  ): string {
-    const role = scope?.role?.toUpperCase();
-    const normalizedRequested = requestedEmail?.trim() || '';
-    const normalizedScopeEmail = scope?.email?.trim() || '';
-
-    if (role === 'PATIENT') {
-      if (!normalizedScopeEmail) {
-        throw new ForbiddenException(
-          'No se pudo validar el correo del usuario autenticado',
-        );
-      }
-      if (
-        normalizedRequested &&
-        normalizedRequested.toLowerCase() !== normalizedScopeEmail.toLowerCase()
-      ) {
-        throw new ForbiddenException(
-          'No tienes permisos para enviar el informe a un correo distinto al tuyo',
-        );
-      }
-      return normalizedScopeEmail;
-    }
-
-    return normalizedRequested || normalizedScopeEmail;
+  async remove(id: string, scope?: SessionScope): Promise<void> {
+    const session = await this.findOne(id, scope);
+    await this.sessionRepository.remove(session);
   }
 
-  async getAdminOverview(days: number = 7): Promise<DashboardStatsPayload> {
+  async findByIds(ids: string[]): Promise<Session[]> {
+    return await this.sessionRepository.find({
+      where: { id: In(ids) },
+    });
+  }
+
+  async getAdminOverview(days: number): Promise<unknown> {
     return await this.adminDashboardService.getAdminOverview(days);
   }
 
-  async getAdminActivity(
-    limit: number = 50,
-  ): Promise<DashboardStatsPayload['activity']> {
+  async getAdminActivity(limit: number): Promise<unknown> {
     return await this.adminDashboardService.getAdminActivity(limit);
   }
 
-  private buildScopedWhere(
-    scope?: SessionScope,
-    sessionId?: string,
-  ): FindOptionsWhere<Session> | FindOptionsWhere<Session>[] | undefined {
-    const normalizedRole = scope?.role?.toUpperCase();
-    const scopedPatientId = this.isUuid(scope?.patientId)
-      ? scope?.patientId
-      : undefined;
-    const scopedTherapistUserId = this.isUuid(scope?.therapistUserId)
-      ? scope?.therapistUserId
-      : undefined;
-    const scopedInstitutionId = this.isUuid(scope?.institutionId)
-      ? scope?.institutionId
-      : undefined;
-
-    if (normalizedRole === 'ADMIN') {
-      const adminWhere: FindOptionsWhere<Session> = {
-        paymentStatus: In([
-          SessionPaymentStatus.PAID,
-          SessionPaymentStatus.VOUCHER_REDEEMED,
-        ]),
-      };
-      return sessionId ? { ...adminWhere, id: sessionId } : adminWhere;
-    }
-
-    const scopedWhere =
-      normalizedRole === 'PATIENT' && scopedPatientId
-        ? { patientId: scopedPatientId }
-        : scopedTherapistUserId && scopedInstitutionId
-          ? [
-              { therapistUserId: scopedTherapistUserId },
-              { institutionId: scopedInstitutionId },
-            ]
-          : scopedTherapistUserId
-            ? { therapistUserId: scopedTherapistUserId }
-            : scopedInstitutionId
-              ? { institutionId: scopedInstitutionId }
-              : { id: '__forbidden__' };
-
-    if (sessionId) {
-      if (Array.isArray(scopedWhere)) {
-        return scopedWhere.map((condition) => ({
-          ...condition,
-          id: sessionId,
-        }));
-      }
-      return { ...scopedWhere, id: sessionId };
-    }
-    return scopedWhere;
+  async sendReport(
+    id: string,
+    email: string,
+    customTitle: string | null,
+    scope: SessionScope,
+  ): Promise<{ success: boolean; message: string }> {
+    const session = await this.findOne(id, scope);
+    const result = await this.reportOrchestratorService.sendReport(
+      session.id,
+      email,
+      null,
+      scope,
+    );
+    return {
+      success: result.success,
+      message: result.message,
+    };
   }
 
-  private isUuid(value?: string | null): value is string {
-    if (!value) return false;
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value,
-    );
+  async redeemVoucher(
+    code: string,
+    sessionId: string,
+  ): Promise<{
+    success: boolean;
+    status: 'REDEEMED' | 'ALREADY_REDEEMED_BY_THIS_SESSION';
+    voucherCode: string;
+    sessionId: string;
+  }> {
+    return await this.dataSource.transaction(async (manager: EntityManager) => {
+      const { voucher, action } = await this.vouchersService.redeemVoucher(
+        manager,
+        code,
+        sessionId,
+      );
+
+      const sessionRepository = manager.getRepository(Session);
+      const session = await sessionRepository.findOne({
+        where: { id: sessionId },
+      });
+
+      if (!session) {
+        throw new NotFoundException('SESSION_NOT_FOUND');
+      }
+
+      if (action === 'ALREADY_REDEEMED') {
+        this.applyVoucherToSession(session, voucher);
+        await sessionRepository.save(session);
+        return {
+          success: true,
+          status: 'ALREADY_REDEEMED_BY_THIS_SESSION' as const,
+          voucherCode: voucher.code,
+          sessionId,
+        };
+      }
+
+      this.applyVoucherToSession(session, voucher);
+      await sessionRepository.save(session);
+
+      return {
+        success: true,
+        status: 'REDEEMED' as const,
+        voucherCode: voucher.code,
+        sessionId,
+      };
+    });
   }
 
   async findVoucherSessions(
     voucherId: string,
-    scope: { role?: string; ownerUserId?: string; ownerInstitutionId?: string | null },
-    filters: {
+    scope: VoucherScope,
+    filters?: {
       startDate?: string;
       endDate?: string;
       minDuration?: string;
       maxDuration?: string;
     },
   ): Promise<Session[]> {
-    const voucher = await this.vouchersService.findById(voucherId);
-    const isAdmin = scope.role?.toUpperCase() === 'ADMIN';
-    const isOwnerUser =
-      !!voucher.ownerUserId && voucher.ownerUserId === scope.ownerUserId;
-    const isOwnerInstitution =
-      !!voucher.ownerInstitutionId &&
-      voucher.ownerInstitutionId === scope.ownerInstitutionId;
-
-    if (!isAdmin && !isOwnerUser && !isOwnerInstitution) {
-      throw new ForbiddenException('Cannot access voucher sessions');
-    }
-
-    let query = this.sessionRepository
+    const qb = this.sessionRepository
       .createQueryBuilder('session')
-      .where('session.voucherId = :voucherId', { voucherId })
-      .leftJoinAndSelect('session.metrics', 'metrics')
-      .leftJoinAndSelect('session.results', 'results')
-      .orderBy('session.sessionDate', 'DESC');
+      .where('session.voucherId = :voucherId', { voucherId });
 
-    const startDate = filters.startDate;
-    const endDate = filters.endDate;
-    const minDuration = filters.minDuration;
-    const maxDuration = filters.maxDuration;
-
-    if (startDate) {
-      query = query.andWhere('session.sessionDate >= :startDate', {
-        startDate: new Date(startDate),
-      });
-    }
-    if (endDate) {
-      query = query.andWhere('session.sessionDate <= :endDate', {
-        endDate: new Date(endDate),
-      });
+    if (scope.role !== 'ADMIN') {
+      if (scope.ownerInstitutionId) {
+        qb.andWhere('session.institutionId = :institutionId', {
+          institutionId: scope.ownerInstitutionId,
+        });
+      } else if (scope.ownerUserId) {
+        qb.andWhere('session.therapistUserId = :userId', {
+          userId: scope.ownerUserId,
+        });
+      }
     }
 
-    if (minDuration) {
-      const minMs = parseInt(minDuration, 10) * 60 * 1000;
-      query = query.andWhere('session.totalTimeMs >= :minDuration', {
-        minDuration: minMs,
+    if (filters?.startDate) {
+      qb.andWhere('session.createdAt >= :startDate', {
+        startDate: filters.startDate,
       });
     }
-    if (maxDuration) {
-      const maxMs = parseInt(maxDuration, 10) * 60 * 1000;
-      query = query.andWhere('session.totalTimeMs <= :maxDuration', {
-        maxDuration: maxMs,
+    if (filters?.endDate) {
+      qb.andWhere('session.createdAt <= :endDate', {
+        endDate: filters.endDate,
+      });
+    }
+    if (filters?.minDuration) {
+      qb.andWhere('session.totalTimeMs >= :minDuration', {
+        minDuration: parseInt(filters.minDuration, 10),
+      });
+    }
+    if (filters?.maxDuration) {
+      qb.andWhere('session.totalTimeMs <= :maxDuration', {
+        maxDuration: parseInt(filters.maxDuration, 10),
       });
     }
 
-    return query.getMany();
+    return await qb.orderBy('session.createdAt', 'DESC').getMany();
+  }
+
+  private applyVoucherToSession(session: Session, voucher: Voucher) {
+    session.voucherId = voucher.id;
+    session.paymentStatus = SessionPaymentStatus.VOUCHER_REDEEMED;
+    session.reportUnlockedAt =
+      session.reportUnlockedAt ?? voucher.redeemedAt ?? new Date();
+
+    if (!session.institutionId && voucher.ownerInstitutionId) {
+      session.institutionId = voucher.ownerInstitutionId;
+    }
+    if (!session.therapistUserId && voucher.ownerUserId) {
+      session.therapistUserId = voucher.ownerUserId;
+    }
+  }
+
+  protected _isUuid(value?: string | null): value is string {
+    if (!value) return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    );
   }
 }

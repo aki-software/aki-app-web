@@ -13,7 +13,9 @@ export class SessionMetrics {
   @PrimaryColumn({ name: 'session_id', type: 'uuid' })
   sessionId: string;
 
-  @OneToOne(() => Session, (session) => session.metrics, { onDelete: 'CASCADE' })
+  @OneToOne(() => Session, (session) => session.metrics, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'session_id' })
   session: Session;
 
@@ -38,7 +40,12 @@ export class SessionMetrics {
   @Column({ name: 'max_time_between_swipes_ms', type: 'int' })
   maxTimeBetweenSwipesMs: number;
 
-  @Column({ name: 'reliability_score', type: 'decimal', precision: 5, scale: 2 })
+  @Column({
+    name: 'reliability_score',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+  })
   reliabilityScore: number;
 
   @Column({ name: 'reliability_level', type: 'varchar', length: 20 })

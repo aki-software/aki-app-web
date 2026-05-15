@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as pug from 'pug';
+import { colors } from '@akit/design-tokens';
 import { VocationalCategory } from '../../categories/entities/vocational-category.entity.js';
 import { TresAreasService } from '../../common/services/tres-areas.service.js';
 import {
@@ -44,6 +48,17 @@ const AREA_BY_CATEGORY_ID: Record<string, string> = {
 
 @Injectable()
 export class ReportService {
+  private readonly brandDomain = 'akituespacio.com.ar';
+  private readonly supportEmail = 'akituvocacion@gmail.com';
+  private readonly logoAssetPath = path.join(
+    process.cwd(),
+    '..',
+    'web',
+    'src',
+    'assets',
+    'logo.png',
+  );
+
   constructor(
     @InjectRepository(VocationalCategory)
     private readonly categoriesRepository: Repository<VocationalCategory>,
@@ -77,13 +92,11 @@ export class ReportService {
 
         const parsedBlocks = this.parseCategoryDescription(description);
 
-        // Extraer fortalezas de las competencias importantes
         parsedBlocks.forEach((block) => {
           if (
             block.subtitle?.toLowerCase().includes('competencias') &&
             block.content
           ) {
-            // Dividir por puntos, comas o guiones para sacar frases cortas
             const skills = block.content
               .split(/[.;•-]/)
               .map((s) => s.trim())
@@ -115,26 +128,53 @@ export class ReportService {
       topResults,
       categoriesById,
     );
+const hollandPercentages = this.calculateHollandPercentages(
+  session.results || [],
+);
 
-    // Calcular porcentajes Holland (RIASEC)
-    const hollandPercentages = this.calculateHollandPercentages(
-      session.results || [],
-    );
+return {
+  patientName: session.patientName,
+  patientEmail: email,
+  hollandCode: session.hollandCode ?? undefined,
+  hollandPercentages,
+  topResults: formattedResults,
+  summary,
+  tripletInsight,
+  strengths: Array.from(new Set(strengths)).slice(0, 6),
+};
+}
 
-    // Clean patient name if it contains email suffix
-    const cleanPatientName =
-      session.patientName?.split('(')[0]?.trim() || session.patientName;
+  renderReportPdfHtml(reportData: ReportData): string {
+    const templatePath = path.join(process.cwd(), 'src', 'mail', 'templates', 'report-pdf.pug');
+    
+    return pug.renderFile(templatePath, {
+      patientName: reportData.patientName,
+      patientEmail: reportData.patientEmail || null,
+      topResults: reportData.topResults,
+      hollandCode: reportData.hollandCode || null,
+      summary: reportData.summary || null,
+      tripletInsight: reportData.tripletInsight || null,
+      hollandPercentages: reportData.hollandPercentages || null,
+      strengths: reportData.strengths || [],
+      colors,
+      logoDataUri: this.getLogoDataUri(),
+      brandDomain: this.brandDomain,
+      supportEmail: this.supportEmail,
+    });
+  }
 
-    return {
-      patientName: cleanPatientName,
-      patientEmail: email,
-      hollandCode: session.hollandCode ?? undefined,
-      hollandPercentages,
-      topResults: formattedResults,
-      summary,
-      tripletInsight,
-      strengths: Array.from(new Set(strengths)).slice(0, 6),
-    };
+  private getLogoDataUri(): string | null {
+    try {
+      if (fs.existsSync(this.logoAssetPath)) {
+        const buffer = fs.readFileSync(this.logoAssetPath);
+        const ext = path.extname(this.logoAssetPath).toLowerCase();
+        const mime = ext === '.png' ? 'image/png' : 'image/jpeg';
+        return `data:${mime};base64,${buffer.toString('base64')}`;
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
   }
 
   private calculateHollandPercentages(results: any[]): Record<string, number> {

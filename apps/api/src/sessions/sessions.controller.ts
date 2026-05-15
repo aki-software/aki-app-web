@@ -20,8 +20,9 @@ import { CreateSessionDto } from './dto/create-session.dto.js';
 import { SendReportDto } from './dto/send-report.dto.js';
 import { SessionCompleteMapperService } from './services/session-complete-mapper.service.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
-import { SessionReportService } from './services/session-report.service.js';
+import { ReportService } from './services/report.service.js';
 import { SessionsService } from './sessions.service.js';
+import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -37,7 +38,7 @@ export class SessionsController {
     private readonly sessionsService: SessionsService,
     private readonly sessionCompleteMapper: SessionCompleteMapperService,
     private readonly sessionMetricsService: SessionMetricsService,
-    private readonly sessionReportService: SessionReportService,
+    private readonly reportService: ReportService,
   ) {}
 
   @Post()
@@ -78,8 +79,12 @@ export class SessionsController {
     @Query('limit') limit?: string,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const parsedPage = page ? parseInt(page, 10) : 1;
-    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const parsedPage = page
+      ? parseInt(page, 10)
+      : SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE;
+    const parsedLimit = limit
+      ? parseInt(limit, 10)
+      : SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT;
     return this.sessionsService.findAll(parsedPage, parsedLimit, {
       role: req?.user?.role,
       therapistUserId: req?.user?.userId,
@@ -95,7 +100,9 @@ export class SessionsController {
     @Query('days') days?: string,
   ) {
     this.assertAdmin(req);
-    const parsedDays = days ? parseInt(days, 10) : 7;
+    const parsedDays = days
+      ? parseInt(days, 10)
+      : SESSION_CONSTANTS.ADMIN.DEFAULT_OVERVIEW_DAYS;
     return await this.sessionsService.getAdminOverview(parsedDays);
   }
 
@@ -106,7 +113,9 @@ export class SessionsController {
     @Query('limit') limit?: string,
   ) {
     this.assertAdmin(req);
-    const parsedLimit = limit ? parseInt(limit, 10) : 50;
+    const parsedLimit = limit
+      ? parseInt(limit, 10)
+      : SESSION_CONSTANTS.ADMIN.DEFAULT_ACTIVITY_LIMIT;
     return await this.sessionsService.getAdminActivity(parsedLimit);
   }
 
@@ -208,9 +217,18 @@ export class SessionsController {
   @UseGuards(JwtAuthGuard)
   async generateSessionPdf(
     @Param('id') sessionId: string,
+    @Req() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
-    const html = await this.sessionReportService.generatePdf(sessionId);
+    const session = await this.sessionsService.findOne(sessionId, {
+      role: req.user?.role,
+      therapistUserId: req.user?.userId,
+      patientId: req.user?.userId,
+      institutionId: req.user?.institutionId,
+    });
+
+    const reportData = await this.reportService.buildReportData(session);
+    const html = this.reportService.renderReportPdfHtml(reportData);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader(
