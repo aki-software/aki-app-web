@@ -9,100 +9,34 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-<section class="py-20 md:py-28 bg-bg" id="features">
+<section class="py-16 md:py-24 bg-surface" id="features">
   <div class="container">
-    <div class="text-center mb-14 reveal">
-      <h2 class="font-display font-extrabold text-4xl sm:text-5xl text-text mb-4">
+    <div class="text-center mb-12">
+      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mb-3 reveal">
         {t.features.title}
       </h2>
     </div>
 
-    <!-- Bento grid — asymmetric layout -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[minmax(180px,auto)]">
-      <!-- Large card — offline (spans 2 cols, 2 rows) -->
-      <div class="sm:col-span-2 sm:row-span-2 bg-primary rounded-3xl p-8 lg:p-10 flex flex-col justify-between hover:shadow-xl hover:shadow-primary/20 transition-all group reveal">
-        <div>
-          <div class="w-14 h-14 rounded-2xl bg-surface/20 flex items-center justify-center mb-6">
-            <span class="text-3xl">📴</span>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
+      {t.features.items.map((feature, i) => {
+        const icons = ['📴', '♿', '🌐', '📊', '🔒', '🎯'];
+        return (
+          <div class="bg-bg rounded-xl border border-border/60 p-5 reveal" style={`transition-delay: ${i * 0.08}s;`}>
+            <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center mb-3">
+              <span class="text-xl">{icons[i]}</span>
+            </div>
+            <h3 class="font-display font-semibold text-base text-text mb-1.5">{feature.title}</h3>
+            <p class="text-sm text-text-muted leading-relaxed">{feature.desc}</p>
           </div>
-          <h3 class="font-display font-bold text-2xl lg:text-3xl text-surface mb-3">
-            {t.features.items[0].title}
-          </h3>
-          <p class="text-primary-light/80 leading-relaxed text-lg">
-            {t.features.items[0].desc}
-          </p>
-        </div>
-        <div class="mt-8 flex items-center gap-2 text-surface/60 group-hover:text-surface transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-          </svg>
-          <span class="text-sm font-medium">Sin conexión necesaria</span>
-        </div>
-      </div>
-
-      {/* Accessibility */}
-      <div class="bg-surface rounded-3xl border border-border p-6 flex flex-col justify-between hover:shadow-md transition-all reveal reveal-delay-1">
-        <div class="w-12 h-12 rounded-xl bg-secondary-light flex items-center justify-center mb-4">
-          <span class="text-2xl">♿</span>
-        </div>
-        <div>
-          <h3 class="font-display font-bold text-lg text-text mb-1">{t.features.items[1].title}</h3>
-          <p class="text-sm text-text-muted">{t.features.items[1].desc}</p>
-        </div>
-      </div>
-
-      {/* Languages */}
-      <div class="bg-surface rounded-3xl border border-border p-6 flex flex-col justify-between hover:shadow-md transition-all reveal reveal-delay-2">
-        <div class="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center mb-4">
-          <span class="text-2xl">🌐</span>
-        </div>
-        <div>
-          <h3 class="font-display font-bold text-lg text-text mb-1">{t.features.items[2].title}</h3>
-          <p class="text-sm text-text-muted">{t.features.items[2].desc}</p>
-        </div>
-      </div>
-
-      {/* PDF Report — wide */}
-      <div class="sm:col-span-2 bg-surface rounded-3xl border border-border p-6 flex items-center gap-6 hover:shadow-md transition-all reveal reveal-delay-3">
-        <div class="w-16 h-16 rounded-2xl bg-tertiary/20 flex items-center justify-center flex-shrink-0">
-          <span class="text-3xl">📊</span>
-        </div>
-        <div>
-          <h3 class="font-display font-bold text-xl text-text mb-1">{t.features.items[3].title}</h3>
-          <p class="text-sm text-text-muted">{t.features.items[3].desc}</p>
-        </div>
-      </div>
-
-      {/* Security */}
-      <div class="bg-dark-bg rounded-3xl p-6 flex flex-col justify-between hover:shadow-md transition-all reveal reveal-delay-4">
-        <div class="w-12 h-12 rounded-xl bg-dark-surface flex items-center justify-center mb-4">
-          <span class="text-2xl">🔒</span>
-        </div>
-        <div>
-          <h3 class="font-display font-bold text-lg text-dark-text mb-1">{t.features.items[4].title}</h3>
-          <p class="text-sm text-dark-muted">{t.features.items[4].desc}</p>
-        </div>
-      </div>
-
-      {/* Recommendations */}
-      <div class="bg-secondary-light/30 rounded-3xl p-6 flex flex-col justify-between hover:shadow-md transition-all reveal reveal-delay-5">
-        <div class="w-12 h-12 rounded-xl bg-secondary-light flex items-center justify-center mb-4">
-          <span class="text-2xl">🎯</span>
-        </div>
-        <div>
-          <h3 class="font-display font-bold text-lg text-text mb-1">{t.features.items[5].title}</h3>
-          <p class="text-sm text-text-muted">{t.features.items[5].desc}</p>
-        </div>
-      </div>
+        );
+      })}
     </div>
   </div>
 </section>
 
 <script>
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
-    });
+    entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 </script>

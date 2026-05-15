@@ -9,63 +9,39 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-<section class="py-20 md:py-28 bg-primary-dark overflow-hidden" id="problema">
-  <div class="container mb-12">
-    <h2 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-dark-text text-center reveal">
-      {t.problem.title}
-    </h2>
-  </div>
+<section class="py-16 md:py-24 bg-primary-50" id="problema">
+  <div class="container">
+    <div class="max-w-2xl mx-auto text-center mb-12">
+      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mb-3 reveal">
+        {t.problem.title}
+      </h2>
+      <p class="text-text-muted reveal reveal-delay-1">
+        {t.locale === 'es'
+          ? 'Elegir una carrera es una de las decisiones más importantes. Herramientas tradicionales no ayudan.'
+          : 'Choosing a career is one of the most important decisions. Traditional tools don\'t help.'}
+      </p>
+    </div>
 
-  <!-- Marquee with pain points -->
-  <div class="relative">
-    <div class="flex animate-marquee">
-      <!-- First set -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
       {t.problem.cards.map((card, i) => {
-        const icons = ['🎓', '😴', '💰'];
+        const icons = ['📋', '⏱️', '💰'];
         return (
-          <div class="flex-shrink-0 mx-4 px-8 py-6 bg-dark-surface/50 border border-dark-border rounded-2xl backdrop-blur-sm" style="width: 380px;">
-            <div class="flex items-center gap-4">
-              <span class="text-3xl">{icons[i]}</span>
-              <div>
-                <p class="font-display font-bold text-dark-text text-lg">{card.title}</p>
-                <p class="text-sm text-dark-muted mt-1">{card.desc}</p>
-              </div>
+          <div class="bg-surface rounded-xl border border-border/60 p-6 reveal" style={`transition-delay: ${i * 0.1}s;`}>
+            <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center mb-4">
+              <span class="text-xl">{icons[i]}</span>
             </div>
-          </div>
-        );
-      })}
-      <!-- Duplicate set for seamless loop -->
-      {t.problem.cards.map((card, i) => {
-        const icons = ['🎓', '😴', '💰'];
-        return (
-          <div class="flex-shrink-0 mx-4 px-8 py-6 bg-dark-surface/50 border border-dark-border rounded-2xl backdrop-blur-sm" style="width: 380px;">
-            <div class="flex items-center gap-4">
-              <span class="text-3xl">{icons[i]}</span>
-              <div>
-                <p class="font-display font-bold text-dark-text text-lg">{card.title}</p>
-                <p class="text-sm text-dark-muted mt-1">{card.desc}</p>
-              </div>
-            </div>
+            <h3 class="font-display font-semibold text-base text-text mb-2">{card.title}</h3>
+            <p class="text-sm text-text-muted leading-relaxed">{card.desc}</p>
           </div>
         );
       })}
     </div>
   </div>
-
-  <!-- Big statement -->
-  <div class="container mt-16 text-center reveal">
-    <p class="text-xl md:text-2xl text-dark-muted font-medium max-w-2xl mx-auto">
-      <span class="text-primary-light font-semibold">No tiene que ser así.</span>
-      {t.locale === 'es' ? ' Creamos ORIENT A.KI para que elegir tu camino sea simple, visual y hasta divertido.' : ' We created ORIENT A.KI to make choosing your path simple, visual and even fun.'}
-    </p>
-  </div>
 </section>
 
 <script>
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
-    });
+    entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 </script>

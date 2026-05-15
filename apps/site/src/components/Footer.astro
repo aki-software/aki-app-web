@@ -10,30 +10,17 @@ const { t } = Astro.props;
 const currentYear = new Date().getFullYear();
 ---
 
-<footer class="bg-text py-12" role="contentinfo">
+<footer class="bg-text py-10" role="contentinfo">
   <div class="container">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-      <!-- Logo -->
-      <span class="font-display font-extrabold text-xl text-dark-text">ORIENT A.KI</span>
-
-      <!-- Links -->
-      <nav class="flex items-center gap-8" aria-label="Footer navigation">
-        <a href="mailto:contacto@orientaki.com" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
-          {t.footer.contact}
-        </a>
-        <a href="/privacidad" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
-          {t.footer.privacy}
-        </a>
-        <a href="/terminos" class="text-sm text-dark-muted hover:text-dark-text transition-colors">
-          {t.footer.terms}
-        </a>
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+      <span class="font-display font-bold text-base text-dark-text">ORIENT A.KI</span>
+      <nav class="flex items-center gap-6" aria-label="Footer navigation">
+        <a href="mailto:contacto@orientaki.com" class="text-sm text-dark-muted hover:text-dark-text transition-colors">{t.footer.contact}</a>
+        <a href="/privacidad" class="text-sm text-dark-muted hover:text-dark-text transition-colors">{t.footer.privacy}</a>
+        <a href="/terminos" class="text-sm text-dark-muted hover:text-dark-text transition-colors">{t.footer.terms}</a>
       </nav>
     </div>
-
-    <hr class="border-dark-border mb-6" />
-
-    <p class="text-center text-xs text-dark-muted">
-      © {currentYear} Orient A.KI — {t.footer.copyright}
-    </p>
+    <hr class="border-dark-border mb-4" />
+    <p class="text-center text-xs text-dark-muted">© {currentYear} Orient A.KI — {t.footer.copyright}</p>
   </div>
 </footer>

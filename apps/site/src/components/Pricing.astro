@@ -10,31 +10,25 @@ const { t } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
-<section class="py-20 md:py-28 bg-bg relative overflow-hidden" id="precios">
-  <!-- Background accent */}
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary-light/20 blur-3xl pointer-events-none"></div>
-
-  <div class="container relative z-10">
-    <div class="text-center mb-14 reveal">
-      <h2 class="font-display font-extrabold text-4xl sm:text-5xl text-text mb-4">
+<section class="py-16 md:py-24 bg-bg" id="precios">
+  <div class="container">
+    <div class="text-center mb-12">
+      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mb-3 reveal">
         {t.pricing.title}
       </h2>
-      <p class="text-lg text-text-muted">{t.pricing.subtitle}</p>
+      <p class="text-text-muted reveal reveal-delay-1">{t.pricing.subtitle}</p>
     </div>
 
-    <div class="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-8 max-w-4xl mx-auto">
-      {/* Free Plan */}
-      <div class="w-full lg:w-[340px] bg-surface rounded-3xl border border-border p-8 flex flex-col gap-5 hover:shadow-lg transition-all reveal">
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-semibold text-text-muted">{t.pricing.free.label}</span>
-          <span class="px-3 py-1 rounded-full bg-tertiary/10 text-tertiary text-xs font-semibold">Gratis</span>
-        </div>
-        <span class="font-display font-extrabold text-5xl text-text">$0</span>
+    <div class="flex flex-col md:flex-row items-center justify-center gap-5 max-w-3xl mx-auto">
+      <!-- Free -->
+      <div class="w-full md:w-[300px] bg-surface rounded-xl border border-border/60 p-6 reveal">
+        <span class="text-sm font-medium text-text-muted">{t.pricing.free.label}</span>
+        <p class="font-display font-bold text-4xl text-text mt-2 mb-4">$0</p>
 
-        <div class="flex flex-col gap-3 pt-2">
+        <div class="flex flex-col gap-2.5 mb-6">
           {t.pricing.free.features.map((feature) => (
-            <div class="flex items-center gap-3">
-              <svg class="w-5 h-5 text-tertiary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-tertiary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
               </svg>
               <span class="text-sm text-text">{feature}</span>
@@ -42,44 +36,29 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
           ))}
         </div>
 
-        <a
-          href={playStoreUrl}
-          class="mt-2 w-full py-3.5 text-center text-sm font-bold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-all hover:shadow-lg hover:shadow-primary/20"
-        >
+        <a href={playStoreUrl} class="block w-full py-2.5 text-center text-sm font-semibold text-surface bg-primary rounded-lg hover:bg-primary-dark transition-colors">
           {t.pricing.free.cta}
         </a>
       </div>
 
-      {/* Premium Plan — highlighted */}
-      <div class="w-full lg:w-[380px] bg-primary rounded-3xl p-8 flex flex-col gap-5 relative shadow-xl shadow-primary/20 reveal reveal-delay-1">
-        {/* Popular badge */}
-        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
-          <span class="px-4 py-1.5 bg-secondary-light text-secondary text-xs font-bold rounded-full shadow-lg">
-            {t.pricing.premium.badge}
-          </span>
-        </div>
+      <!-- Premium -->
+      <div class="w-full md:w-[320px] bg-primary rounded-xl p-6 text-surface reveal reveal-delay-1">
+        <span class="text-sm font-medium text-primary-light">{t.pricing.premium.label}</span>
+        <p class="font-display font-bold text-3xl mt-2 mb-1">{t.pricing.premium.price}</p>
+        <p class="text-sm text-primary-light/80 mb-5">{t.pricing.premium.desc}</p>
 
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-semibold text-primary-light">{t.pricing.premium.label}</span>
-        </div>
-        <span class="font-display font-extrabold text-4xl text-surface">{t.pricing.premium.price}</span>
-        <span class="text-sm text-primary-light/80">{t.pricing.premium.desc}</span>
-
-        <div class="flex flex-col gap-3 pt-2">
+        <div class="flex flex-col gap-2.5 mb-6">
           {t.pricing.premium.features.map((feature) => (
-            <div class="flex items-center gap-3">
-              <svg class="w-5 h-5 text-primary-light flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-primary-light flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
               </svg>
-              <span class="text-sm text-surface">{feature}</span>
+              <span class="text-sm">{feature}</span>
             </div>
           ))}
         </div>
 
-        <a
-          href={playStoreUrl}
-          class="mt-2 w-full py-3.5 text-center text-sm font-bold text-primary bg-surface rounded-xl hover:bg-primary-light transition-all hover:shadow-lg"
-        >
+        <a href={playStoreUrl} class="block w-full py-2.5 text-center text-sm font-semibold text-primary bg-surface rounded-lg hover:bg-primary-light transition-colors">
           {t.pricing.premium.cta}
         </a>
       </div>
@@ -89,9 +68,7 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
 
 <script>
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
-    });
+    entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 </script>
