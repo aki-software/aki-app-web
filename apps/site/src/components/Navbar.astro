@@ -1,4 +1,6 @@
 ---
+const webUrl = import.meta.env.PUBLIC_WEB_URL || 'http://localhost:5173';
+const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
 <nav class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border/50" role="navigation" aria-label="Navegación principal">
@@ -27,13 +29,15 @@
     <!-- CTA Buttons -->
     <div class="hidden md:flex items-center gap-3">
       <a
-        href="https://app.orientaki.com"
+        href={webUrl}
+        target="_blank"
+        rel="noopener noreferrer"
         class="px-5 py-2.5 text-sm font-semibold text-primary border border-primary rounded-xl hover:bg-primary/5 transition-colors"
       >
         Ingresar
       </a>
       <a
-        href="https://play.google.com/store/apps/details?id=com.akit.app"
+        href={playStoreUrl}
         class="px-5 py-2.5 text-sm font-semibold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-colors"
       >
         Empezá gratis
@@ -60,9 +64,9 @@
       <a href="#instituciones" class="py-2 text-text-muted hover:text-primary">Para instituciones</a>
       <a href="#precios" class="py-2 text-text-muted hover:text-primary">Precios</a>
       <hr class="border-border" />
-      <a href="https://app.orientaki.com" class="py-2 text-center text-primary font-semibold">Ingresar</a>
+      <a href={webUrl} target="_blank" rel="noopener noreferrer" class="py-2 text-center text-primary font-semibold">Ingresar</a>
       <a
-        href="https://play.google.com/store/apps/details?id=com.akit.app"
+        href={playStoreUrl}
         class="py-3 text-center text-surface bg-primary rounded-xl font-semibold"
       >
         Empezá gratis

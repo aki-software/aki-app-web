@@ -1,5 +1,6 @@
 ---
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.akit.app';
+const webUrl = import.meta.env.PUBLIC_WEB_URL || 'http://localhost:5173';
+const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
 <section class="py-20 md:py-24 bg-bg" id="cta-final">
@@ -13,14 +14,16 @@ const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.akit.a
 
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
       <a
-        href={PLAY_STORE_URL}
+        href={playStoreUrl}
         class="inline-flex items-center gap-3 px-8 py-4 text-base font-bold text-surface bg-primary rounded-2xl hover:bg-primary-dark transition-all hover:shadow-lg hover:shadow-primary/20"
       >
         <span class="text-xl">▶</span>
         Google Play
       </a>
       <a
-        href="https://app.orientaki.com"
+        href={webUrl}
+        target="_blank"
+        rel="noopener noreferrer"
         class="inline-flex items-center gap-3 px-8 py-4 text-base font-semibold text-primary bg-surface border-2 border-primary rounded-2xl hover:bg-primary-light/30 transition-all"
       >
         Versión web

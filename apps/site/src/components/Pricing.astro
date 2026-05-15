@@ -1,5 +1,5 @@
 ---
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.akit.app';
+const playStoreUrl = import.meta.env.PUBLIC_playStoreUrl || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
 <section class="py-20 md:py-24 bg-bg" id="precios">
@@ -34,7 +34,7 @@ const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.akit.a
         </div>
 
         <a
-          href={PLAY_STORE_URL}
+          href={playStoreUrl}
           class="mt-2 w-full py-3 text-center text-sm font-bold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-colors"
         >
           Empezá ahora
@@ -69,7 +69,7 @@ const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.akit.a
         </div>
 
         <a
-          href={PLAY_STORE_URL}
+          href={playStoreUrl}
           class="mt-2 w-full py-3 text-center text-sm font-bold text-primary bg-surface rounded-xl hover:bg-primary-light transition-colors"
         >
           Descargá la app
