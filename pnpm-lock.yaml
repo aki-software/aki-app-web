@@ -191,7 +191,7 @@ importers:
   apps/web:
     dependencies:
       '@akit/contracts':
-        specifier: file:../../packages/contracts
+        specifier: workspace:^
         version: link:../../packages/contracts
       '@akit/design-tokens':
         specifier: file:../../packages/design-tokens

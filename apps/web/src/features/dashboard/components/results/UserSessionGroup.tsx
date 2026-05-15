@@ -1,4 +1,5 @@
 import { Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard } from "lucide-react";
+import { SessionPaymentStatus } from "../../api/dashboard";
 import type { SessionData } from "../../api/dashboard";
 import { formatDate, formatDuration } from "../../../../utils/date";
 import { Button } from "../../../../components/atoms/Button";
@@ -6,8 +7,8 @@ import { Button } from "../../../../components/atoms/Button";
 
 const paymentLabel = (status: string) => {
   switch (status) {
-    case "PAID": return "Directo";
-    case "VOUCHER_REDEEMED": return "Voucher";
+    case SessionPaymentStatus.PAID: return "Directo";
+    case SessionPaymentStatus.VOUCHER_REDEEMED: return "Voucher";
     default: return status;
   }
 };

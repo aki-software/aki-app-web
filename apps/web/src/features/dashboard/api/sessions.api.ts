@@ -1,62 +1,18 @@
 import { API_URL, getAuthHeaders } from "./client";
+export { SessionPaymentStatus } from "@akit/contracts";
+import type { 
+  SessionApi, 
+  SessionData, 
+  SessionDetailData, 
+  SessionMetrics 
+} from "@akit/contracts";
 
-export type SessionResultApi = {
-  categoryId: string;
-  percentage: number;
+export type { 
+  SessionApi, 
+  SessionData, 
+  SessionDetailData, 
+  SessionMetrics 
 };
-
-export type SessionApi = {
-  id: string;
-  patientName: string;
-  createdAt?: string | Date | number;
-  totalTimeMs?: string | number;
-  paymentStatus?: string;
-  reportUnlockedAt?: string | null;
-  results?: SessionResultApi[];
-  institution?: { name?: string | null } | null;
-  therapist?: { name?: string | null } | null;
-  voucher?: { code?: string | null } | null;
-};
-
-export interface SessionData {
-  id: string;
-  patientName: string;
-  hollandCode: string;
-  sessionDate: string | Date | number;
-  totalTimeMs: number;
-  paymentStatus: string;
-  institutionName: string | null;
-  therapistName: string | null;
-  voucherCode: string | null;
-  reportUnlockedAt?: string | null;
-  results?: { categoryId: string; percentage: number }[];
-}
-
-export interface SessionMetrics {
-  id: number;
-  totalDurationMs: number;
-  totalSwipes: number;
-  uniqueCards: number;
-  revertedMatches: number;
-  avgTimeBetweenSwipesMs: number;
-  minTimeBetweenSwipesMs: number;
-  maxTimeBetweenSwipesMs: number;
-  reliabilityScore: number;
-  reliabilityLevel: 'Muy Alta' | 'Alta' | 'Variable' | 'Baja';
-  calculatedAt: string;
-}
-
-export interface SessionDetailData extends SessionData {
-  swipes?: {
-    cardId: string;
-    categoryId: string;
-    isLiked: boolean;
-    timestamp?: string | Date;
-  }[];
-  reportUrl?: string | null;
-  reportUnlockedAt?: string | null;
-  metrics?: SessionMetrics;
-}
 
 export async function fetchSessionsList(): Promise<SessionData[]> {
   try {

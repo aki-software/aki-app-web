@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@akit/contracts": "file:../../packages/contracts",
+    "@akit/contracts": "workspace:^",
     "@akit/design-tokens": "file:../../packages/design-tokens",
     "@tailwindcss/vite": "^4.2.1",
     "lucide-react": "^0.576.0",

@@ -8,18 +8,14 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { SessionPaymentStatus } from '@akit/contracts';
+export { SessionPaymentStatus };
 import { SessionResult } from './session-result.entity.js';
 import { SessionSwipe } from './session-swipe.entity.js';
 import { SessionMetrics } from './session-metrics.entity.js';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
 import { User } from '../../users/entities/user.entity.js';
 import { Institution } from '../../institutions/entities/institution.entity.js';
-
-export enum SessionPaymentStatus {
-  PENDING = 'PENDING',
-  PAID = 'PAID',
-  VOUCHER_REDEEMED = 'VOUCHER_REDEEMED',
-}
 
 @Entity('sessions')
 export class Session {
