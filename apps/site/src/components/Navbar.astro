@@ -13,78 +13,81 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
 const langPath = locale === 'es' ? '/en' : '/';
 ---
 
-<nav class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border/50" role="navigation" aria-label="Navegación principal">
+<nav class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border/50 transition-all duration-300" id="navbar" role="navigation" aria-label="Navegación principal">
   <div class="container flex items-center justify-between h-[72px]">
     <!-- Logo -->
-    <a href="/" class="flex items-center gap-2" aria-label="ORIENT A.KI - Inicio">
-      <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+    <a href="/" class="flex items-center gap-2.5 group" aria-label="ORIENT A.KI - Inicio">
+      <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center group-hover:scale-105 transition-transform">
         <span class="text-surface font-display font-bold text-lg">A</span>
       </div>
-      <span class="font-display font-extrabold text-xl text-text">ORIENT A.KI</span>
+      <span class="font-display font-extrabold text-lg text-text hidden sm:block">ORIENT A.KI</span>
     </a>
 
-    <!-- Desktop Links -->
-    <div class="hidden md:flex items-center gap-8">
+    <!-- Desktop: Minimal links + CTA -->
+    <div class="hidden md:flex items-center gap-6">
       <a href="#como-funciona" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
         {t.nav.howItWorks}
-      </a>
-      <a href="#instituciones" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
-        {t.nav.forInstitutions}
       </a>
       <a href="#precios" class="text-sm font-medium text-text-muted hover:text-primary transition-colors">
         {t.nav.pricing}
       </a>
-    </div>
 
-    <!-- CTA Buttons -->
-    <div class="hidden md:flex items-center gap-3">
+      <div class="w-px h-6 bg-border"></div>
+
       <a
         href={webUrl}
         target="_blank"
         rel="noopener noreferrer"
-        class="px-5 py-2.5 text-sm font-semibold text-primary border border-primary rounded-xl hover:bg-primary/5 transition-colors"
+        class="text-sm font-semibold text-text hover:text-primary transition-colors"
       >
         {t.nav.login}
       </a>
       <a
         href={playStoreUrl}
-        class="px-5 py-2.5 text-sm font-semibold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-colors"
+        class="px-5 py-2.5 text-sm font-semibold text-surface bg-primary rounded-xl hover:bg-primary-dark transition-all hover:shadow-md hover:shadow-primary/20"
       >
         {t.nav.startFree}
       </a>
-      <!-- Language Switcher -->
+
+      <!-- Language switcher -->
       <a
         href={langPath}
-        class="px-3 py-2 text-sm font-semibold text-text-muted hover:text-primary transition-colors"
+        class="text-xs font-bold text-text-muted hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-primary-light/30"
         aria-label={locale === 'es' ? 'Switch to English' : 'Cambiar a español'}
       >
         {t.langSwitch}
       </a>
     </div>
 
-    <!-- Mobile Menu Button -->
-    <button
-      id="mobile-menu-btn"
-      class="md:hidden p-2 text-text"
-      aria-label="Abrir menú"
-      aria-expanded="false"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    </button>
+    <!-- Mobile: Hamburger + CTA -->
+    <div class="flex items-center gap-3 md:hidden">
+      <a
+        href={langPath}
+        class="text-xs font-bold text-text-muted px-2 py-1"
+      >
+        {t.langSwitch}
+      </a>
+      <button
+        id="mobile-menu-btn"
+        class="p-2 text-text"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- Mobile Menu -->
   <div id="mobile-menu" class="hidden md:hidden bg-surface border-t border-border">
-    <div class="container py-4 flex flex-col gap-4">
-      <a href="#como-funciona" class="py-2 text-text-muted hover:text-primary">{t.nav.howItWorks}</a>
-      <a href="#instituciones" class="py-2 text-text-muted hover:text-primary">{t.nav.forInstitutions}</a>
-      <a href="#precios" class="py-2 text-text-muted hover:text-primary">{t.nav.pricing}</a>
-      <hr class="border-border" />
-      <a href={webUrl} target="_blank" rel="noopener noreferrer" class="py-2 text-center text-primary font-semibold">{t.nav.login}</a>
-      <a href={playStoreUrl} class="py-3 text-center text-surface bg-primary rounded-xl font-semibold">{t.nav.startFree}</a>
-      <a href={langPath} class="py-2 text-center text-text-muted font-semibold">{t.langSwitch}</a>
+    <div class="container py-4 flex flex-col gap-1">
+      <a href="#como-funciona" class="py-3 text-text-muted hover:text-primary font-medium">{t.nav.howItWorks}</a>
+      <a href="#precios" class="py-3 text-text-muted hover:text-primary font-medium">{t.nav.pricing}</a>
+      <hr class="border-border my-2" />
+      <a href={webUrl} target="_blank" rel="noopener noreferrer" class="py-3 text-center text-primary font-semibold">{t.nav.login}</a>
+      <a href={playStoreUrl} class="py-3.5 text-center text-surface bg-primary rounded-xl font-semibold">{t.nav.startFree}</a>
     </div>
   </div>
 </nav>
@@ -92,6 +95,7 @@ const langPath = locale === 'es' ? '/en' : '/';
 <script>
   const btn = document.getElementById('mobile-menu-btn');
   const menu = document.getElementById('mobile-menu');
+  const navbar = document.getElementById('navbar');
 
   btn?.addEventListener('click', () => {
     const isOpen = menu?.classList.toggle('hidden') === false;
@@ -103,5 +107,14 @@ const langPath = locale === 'es' ? '/en' : '/';
       menu?.classList.add('hidden');
       btn?.setAttribute('aria-expanded', 'false');
     });
+  });
+
+  // Navbar background on scroll
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      navbar?.classList.add('shadow-sm');
+    } else {
+      navbar?.classList.remove('shadow-sm');
+    }
   });
 </script>
