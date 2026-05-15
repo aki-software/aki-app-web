@@ -31,6 +31,7 @@
     "db:reset": "pnpm build && node ./node_modules/typeorm/cli.js schema:drop -d dist/config/typeorm.config.js && node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js && node dist/database/seeds/base-seed.js"
   },
   "dependencies": {
+    "@akit/contracts": "workspace:*",
     "@akit/design-tokens": "workspace:*",
     "@aws-sdk/client-s3": "^3.1014.0",
     "@aws-sdk/lib-storage": "^3.1014.0",

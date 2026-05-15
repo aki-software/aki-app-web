@@ -1,4 +1,4 @@
-import { Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard, UserRound } from "lucide-react";
+import { Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard } from "lucide-react";
 import type { SessionData } from "../../api/dashboard";
 import { formatDate, formatDuration } from "../../../../utils/date";
 import { Button } from "../../../../components/atoms/Button";

@@ -3,6 +3,7 @@ import { DashboardStatsResponse } from "@akit/contracts";
 export const DEFAULT_DASHBOARD_STATS: DashboardStatsResponse = {
 
     redeemedVouchers: 0,
+    totalHistoricalVouchers: 0,
     periodDays: 7,
     periodLabel: "Últimos 7 días",
     vouchersGeneratedPeriod: 0,

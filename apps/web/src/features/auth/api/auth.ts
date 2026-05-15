@@ -1,13 +1,12 @@
 import { API_URL } from "../../../config/app-config";
-import type { 
-  LoginCredentials, 
-  LoginResponse, 
-  ResolveSetupTokenResponse,
-  ResolveResetTokenResponse,
-} from "../types/auth.types";
+import type {
+  LoginCredentials,
+  AuthLoginResponse as LoginResponse,
+  AuthTokenResolutionResponse as ResolveSetupTokenResponse,
+  AuthTokenResolutionResponse as ResolveResetTokenResponse,
+} from "@akit/contracts";
 
 const DEFAULT_HEADERS = { 'Content-Type': 'application/json' };
-
 export async function loginRequest(credentials: LoginCredentials): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',

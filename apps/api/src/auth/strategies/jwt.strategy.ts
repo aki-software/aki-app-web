@@ -60,9 +60,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     done: (err: Error | null, key?: string) => void,
   ) {
     try {
-      const payload = this.jwtTokenDecoder.decodePayload(
+      const payload = (this.jwtTokenDecoder.decodePayload(
         rawJwtToken,
-      ) as JwtPayload;
+      ) as unknown) as JwtPayload;
 
       if (!this.isFirebasePayload(payload)) {
         const localJwtSecret =

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Activity, ChevronDown } from "lucide-react";
 import { SessionCategoryChart } from "./SessionCategoryChart";
-import { Button } from "../../../../components/atoms/Button"; // Importamos el átomo
 import type { CategoryData } from "../../api/dashboard";
 
 interface TechnicalDataAccordionProps {

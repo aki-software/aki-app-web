@@ -1360,24 +1360,27 @@ val useNewResultsScreen = firebaseRemoteConfig.getBoolean("use_new_results_scree
 
 ---
 
-## 7. Timeline
+## 7. Timeline & Parallelization Strategy
 
-| Phase | Duration | Dependencies | Priority |
-|-------|----------|-------------|----------|
-| **1. Contracts Package** | 5-7 days | None | 🔴 Critical |
-| **2. API Quick Wins** | 2-3 days | None | 🟡 High |
-| **3. Android Quick Wins** | 1-2 days | None | 🟡 High |
-| **4. Android Critical Fixes** | 2-3 days | Phase 3 | 🔴 Critical |
-| **5. Web Hooks Extraction** | 3-5 days | Phase 1 | 🟡 High |
-| **6. Web Components** | 3-4 days | Phase 5 | 🟢 Medium |
-| **7. Android God Classes** | 3-4 weeks | Phase 4 | 🔴 Critical |
-| **8. API Circular Deps** | 3-4 days | Phase 1 | 🟡 High |
-| **9. API God Services** | 3-4 days | Phase 8 | 🟡 High |
-| **10. Testing** | Ongoing | All phases | 🔴 Critical |
+| Phase | Duration | Dependencies | Priority | Parallelizable? |
+|-------|----------|-------------|----------|-----------------|
+| **1. Contracts Package** | 5-7 days | None | 🔴 Critical | No (Blocking) |
+| **2. API Quick Wins** | 2-3 days | Phase 1 | 🟡 High | Yes (Lane A) |
+| **3. Android Quick Wins** | 1-2 days | Phase 1 | 🟡 High | Yes (Lane C) |
+| **4. Android Critical Fixes** | 2-3 days | Phase 3 | 🔴 Critical | Yes (Lane C) |
+| **5. Web Hooks Extraction** | 3-5 days | Phase 1 | 🟡 High | Yes (Lane B) |
+| **6. Web Components** | 3-4 days | Phase 5 | 🟢 Medium | Yes (Lane B) |
+| **7. Android God Classes** | 3-4 weeks | Phase 4 | 🔴 Critical | Yes (Lane C) |
+| **8. API Circular Deps** | 3-4 days | Phase 1 | 🟡 High | Yes (Lane A) |
+| **9. API God Services** | 3-4 days | Phase 8 | 🟡 High | Yes (Lane A) |
+| **10. Testing** | Ongoing | All phases | 🔴 Critical | Yes (Across all) |
 
-**Total (1 developer):** 16-24 weeks (4-6 months)
-**Total (2 developers: 1 frontend + 1 Android):** 8-12 weeks
-**Total (3 developers: 1 backend + 1 frontend + 1 Android):** 6-8 weeks
+### Parallel Lanes post-Phase 1:
+- **Lane A (Backend):** Phases 2, 8, 9
+- **Lane B (Web):** Phases 5, 6
+- **Lane C (Android):** Phases 3, 4, 7
+
+Executing these lanes in parallel can reduce the total time by approximately 40-50%.
 
 ---
 

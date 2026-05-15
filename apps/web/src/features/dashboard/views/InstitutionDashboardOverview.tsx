@@ -2,7 +2,6 @@ import { Ticket, Users2, ArrowRight, Clock, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { Spinner } from "../../../components/atoms/Spinner";
-import { Button } from "../../../components/atoms/Button";
 import { useInstitutionOverviewManager, LOW_STOCK_ALERT_THRESHOLD } from "../hooks/useInstitutionOverviewManager";
 import { LowStockAlert } from "../components/institucion/LowStockAlert";
 import { TopSessionsTable } from "../components/institucion/TopSessionsTable";

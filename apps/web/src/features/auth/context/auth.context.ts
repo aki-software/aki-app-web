@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { AuthUser, LoginCredentials } from '../types/auth.types';
+import { AuthUser, LoginCredentials } from '@akit/contracts';
 
 export interface AuthContextValue {
   user: AuthUser | null;
