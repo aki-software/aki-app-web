@@ -1,5 +1,5 @@
 import { DashboardStatsResponse } from "@akit/contracts";
-import { Activity, BarChart3, Calendar, Sparkles, TrendingUp } from "lucide-react";
+import { BarChart3, Calendar, Sparkles, TrendingUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { fetchDashboardStats } from "../api/dashboard";
@@ -8,6 +8,8 @@ import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashbo
 import { Spinner } from "../../../components/atoms/Spinner";
 import { StatCard } from "../../../components/molecules/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
+import { PeriodSelector } from "../../../components/molecules/PeriodSelector";
+import { EmptyState } from "../../../components/molecules/EmptyState";
 import { ActivityFeed } from "../components/overview/ActivityFeed";
 import { AdminAlerts } from "../components/overview/AdminAlerts";
 import { OverviewHighlights } from "../components/overview/OverviewHighlights";
@@ -81,17 +83,7 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <select 
-            value={periodDays} 
-            onChange={(e) => setPeriodDays(Number(e.target.value))}
-            className="px-4 py-3 rounded-2xl bg-app-surface border border-app-border text-xs font-bold text-app-text-main focus:outline-none focus:ring-2 focus:ring-app-primary/20 uppercase tracking-wider"
-          >
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={7}>Últimos 7 días</option>
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={15}>Últimos 15 días</option>
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={30}>Últimos 30 días</option>
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={90}>Últimos 90 días</option>
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={365}>Último año</option>
-          </select>
+          <PeriodSelector value={periodDays} onChange={setPeriodDays} />
           <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-app-surface/80 border border-app-border backdrop-blur-xl">
             <Calendar className="h-4 w-4 text-app-text-muted opacity-40" />
             <span className="app-label !text-[10px] opacity-60 uppercase">
@@ -125,11 +117,11 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             </div>
           </DashboardWidget>
         ) : (
-          <div className="col-span-full app-card !p-12 bg-app-surface/70 flex items-center justify-center border-dashed">
-            <div className="text-center space-y-3 opacity-30">
-              <Activity className="h-10 w-10 mx-auto" />
-              <p className="app-label text-xs">Analítica operativa en preparación</p>
-            </div>
+          <div className="col-span-full app-card !p-1 bg-app-surface/70 border-dashed">
+            <EmptyState
+              title="Analítica operativa en preparación"
+              description="Estamos procesando los datos para mostrarte las métricas de este periodo."
+            />
           </div>
         )}
       </div>

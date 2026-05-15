@@ -11,7 +11,13 @@ vi.mock('../../api/dashboard', () => ({
 }));
 
 describe('useVoucherStats', () => {
-  const mockUser = { institutionId: 'inst-1' };
+  const mockUser = { 
+    id: 'u-1', 
+    email: 'test@example.com', 
+    name: 'Test User', 
+    role: 'ADMIN', 
+    institutionId: 'inst-1' 
+  } as any;
 
   beforeEach(() => {
     vi.clearAllMocks();

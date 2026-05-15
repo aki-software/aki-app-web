@@ -2,6 +2,7 @@ import { Filter } from "lucide-react";
 import { VoucherData } from "../../api/dashboard";
 import { VoucherTableRow } from "./VoucherTableRow";
 import { Pagination } from "../../../../components/molecules/Pagination";
+import { EmptyState } from "../../../../components/molecules/EmptyState";
 
 interface VouchersIndividualTableProps {
   items: VoucherData[];
@@ -47,11 +48,12 @@ export const VouchersIndividualTable = ({
             <tbody className="divide-y divide-app-border bg-app-surface">
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 5 : 4} className="px-5 py-20 text-center opacity-40">
-                    <div className="flex flex-col items-center gap-4">
-                      <Filter className="h-10 w-10" />
-                      <p className="app-label">Sin resultados para estos filtros</p>
-                    </div>
+                  <td colSpan={isAdmin ? 5 : 4} className="px-5 py-5">
+                    <EmptyState
+                      icon={<Filter className="h-10 w-10" />}
+                      title="Sin resultados"
+                      description="No se encontraron vouchers que coincidan con los filtros seleccionados."
+                    />
                   </td>
                 </tr>
               ) : (

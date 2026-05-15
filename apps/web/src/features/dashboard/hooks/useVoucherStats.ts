@@ -10,7 +10,9 @@ import {
   type VoucherAlert,
 } from "../api/dashboard";
 
-export const useVoucherStats = (user: any, isAdmin: boolean) => {
+import { AuthUser } from "@akit/contracts";
+
+export const useVoucherStats = (user: AuthUser | null, isAdmin: boolean) => {
   const [stats, setStats] = useState<VoucherStats | null>(null);
   const [alerts, setAlerts] = useState<VoucherAlert[]>([]);
   const [institutions, setInstitutions] = useState<InstitutionOption[]>([]);
@@ -24,7 +26,7 @@ export const useVoucherStats = (user: any, isAdmin: boolean) => {
         fetchVouchersList(),
         isAdmin ? fetchInstitutions() : Promise.resolve([]),
         isAdmin ? fetchTherapists() : Promise.resolve([]),
-        fetchVoucherStats(user?.institutionId),
+        fetchVoucherStats(user?.institutionId ?? undefined),
       ]);
       setVouchers(voucherData);
       setInstitutions(institutionsData);
