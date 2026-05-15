@@ -3,3 +3,4 @@ export * from './errors.schemas';
 export * from './auth';
 export * from './sessions';
 export * from './vouchers';
+export * from './institutions';

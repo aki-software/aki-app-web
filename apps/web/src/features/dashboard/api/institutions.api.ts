@@ -1,15 +1,19 @@
 import { API_URL, getAuthHeaders } from "./client";
+import type {
+  InstitutionOption,
+  InstitutionStats,
+  InstitutionOverviewResponse,
+  CreateInstitutionDto,
+  UpdateInstitutionDto,
+} from "@akit/contracts";
 
-export interface InstitutionOption {
-  id: string;
-  name: string;
-  createdAt?: string | null;
-  billingEmail?: string | null;
-  responsibleTherapistUserId?: string | null;
-  responsibleTherapistName?: string | null;
-  responsibleTherapistActive?: boolean;
-  activationEmailSent?: boolean;
-}
+export type {
+  InstitutionOption,
+  InstitutionStats,
+  InstitutionOverviewResponse,
+  CreateInstitutionDto,
+  UpdateInstitutionDto,
+};
 
 export async function resendInstitutionActivationInvitation(
   responsibleUserId: string,
@@ -53,15 +57,7 @@ export async function createInstitutionOperationalAccount(input: {
     );
     if (!response.ok) throw new Error("Failed to create operational account");
 
-    const institution = (await response.json()) as {
-      id: string;
-      name: string;
-      billingEmail?: string | null;
-      responsibleTherapistUserId?: string | null;
-      responsibleTherapistName?: string | null;
-      responsibleTherapistActive?: boolean;
-      activationEmailSent?: boolean;
-    };
+    const institution = (await response.json()) as any;
 
     return {
       id: institution.id,
@@ -78,55 +74,6 @@ export async function createInstitutionOperationalAccount(input: {
   }
 }
 
-export interface InstitutionStats {
-  totalSessions: number;
-  availableVouchers: number;
-  redeemedVouchers: number;
-}
-
-export type InstitutionOverviewResponse = {
-  periodDays: number;
-  periodLabel: string;
-  vouchers: {
-    total: number;
-    available: number;
-    used: number;
-    expired: number;
-    sent: number;
-    revoked: number;
-    vouchersGeneratedPeriod: number;
-    vouchersRedeemedPeriod: number;
-    voucherRedemptionRatePeriod: number;
-    vouchersExpiringSoon7d: number;
-    vouchersUnassignedAvailable: number;
-  };
-  tests: {
-    testsStartedPeriod: number;
-    testsCompletedPeriod: number;
-    reportsUnlockedPeriod: number;
-    channelBreakdown: {
-      voucher: { started: number; completed: number; reportsUnlocked: number };
-      individual: { started: number; completed: number; reportsUnlocked: number };
-    };
-  };
-  topSessions: Array<{
-    id: string;
-    patientName: string;
-    createdAt: string | null;
-    sessionDate: string | null;
-    hollandCode: string;
-    paymentStatus: string;
-    voucherCode: string | null;
-    reportUnlockedAt: string | null;
-    resultsCount: number;
-  }>;
-  resultsDistribution: Array<{
-    categoryId: string;
-    name: string;
-    count: number;
-  }>;
-};
-
 export async function fetchInstitutions(): Promise<InstitutionOption[]> {
   try {
     const response = await fetch(`${API_URL}/institutions`, {
@@ -135,15 +82,7 @@ export async function fetchInstitutions(): Promise<InstitutionOption[]> {
     if (!response.ok) throw new Error("Failed to fetch institutions");
 
     const responseData = (await response.json()) as {
-      data?: Array<{
-        id: string;
-        name: string;
-        createdAt?: string | null;
-        billingEmail?: string | null;
-        responsibleTherapistUserId?: string | null;
-        responsibleTherapistName?: string | null;
-        responsibleTherapistActive?: boolean;
-      }>;
+      data?: any[];
     };
     const institutions = responseData.data || [];
 
@@ -164,12 +103,7 @@ export async function fetchInstitutions(): Promise<InstitutionOption[]> {
   }
 }
 
-export async function createInstitution(input: {
-  name: string;
-  email: string;
-  billingEmail?: string;
-  responsibleTherapistUserId?: string;
-}): Promise<InstitutionOption | null> {
+export async function createInstitution(input: any): Promise<InstitutionOption | null> {
   try {
     const response = await fetch(`${API_URL}/institutions`, {
       method: "POST",
@@ -181,14 +115,7 @@ export async function createInstitution(input: {
     });
     if (!response.ok) throw new Error("Failed to create institution");
  
-    const institution = (await response.json()) as {
-      id: string;
-      name: string;
-      billingEmail?: string | null;
-      responsibleTherapistUserId?: string | null;
-      responsibleTherapistName?: string | null;
-      activationEmailSent?: boolean;
-    };
+    const institution = (await response.json()) as any;
  
     return {
       id: institution.id,
@@ -206,7 +133,7 @@ export async function createInstitution(input: {
  
 export async function updateInstitution(
   id: string,
-  input: { name?: string; billingEmail?: string }
+  input: any
 ): Promise<InstitutionOption | null> {
   try {
     const response = await fetch(`${API_URL}/institutions/${id}`, {
@@ -219,13 +146,7 @@ export async function updateInstitution(
     });
     if (!response.ok) throw new Error("Failed to update institution");
  
-    const institution = (await response.json()) as {
-      id: string;
-      name: string;
-      billingEmail?: string | null;
-      responsibleTherapistUserId?: string | null;
-      responsibleTherapistName?: string | null;
-    };
+    const institution = (await response.json()) as any;
  
     return {
       id: institution.id,
@@ -262,7 +183,6 @@ export async function updateInstitutionStatus(
 }
  
 export async function fetchInstitutionStats(
- 
   institutionId: string
 ): Promise<InstitutionStats | null> {
   try {
