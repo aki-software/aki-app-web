@@ -1,11 +1,19 @@
 import { apiClient } from "../../../api/client";
-export type {
+import type {
   InstitutionOption,
   InstitutionStats,
   InstitutionOverviewResponse,
   CreateInstitutionDto,
   UpdateInstitutionDto,
 } from "@akit/contracts";
+
+export type {
+  InstitutionOption,
+  InstitutionStats,
+  InstitutionOverviewResponse,
+  CreateInstitutionDto,
+  UpdateInstitutionDto,
+};
 
 export async function resendInstitutionActivationInvitation(
   responsibleUserId: string,
@@ -24,7 +32,7 @@ export async function resendInstitutionActivationInvitation(
 export async function createInstitutionOperationalAccount(input: {
   institutionId: string;
   email: string;
-}): Promise<any | null> {
+}): Promise<unknown> {
   try {
     return await apiClient.post(
       `/institutions/${input.institutionId}/operational-account`,
@@ -36,9 +44,9 @@ export async function createInstitutionOperationalAccount(input: {
   }
 }
 
-export async function fetchInstitutions(): Promise<any[]> {
+export async function fetchInstitutions(): Promise<InstitutionOption[]> {
   try {
-    const responseData = await apiClient.get<{ data?: any[] }>("/institutions");
+    const responseData = await apiClient.get<{ data?: InstitutionOption[] }>("/institutions");
     const institutions = responseData.data || [];
 
     return institutions.map((institution) => ({
@@ -58,62 +66,54 @@ export async function fetchInstitutions(): Promise<any[]> {
   }
 }
 
-export async function createInstitution(input: any): Promise<any | null> {
-  try {
-    return await apiClient.post("/institutions", input);
-  } catch (error) {
-    console.error("Error creating institution:", error);
-    return null;
-  }
-}
- 
-export async function updateInstitution(
-  id: string,
-  input: any
-): Promise<any | null> {
-  try {
-    return await apiClient.patch(`/institutions/${id}`, input);
-  } catch (error) {
-    console.error("Error updating institution:", error);
-    return null;
-  }
-}
- 
-export async function updateInstitutionStatus(
-  id: string,
-  isActive: boolean
-): Promise<boolean> {
-  try {
-    await apiClient.patch(`/institutions/${id}/status`, { isActive });
-    return true;
-  } catch (error) {
-    console.error("Error updating institution status:", error);
-    return false;
-  }
-}
- 
 export async function fetchInstitutionStats(
-  institutionId: string
-): Promise<any | null> {
+  institutionId: string,
+): Promise<InstitutionStats | null> {
   try {
-    return await apiClient.get(`/institutions/${institutionId}/stats`);
+    return await apiClient.get<InstitutionStats>(
+      `/institutions/${institutionId}/stats`
+    );
   } catch (error) {
     console.error("Error fetching institution stats:", error);
     return null;
   }
 }
 
-export async function fetchInstitutionOverview(input: {
-  institutionId: string;
-  days?: number;
-}): Promise<any | null> {
+export async function fetchInstitutionOverview(
+  institutionId: string,
+  periodDays: number = 30
+): Promise<InstitutionOverviewResponse | null> {
   try {
-    const params: Record<string, string> = {};
-    if (input.days) params.days = String(input.days);
-
-    return await apiClient.get(`/institutions/${input.institutionId}/overview`, { params });
+    return await apiClient.get<InstitutionOverviewResponse>(
+      `/institutions/${institutionId}/overview`,
+      { params: { periodDays: periodDays.toString() } }
+    );
   } catch (error) {
     console.error("Error fetching institution overview:", error);
     return null;
+  }
+}
+
+export async function createInstitution(
+  data: CreateInstitutionDto
+): Promise<{ id: string } | null> {
+  try {
+    return await apiClient.post<{ id: string }>("/institutions", data);
+  } catch (error) {
+    console.error("Error creating institution:", error);
+    return null;
+  }
+}
+
+export async function updateInstitution(
+  id: string,
+  data: UpdateInstitutionDto
+): Promise<boolean> {
+  try {
+    await apiClient.patch(`/institutions/${id}`, data);
+    return true;
+  } catch (error) {
+    console.error("Error updating institution:", error);
+    return false;
   }
 }

@@ -17,7 +17,7 @@ export const useVoucherStats = (user: AuthUser | null, isAdmin: boolean) => {
   const [alerts, setAlerts] = useState<VoucherAlert[]>([]);
   const [institutions, setInstitutions] = useState<InstitutionOption[]>([]);
   const [therapists, setTherapists] = useState<TherapistOption[]>([]);
-  const [vouchers, setVouchers] = useState<any[]>([]); // For client options calculation
+  const [vouchers, setVouchers] = useState<unknown[]>([]); // For client options calculation
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {

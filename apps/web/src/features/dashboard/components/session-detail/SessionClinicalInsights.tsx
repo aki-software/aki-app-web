@@ -10,7 +10,7 @@ interface SwipeData {
 
 interface SessionClinicalInsightsProps {
   swipes?: SwipeData[];
-  categoriesMap: Record<string, any>;
+  categoriesMap: Record<string, unknown>;
 }
 
 export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinicalInsightsProps) {

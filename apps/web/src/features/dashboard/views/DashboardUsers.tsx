@@ -42,7 +42,7 @@ export function DashboardUsers() {
     if (success) setEditingInst(null);
   };
 
-  const onCardAction = async (action: Promise<any>, id: string) => {
+  const onCardAction = async (action: Promise<unknown>, id: string) => {
     setActiveAsyncId(id);
     await action;
     setActiveAsyncId(null);
