@@ -10,35 +10,35 @@ import {
   IsEnum,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { SessionPaymentStatus } from '../entities/session.entity';
+import { SessionPaymentStatus } from '../entities/session.entity.js';
 
 export class CreateSessionSwipeDto {
   @IsString()
-  cardId: string;
+  cardId!: string;
 
   @IsString()
-  categoryId: string;
+  categoryId!: string;
 
   @IsBoolean()
-  isLiked: boolean;
+  isLiked!: boolean;
 
   @Transform(({ value }) => new Date(value))
   @IsDate()
-  timestamp: Date;
+  timestamp!: Date;
 }
 
 export class CreateSessionResultDto {
   @IsString()
-  categoryId: string;
+  categoryId!: string;
 
   @IsNumber()
-  score: number;
+  score!: number;
 
   @IsNumber()
-  totalPossible: number;
+  totalPossible!: number;
 
   @IsNumber()
-  percentage: number;
+  percentage!: number;
 
   @IsOptional()
   @IsArray()
@@ -76,11 +76,11 @@ export class CreateSessionDto {
   paymentStatus?: SessionPaymentStatus;
 
   @IsString()
-  patientName: string;
+  patientName!: string;
 
   @Transform(({ value }) => new Date(value))
   @IsDate()
-  sessionDate: Date;
+  sessionDate!: Date;
 
   @IsOptional()
   @IsString()
@@ -93,10 +93,10 @@ export class CreateSessionDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateSessionResultDto)
-  results: CreateSessionResultDto[];
+  results!: CreateSessionResultDto[];
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateSessionSwipeDto)
-  swipes: CreateSessionSwipeDto[];
+  swipes!: CreateSessionSwipeDto[];
 }

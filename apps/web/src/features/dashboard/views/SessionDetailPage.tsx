@@ -1,11 +1,11 @@
 import { Activity, CreditCard, KeyRound } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { StatCard } from "../../../components/molecules/StatCard";
 import { useSessionDetailManager } from "../hooks/useSessionDetailManager";
 import { HollandRadarChart } from "../components/session-detail/HollandRadarChart";
-import { SessionPerformanceMetrics } from "../components/session-detail/SessionPerformanceMetrics";
 import { SessionTopAreas } from "../components/session-detail/SessionTopAreas";
-import { SessionReliabilityCard } from "../components/session-detail/SessionReliabilityCard";
+import { SessionClinicalInsights } from "../components/session-detail/SessionClinicalInsights";
+import { Clock, MousePointer2, Zap } from "lucide-react";
 import { SessionDetailHeader } from "../components/session-detail/SessionDetailHeader";
 import { TechnicalDataAccordion } from "../components/session-detail/TechnicalDataAccordion";
 import { formatDate, formatDuration } from "../../../utils/date";
@@ -14,6 +14,8 @@ import { Spinner } from "../../../components/atoms/Spinner";
 export function SessionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInstitutionView = location.pathname.includes('/institutions');
 
   const {
     session, 
@@ -55,6 +57,26 @@ export function SessionDetailPage() {
       {/* Contenido Principal */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
         <div className="lg:col-span-12 xl:col-span-12 space-y-16">
+          
+          {/* Métricas Core (Destacadas) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatCard
+              label="Tiempo Total"
+              value={formatDuration(session.totalTimeMs)}
+              icon={<Clock className="h-5 w-5 text-app-primary" />}
+            />
+            <StatCard
+              label="Velocidad Promedio"
+              value={formatDuration(behaviorStats?.avgTime) === "0s" ? "< 1s" : formatDuration(behaviorStats?.avgTime)}
+              icon={<Zap className="h-5 w-5 text-app-primary" />}
+            />
+            <StatCard
+              label="Dudas y Retrocesos"
+              value={behaviorStats?.undosCount || 0}
+              icon={<MousePointer2 className="h-5 w-5 text-app-primary" />}
+            />
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
             
             {/* Radar Card Lux 3.0 */}
@@ -89,22 +111,13 @@ export function SessionDetailPage() {
               </div>
             </div>
 
-            {/* Componente Extraído: Fiabilidad */}
-            <SessionReliabilityCard 
-              reliabilityLevel={behaviorStats?.reliabilityLevel}
-              undosCount={behaviorStats?.undosCount}
-              avgTimeFormatted={formatDuration(behaviorStats?.avgTime)}
+            <SessionClinicalInsights 
+              swipes={session.swipes}
+              categoriesMap={categoriesMap}
             />
           </div>
 
           <div className="grid grid-cols-1 gap-12">
-            {session.metrics && (
-              <SessionPerformanceMetrics 
-                metrics={session.metrics} 
-                totalTimeMs={session.totalTimeMs} 
-              />
-            )}
-
             <SessionTopAreas 
               top3={top3} 
               bottom3={bottom3} 
@@ -112,19 +125,25 @@ export function SessionDetailPage() {
             />
 
             {/* Bloque de Origen usando StatCard */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className={`grid grid-cols-1 ${!isInstitutionView ? 'sm:grid-cols-2' : ''} gap-8`}>
               <StatCard 
                 label="ORIGEN DEL TEST"
-                value={session.paymentStatus === "PAID" ? "PAGO INDIVIDUAL" : "CANJE CON VOUCHER"}
+                value={
+                  session.paymentStatus === "VOUCHER" || session.voucherCode
+                    ? `VOUCHER ${session.voucherCode ? `(${session.voucherCode})` : ''}`
+                    : "PAGO INDIVIDUAL"
+                }
                 icon={<CreditCard className="h-5 w-5 text-app-primary" />}
                 className="app-card !p-8 shadow-xl hover:shadow-2xl transition-all group"
               />
-              <StatCard 
-                label="ORIGEN DE ASIGNACION"
-                value={session.institutionName || "PARTICULAR"}
-                icon={<KeyRound className="h-5 w-5 text-app-primary" />}
-                className="app-card !p-8 shadow-xl hover:shadow-2xl transition-all group uppercase"
-              />
+              {!isInstitutionView && (
+                <StatCard 
+                  label="ORIGEN DE ASIGNACION"
+                  value={session.institutionName || "PARTICULAR"}
+                  icon={<KeyRound className="h-5 w-5 text-app-primary" />}
+                  className="app-card !p-8 shadow-xl hover:shadow-2xl transition-all group uppercase"
+                />
+              )}
             </div>
 
             {/* Componente Extraído: Acordeón Técnico */}

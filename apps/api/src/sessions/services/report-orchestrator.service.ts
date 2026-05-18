@@ -1,14 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { mkdir, writeFile } from 'fs/promises';
-import { join, resolve } from 'path';
-import { Session } from '../entities/session.entity';
-import { ReportService } from './report.service';
-import { MailService } from '../../mail/mail.service';
-import { PdfService } from '../../common/services/pdf.service';
-import { StorageService } from '../../common/services/storage.service';
-import { SessionScope } from '../types/session-scope.type';
+import { Session } from '../entities/session.entity.js';
+import { ReportService } from './report.service.js';
+import { MailService } from '../../mail/mail.service.js';
+import { PdfService } from '../../common/services/pdf.service.js';
+import { StorageService } from '../../common/services/storage.service.js';
+import { SessionScope } from '../types/session-scope.type.js';
 
 @Injectable()
 export class ReportOrchestratorService {
@@ -26,42 +24,43 @@ export class ReportOrchestratorService {
   async sendReport(
     sessionId: string,
     targetEmail: string,
+    voucherId?: string | null,
     scope?: SessionScope,
   ): Promise<{
     success: boolean;
     message: string;
-    localReportPath?: string;
   }> {
     const session = await this.findOne(sessionId, scope);
-    const reportData = await this.reportService.buildReportData(session);
-
-    const htmlContent = this.mailService.renderReportPdfTemplate(
-      reportData.patientName,
-      reportData.topResults,
-      reportData.hollandCode,
-      undefined,
-      reportData.summary,
-      reportData.tripletInsight ?? undefined,
+    const voucherIdForLogging = voucherId ?? session.voucherId ?? undefined;
+    const reportData = await this.reportService.buildReportData(
+      session,
+      targetEmail,
     );
 
+    const htmlContent = this.reportService.renderReportPdfHtml(reportData);
+
     let pdfBuffer: Buffer | undefined;
-    let reportUrl: string | null = null;
-    let localReportPath: string | undefined;
+    let reportUrl = session.reportUrl;
+
     try {
-      pdfBuffer = await this.pdfService.generateFromHtml(htmlContent);
-
-      localReportPath = await this.persistPdfLocally(sessionId, pdfBuffer);
-
-      const fileName = `report_${sessionId}_${Date.now()}.pdf`;
-      reportUrl = await this.storageService.uploadFile(pdfBuffer, fileName);
-
-      if (reportUrl) {
-        session.reportUrl = reportUrl;
-        await this.sessionRepository.save(session);
+      // Si no hay URL, generamos el PDF y lo subimos
+      if (!reportUrl) {
+        pdfBuffer = await this.pdfService.generateFromHtml(htmlContent);
+        const fileName = `report_${sessionId}_${Date.now()}.pdf`;
+        reportUrl = await this.storageService.uploadFile(pdfBuffer, fileName);
+        
+        if (reportUrl) {
+          session.reportUrl = reportUrl;
+          await this.sessionRepository.save(session);
+        }
+      } else {
+        // Si ya hay URL, solo generamos el buffer para el adjunto si es necesario
+        // Opcionalmente podríamos descargar el archivo desde StorageService
+        pdfBuffer = await this.pdfService.generateFromHtml(htmlContent);
       }
     } catch (err) {
       this.logger.warn(
-        `sendReport pdf-fallback sessionId=${sessionId} paymentStatus=${session.paymentStatus ?? 'UNKNOWN'} voucherId=${session.voucherId ?? 'none'} reason=${(err as Error)?.message ?? 'unknown'}`,
+        `sendReport pdf-generation-failed sessionId=${sessionId} reason=${(err as Error)?.message ?? 'unknown'}`,
       );
     }
 
@@ -70,7 +69,7 @@ export class ReportOrchestratorService {
       reportData.patientName,
       reportData.hollandCode,
       pdfBuffer,
-      reportUrl ?? session.reportUrl ?? undefined,
+      reportUrl ?? undefined,
       reportData.summary,
       reportData.tripletInsight ?? undefined,
     );
@@ -86,20 +85,19 @@ export class ReportOrchestratorService {
     }
 
     this.logger.log(
-      `sendReport dispatched sessionId=${sessionId} targetEmail=${targetEmail} mode=${pdfBuffer ? 'pdf' : 'html_fallback'} localReportPath=${localReportPath ?? 'none'}`,
+      `sendReport dispatched sessionId=${sessionId} voucherId=${voucherIdForLogging ?? 'none'} targetEmail=${targetEmail} mode=${pdfBuffer ? 'pdf' : 'html_fallback'}`,
     );
 
     return {
       success: true,
       message: `Email despachado hacia ${targetEmail}`,
-      localReportPath,
     };
   }
 
   private async findOne(id: string, scope?: SessionScope): Promise<Session> {
     const normalizedRole = scope?.role?.toUpperCase();
     let where: any = {};
-    
+
     if (normalizedRole !== 'ADMIN') {
       const scopedWhere =
         normalizedRole === 'PATIENT' && scope?.patientId
@@ -125,30 +123,5 @@ export class ReportOrchestratorService {
       throw new Error('Session not found');
     }
     return session;
-  }
-
-  private async persistPdfLocally(
-    sessionId: string,
-    pdfBuffer: Buffer,
-  ): Promise<string | undefined> {
-    try {
-      const configuredDir = process.env.REPORTS_LOCAL_DIR?.trim();
-      const reportsDir = configuredDir
-        ? resolve(configuredDir)
-        : resolve(process.cwd(), 'tmp', 'reports');
-      await mkdir(reportsDir, { recursive: true });
-
-      const filePath = join(
-        reportsDir,
-        `report_${sessionId}_${Date.now()}.pdf`,
-      );
-      await writeFile(filePath, pdfBuffer);
-      return filePath;
-    } catch (error) {
-      this.logger.warn(
-        `persistPdfLocally failed sessionId=${sessionId} reason=${(error as Error)?.message ?? 'unknown'}`,
-      );
-      return undefined;
-    }
   }
 }

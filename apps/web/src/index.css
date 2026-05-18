@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Sora:wght@700;800&display=swap");
+@import "@akit/design-tokens/dist/theme.css";
 @import "tailwindcss";
 
 @theme {
@@ -6,27 +7,40 @@
   --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --color-app-primary: #2f7a66;
-  --color-app-primary-hover: #286553;
-  --color-app-primary-soft: #4a8f7d;
-  --color-app-primary-strong: #2a6d5b;
-  --color-app-glow: rgba(47, 122, 102, 0.18);
+  /* ── Brand palette — Powered by @akit/design-tokens ── */
+  --color-app-primary: var(--color-primary);
+  --color-app-primary-hover: var(--color-primary-light);
+  --color-app-primary-soft: color-mix(in srgb, var(--color-primary) 80%, transparent);
+  --color-app-primary-strong: var(--color-primary-dark);
+  --color-app-glow: color-mix(in srgb, var(--color-primary) 18%, transparent);
 
-  --color-app-bg: #f1ede4;
-  --color-app-bg-accent-1: rgba(120, 79, 168, 0.14);
-  --color-app-bg-accent-2: rgba(47, 122, 102, 0.14);
-  --color-app-surface: rgba(250, 242, 232, 0.94);
-  --color-app-border: rgba(60, 50, 40, 0.18);
-  --color-app-text-main: #1d1914;
+  --color-app-secondary: var(--color-secondary);
+  --color-app-secondary-soft: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+
+  --color-app-tertiary: var(--color-tertiary);
+
+  --color-app-bg: var(--color-background-light);
+  --color-app-bg-accent-1: rgba(142, 90, 18, 0.12);
+  --color-app-bg-accent-2: rgba(15, 107, 104, 0.12);
+  --color-app-surface: var(--color-surface-light);
+  --color-app-surface-variant: #DCD3C5;
+  --color-app-border: rgba(122, 135, 131, 0.28);
+  --color-app-text-main: var(--color-text-primary);
   --color-app-text-muted: rgba(29, 25, 20, 0.78);
   --color-app-text-soft: rgba(29, 25, 20, 0.92);
 
-  --color-sidebar-bg: rgba(240, 234, 225, 0.96);
+  /* ── Semantic action tokens ── */
+  --color-app-confirm: #43A047;
+  --color-app-destructive: #E53935;
+  --color-app-warning: #F59E0B;
+  --color-app-error: #B9414A;
+
+  --color-sidebar-bg: rgba(240, 236, 228, 0.96);
   --color-sidebar-text: rgba(29, 25, 20, 0.9);
-  --color-sidebar-border: rgba(60, 50, 40, 0.18);
-  --color-sidebar-hover: rgba(60, 50, 40, 0.08);
-  --color-sidebar-active-bg: rgba(47, 122, 102, 0.12);
-  --color-sidebar-active-text: #1b4e41;
+  --color-sidebar-border: rgba(122, 135, 131, 0.22);
+  --color-sidebar-hover: rgba(15, 107, 104, 0.07);
+  --color-sidebar-active-bg: rgba(15, 107, 104, 0.12);
+  --color-sidebar-active-text: #0a4a48;
 }
 
 @layer base {
@@ -36,16 +50,22 @@
 
   .dark {
     color-scheme: dark;
-    --color-app-primary: #289b76;
-    --color-app-primary-hover: #3a9378;
-    --color-app-primary-soft: #59b39a;
-    --color-app-primary-strong: #2f7f66;
-    --color-app-glow: rgba(70, 167, 137, 0.26);
+    --color-app-primary: #1a8a87;
+    --color-app-primary-hover: #2aa09d;
+    --color-app-primary-soft: #3db8b4;
+    --color-app-primary-strong: #0F6B68;
+    --color-app-glow: rgba(26, 138, 135, 0.28);
+
+    --color-app-secondary: #c4851e;
+    --color-app-secondary-soft: rgba(196, 133, 30, 0.18);
+
+    --color-app-tertiary: #6aad6e;
 
     --color-app-bg: #0e0f0f;
-    --color-app-bg-accent-1: rgba(120, 79, 168, 0.22);
-    --color-app-bg-accent-2: rgba(46, 122, 102, 0.2);
+    --color-app-bg-accent-1: rgba(196, 133, 30, 0.18);
+    --color-app-bg-accent-2: rgba(26, 138, 135, 0.18);
     --color-app-surface: rgba(255, 255, 255, 0.04);
+    --color-app-surface-variant: rgba(220, 211, 197, 0.08);
     --color-app-border: rgba(255, 255, 255, 0.08);
     --color-app-text-main: #f5f1ec;
     --color-app-text-muted: rgba(245, 241, 236, 0.62);
@@ -54,9 +74,9 @@
     --color-sidebar-bg: rgba(18, 19, 20, 0.92);
     --color-sidebar-text: rgba(245, 241, 236, 0.74);
     --color-sidebar-border: rgba(255, 255, 255, 0.08);
-    --color-sidebar-hover: rgba(255, 255, 255, 0.06);
-    --color-sidebar-active-bg: rgba(70, 167, 137, 0.16);
-    --color-sidebar-active-text: #d8f1e7;
+    --color-sidebar-hover: rgba(26, 138, 135, 0.08);
+    --color-sidebar-active-bg: rgba(26, 138, 135, 0.16);
+    --color-sidebar-active-text: #c8f0ee;
   }
 
   body {

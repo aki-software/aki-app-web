@@ -1,153 +1,60 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { LoginDto } from './dto/login.dto';
-import { User, UserRole } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
+import { Injectable } from '@nestjs/common';
+import { LoginDto } from './dto/auth-login.dto.js';
+import type {
+  AuthInfoResponse,
+  AuthLoginResponse,
+  AuthOkResponse,
+  AuthTokenResolutionResponse,
+} from './auth.types.js';
+import { AuthLoginService } from './services/auth-login.service.js';
+import { AuthPasswordFlowService } from './services/auth-password-flow.service.js';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
+    private readonly authLoginService: AuthLoginService,
+    private readonly authPasswordFlowService: AuthPasswordFlowService,
   ) {}
 
-  async login(loginDto: LoginDto) {
-    const adminEmail = this.configService.get<string>('ADMIN_USER');
-    const adminPass = this.configService.get<string>('ADMIN_PASS');
-
-    if (
-      adminEmail &&
-      adminPass &&
-      loginDto.email === adminEmail &&
-      loginDto.password === adminPass
-    ) {
-      return this.buildAdminLoginResponse(adminEmail);
-    }
-
-    const user = await this.usersService.findByEmail(loginDto.email);
-
-    if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
-
-    if (!this.usersService.hasPasswordConfigured(user)) {
-      throw new UnauthorizedException(
-        'La cuenta todavía no activó su contraseña',
-      );
-    }
-
-    const validPassword = this.usersService.verifyPassword(
-      loginDto.password,
-      user.passwordHash,
-    );
-    if (!validPassword) {
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
-
-    return this.buildUserLoginResponse(user);
+  async login(loginDto: LoginDto): Promise<AuthLoginResponse> {
+    return this.authLoginService.login(loginDto);
   }
 
-  async resolveSetupToken(token: string) {
-    const user = await this.usersService.findByPasswordSetupToken(token);
-    if (!user || !user.passwordSetupExpiresAt) {
-      throw new UnauthorizedException('Token inválido');
-    }
-
-    if (user.passwordSetupExpiresAt.getTime() < Date.now()) {
-      throw new UnauthorizedException('Token expirado');
-    }
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        institutionId: user.institutionId,
-        institutionName: user.institution?.name ?? null,
-      },
-      expiresAt: user.passwordSetupExpiresAt,
-    };
+  async resolveSetupToken(token: string): Promise<AuthTokenResolutionResponse> {
+    return this.authPasswordFlowService.resolveSetupToken(token);
   }
 
-  async setupPassword(token: string, password: string) {
-    const user = await this.usersService.setupPassword(token, password);
-    return this.buildUserLoginResponse(user);
+  async setupPassword(
+    token: string,
+    password: string,
+  ): Promise<AuthLoginResponse> {
+    return this.authPasswordFlowService.setupPassword(token, password);
+  }
+
+  async requestPasswordReset(email: string): Promise<AuthInfoResponse> {
+    return this.authPasswordFlowService.requestPasswordReset(email);
+  }
+
+  async resolveResetToken(token: string): Promise<AuthTokenResolutionResponse> {
+    return this.authPasswordFlowService.resolveResetToken(token);
+  }
+
+  async resetPassword(
+    token: string,
+    password: string,
+  ): Promise<AuthLoginResponse> {
+    return this.authPasswordFlowService.resetPassword(token, password);
   }
 
   async changePassword(
     userId: string | null | undefined,
     currentPassword: string,
     newPassword: string,
-  ) {
-    if (!userId) {
-      throw new UnauthorizedException('Sesión inválida');
-    }
-
-    if (currentPassword === newPassword) {
-      throw new UnauthorizedException(
-        'La nueva contraseña debe ser distinta a la actual',
-      );
-    }
-
-    try {
-      await this.usersService.changePassword(
-        userId,
-        currentPassword,
-        newPassword,
-      );
-      return { ok: true };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'No autorizado';
-      throw new UnauthorizedException(message);
-    }
-  }
-
-  private buildAdminLoginResponse(adminEmail: string) {
-    const payload = {
-      email: adminEmail,
-      sub: '1',
-      role: UserRole.ADMIN,
-      institutionId: null,
-    };
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      user: {
-        id: '1',
-        email: adminEmail,
-        name: 'Administrador',
-        role: UserRole.ADMIN,
-        institutionId: null,
-      },
-      tokens: {
-        accessToken,
-      },
-    };
-  }
-
-  private buildUserLoginResponse(user: User) {
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      role: user.role,
-      institutionId: user.institutionId ?? null,
-    };
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        institutionId: user.institutionId ?? null,
-      },
-      tokens: {
-        accessToken,
-      },
-    };
+  ): Promise<AuthOkResponse> {
+    return this.authPasswordFlowService.changePassword(
+      userId,
+      currentPassword,
+      newPassword,
+    );
   }
 }

@@ -1,4 +1,5 @@
-import { Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard, UserRound } from "lucide-react";
+import { Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard } from "lucide-react";
+import { SessionPaymentStatus } from "../../api/dashboard";
 import type { SessionData } from "../../api/dashboard";
 import { formatDate, formatDuration } from "../../../../utils/date";
 import { Button } from "../../../../components/atoms/Button";
@@ -6,8 +7,8 @@ import { Button } from "../../../../components/atoms/Button";
 
 const paymentLabel = (status: string) => {
   switch (status) {
-    case "PAID": return "Directo";
-    case "VOUCHER_REDEEMED": return "Voucher";
+    case SessionPaymentStatus.PAID: return "Directo";
+    case SessionPaymentStatus.VOUCHER_REDEEMED: return "Voucher";
     default: return status;
   }
 };
@@ -97,7 +98,7 @@ export function UserSessionGroup({
                   
                   {/* Fila superior: Tags e info principal */}
                   <div className="flex flex-wrap items-center gap-8">
-                    <span className="app-label opacity-40">Ronda {userSessions.length - idx}</span>
+                    <span className="app-label opacity-70">Ronda {userSessions.length - idx}</span>
 
                     <span className="flex items-center text-xs font-bold text-app-text-main group-hover/session:text-app-primary transition-colors">
                       <Calendar className="mr-3 h-4 w-4 text-app-text-muted" />
@@ -127,14 +128,13 @@ export function UserSessionGroup({
                   <div className="flex flex-wrap gap-8">
                     {[
                       { icon: Building2, label: "Origen", val: sourceLabel(session) },
-                      { icon: UserRound, label: "Profesional", val: session.therapistName ?? "Sin terapeuta" },
                       { icon: CreditCard, label: "Voucher", val: voucherUsageLabel(session) },
                     ].map((info, i) => (
-                      <div key={i} className="flex items-center gap-2 group/info">
-                        <info.icon className="h-4 w-4 text-app-text-muted opacity-40 group-hover/info:text-app-primary transition-colors" />
+                      <div key={i} className="flex items-center gap-3 group/info">
+                        <info.icon className="h-5 w-5 text-app-text-muted opacity-70 group-hover/info:text-app-primary transition-colors" />
                         <div className="flex flex-col">
-                          <span className="app-label !text-[8px] opacity-40 mb-1">{info.label}</span>
-                          <span className="text-[10px] font-bold text-app-text-main uppercase tracking-wider">{info.val}</span>
+                          <span className="app-label !text-[9px] opacity-70 mb-0.5">{info.label}</span>
+                          <span className="text-[11px] font-bold text-app-text-main uppercase tracking-wider">{info.val}</span>
                         </div>
                       </div>
                     ))}
