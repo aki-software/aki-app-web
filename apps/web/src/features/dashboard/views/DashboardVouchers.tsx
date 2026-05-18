@@ -86,7 +86,7 @@ export function DashboardVouchers() {
           if (!detail) setBatchDetailError("No se pudo cargar el detalle del lote.");
           else setSelectedBatchDetail(detail);
         }
-      } catch (err) {
+      } catch {
         if (isActive) setBatchDetailError("Error de red.");
       } finally {
         if (isActive) setBatchDetailLoading(false);
@@ -102,14 +102,14 @@ export function DashboardVouchers() {
       const sessions = await fetchVoucherSessions(voucherId);
       setVoucherSessions(sessions);
       setSelectedVoucherId(voucherId);
-    } catch (error) {
+    } catch {
       setErrorMessage('No se pudieron cargar las sesiones del voucher');
     } finally {
       setLoadingVoucherSessions(false);
     }
   };
 
-  const handleEmitVoucherSubmit = async (e: any) => {
+  const handleEmitVoucherSubmit = async (e: FormEvent<HTMLFormElement>) => {
     const result = await formManager.handleEmitVoucher(e);
     if (result) {
       setSuccessMessage(formManager.success); // Use message from hook
@@ -231,3 +231,4 @@ export function DashboardVouchers() {
     </div>
   );
 }
+

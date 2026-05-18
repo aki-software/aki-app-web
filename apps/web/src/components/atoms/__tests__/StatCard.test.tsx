@@ -29,7 +29,7 @@ describe('StatCard Component', () => {
   });
 
   it('should apply custom color classes', () => {
-    const { container } = render(
+    render(
       <StatCard 
         icon={Activity} 
         label="Errors" 

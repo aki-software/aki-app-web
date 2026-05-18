@@ -43,7 +43,7 @@ export const useVoucherForm = (therapists: TherapistOption[]) => {
       }
       setError("No se pudo emitir el lote. Verifica los datos e intenta nuevamente.");
       return null;
-    } catch (err) {
+    } catch {
       setError("Error inesperado al emitir el lote.");
       return null;
     } finally {

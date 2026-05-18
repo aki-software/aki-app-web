@@ -65,7 +65,7 @@ export const useVouchersManager = (user: AuthUser | null) => {
         fetchVouchersList(),
         isAdmin ? fetchInstitutions() : Promise.resolve([]),
         isAdmin ? fetchTherapists() : Promise.resolve([]),
-        fetchVoucherStats(user?.institutionId),
+        fetchVoucherStats(user?.institutionId ?? undefined),
       ]);
       setVouchers(voucherData);
       setInstitutions(institutionsData);

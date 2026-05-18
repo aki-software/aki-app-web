@@ -34,7 +34,7 @@ export const useVoucherActions = (onActionSuccess?: (message: string) => void, o
       }
       if (onActionError) onActionError(`No se pudo enviar el voucher ${code} por email.`);
       return false;
-    } catch (err) {
+    } catch {
       if (onActionError) onActionError("Error de red al enviar email.");
       return false;
     } finally {
@@ -58,7 +58,7 @@ export const useVoucherActions = (onActionSuccess?: (message: string) => void, o
       }
       if (onActionError) onActionError(`No se pudo revocar el voucher ${code}.`);
       return false;
-    } catch (err) {
+    } catch {
       if (onActionError) onActionError("Error de red al revocar voucher.");
       return false;
     } finally {

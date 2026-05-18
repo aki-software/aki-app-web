@@ -381,6 +381,27 @@ app/src/main/java/com/akit/app/
 
 ## 4. Refactor Phases
 
+### Phase 0: Infrastructure & Safety (2-3 days)
+
+**Branch:** `feat/ci-infrastructure` from `dev`
+
+> ⚠️ **MANDATORY** — No refactoring starts without these guardrails.
+
+#### 0.1 Establish CI Pipeline (Monorepo)
+- [ ] Create `.github/workflows/ci-platform.yml`
+- [ ] Implement `lint`, `test`, and `build` jobs using Turbo Cache.
+- [ ] Mandate status checks passing before merging to `dev`.
+
+#### 0.2 Establish CI Pipeline (Android)
+- [ ] Create `.github/workflows/ci-android.yml`
+- [ ] Implement `verify` (detekt + lint), `test`, and `assembleDebug` jobs.
+- [ ] Cache Gradle dependencies to optimize run time.
+
+#### 0.3 Git & Workflow Standards
+- [ ] Enforce "Conventional Commits".
+- [ ] Define PR template with refactor-specific checklist.
+- [ ] Branch protection for `main` and `dev`.
+
 ### Phase 1: Contracts Package (5-7 days)
 
 **Branch:** `refactor/contracts-package` from `develop`
