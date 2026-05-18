@@ -65,34 +65,57 @@ export const useInstitutionsManager = () => {
   const handleToggleStatus = async (institution: InstitutionOption) => {
     notify("", false);
     setSaving(true);
-    const success = await updateInstitutionStatus(institution.id, !institution.responsibleTherapistActive);
+    const success = await updateInstitutionStatus(institution.id, !institution.isActive);
     setSaving(false);
 
-    if (!success) return notify(`Error al cambiar estado de ${institution.name}.`, true);
-    await loadData();
-    notify(`Estado de ${institution.name} actualizado.`);
-  };
-
-  const handleResendAuth = async (institution: InstitutionOption) => {
-    if (!institution.responsibleTherapistUserId) {
-      return notify("No hay cuenta operativa asignada.", true);
+    if (!success) {
+      notify(`No se pudo ${institution.isActive ? "desactivar" : "activar"} la institución.`, true);
+      return false;
     }
-    notify("", false);
-    const sent = await resendInstitutionActivationInvitation(institution.responsibleTherapistUserId);
-    if (!sent) return notify("Fallo al reenviar invitación.", true);
-    notify("Invitación reenviada.");
+
+    await loadData();
+    notify(`Institución ${institution.name} ${!institution.isActive ? "activada" : "desactivada"}.`);
+    return true;
   };
 
-  const handleCreateAuth = async (institutionId: string, email: string) => {
-    notify("", false);
-    const created = await createInstitutionOperationalAccount({ institutionId, email });
-    if (!created) return notify("Error al crear cuenta.", true);
-    await loadData();
-    notify("Cuenta operativa creada.");
+  const handleResendActivation = async (userId: string) => {
+    setSaving(true);
+    const success = await resendInstitutionActivationInvitation(userId);
+    setSaving(false);
+    
+    if (success) notify("Invitación reenviada correctamente.");
+    else notify("No se pudo reenviar la invitación.", true);
+    return success;
+  };
+
+  const handleCreateOperational = async (institutionId: string, email: string) => {
+    setSaving(true);
+    const result = await createInstitutionOperationalAccount({ institutionId, email });
+    setSaving(false);
+
+    if (result) {
+      notify("Cuenta operativa creada.");
+      await loadData();
+      return true;
+    }
+    
+    notify("No se pudo crear la cuenta operativa.", true);
+    return false;
   };
 
   return {
-    institutions, loading, saving, message, error, notify,
-    loadData, handleCreate, handleUpdate, handleToggleStatus, handleResendAuth, handleCreateAuth
+    institutions,
+    loading,
+    saving,
+    message,
+    error,
+    loadData,
+    notify,
+    handleCreate,
+    handleUpdate,
+    handleToggleStatus,
+    handleResendActivation,
+    handleCreateOperational,
+    clearMessages: () => notify("", false),
   };
 };

@@ -52,13 +52,14 @@ export async function fetchInstitutions(): Promise<InstitutionOption[]> {
     return institutions.map((institution) => ({
       id: institution.id,
       name: institution.name,
+      isActive: institution.isActive ?? true,
       createdAt: institution.createdAt ?? null,
       billingEmail: institution.billingEmail ?? null,
       responsibleTherapistUserId: institution.responsibleTherapistUserId ?? null,
       responsibleTherapistName: institution.responsibleTherapistName ?? null,
       responsibleTherapistActive:
         institution.responsibleTherapistActive ?? false,
-      activationEmailSent: undefined,
+      activationEmailSent: (institution as any).activationEmailSent,
     }));
   } catch (error) {
     console.error("Error fetching institutions:", error);
@@ -96,9 +97,9 @@ export async function fetchInstitutionOverview(
 
 export async function createInstitution(
   data: CreateInstitutionDto
-): Promise<{ id: string } | null> {
+): Promise<{ id: string; name: string; activationEmailSent?: boolean } | null> {
   try {
-    return await apiClient.post<{ id: string }>("/institutions", data);
+    return await apiClient.post<{ id: string; name: string; activationEmailSent?: boolean }>("/institutions", data);
   } catch (error) {
     console.error("Error creating institution:", error);
     return null;
@@ -108,12 +109,24 @@ export async function createInstitution(
 export async function updateInstitution(
   id: string,
   data: UpdateInstitutionDto
-): Promise<boolean> {
+): Promise<{ id: string; name: string } | null> {
   try {
-    await apiClient.patch(`/institutions/${id}`, data);
-    return true;
+    return await apiClient.patch<{ id: string; name: string }>(`/institutions/${id}`, data);
   } catch (error) {
     console.error("Error updating institution:", error);
+    return null;
+  }
+}
+
+export async function updateInstitutionStatus(
+  id: string,
+  isActive: boolean
+): Promise<boolean> {
+  try {
+    await apiClient.patch(`/institutions/${id}`, { isActive });
+    return true;
+  } catch (error) {
+    console.error("Error updating institution status:", error);
     return false;
   }
 }

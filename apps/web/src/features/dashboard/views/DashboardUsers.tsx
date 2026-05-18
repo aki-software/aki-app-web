@@ -17,7 +17,8 @@ export function DashboardUsers() {
   const navigate = useNavigate();
   const { 
     institutions, loading, saving, message, error, notify,
-    loadData, handleCreate, handleUpdate, handleToggleStatus, handleResendAuth, handleCreateAuth 
+    loadData, handleCreate, handleUpdate, handleToggleStatus, 
+    handleResendActivation, handleCreateOperational 
   } = useInstitutionsManager();
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "PENDING">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,9 +107,9 @@ export function DashboardUsers() {
                 institution={inst}
                 onEdit={() => setEditingInst(inst)}
                 onToggleStatus={() => handleToggleStatus(inst)}
-                onResendActivation={() => onCardAction(handleResendAuth(inst), inst.id)}
+                onResendActivation={() => onCardAction(handleResendActivation(inst.id), inst.id)}
                 isResendingActivation={activeAsyncId === inst.id}
-                onCreateOperationalAccount={(data) => onCardAction(handleCreateAuth(data.institutionId, data.email), inst.id)}
+                onCreateOperationalAccount={(data) => onCardAction(handleCreateOperational(data.institutionId, data.email), inst.id)}
                 isCreatingOperationalAccount={activeAsyncId === inst.id}
                 onOpenOverview={(s) => navigate(`/dashboard/institutions/${s.id}`, { state: { institutionName: s.name } })}
               />

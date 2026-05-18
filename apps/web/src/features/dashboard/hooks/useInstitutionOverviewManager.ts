@@ -23,7 +23,7 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
 
       setLoading(true);
       try {
-        const data = await fetchInstitutionOverview({ institutionId, days: periodDays });
+        const data = await fetchInstitutionOverview(institutionId, periodDays);
         if (isActive) setOverview(data);
       } catch (error) {
         console.error("Error loading institution dashboard data:", error);

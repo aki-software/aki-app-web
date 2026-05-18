@@ -46,7 +46,7 @@ export const useVoucherStats = (user: AuthUser | null, isAdmin: boolean) => {
 
   const clientOptions = useMemo(() => {
     const entries = new Map<string, string>();
-    vouchers.forEach((v) => {
+    (vouchers as any[]).forEach((v) => {
       const key = v.ownerInstitutionId ?? "__UNASSIGNED__";
       const label = v.ownerInstitutionName || "Institución no informada";
       if (!entries.has(key)) entries.set(key, label);
