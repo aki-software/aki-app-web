@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity.js';
-import { Institution } from '../institutions/entities/institution.entity.js';
 import { USER_ERROR_MESSAGES } from './users.constants.js';
 
 @Injectable()

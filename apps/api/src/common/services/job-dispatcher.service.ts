@@ -145,7 +145,7 @@ export class JobDispatcherService {
         );
       }
 
-      throw new Error(`Unsupported email template: ${template}`);
+      throw new Error('Unsupported email template: ' + String(template));
     });
   }
 

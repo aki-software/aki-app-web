@@ -5,7 +5,7 @@ import { UsersService } from './users.service.js';
 import { InstitutionsService } from '../institutions/institutions.service.js';
 import { AccountActivationNotifierService } from '../common/notifications/account-activation-notifier.service.js';
 import { CryptoService } from '../common/services/crypto.service.js';
-import { User, UserRole } from './entities/user.entity.js';
+import { UserRole } from './entities/user.entity.js';
 
 describe('UserRegistrationService', () => {
   let service: UserRegistrationService;

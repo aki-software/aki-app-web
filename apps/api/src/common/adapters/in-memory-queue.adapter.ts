@@ -55,7 +55,11 @@ export class InMemoryQueueAdapter implements QueueAdapter {
       },
     );
 
-    if (promise && typeof (promise as any).catch === 'function') {
+    if (
+      promise !== undefined &&
+      promise !== null &&
+      typeof (promise as any).catch === 'function'
+    ) {
       (promise as any).catch((error: any) => {
         const message = error instanceof Error ? error.message : String(error);
         this.logger.error(`Inline job failed job=${jobName} error=${message}`);

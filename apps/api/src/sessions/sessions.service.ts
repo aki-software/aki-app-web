@@ -172,7 +172,7 @@ export class SessionsService {
     let savedSession: Session;
     try {
       savedSession = await this.sessionRepository.save(session);
-    } catch (_error: unknown) {
+    } catch {
       if (idempotencyKey) {
         const existing = await this.sessionRepository.findOne({
           where: { syncKey: idempotencyKey },

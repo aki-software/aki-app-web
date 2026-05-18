@@ -178,7 +178,7 @@ export class ReportService {
         return `data:${mime};base64,${buffer.toString('base64')}`;
       }
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
