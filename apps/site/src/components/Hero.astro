@@ -6,7 +6,7 @@ interface Props {
   t: Translation;
 }
 
-const { t } = Astro.props;
+const { t, locale } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
@@ -41,59 +41,71 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
         </div>
 
         <p class="text-xs text-dark-muted mt-4 reveal reveal-delay-3">
-          {t.locale === 'es' ? 'Gratis · Sin registro · 10 minutos' : 'Free · No signup · 10 minutes'}
+          {locale === 'es' ? 'Gratis · Sin registro · 10 minutos' : 'Free · No signup · 10 minutes'}
         </p>
       </div>
 
       <!-- Right: Swipe cards demo -->
       <div class="flex-shrink-0 w-full max-w-sm lg:max-w-none lg:w-[340px] reveal reveal-delay-2">
         <div class="relative" style="height: 400px;">
-          <!-- Background card -->
-          <div class="absolute inset-x-4 top-8 bottom-8 rounded-2xl bg-dark-surface border border-dark-border opacity-30 rotate-6"></div>
-
-          <!-- Middle card -->
-          <div class="absolute inset-x-2 top-4 bottom-4 rounded-2xl bg-dark-surface border border-dark-border opacity-50 -rotate-3"></div>
-
-          <!-- Front card - animated swipe -->
-          <div class="absolute inset-0 rounded-2xl bg-dark-surface border border-dark-border shadow-2xl flex flex-col items-center justify-center p-8 animate-swipe">
-            <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-6">
-              <span class="text-3xl">🎨</span>
+          <!-- Card Stack Decoration -->
+          <div class="absolute inset-0 bg-primary/20 rounded-[32px] rotate-3 translate-x-4 translate-y-4"></div>
+          <div class="absolute inset-0 bg-dark-surface border border-dark-border rounded-[32px] -rotate-3 -translate-x-2 -translate-y-2"></div>
+          
+          <!-- Main Card Content -->
+          <div class="absolute inset-0 bg-dark-surface border-2 border-primary/30 rounded-[32px] p-6 shadow-2xl flex flex-col overflow-hidden">
+            <div class="h-48 bg-dark-bg/50 rounded-2xl mb-6 overflow-hidden flex items-center justify-center">
+               <svg class="w-20 h-20 text-primary opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                  <path d="M12 7v10M8 12h8" />
+               </svg>
             </div>
-            <p class="font-display font-bold text-lg text-dark-text text-center leading-tight mb-2 whitespace-pre-line">
-              {t.hero.phoneCardTitle}
-            </p>
-            <p class="text-sm text-dark-muted text-center">{t.hero.phoneCardSub}</p>
+            
+            <div class="space-y-3">
+              <div class="h-6 w-3/4 bg-primary/10 rounded-full"></div>
+              <div class="h-4 w-full bg-dark-muted/10 rounded-full"></div>
+              <div class="h-4 w-5/6 bg-dark-muted/10 rounded-full"></div>
+            </div>
 
-            <!-- Swipe indicators -->
-            <div class="flex items-center gap-4 mt-8">
-              <div class="w-12 h-12 rounded-full border-2 border-destructive/40 flex items-center justify-center">
-                <svg class="w-5 h-5 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
+            <div class="mt-auto flex justify-between gap-4">
+              <div class="w-12 h-12 rounded-full border border-rose-500/30 flex items-center justify-center text-rose-500">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </div>
-              <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
+              <div class="w-12 h-12 rounded-full border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
             </div>
+          </div>
+
+          <!-- Floating Badges -->
+          <div class="absolute -top-4 -right-4 bg-primary text-dark-bg text-[10px] font-black uppercase tracking-tighter px-3 py-1.5 rounded-full shadow-lg rotate-12">
+            Holland RIASEC
+          </div>
+          <div class="absolute -bottom-2 -left-6 bg-dark-surface border border-dark-border px-3 py-2 rounded-xl shadow-xl flex items-center gap-2 -rotate-6">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span class="text-[10px] font-medium text-dark-muted uppercase tracking-widest">{t.hero.phoneCardSub}</span>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Scroll indicator -->
-  <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
-    <div class="w-5 h-8 rounded-full border border-dark-muted/30 flex justify-center pt-1.5">
-      <div class="w-1 h-1.5 rounded-full bg-dark-muted/50 animate-bounce"></div>
-    </div>
-  </div>
 </section>
 
-<script>
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
-</script>
+<style>
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .reveal-delay-1 { animation-delay: 0.1s; }
+  .reveal-delay-2 { animation-delay: 0.2s; }
+  .reveal-delay-3 { animation-delay: 0.3s; }
+
+  @keyframes reveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
