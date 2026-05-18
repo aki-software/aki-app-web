@@ -31,6 +31,8 @@
     "db:reset": "pnpm build && node ./node_modules/typeorm/cli.js schema:drop -d dist/config/typeorm.config.js && node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js && node dist/database/seeds/base-seed.js"
   },
   "dependencies": {
+    "@akit/contracts": "workspace:*",
+    "@akit/design-tokens": "workspace:*",
     "@aws-sdk/client-s3": "^3.1014.0",
     "@aws-sdk/lib-storage": "^3.1014.0",
     "@nestjs/common": "^11.0.1",
@@ -38,10 +40,14 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/helmet": "^4.0.0",
+    "@types/ioredis": "^5.0.0",
     "bullmq": "^5.33.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "dotenv": "^17.3.1",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
     "nestjs-pino": "^4.6.0",
     "pg": "^8.19.0",
     "pino-http": "^11.0.0",

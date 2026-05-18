@@ -1,8 +1,8 @@
 import { SessionActivityData } from "@akit/contracts";
 import {
+    Area,
+    AreaChart,
     CartesianGrid,
-    Line,
-    LineChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -17,11 +17,16 @@ export function SessionsChart({ data }: SessionsChartProps) {
   return (
     <div className="h-full w-full min-w-0 overflow-hidden">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart
+        <AreaChart
           data={data}
           margin={{ top: 8, right: 12, bottom: 8, left: 0 }}
         >
-          {/* Usamos variables CSS para que el gráfico sea reactivo al tema */}
+          <defs>
+            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="var(--color-app-primary)" stopOpacity={0.4}/>
+              <stop offset="95%" stopColor="var(--color-app-primary)" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
           <CartesianGrid
             strokeDasharray="3 3"
             vertical={false}
@@ -60,24 +65,20 @@ export function SessionsChart({ data }: SessionsChartProps) {
             }}
             itemStyle={{ color: "var(--color-app-primary)" }}
           />
-          <Line
+          <Area
             type="monotone"
             dataKey="count"
             stroke="var(--color-app-primary)"
             strokeWidth={3}
-            dot={{
-              r: 5,
-              fill: "var(--color-app-primary)",
-              strokeWidth: 3,
-              stroke: "var(--color-app-surface)",
-            }}
+            fillOpacity={1}
+            fill="url(#colorCount)"
             activeDot={{
               r: 8,
               strokeWidth: 0,
               fill: "var(--color-app-primary)",
             }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

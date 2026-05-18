@@ -10,20 +10,7 @@ import {
     YAxis,
 } from "recharts";
 
-const COLORS = [
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#8B5CF6",
-  "#EC4899",
-  "#6366F1",
-  "#14B8A6",
-  "#F43F5E",
-  "#EAB308",
-  "#0EA5E9",
-  "#64748B",
-];
+
 
 interface ResultsDistributionChartProps {
   data: CategoryDistributionData[];
@@ -78,11 +65,17 @@ export function ResultsDistributionChart({
             itemStyle={{ color: "var(--color-app-primary)" }}
             cursor={{ fill: "var(--color-app-bg)", opacity: 0.4 }}
           />
-          <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={14}>
+          <Bar 
+            dataKey="count" 
+            radius={[0, 8, 8, 0]} 
+            barSize={14}
+            label={{ position: 'right', fill: 'var(--color-app-text-main)', fontSize: 10, fontWeight: 700 }}
+          >
             {sortedData.map((_, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={COLORS[index % COLORS.length]}
+                fill="var(--color-app-primary)"
+                fillOpacity={Math.max(1 - index * 0.15, 0.4)}
               />
             ))}
           </Bar>

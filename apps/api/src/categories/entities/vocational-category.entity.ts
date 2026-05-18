@@ -9,20 +9,20 @@ import {
 @Entity('vocational_category')
 export class VocationalCategory {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true })
-  categoryId: string; // Ej: ART, HUM, SERV...
+  categoryId!: string; // Ej: ART, HUM, SERV...
 
   @Column()
-  title: string; // Ej: Artístico
+  title!: string; // Ej: Artístico
 
   @Column({ type: 'text' })
-  description: string; // Descripción breve devuuantada en el Modal web o APP
+  description!: string; // Descripción breve levantada en el modal web o app
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

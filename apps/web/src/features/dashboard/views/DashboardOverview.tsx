@@ -1,5 +1,5 @@
 import { DashboardStatsResponse } from "@akit/contracts";
-import { Activity, BarChart3, Calendar, Sparkles, TrendingUp } from "lucide-react";
+import { BarChart3, Calendar, Sparkles, TrendingUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { fetchDashboardStats } from "../api/dashboard";
@@ -8,6 +8,8 @@ import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashbo
 import { Spinner } from "../../../components/atoms/Spinner";
 import { StatCard } from "../../../components/molecules/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
+import { PeriodSelector } from "../../../components/molecules/PeriodSelector";
+import { EmptyState } from "../../../components/molecules/EmptyState";
 import { ActivityFeed } from "../components/overview/ActivityFeed";
 import { AdminAlerts } from "../components/overview/AdminAlerts";
 import { OverviewHighlights } from "../components/overview/OverviewHighlights";
@@ -19,11 +21,13 @@ import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
   const [adminStats, setAdminStats] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [periodDays, setPeriodDays] = useState<number>(7);
 
   useEffect(() => {
     const loadStats = async () => {
+      setLoading(true);
       try {
-        const data = await fetchDashboardStats();
+        const data = await fetchDashboardStats(periodDays);
         setAdminStats(data);
       } catch (error) {
         console.error("Error loading stats:", error);
@@ -32,7 +36,7 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
       }
     };
     loadStats();
-  }, []);
+  }, [periodDays]);
 
   const sessionsSummary = useMemo(() => {
     if (!adminStats || adminStats.sessionsActivity.length === 0) return null;
@@ -78,11 +82,14 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             {uiTexts.header.subtitle}
           </p>
         </div>
-        <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-app-surface/80 border border-app-border backdrop-blur-xl">
-          <Calendar className="h-4 w-4 text-app-text-muted opacity-40" />
-          <span className="app-label !text-[10px] opacity-60 uppercase">
-            {getFormattedCurrentDate()}
-          </span>
+        <div className="flex items-center gap-3">
+          <PeriodSelector value={periodDays} onChange={setPeriodDays} />
+          <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-app-surface/80 border border-app-border backdrop-blur-xl">
+            <Calendar className="h-4 w-4 text-app-text-muted opacity-40" />
+            <span className="app-label !text-[10px] opacity-60 uppercase">
+              {getFormattedCurrentDate()}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -99,8 +106,9 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
                 <StatCard label="Total del periodo" value={sessionsSummary.totalStarted} />
                 <StatCard label="Promedio diario" value={sessionsSummary.dailyAverage} />
                 <StatCard
-                  label="Mejor día"
-                  value={`${sessionsSummary.peakDay.date} (${sessionsSummary.peakDay.count} iniciadas)`}
+                  label="Pico de actividad"
+                  value={`${sessionsSummary.peakDay.count} evaluaciones`}
+                  description={`Registradas el ${sessionsSummary.peakDay.date}`}
                 />
               </div>
             )}
@@ -109,11 +117,11 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             </div>
           </DashboardWidget>
         ) : (
-          <div className="col-span-full app-card !p-12 bg-app-surface/70 flex items-center justify-center border-dashed">
-            <div className="text-center space-y-3 opacity-30">
-              <Activity className="h-10 w-10 mx-auto" />
-              <p className="app-label text-xs">Analítica operativa en preparación</p>
-            </div>
+          <div className="col-span-full app-card !p-1 bg-app-surface/70 border-dashed">
+            <EmptyState
+              title="Analítica operativa en preparación"
+              description="Estamos procesando los datos para mostrarte las métricas de este periodo."
+            />
           </div>
         )}
       </div>

@@ -7,11 +7,11 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Institution } from '../../institutions/entities/institution.entity';
-import { User } from '../../users/entities/user.entity';
-import { Session } from '../../sessions/entities/session.entity';
-import { VoucherBatch } from './voucher-batch.entity';
-import { VoucherOwnerType, VoucherStatus } from './voucher.enums';
+import { Institution } from '../../institutions/entities/institution.entity.js';
+import { User } from '../../users/entities/user.entity.js';
+import { Session } from '../../sessions/entities/session.entity.js';
+import { VoucherBatch } from './voucher-batch.entity.js';
+import { VoucherOwnerType, VoucherStatus } from './voucher.enums.js';
 
 @Entity('vouchers')
 export class Voucher {
@@ -119,6 +119,27 @@ export class Voucher {
     this.status = VoucherStatus.USED;
     this.redeemedSessionId = sessionId;
     this.redeemedAt = new Date();
+  }
+
+  markAsSent(customEmail?: string) {
+    if (
+      this.status !== VoucherStatus.AVAILABLE &&
+      this.status !== VoucherStatus.SENT
+    ) {
+      throw new Error(
+        `Voucher cannot be sent in its current status: ${this.status}`,
+      );
+    }
+    if (this.expiresAt && new Date() > this.expiresAt) {
+      throw new Error('Voucher has expired.');
+    }
+    this.sentAt = new Date();
+    if (this.status === VoucherStatus.AVAILABLE) {
+      this.status = VoucherStatus.SENT;
+    }
+    if (customEmail?.trim()) {
+      this.assignedPatientEmail = customEmail.trim();
+    }
   }
 
   revoke() {

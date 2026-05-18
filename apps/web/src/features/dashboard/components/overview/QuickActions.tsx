@@ -27,7 +27,7 @@ export function QuickActions({ isAdmin }: Props) {
     },
     {
       id: "support",
-      title: isAdmin ? "Centro de soporte" : "Cuenta operativa",
+      title: isAdmin ? "Centro de soporte" : "Cambio de contraseña",
       desc: isAdmin ? "Guías y ajustes del sistema." : "Cambiar contraseña y ajustes.",
       icon: HelpCircle,
       color: "text-amber-500 bg-amber-500/5 border-amber-500/10",

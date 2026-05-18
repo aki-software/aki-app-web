@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
-import { QueueAdapter, QueueJobOptions } from './queue.adapter';
-import { InMemoryQueueAdapter } from './in-memory-queue.adapter';
+import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
+import { InMemoryQueueAdapter } from './in-memory-queue.adapter.js';
+import { applyQueueDefaults } from './queue-defaults.js';
 
 type RedisConnectionConfig =
   | { url: string }
@@ -46,7 +47,8 @@ export class BullMQQueueAdapter implements QueueAdapter {
       return;
     }
 
-    await this.queue.add(jobName, payload, this.mapJobOptions(options));
+    const resolvedOptions = applyQueueDefaults(jobName, options);
+    await this.queue.add(jobName, payload, this.mapJobOptions(resolvedOptions));
   }
 
   private getRedisConnection(): RedisConnectionConfig {

@@ -1,11 +1,12 @@
 import { AdminActivityEvent } from "@akit/contracts";
-import { Activity, ClipboardList, MessageSquare, RefreshCw, Ticket } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { fetchAdminActivityHistory } from "../api/dashboard";
 import { toReadableTimestamp } from "../../../utils/date";
 import { Button } from "../../../components/atoms/Button";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { SearchInput } from "../../../components/molecules/SearchInput";
+import { EventIcon } from "../../../components/atoms/EventIcon";
 
 type ActivityFilter = "ALL" | AdminActivityEvent["type"];
 
@@ -16,16 +17,6 @@ const FILTER_OPTIONS: Array<{ value: ActivityFilter; label: string }> = [
   { value: "VOUCHER_ISSUED", label: "Vouchers emitidos" },
   { value: "VOUCHER_REDEEMED", label: "Vouchers canjeados" },
 ];
-
-function getIcon(type: AdminActivityEvent["type"]) {
-  switch (type) {
-    case "VOUCHER_REDEEMED": return <Ticket className="h-4 w-4 text-emerald-500" />;
-    case "VOUCHER_ISSUED": return <Ticket className="h-4 w-4 text-app-primary" />;
-    case "SESSION_COMPLETED": return <ClipboardList className="h-4 w-4 text-emerald-500" />;
-    case "SESSION_STARTED": return <Activity className="h-4 w-4 text-amber-500" />;
-    default: return <MessageSquare className="h-4 w-4 text-app-text-muted" />;
-  }
-}
 
 export function DashboardActivity() {
   const [events, setEvents] = useState<AdminActivityEvent[]>([]);
@@ -124,7 +115,7 @@ export function DashboardActivity() {
                 className="grid gap-3 px-5 py-4 sm:grid-cols-[auto_1fr_auto] sm:items-start sm:gap-5 sm:px-8 hover:bg-app-surface/50 transition-colors"
               >
                 <div className="h-10 w-10 rounded-xl border border-app-border bg-app-bg/40 flex items-center justify-center">
-                  {getIcon(event.type)}
+                  <EventIcon type={event.type} />
                 </div>
 
                 <div className="min-w-0">

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
@@ -13,6 +14,7 @@
   "include": ["src/**/*"],
   "exclude": [
     "src/export-json-schemas.ts",
-    "src/generate-android-models.ts"
+    "src/generate-android-models.ts",
+    "src/__tests__/**/*"
   ]
 }

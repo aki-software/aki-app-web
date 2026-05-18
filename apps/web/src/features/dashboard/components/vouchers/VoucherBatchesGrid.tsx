@@ -2,6 +2,7 @@ import { Filter } from "lucide-react";
 import { VoucherBatchSummary } from "../../api/dashboard";
 import { VoucherBatchRow } from "./VoucherBatchRow";
 import { Pagination } from "../../../../components/molecules/Pagination";
+import { EmptyState } from "../../../../components/molecules/EmptyState";
 
 interface VoucherBatchesGridProps {
   items: VoucherBatchSummary[];
@@ -22,9 +23,12 @@ export const VoucherBatchesGrid = ({
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {items.length === 0 ? (
-          <div className="col-span-full app-card !p-20 text-center flex flex-col items-center gap-4 opacity-40">
-            <Filter className="h-12 w-12" />
-            <p className="app-label">No hay lotes que coincidan con estos filtros</p>
+          <div className="col-span-full py-10">
+            <EmptyState
+              icon={<Filter className="h-10 w-10" />}
+              title="Sin resultados"
+              description="No hay lotes que coincidan con estos filtros."
+            />
           </div>
         ) : (
           items.map((batch) => (

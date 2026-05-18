@@ -1,23 +1,34 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository, In } from 'typeorm';
-import { MailService } from '../mail/mail.service';
-import { CreateSessionDto } from './dto/create-session.dto';
-import { Session, SessionPaymentStatus } from './entities/session.entity';
-
-import { PdfService } from '../common/services/pdf.service';
-import { StorageService } from '../common/services/storage.service';
 import {
-  AdminDashboardService,
-  DashboardStatsPayload,
-} from './services/admin-dashboard.service';
-import { ReportService } from './services/report.service';
-import { ReportOrchestratorService } from './services/report-orchestrator.service';
-import type { QueueAdapter } from '../common/adapters/queue.adapter';
-import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
-import { JobNames, SendReportJobPayload } from '../common/jobs';
-import { SessionMetricsService } from './services/session-metrics.service';
-import { SessionScope } from './types/session-scope.type';
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import {
+  type FindOptionsWhere,
+  Repository,
+  In,
+  DataSource,
+  type EntityManager,
+} from 'typeorm';
+import { CreateSessionDto } from './dto/create-session.dto.js';
+import { Session, SessionPaymentStatus } from './entities/session.entity.js';
+
+import { AdminDashboardService } from './services/admin-dashboard.service.js';
+import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
+import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
+import { SessionMetricsService } from './services/session-metrics.service.js';
+import { SessionScope } from './types/session-scope.type.js';
+import { VouchersService } from '../vouchers/vouchers.service.js';
+import { Voucher } from '../vouchers/entities/voucher.entity.js';
+import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
+import { AdminActivityItem, RawRecentSessionRow } from '@akit/contracts';
+
+import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 
 @Injectable()
 export class SessionsService {
@@ -26,162 +37,356 @@ export class SessionsService {
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-    private readonly mailService: MailService,
-    private readonly pdfService: PdfService,
-    private readonly storageService: StorageService,
-    private readonly reportService: ReportService,
+    @Inject(forwardRef(() => AdminDashboardService))
     private readonly adminDashboardService: AdminDashboardService,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
+    private readonly vouchersService: VouchersService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async create(createSessionDto: CreateSessionDto): Promise<Session> {
-    const session = this.sessionRepository.create(createSessionDto);
-    const savedSession = await this.sessionRepository.save(session);
+  async getRecentActivity(limit: number = 50): Promise<AdminActivityItem[]> {
+    const sessions = await this.sessionRepository
+      .createQueryBuilder('session')
+      .select('session.id', 'id')
+      .addSelect('session.patientName', 'patientName')
+      .addSelect('session.createdAt', 'createdAt')
+      .addSelect('session.sessionDate', 'sessionDate')
+      .addSelect('session.reportUnlockedAt', 'reportUnlockedAt')
+      .addSelect('session.paidAt', 'paidAt')
+      .addSelect('session.voucherId', 'voucherId')
+      .addSelect('session.paymentStatus', 'paymentStatus')
+      .addSelect('COUNT(result.id)', 'resultsCount')
+      .leftJoin('session.results', 'result')
+      .groupBy('session.id')
+      .addGroupBy('session.patientName')
+      .addGroupBy('session.createdAt')
+      .addGroupBy('session.sessionDate')
+      .addGroupBy('session.reportUnlockedAt')
+      .addGroupBy('session.paidAt')
+      .addGroupBy('session.voucherId')
+      .addGroupBy('session.paymentStatus')
+      .orderBy('session.createdAt', 'DESC')
+      .limit(limit)
+      .getRawMany<RawRecentSessionRow>();
 
-    // Calcular métricas automáticamente
+    return sessions.map((session) => {
+      const resultsCount = parseInt(session.resultsCount ?? '0', 10);
+      const isCompleted = resultsCount > 0;
+      const channelLabel =
+        session.voucherId ||
+        session.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
+          ? 'con voucher'
+          : 'sin voucher';
+      const occurredAt = isCompleted
+        ? this.toIso(
+            session.reportUnlockedAt,
+            session.paidAt,
+            session.sessionDate,
+            session.createdAt,
+          )
+        : this.toIso(session.sessionDate, session.createdAt);
+
+      return {
+        id: `session-${session.id}`,
+        type: isCompleted ? 'SESSION_COMPLETED' : 'SESSION_STARTED',
+        title: isCompleted ? 'Sesión completada' : 'Sesión iniciada',
+        description: isCompleted
+          ? `${session.patientName || 'Paciente sin nombre'} completó un test ${channelLabel}.`
+          : `${session.patientName || 'Paciente sin nombre'} inició un test ${channelLabel}.`,
+        occurredAt,
+      };
+    });
+  }
+
+  async getStalledSessionsCount(): Promise<number> {
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const countRow = await this.sessionRepository
+      .createQueryBuilder('session')
+      .where('session.createdAt < :dayAgo', { dayAgo })
+      .andWhere((qb) => {
+        const subquery = qb
+          .subQuery()
+          .select('1')
+          .from('session_results', 'sr')
+          .where('sr.session_id = session.id')
+          .getQuery();
+        return `NOT EXISTS (${subquery})`;
+      })
+      .select('COUNT(*)', 'count')
+      .getRawOne<{ count: string }>();
+
+    return parseInt(countRow?.count ?? '0', 10);
+  }
+
+  private toIso(...values: Array<Date | string | null | undefined>): string {
+    for (const value of values) {
+      if (!value) continue;
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString();
+      }
+    }
+    return new Date(0).toISOString();
+  }
+
+  private applyScope(scope?: SessionScope): FindOptionsWhere<Session> {
+    const where: FindOptionsWhere<Session> = {};
+
+    if (scope) {
+      if (scope.institutionId) {
+        where.institutionId = scope.institutionId;
+      } else if (scope.therapistUserId) {
+        where.therapistUserId = scope.therapistUserId;
+      } else if (scope.patientId && scope.role?.toUpperCase() === 'PATIENT') {
+        where.patientId = scope.patientId;
+      }
+    }
+
+    return where;
+  }
+
+  async create(
+    createSessionDto: CreateSessionDto,
+    options?: { idempotencyKey?: string },
+  ): Promise<{ session: Session; duplicated: boolean }> {
+    const idempotencyKey = options?.idempotencyKey?.trim();
+    if (idempotencyKey) {
+      const existing = await this.sessionRepository.findOne({
+        where: { syncKey: idempotencyKey },
+      });
+      if (existing) {
+        return { session: existing, duplicated: true };
+      }
+    }
+
+    const session = this.sessionRepository.create({
+      ...createSessionDto,
+      syncKey: idempotencyKey ?? null,
+    });
+
+    let savedSession: Session;
+    try {
+      savedSession = await this.sessionRepository.save(session);
+    } catch (_error: unknown) {
+      if (idempotencyKey) {
+        const existing = await this.sessionRepository.findOne({
+          where: { syncKey: idempotencyKey },
+        });
+        if (existing) {
+          return { session: existing, duplicated: true };
+        }
+      }
+      throw new ConflictException('No se pudo crear la sesión');
+    }
     try {
       await this.sessionMetricsService.calculateAndSaveMetrics(savedSession.id);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(
         `Failed to calculate metrics for session ${savedSession.id}:`,
         error,
       );
     }
 
-    return savedSession;
+    return { session: savedSession, duplicated: false };
   }
 
   async findAll(
-    page: number = 1,
-    limit: number = 20,
+    page: number = SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE,
+    limit: number = SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
     scope?: SessionScope,
   ): Promise<{ data: Session[]; count: number }> {
-    const where = this.buildScopedWhere(scope);
+    const where = this.applyScope(scope);
 
     const [data, count] = await this.sessionRepository.findAndCount({
-      relations: ['results', 'institution', 'therapist', 'voucher'],
       where,
-      order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
+      order: { createdAt: 'DESC' },
     });
+
     return { data, count };
   }
 
   async findOne(id: string, scope?: SessionScope): Promise<Session> {
-    const session = await this.sessionRepository.findOne({
-      where: this.buildScopedWhere(scope, id),
-      relations: ['results', 'swipes', 'institution', 'therapist', 'voucher'],
-    });
+    const where = { ...this.applyScope(scope), id };
+
+    const session = await this.sessionRepository.findOne({ where });
     if (!session) {
-      throw new NotFoundException('Session not found');
+      throw new NotFoundException('Sesión no encontrada');
     }
+
     return session;
   }
 
-  async sendReport(
-    sessionId: string,
-    targetEmail: string,
+  async update(
+    id: string,
+    updateSessionDto: Partial<CreateSessionDto>,
     scope?: SessionScope,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    localReportPath?: string;
-  }> {
-    if (this.queueAdapter.isConfigured()) {
-      const normalizedScope = scope
-        ? {
-            role: scope.role,
-            patientId: scope.patientId,
-            therapistUserId: scope.therapistUserId,
-            institutionId: scope.institutionId ?? undefined,
-          }
-        : undefined;
-
-      const payload: SendReportJobPayload = {
-        attempts: 4,
-        backoffMs: 60_000,
-        backoffType: 'exponential',
-        timeoutMs: 90_000,
-        concurrencyKey: 'report',
-        concurrencyLimit: 2,
-        sessionId,
-        targetEmail,
-        scope: normalizedScope,
-      };
-      await this.queueAdapter.enqueue(JobNames.SendReport, payload, {
-        attempts: payload.attempts,
-        backoffMs: payload.backoffMs,
-        backoffType: payload.backoffType,
-        timeoutMs: payload.timeoutMs,
-        concurrencyKey: payload.concurrencyKey,
-        concurrencyLimit: payload.concurrencyLimit,
-      });
-      return {
-        success: true,
-        message: `Email encolado hacia ${targetEmail}`,
-      };
-    }
-
-    return await this.reportOrchestratorService.sendReport(
-      sessionId,
-      targetEmail,
-      scope,
-    );
+  ): Promise<Session> {
+    const session = await this.findOne(id, scope);
+    Object.assign(session, updateSessionDto);
+    return await this.sessionRepository.save(session);
   }
 
-  async getAdminOverview(): Promise<DashboardStatsPayload> {
-    return await this.adminDashboardService.getAdminOverview();
+  async remove(id: string, scope?: SessionScope): Promise<void> {
+    const session = await this.findOne(id, scope);
+    await this.sessionRepository.remove(session);
   }
 
-  async getAdminActivity(
-    limit: number = 50,
-  ): Promise<DashboardStatsPayload['activity']> {
+  async findByIds(ids: string[]): Promise<Session[]> {
+    return await this.sessionRepository.find({
+      where: { id: In(ids) },
+    });
+  }
+
+  async getAdminOverview(days: number): Promise<unknown> {
+    return await this.adminDashboardService.getAdminOverview(days);
+  }
+
+  async getAdminActivity(limit: number): Promise<unknown> {
     return await this.adminDashboardService.getAdminActivity(limit);
   }
 
-  private buildScopedWhere(
-    scope?: SessionScope,
-    sessionId?: string,
-  ): FindOptionsWhere<Session> | FindOptionsWhere<Session>[] | undefined {
-    const normalizedRole = scope?.role?.toUpperCase();
+  async sendReport(
+    id: string,
+    email: string,
+    customTitle: string | null,
+    scope: SessionScope,
+  ): Promise<{ success: boolean; message: string }> {
+    const session = await this.findOne(id, scope);
+    const result = await this.reportOrchestratorService.sendReport(
+      session.id,
+      email,
+      null,
+      scope,
+    );
+    return {
+      success: result.success,
+      message: result.message,
+    };
+  }
 
-    if (normalizedRole === 'ADMIN') {
-      const adminWhere: FindOptionsWhere<Session> = {
-        paymentStatus: In([
-          SessionPaymentStatus.PAID,
-          SessionPaymentStatus.VOUCHER_REDEEMED,
-        ]),
-      };
-      return sessionId ? { ...adminWhere, id: sessionId } : adminWhere;
-    }
+  async redeemVoucher(
+    code: string,
+    sessionId: string,
+  ): Promise<{
+    success: boolean;
+    status: 'REDEEMED' | 'ALREADY_REDEEMED_BY_THIS_SESSION';
+    voucherCode: string;
+    sessionId: string;
+  }> {
+    return await this.dataSource.transaction(async (manager: EntityManager) => {
+      const { voucher, action } = await this.vouchersService.redeemVoucher(
+        manager,
+        code,
+        sessionId,
+      );
 
-    const scopedWhere =
-      normalizedRole === 'PATIENT' && scope?.patientId
-        ? { patientId: scope.patientId }
-        : scope?.therapistUserId && scope?.institutionId
-          ? [
-              { therapistUserId: scope.therapistUserId },
-              { institutionId: scope.institutionId },
-            ]
-          : scope?.therapistUserId
-            ? { therapistUserId: scope.therapistUserId }
-            : scope?.institutionId
-              ? { institutionId: scope.institutionId }
-              : { id: '__forbidden__' };
+      const sessionRepository = manager.getRepository(Session);
+      const session = await sessionRepository.findOne({
+        where: { id: sessionId },
+      });
 
-    if (sessionId) {
-      if (Array.isArray(scopedWhere)) {
-        return scopedWhere.map((condition) => ({
-          ...condition,
-          id: sessionId,
-        }));
+      if (!session) {
+        throw new NotFoundException('SESSION_NOT_FOUND');
       }
-      return { ...scopedWhere, id: sessionId };
+
+      if (action === 'ALREADY_REDEEMED') {
+        this.applyVoucherToSession(session, voucher);
+        await sessionRepository.save(session);
+        return {
+          success: true,
+          status: 'ALREADY_REDEEMED_BY_THIS_SESSION' as const,
+          voucherCode: voucher.code,
+          sessionId,
+        };
+      }
+
+      this.applyVoucherToSession(session, voucher);
+      await sessionRepository.save(session);
+
+      return {
+        success: true,
+        status: 'REDEEMED' as const,
+        voucherCode: voucher.code,
+        sessionId,
+      };
+    });
+  }
+
+  async findVoucherSessions(
+    voucherId: string,
+    scope: VoucherScope,
+    filters?: {
+      startDate?: string;
+      endDate?: string;
+      minDuration?: string;
+      maxDuration?: string;
+    },
+  ): Promise<Session[]> {
+    const qb = this.sessionRepository
+      .createQueryBuilder('session')
+      .where('session.voucherId = :voucherId', { voucherId });
+
+    if (scope.role !== 'ADMIN') {
+      if (scope.ownerInstitutionId) {
+        qb.andWhere('session.institutionId = :institutionId', {
+          institutionId: scope.ownerInstitutionId,
+        });
+      } else if (scope.ownerUserId) {
+        qb.andWhere('session.therapistUserId = :userId', {
+          userId: scope.ownerUserId,
+        });
+      }
     }
-    return scopedWhere;
+
+    if (filters?.startDate) {
+      qb.andWhere('session.createdAt >= :startDate', {
+        startDate: filters.startDate,
+      });
+    }
+    if (filters?.endDate) {
+      qb.andWhere('session.createdAt <= :endDate', {
+        endDate: filters.endDate,
+      });
+    }
+    if (filters?.minDuration) {
+      qb.andWhere('session.totalTimeMs >= :minDuration', {
+        minDuration: parseInt(filters.minDuration, 10),
+      });
+    }
+    if (filters?.maxDuration) {
+      qb.andWhere('session.totalTimeMs <= :maxDuration', {
+        maxDuration: parseInt(filters.maxDuration, 10),
+      });
+    }
+
+    return await qb.orderBy('session.createdAt', 'DESC').getMany();
+  }
+
+  private applyVoucherToSession(session: Session, voucher: Voucher) {
+    session.voucherId = voucher.id;
+    session.paymentStatus = SessionPaymentStatus.VOUCHER_REDEEMED;
+    session.reportUnlockedAt =
+      session.reportUnlockedAt ?? voucher.redeemedAt ?? new Date();
+
+    if (!session.institutionId && voucher.ownerInstitutionId) {
+      session.institutionId = voucher.ownerInstitutionId;
+    }
+    if (!session.therapistUserId && voucher.ownerUserId) {
+      session.therapistUserId = voucher.ownerUserId;
+    }
+  }
+
+  protected _isUuid(value?: string | null): value is string {
+    if (!value) return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    );
   }
 }

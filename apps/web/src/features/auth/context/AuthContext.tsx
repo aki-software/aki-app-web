@@ -8,7 +8,7 @@ import {
   setStoredUser,
 } from '../../../utils/storage';
 import { AuthContext } from './auth.context';
-import { AuthUser, LoginCredentials } from '../types/auth.types';
+import { AuthUser, LoginCredentials } from '@akit/contracts';
 
 export interface AuthContextValue {
   user: AuthUser | null;

@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { VocationalCategory } from '../../categories/entities/vocational-category.entity';
-import { TresAreasService } from '../../common/services/tres-areas.service';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as pug from 'pug';
+import { colors } from '@akit/design-tokens';
+import { VocationalCategory } from '../../categories/entities/vocational-category.entity.js';
+import { TresAreasService } from '../../common/services/tres-areas.service.js';
 import {
   CategoryResult,
   ReportData,
   ReportSummary,
   ReportTripletInsight,
-} from '../../common/types/report.types';
-import { Session } from '../entities/session.entity';
+} from '../../common/types/report.types.js';
+import { Session } from '../entities/session.entity.js';
 
 type CategoryEntityLike = {
   categoryId: string;
@@ -44,13 +48,24 @@ const AREA_BY_CATEGORY_ID: Record<string, string> = {
 
 @Injectable()
 export class ReportService {
+  private readonly brandDomain = 'akituespacio.com.ar';
+  private readonly supportEmail = 'akituvocacion@gmail.com';
+  private readonly logoAssetPath = path.join(
+    process.cwd(),
+    '..',
+    'web',
+    'src',
+    'assets',
+    'logo.png',
+  );
+
   constructor(
     @InjectRepository(VocationalCategory)
     private readonly categoriesRepository: Repository<VocationalCategory>,
     private readonly tresAreasService: TresAreasService,
   ) {}
 
-  async buildReportData(session: Session): Promise<ReportData> {
+  async buildReportData(session: Session, email?: string): Promise<ReportData> {
     const categories = await this.categoriesRepository.find();
     const categoriesById = new Map(
       categories.map((category) => [
@@ -63,43 +78,155 @@ export class ReportService {
       .sort((a, b) => b.percentage - a.percentage)
       .slice(0, 3);
 
-    const formattedResults: CategoryResult[] = topResults.map((res) => {
-      const normalizedCategoryId = this.normalizeCategoryId(res.categoryId);
-      const catInfo = categoriesById.get(normalizedCategoryId);
-      const description = catInfo
-        ? catInfo.description
-        : res.materialSnippet || 'Informacion no disponible.';
+    const strengths: string[] = [];
 
-      const parsedBlocks = this.parseCategoryDescription(description);
+    const formattedResults: CategoryResult[] = (session.results || [])
+      .sort((a, b) => b.percentage - a.percentage)
+      .slice(0, 3)
+      .map((res) => {
+        const normalizedCategoryId = this.normalizeCategoryId(res.categoryId);
+        const catInfo = categoriesById.get(normalizedCategoryId);
+        const description = catInfo
+          ? catInfo.description
+          : res.materialSnippet || 'Información no disponible.';
 
-      const uniqueCareers = Array.from(
-        new Set(
-          (res.suggestedCareers ?? [])
-            .map((career) => String(career).trim())
-            .filter(Boolean),
-        ),
-      );
+        const parsedBlocks = this.parseCategoryDescription(description);
 
-      return {
-        title: catInfo ? catInfo.title : normalizedCategoryId,
-        percentage: this.normalizePercentage(res.percentage),
-        description,
-        parsedBlocks,
-        suggestedCareers: uniqueCareers,
-        materialSnippet: res.materialSnippet,
-      };
-    });
+        parsedBlocks.forEach((block) => {
+          if (
+            block.subtitle?.toLowerCase().includes('competencias') &&
+            block.content
+          ) {
+            const skills = block.content
+              .split(/[.;•-]/)
+              .map((s) => s.trim())
+              .filter((s) => s.length > 5 && s.length < 50);
+            strengths.push(...skills);
+          }
+        });
+
+        const uniqueCareers = Array.from(
+          new Set(
+            (res.suggestedCareers ?? [])
+              .map((career) => String(career).trim())
+              .filter(Boolean),
+          ),
+        );
+
+        return {
+          title: catInfo ? catInfo.title : normalizedCategoryId,
+          percentage: this.normalizePercentage(res.percentage),
+          description,
+          parsedBlocks,
+          suggestedCareers: uniqueCareers,
+          materialSnippet: res.materialSnippet,
+        };
+      });
 
     const summary = this.buildReportSummary(formattedResults);
-    const tripletInsight = await this.buildTripletInsight(topResults, categoriesById);
+    const tripletInsight = await this.buildTripletInsight(
+      topResults,
+      categoriesById,
+    );
+    const hollandPercentages = this.calculateHollandPercentages(
+      session.results || [],
+    );
 
     return {
       patientName: session.patientName,
+      patientEmail: email,
       hollandCode: session.hollandCode ?? undefined,
+      hollandPercentages,
       topResults: formattedResults,
       summary,
       tripletInsight,
+      strengths: Array.from(new Set(strengths)).slice(0, 6),
     };
+  }
+
+  renderReportPdfHtml(reportData: ReportData): string {
+    const templatePath = path.join(
+      process.cwd(),
+      'src',
+      'mail',
+      'templates',
+      'report-pdf.pug',
+    );
+
+    return pug.renderFile(templatePath, {
+      patientName: reportData.patientName,
+      patientEmail: reportData.patientEmail || null,
+      topResults: reportData.topResults,
+      hollandCode: reportData.hollandCode || null,
+      summary: reportData.summary || null,
+      tripletInsight: reportData.tripletInsight || null,
+      hollandPercentages: reportData.hollandPercentages || null,
+      strengths: reportData.strengths || [],
+      colors,
+      logoDataUri: this.getLogoDataUri(),
+      brandDomain: this.brandDomain,
+      supportEmail: this.supportEmail,
+    });
+  }
+
+  private getLogoDataUri(): string | null {
+    try {
+      if (fs.existsSync(this.logoAssetPath)) {
+        const buffer = fs.readFileSync(this.logoAssetPath);
+        const ext = path.extname(this.logoAssetPath).toLowerCase();
+        const mime = ext === '.png' ? 'image/png' : 'image/jpeg';
+        return `data:${mime};base64,${buffer.toString('base64')}`;
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private calculateHollandPercentages(results: any[]): Record<string, number> {
+    const scores: Record<string, number[]> = {
+      R: [], // MECH, PHYS, IND, NAT
+      I: [], // SCI
+      A: [], // ART, HUM
+      S: [], // SERV, PROT
+      E: [], // LEAD, SAL
+      C: [], // BUS
+    };
+
+    const mapping: Record<string, string> = {
+      MECH: 'R',
+      PHYS: 'R',
+      IND: 'R',
+      NAT: 'R',
+      SCI: 'I',
+      ART: 'A',
+      HUM: 'A',
+      SERV: 'S',
+      PROT: 'S',
+      LEAD: 'E',
+      SAL: 'E',
+      BUS: 'C',
+    };
+
+    results.forEach((res) => {
+      const type = mapping[res.categoryId.toUpperCase()];
+      if (type) {
+        scores[type].push(res.percentage);
+      }
+    });
+
+    const finalPercentages: Record<string, number> = {};
+    Object.keys(scores).forEach((type) => {
+      const typeScores = scores[type];
+      if (typeScores.length > 0) {
+        const avg = typeScores.reduce((a, b) => a + b, 0) / typeScores.length;
+        finalPercentages[type] = Math.round(avg);
+      } else {
+        finalPercentages[type] = 0;
+      }
+    });
+
+    return finalPercentages;
   }
 
   private normalizeCategoryId(value: string): string {
@@ -261,7 +388,9 @@ export class ReportService {
     };
   }
 
-  private buildReportSummary(formattedResults: CategoryResult[]): ReportSummary {
+  private buildReportSummary(
+    formattedResults: CategoryResult[],
+  ): ReportSummary {
     const primary = formattedResults[0];
     const rankedAreas = formattedResults.map((result) => ({
       title: result.title,

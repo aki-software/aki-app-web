@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SessionMetrics } from '../entities/session-metrics.entity';
-import { Session } from '../entities/session.entity';
+import { SessionMetrics } from '../entities/session-metrics.entity.js';
+import { Session } from '../entities/session.entity.js';
 
 @Injectable()
 export class SessionMetricsService {
@@ -21,16 +21,14 @@ export class SessionMetricsService {
 
     if (!session) throw new NotFoundException('Session not found');
 
-    const swipes = session.swipes.sort((a, b) =>
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    const swipes = session.swipes.sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
 
-    // 1. Conteos básicos
     const totalSwipes = swipes.length;
-    const uniqueCards = new Set(swipes.map(s => s.cardId)).size;
+    const uniqueCards = new Set(swipes.map((s) => s.cardId)).size;
     const revertedMatches = totalSwipes - uniqueCards;
-
-    // 2. Tiempos entre swipes
     const durations: number[] = [];
     for (let i = 1; i < swipes.length; i++) {
       const diff =
@@ -45,9 +43,8 @@ export class SessionMetricsService {
         : 0;
     const minTime = durations.length > 0 ? Math.min(...durations) : 0;
     const maxTime = durations.length > 0 ? Math.max(...durations) : 0;
-
-    // 3. Score de confiabilidad (0-100)
-    const undoPercentage = totalSwipes > 0 ? (revertedMatches / totalSwipes) * 100 : 0;
+    const undoPercentage =
+      totalSwipes > 0 ? (revertedMatches / totalSwipes) * 100 : 0;
     const speedScore = this.calculateSpeedScore(avgTime);
     const reliabilityScore = (100 - undoPercentage) * 0.7 + speedScore * 0.3;
 
@@ -60,7 +57,6 @@ export class SessionMetricsService {
             ? 'Variable'
             : 'Baja';
 
-    // 4. Guardar métricas
     const metrics = this.metricsRepository.create({
       session,
       totalDurationMs: session.totalTimeMs,
@@ -78,7 +74,6 @@ export class SessionMetricsService {
   }
 
   private calculateSpeedScore(avgTimeMs: number): number {
-    // Velocidad óptima: 1-3 segundos
     if (avgTimeMs >= 1000 && avgTimeMs <= 3000) return 100;
     if (avgTimeMs < 1000) return Math.max(0, 100 - (1000 - avgTimeMs) / 10);
     return Math.max(0, 100 - (avgTimeMs - 3000) / 100);
