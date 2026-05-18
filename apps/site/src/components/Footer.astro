@@ -1,0 +1,23 @@
+---
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { t } = Astro.props;
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-dark-bg border-t border-dark-border py-8" role="contentinfo">
+  <div class="container flex flex-col md:flex-row items-center justify-between gap-4">
+    <span class="font-display font-bold text-sm text-dark-text">ORIENT A.KI</span>
+    <nav class="flex items-center gap-5" aria-label="Footer">
+      <a href="mailto:contacto@orientaki.com" class="text-xs text-dark-muted hover:text-dark-text transition-colors">{t.footer.contact}</a>
+      <a href="/privacidad" class="text-xs text-dark-muted hover:text-dark-text transition-colors">{t.footer.privacy}</a>
+      <a href="/terminos" class="text-xs text-dark-muted hover:text-dark-text transition-colors">{t.footer.terms}</a>
+    </nav>
+    <p class="text-xs text-dark-muted">© {currentYear}</p>
+  </div>
+</footer>

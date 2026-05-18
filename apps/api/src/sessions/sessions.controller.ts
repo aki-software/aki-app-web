@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -12,18 +11,18 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import type { Response } from 'express';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { UserRole } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
-import { VouchersService } from '../vouchers/vouchers.service';
-import { CreateSessionDto } from './dto/create-session.dto';
-import { SendReportDto } from './dto/send-report.dto';
-import { SessionPaymentStatus } from './entities/session.entity';
-import { SessionsService } from './sessions.service';
-import { SessionMetricsService } from './services/session-metrics.service';
-import { SessionReportService } from './services/session-report.service';
+import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { UserRole } from '../users/entities/user.entity.js';
+import { CompleteSessionDto } from './dto/complete-session.dto.js';
+import { CreateSessionDto } from './dto/create-session.dto.js';
+import { SendReportDto } from './dto/send-report.dto.js';
+import { SessionCompleteMapperService } from './services/session-complete-mapper.service.js';
+import { SessionMetricsService } from './services/session-metrics.service.js';
+import { ReportService } from './services/report.service.js';
+import { SessionsService } from './sessions.service.js';
+import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -37,107 +36,40 @@ type AuthenticatedRequest = Request & {
 export class SessionsController {
   constructor(
     private readonly sessionsService: SessionsService,
-    private readonly usersService: UsersService,
-    private readonly vouchersService: VouchersService,
+    private readonly sessionCompleteMapper: SessionCompleteMapperService,
     private readonly sessionMetricsService: SessionMetricsService,
-    private readonly sessionReportService: SessionReportService,
+    private readonly reportService: ReportService,
   ) {}
 
   @Post()
-  create(@Body() createSessionDto: CreateSessionDto) {
-    return this.sessionsService.create(createSessionDto);
+  async create(@Body() createSessionDto: CreateSessionDto) {
+    const { session } = await this.sessionsService.create(createSessionDto);
+    return session;
   }
 
   @Post('complete')
-  async complete(@Body() payload: any) {
-    const payloadUserId = this.nullIfBlank(payload.userId);
-    const payloadPatientId = this.nullIfBlank(payload.patientId);
-    const payloadTherapistUserId = this.nullIfBlank(payload.therapistUserId);
-    const payloadInstitutionId = this.nullIfBlank(payload.institutionId);
-    const payloadVoucherId = this.nullIfBlank(payload.voucherId);
-    const payloadVoucherCode = this.nullIfBlank(payload.voucherCode);
-
-    const user = payloadUserId
-      ? await this.usersService.findOne(payloadUserId)
-      : null;
-    const voucher = payloadVoucherCode
-      ? await this.vouchersService.resolveAvailableVoucher(payloadVoucherCode)
-      : null;
-    const inferredPatientName =
-      payload.patientName || user?.name || 'Usuario App';
-    const isTherapistUser =
-      user?.role === UserRole.THERAPIST || user?.role === UserRole.ADMIN;
-    const isPatientUser = user?.role === UserRole.PATIENT;
-    const fallbackOwner =
-      !payloadTherapistUserId &&
-      !payloadInstitutionId &&
-      !voucher &&
-      (!user || isPatientUser)
-        ? await this.usersService.getOrCreateIndividualTestsOwner()
-        : null;
-    const enrichedResultsByCategory = this.indexResultsMetadata(
-      payload.resultPayload,
+  async complete(@Body() completeSessionDto: CompleteSessionDto) {
+    const mapped =
+      await this.sessionCompleteMapper.toCreateSessionDto(completeSessionDto);
+    const syncKey = this.sessionCompleteMapper.buildSyncKey(
+      mapped.payloadId ?? null,
+      mapped.payloadUserId ?? null,
+      mapped.payloadStartedAt,
     );
-    const payloadId = this.nullIfBlank(payload.id);
+    const { session: createdSession, duplicated } =
+      await this.sessionsService.create(mapped.createSessionDto, {
+        idempotencyKey: syncKey ?? undefined,
+      });
 
-    const adaptedDto = {
-      id: payloadId || undefined,
-      therapistUserId:
-        payloadTherapistUserId ||
-        voucher?.ownerUserId ||
-        (isTherapistUser ? user?.id : null) ||
-        fallbackOwner?.id ||
-        null,
-      institutionId:
-        payloadInstitutionId ||
-        voucher?.ownerInstitutionId ||
-        user?.institutionId ||
-        fallbackOwner?.institutionId ||
-        null,
-      patientId: payloadPatientId || (isTherapistUser ? null : payloadUserId),
-      patientName: inferredPatientName,
-      sessionDate: new Date(payload.startedAt || new Date()),
-      hollandCode: payload.resultPayload?.hollandCode,
-      totalTimeMs: this.calculateDuration(
-        payload.startedAt,
-        payload.finishedAt,
-      ),
-      voucherId: voucher?.id || payloadVoucherId || null,
-      paymentStatus: voucher
-        ? SessionPaymentStatus.VOUCHER_REDEEMED
-        : payload.paymentStatus || undefined,
-      reportUnlockedAt: voucher ? new Date() : undefined,
-      results: (payload.resultPayload?.radar || []).map((r: any) => ({
-        categoryId: this.normalizeCategoryId(r.categoryId),
-        score: r.likes || r.score || 0,
-        totalPossible: r.total || 0,
-        percentage: this.normalizePercentage(r.affinity),
-        suggestedCareers:
-          enrichedResultsByCategory.get(this.normalizeCategoryId(r.categoryId))
-            ?.suggestedCareers ?? undefined,
-        materialSnippet:
-          enrichedResultsByCategory.get(this.normalizeCategoryId(r.categoryId))
-            ?.materialSnippet ?? undefined,
-      })),
-      swipes: (payload.swipes || []).map((s: any) => ({
-        cardId: s.cardId,
-        categoryId: s.categoryId || 'unknown',
-        isLiked: s.liked,
-        timestamp: new Date(s.timestamp || new Date()),
-      })),
+    await this.sessionCompleteMapper.attachVoucherIfNeeded(
+      mapped,
+      createdSession.id,
+    );
+
+    return {
+      id: createdSession.id,
+      duplicated,
     };
-
-    const createdSession = await this.sessionsService.create(adaptedDto as any);
-
-    if (voucher) {
-      await this.vouchersService.attachVoucherToSession(
-        voucher.code,
-        createdSession.id,
-        inferredPatientName,
-      );
-    }
-
-    return createdSession;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -147,8 +79,12 @@ export class SessionsController {
     @Query('limit') limit?: string,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const parsedPage = page ? parseInt(page, 10) : 1;
-    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const parsedPage = page
+      ? parseInt(page, 10)
+      : SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE;
+    const parsedLimit = limit
+      ? parseInt(limit, 10)
+      : SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT;
     return this.sessionsService.findAll(parsedPage, parsedLimit, {
       role: req?.user?.role,
       therapistUserId: req?.user?.userId,
@@ -159,9 +95,15 @@ export class SessionsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('admin/overview')
-  async getAdminOverview(@Req() req?: AuthenticatedRequest) {
+  async getAdminOverview(
+    @Req() req?: AuthenticatedRequest,
+    @Query('days') days?: string,
+  ) {
     this.assertAdmin(req);
-    return await this.sessionsService.getAdminOverview();
+    const parsedDays = days
+      ? parseInt(days, 10)
+      : SESSION_CONSTANTS.ADMIN.DEFAULT_OVERVIEW_DAYS;
+    return await this.sessionsService.getAdminOverview(parsedDays);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -171,7 +113,9 @@ export class SessionsController {
     @Query('limit') limit?: string,
   ) {
     this.assertAdmin(req);
-    const parsedLimit = limit ? parseInt(limit, 10) : 50;
+    const parsedLimit = limit
+      ? parseInt(limit, 10)
+      : SESSION_CONSTANTS.ADMIN.DEFAULT_ACTIVITY_LIMIT;
     return await this.sessionsService.getAdminActivity(parsedLimit);
   }
 
@@ -218,77 +162,17 @@ export class SessionsController {
     @Body() sendReportDto: SendReportDto,
     @Req() req?: AuthenticatedRequest,
   ) {
-    return await this.sessionsService.sendReport(id, sendReportDto.email, {
-      role: req?.user?.role,
-      therapistUserId: req?.user?.userId,
-      patientId: req?.user?.userId,
-      institutionId: req?.user?.institutionId,
-    });
-  }
-
-  private calculateDuration(start?: string, end?: string): number {
-    if (!start || !end) return 0;
-    try {
-      return new Date(end).getTime() - new Date(start).getTime();
-    } catch {
-      return 0;
-    }
-  }
-
-  private indexResultsMetadata(
-    payload: any,
-  ): Map<string, { suggestedCareers?: string[]; materialSnippet?: string }> {
-    const map = new Map<
-      string,
-      { suggestedCareers?: string[]; materialSnippet?: string }
-    >();
-    const detailedResults = [
-      ...(payload?.top3 ?? []),
-      ...(payload?.bottom3 ?? []),
-    ];
-
-    for (const result of detailedResults) {
-      const normalizedCategoryId = this.normalizeCategoryId(result?.categoryId);
-      if (!normalizedCategoryId || map.has(normalizedCategoryId)) {
-        continue;
-      }
-      map.set(normalizedCategoryId, {
-        suggestedCareers: Array.isArray(result.suggestedCareers)
-          ? result.suggestedCareers
-          : undefined,
-        materialSnippet:
-          typeof result.materialSnippet === 'string'
-            ? result.materialSnippet
-            : undefined,
-      });
-    }
-
-    return map;
-  }
-
-  private nullIfBlank(value: unknown): string | null {
-    if (typeof value !== 'string') {
-      return value == null ? null : String(value);
-    }
-
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
-
-  private normalizeCategoryId(value: unknown): string {
-    if (typeof value !== 'string') {
-      return '';
-    }
-    return value.trim().toUpperCase();
-  }
-
-  private normalizePercentage(value: unknown): number {
-    const numeric = Number(value);
-    if (!Number.isFinite(numeric)) return 0;
-
-    const percentage = numeric <= 1 ? numeric * 100 : numeric;
-    const clamped = Math.max(0, Math.min(100, percentage));
-    return Math.round(clamped);
+    return await this.sessionsService.sendReport(
+      id,
+      sendReportDto.email,
+      null,
+      {
+        role: req?.user?.role,
+        therapistUserId: req?.user?.userId,
+        patientId: req?.user?.userId,
+        institutionId: req?.user?.institutionId,
+      },
+    );
   }
 
   private assertAdmin(req?: AuthenticatedRequest) {
@@ -313,63 +197,44 @@ export class SessionsController {
     @Query('minDuration') minDuration?: string,
     @Query('maxDuration') maxDuration?: string,
   ) {
-    // Verificar que el usuario es propietario del voucher o admin
-    const voucher = await this.vouchersService.findById(voucherId);
-
-    if (
-      voucher.ownerUserId !== req.user?.userId &&
-      req.user?.role?.toUpperCase() !== 'ADMIN'
-    ) {
-      throw new ForbiddenException('Cannot access voucher sessions');
-    }
-
-    // Construir query con filtros
-    let query = this.sessionsService['sessionRepository']
-      .createQueryBuilder('session')
-      .where('session.voucherId = :voucherId', { voucherId })
-      .leftJoinAndSelect('session.metrics', 'metrics')
-      .leftJoinAndSelect('session.results', 'results')
-      .orderBy('session.sessionDate', 'DESC');
-
-    // Filtro: rango de fechas
-    if (startDate) {
-      query = query.andWhere('session.sessionDate >= :startDate', {
-        startDate: new Date(startDate),
-      });
-    }
-    if (endDate) {
-      query = query.andWhere('session.sessionDate <= :endDate', {
-        endDate: new Date(endDate),
-      });
-    }
-
-    // Filtro: duración
-    if (minDuration) {
-      const minMs = parseInt(minDuration) * 60 * 1000;
-      query = query.andWhere('session.totalTimeMs >= :minDuration', {
-        minDuration: minMs,
-      });
-    }
-    if (maxDuration) {
-      const maxMs = parseInt(maxDuration) * 60 * 1000;
-      query = query.andWhere('session.totalTimeMs <= :maxDuration', {
-        maxDuration: maxMs,
-      });
-    }
-
-    return query.getMany();
+    return this.sessionsService.findVoucherSessions(
+      voucherId,
+      {
+        role: req.user?.role,
+        ownerUserId: req.user?.userId,
+        ownerInstitutionId: req.user?.institutionId,
+      },
+      {
+        startDate,
+        endDate,
+        minDuration,
+        maxDuration,
+      },
+    );
   }
 
   @Get(':id/report/pdf')
   @UseGuards(JwtAuthGuard)
   async generateSessionPdf(
     @Param('id') sessionId: string,
+    @Req() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
-    const html = await this.sessionReportService.generatePdf(sessionId);
+    const session = await this.sessionsService.findOne(sessionId, {
+      role: req.user?.role,
+      therapistUserId: req.user?.userId,
+      patientId: req.user?.userId,
+      institutionId: req.user?.institutionId,
+    });
+
+    const reportData = await this.reportService.buildReportData(session);
+    const html = this.reportService.renderReportPdfHtml(reportData);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="session-${sessionId}.html"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="session-${sessionId}.html"`,
+    );
     res.send(html);
   }
 }

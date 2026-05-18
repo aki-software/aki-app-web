@@ -43,13 +43,13 @@ export function SessionReportButton({ sessionId }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {!showEmailInput ? (
-        <Button
-          onClick={() => setShowEmailInput(true)}
-          className="group"
-        >
-          <Mail className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-          Enviar informe
-        </Button>
+          <Button
+            onClick={() => setShowEmailInput(true)}
+            className="group"
+          >
+            <Mail className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            Enviar informe
+          </Button>
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center animate-in fade-in slide-in-from-top-2 duration-300">
           <input

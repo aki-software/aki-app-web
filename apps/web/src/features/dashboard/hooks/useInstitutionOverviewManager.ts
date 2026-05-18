@@ -6,6 +6,7 @@ export const LOW_STOCK_ALERT_THRESHOLD = 3;
 export const useInstitutionOverviewManager = (institutionId?: string | null) => {
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<InstitutionOverviewResponse | null>(null);
+  const [periodDays, setPeriodDays] = useState(PERIOD_DAYS);
   const [isAlertDismissed, setIsAlertDismissed] = useState(false);
 
   const dismissKey = `akit:voucher-low-stock-dismissed:${institutionId ?? "global"}`;
@@ -22,7 +23,7 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
 
       setLoading(true);
       try {
-        const data = await fetchInstitutionOverview({ institutionId, days: PERIOD_DAYS });
+        const data = await fetchInstitutionOverview({ institutionId, days: periodDays });
         if (isActive) setOverview(data);
       } catch (error) {
         console.error("Error loading institution dashboard data:", error);
@@ -33,7 +34,7 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
 
     void load();
     return () => { isActive = false; };
-  }, [institutionId]);
+  }, [institutionId, periodDays]);
 
   // Manejo del estado del alert en LocalStorage
   useEffect(() => {
@@ -63,6 +64,7 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
     testsStats,
     showLowStockAlert,
     handleDismissAlert,
-    periodDays: overview?.periodDays ?? PERIOD_DAYS,
+    periodDays,
+    setPeriodDays,
   };
 };

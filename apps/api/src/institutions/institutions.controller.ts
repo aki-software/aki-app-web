@@ -1,199 +1,114 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
+  Param,
+  Patch,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
-  Param,
-  Patch,
-  Query,
-  Inject,
 } from '@nestjs/common';
-import type { AuthenticatedRequest } from '../auth/auth.types';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
-import { UserRole } from '../users/entities/user.entity';
-import { InstitutionsService } from './institutions.service';
-import { UsersService } from '../users/users.service';
-import { MailService } from '../mail/mail.service';
-import type { QueueAdapter } from '../common/adapters/queue.adapter';
-import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
-import { JobNames, SendEmailJobPayload } from '../common/jobs';
+import type { AuthenticatedRequest } from '../auth/auth.types.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { UserRole } from '../users/entities/user.entity.js';
+import { CreateInstitutionDto } from './dto/create-institution.dto.js';
+import { CreateOperationalAccountDto } from './dto/create-operational-account.dto.js';
+import { InstitutionOverviewQueryDto } from './dto/institution-overview-query.dto.js';
+import { UpdateInstitutionDto } from './dto/update-institution.dto.js';
+import { UpdateInstitutionStatusDto } from './dto/update-institution-status.dto.js';
+import { InstitutionsService } from './institutions.service.js';
+import type {
+  InstitutionOverviewResponse,
+  PaginatedResponse,
+  InstitutionOption,
+} from '@akit/contracts';
+import { InstitutionAnalyticsService } from './services/institution-analytics.service.js';
+import { InstitutionOperationalAccountService } from './services/institution-operational-account.service.js';
+import { InstitutionPresenterService } from './services/institution-presenter.service.js';
 
 @Controller('institutions')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InstitutionsController {
   constructor(
     private readonly institutionsService: InstitutionsService,
-    private readonly usersService: UsersService,
-    private readonly mailService: MailService,
-    @Inject(QUEUE_ADAPTER)
-    private readonly queueAdapter: QueueAdapter,
+    private readonly institutionAnalyticsService: InstitutionAnalyticsService,
+    private readonly institutionOperationalAccountService: InstitutionOperationalAccountService,
+    private readonly institutionPresenterService: InstitutionPresenterService,
   ) {}
 
   @Get()
   @Roles(UserRole.ADMIN)
-  async findAll() {
+  async findAll(): Promise<PaginatedResponse<InstitutionOption>> {
     const institutions = await this.institutionsService.findAll();
     return {
-      data: institutions.map((institution) => ({
-        id: institution.id,
-        name: institution.name,
-        createdAt: institution.createdAt,
-        billingEmail: institution.billingEmail,
-        responsibleTherapistUserId: institution.responsibleTherapistUserId,
-        responsibleTherapistName:
-          institution.responsibleTherapist?.name ?? null,
-        responsibleTherapistActive: institution.responsibleTherapist
-          ? this.usersService.hasPasswordConfigured(
-              institution.responsibleTherapist,
-            )
-          : false,
-      })),
+      data: institutions.map((institution) =>
+        this.institutionPresenterService.toInstitutionListItemResponse(
+          institution,
+        ),
+      ),
+      count: institutions.length,
+      page: 1,
+      limit: institutions.length,
     };
   }
 
   @Post()
   @Roles(UserRole.ADMIN)
   async create(
-    @Body()
-    payload: {
-      name: string;
-      email?: string;
-      billingEmail?: string;
-      responsibleTherapistUserId?: string | null;
-    },
-  ) {
-    if (!payload.name?.trim()) {
-      throw new BadRequestException('El nombre es obligatorio');
-    }
-
-    if (!payload.email?.trim()) {
-      throw new BadRequestException('El email es obligatorio');
-    }
-
-    const hasResponsibleUserId = !!payload.responsibleTherapistUserId?.trim();
-
-    let institution = await this.institutionsService.create({
-      name: payload.name,
-      billingEmail: payload.billingEmail,
-      responsibleTherapistUserId: payload.responsibleTherapistUserId ?? null,
-    });
-
-    let activationEmailSent = false;
-
-    if (hasResponsibleUserId) {
-      institution = await this.institutionsService.assignResponsibleTherapist(
-        institution.id,
-        payload.responsibleTherapistUserId!.trim(),
+    @Body() payload: CreateInstitutionDto,
+  ): Promise<InstitutionOption & { activationEmailSent: boolean }> {
+    const { institution, activationEmailSent } =
+      await this.institutionOperationalAccountService.createInstitutionWithOperationalAccount(
+        payload,
       );
-    } else {
-      // Creamos el usuario operativo para login usando el email informado.
-      const responsibleUser = await this.usersService.register(
-        payload.email.trim(),
-        UserRole.THERAPIST,
-        payload.email.trim(),
-        institution.id,
-      );
-
-      institution = await this.institutionsService.assignResponsibleTherapist(
-        institution.id,
-        responsibleUser.id,
-      );
-
-      if (responsibleUser.passwordSetupToken) {
-        activationEmailSent = this.queueAdapter.isConfigured()
-          ? await this.enqueueActivationEmail(
-              responsibleUser.email,
-              responsibleUser.name,
-              institution.name,
-              responsibleUser,
-            )
-          : await this.mailService.sendAccountActivation(
-              responsibleUser.email,
-              responsibleUser.name,
-              this.usersService.buildPasswordSetupLink(
-                responsibleUser.passwordSetupToken,
-              ),
-              institution.name,
-            );
-      }
-    }
 
     return {
-      id: institution.id,
-      name: institution.name,
-      billingEmail: institution.billingEmail,
-      responsibleTherapistUserId: institution.responsibleTherapistUserId,
-      responsibleTherapistName: institution.responsibleTherapist?.name ?? null,
+      ...this.institutionPresenterService.toInstitutionListItemResponse(
+        institution,
+      ),
       activationEmailSent,
     };
   }
 
   @Get(':id/stats')
   async getStats(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
-    const isOwnerOrAdmin =
-      req?.user?.role?.toUpperCase() === UserRole.ADMIN ||
-      req?.user?.institutionId === id;
+    this.assertOwnerOrAdmin(req, id);
 
-    if (!isOwnerOrAdmin) {
-      throw new UnauthorizedException(
-        'No tienes permisos para ver las estadísticas de esta institución',
-      );
-    }
-
-    return await this.institutionsService.getStats(id);
+    return await this.institutionAnalyticsService.getStats(id);
   }
 
   @Get(':id/overview')
   async getOverview(
     @Param('id') id: string,
     @Req() req?: AuthenticatedRequest,
-    @Query('days') days?: string,
-  ) {
-    const isOwnerOrAdmin =
-      req?.user?.role?.toUpperCase() === UserRole.ADMIN ||
-      req?.user?.institutionId === id;
+    @Query() query?: InstitutionOverviewQueryDto,
+  ): Promise<InstitutionOverviewResponse> {
+    this.assertOwnerOrAdmin(req, id);
 
-    if (!isOwnerOrAdmin) {
-      throw new UnauthorizedException(
-        'No tienes permisos para ver el overview de esta institución',
-      );
-    }
+    const normalizedDays = query?.days ?? 7;
 
-    const parsedDays = days ? parseInt(days, 10) : 7;
-    const normalizedDays = Number.isFinite(parsedDays)
-      ? Math.min(Math.max(parsedDays, 1), 90)
-      : 7;
-
-    return await this.institutionsService.getOverview(id, normalizedDays);
+    return (await this.institutionAnalyticsService.getOverview(
+      id,
+      normalizedDays,
+    )) as InstitutionOverviewResponse;
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  async update(
-    @Param('id') id: string,
-    @Body() payload: { name?: string; billingEmail?: string },
-  ) {
+  async update(@Param('id') id: string, @Body() payload: UpdateInstitutionDto) {
     const institution = await this.institutionsService.update(id, payload);
-    return {
-      id: institution.id,
-      name: institution.name,
-      billingEmail: institution.billingEmail,
-      responsibleTherapistUserId: institution.responsibleTherapistUserId,
-      responsibleTherapistName: institution.responsibleTherapist?.name ?? null,
-    };
+    return this.institutionPresenterService.toInstitutionResponse(institution);
   }
 
   @Patch(':id/status')
   @Roles(UserRole.ADMIN)
   async updateStatus(
     @Param('id') id: string,
-    @Body() payload: { isActive: boolean },
+    @Body() payload: UpdateInstitutionStatusDto,
   ) {
     const institution = await this.institutionsService.updateStatus(
       id,
@@ -209,106 +124,34 @@ export class InstitutionsController {
   @Roles(UserRole.ADMIN)
   async createOperationalAccount(
     @Param('id') id: string,
-    @Body() payload: { email?: string },
-  ) {
-    const email = payload.email?.trim();
-    if (!email) {
-      throw new BadRequestException('El email es obligatorio');
-    }
-
-    const existingInstitution =
-      await this.institutionsService.findOneOrFail(id);
-    if (existingInstitution.responsibleTherapistUserId) {
-      throw new BadRequestException(
-        'La institución ya tiene una cuenta operativa asignada',
+    @Body() payload: CreateOperationalAccountDto,
+  ): Promise<InstitutionOption & { activationEmailSent: boolean }> {
+    const { institution, activationEmailSent } =
+      await this.institutionOperationalAccountService.createOperationalAccount(
+        id,
+        payload.email,
       );
-    }
-
-    // Creamos el usuario operativo para login usando el email informado.
-    const responsibleUser = await this.usersService.register(
-      email,
-      UserRole.THERAPIST,
-      email,
-      existingInstitution.id,
-    );
-
-    const institution =
-      await this.institutionsService.assignResponsibleTherapist(
-        existingInstitution.id,
-        responsibleUser.id,
-      );
-
-    let activationEmailSent = false;
-    if (responsibleUser.passwordSetupToken) {
-      activationEmailSent = this.queueAdapter.isConfigured()
-        ? await this.enqueueActivationEmail(
-            responsibleUser.email,
-            responsibleUser.name,
-            institution.name,
-            responsibleUser,
-          )
-        : await this.mailService.sendAccountActivation(
-            responsibleUser.email,
-            responsibleUser.name,
-            this.usersService.buildPasswordSetupLink(
-              responsibleUser.passwordSetupToken,
-            ),
-            institution.name,
-          );
-    }
 
     return {
-      id: institution.id,
-      name: institution.name,
-      billingEmail: institution.billingEmail,
-      responsibleTherapistUserId: institution.responsibleTherapistUserId,
-      responsibleTherapistName: institution.responsibleTherapist?.name ?? null,
-      responsibleTherapistActive: institution.responsibleTherapist
-        ? this.usersService.hasPasswordConfigured(
-            institution.responsibleTherapist,
-          )
-        : false,
+      ...this.institutionPresenterService.toInstitutionListItemResponse(
+        institution,
+      ),
       activationEmailSent,
     };
   }
 
-  private async enqueueActivationEmail(
-    email: string,
-    name: string,
-    institutionName: string | null,
-    user: { passwordSetupToken?: string | null },
-  ): Promise<boolean> {
-    if (!user.passwordSetupToken) return false;
+  private assertOwnerOrAdmin(
+    req: AuthenticatedRequest | undefined,
+    institutionId: string,
+  ): void {
+    const isOwnerOrAdmin =
+      req?.user?.role?.toUpperCase() === UserRole.ADMIN ||
+      req?.user?.institutionId === institutionId;
 
-    const payload: SendEmailJobPayload = {
-      attempts: 3,
-      backoffMs: 60_000,
-      backoffType: 'exponential',
-      timeoutMs: 20_000,
-      concurrencyKey: 'email',
-      concurrencyLimit: 10,
-      template: 'account-activation',
-      payload: {
-        name,
-        activationLink: this.usersService.buildPasswordSetupLink(
-          user.passwordSetupToken,
-        ),
-        institutionName,
-      },
-      meta: {
-        to: email,
-        subject: 'Activá tu cuenta de A.kit',
-      },
-    };
-
-    await this.queueAdapter.enqueue(JobNames.SendEmail, payload, {
-      attempts: payload.attempts,
-      backoffMs: payload.backoffMs,
-      backoffType: payload.backoffType,
-      timeoutMs: payload.timeoutMs,
-      concurrencyKey: payload.concurrencyKey,
-      concurrencyLimit: payload.concurrencyLimit,
-    });
-    return true;
+    if (!isOwnerOrAdmin) {
+      throw new UnauthorizedException(
+        'No tienes permisos para acceder a esta instituciÃ³n',
+      );
+    }
   }
 }

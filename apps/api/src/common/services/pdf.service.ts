@@ -2,27 +2,23 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  OnModuleDestroy,
 } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 
 @Injectable()
-export class PdfService {
+export class PdfService implements OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
+  private readonly idlePages: puppeteer.Page[] = [];
+  private readonly maxIdlePages = 4;
+  private readonly pageTimeoutMs = 30_000;
+  private browser: puppeteer.Browser | undefined;
+  private browserLaunching: Promise<puppeteer.Browser> | undefined;
 
   async generateFromHtml(html: string): Promise<Buffer> {
-    let browser;
+    let page: puppeteer.Page | undefined;
     try {
-      browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-        ],
-      });
-      const page = await browser.newPage();
-      page.setDefaultNavigationTimeout(30_000);
-      page.setDefaultTimeout(30_000);
+      page = await this.acquirePage();
       await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
       const pdfBuffer = await page.pdf({
@@ -51,9 +47,110 @@ export class PdfService {
         'Error al generar el documento PDF.',
       );
     } finally {
-      if (browser) {
-        await browser.close();
+      if (page) {
+        await this.releasePage(page);
       }
     }
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.closeBrowser();
+  }
+
+  private async acquirePage(): Promise<puppeteer.Page> {
+    const browser = await this.getBrowser();
+    const page = this.idlePages.pop() ?? (await browser.newPage());
+    page.setDefaultNavigationTimeout(this.pageTimeoutMs);
+    page.setDefaultTimeout(this.pageTimeoutMs);
+    return page;
+  }
+
+  private async releasePage(page: puppeteer.Page): Promise<void> {
+    if (page.isClosed()) {
+      return;
+    }
+
+    try {
+      await page.goto('about:blank');
+    } catch (error) {
+      this.logger.warn(
+        `PDF page reset failed: ${(error as Error)?.message ?? 'unknown'}`,
+      );
+    }
+
+    if (this.idlePages.length < this.maxIdlePages) {
+      this.idlePages.push(page);
+      return;
+    }
+
+    try {
+      await page.close();
+    } catch (error) {
+      this.logger.warn(
+        `PDF page close failed: ${(error as Error)?.message ?? 'unknown'}`,
+      );
+    }
+  }
+
+  private async getBrowser(): Promise<puppeteer.Browser> {
+    if (this.browser && this.browser.isConnected()) {
+      return this.browser;
+    }
+
+    if (this.browserLaunching) {
+      return this.browserLaunching;
+    }
+
+    this.browserLaunching = puppeteer
+      .launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+        ],
+      })
+      .then((browser) => {
+        this.browser = browser;
+        return browser;
+      })
+      .catch((error) => {
+        this.browserLaunching = undefined;
+        throw error;
+      });
+
+    return this.browserLaunching;
+  }
+
+  private async closeBrowser(): Promise<void> {
+    const pages = this.idlePages.splice(0, this.idlePages.length);
+    await Promise.all(
+      pages.map(async (page) => {
+        if (page.isClosed()) {
+          return;
+        }
+        try {
+          await page.close();
+        } catch (error) {
+          this.logger.warn(
+            `PDF idle page close failed: ${(error as Error)?.message ?? 'unknown'}`,
+          );
+        }
+      }),
+    );
+
+    if (this.browser) {
+      try {
+        await this.browser.close();
+      } catch (error) {
+        this.logger.warn(
+          `PDF browser close failed: ${(error as Error)?.message ?? 'unknown'}`,
+        );
+      } finally {
+        this.browser = undefined;
+      }
+    }
+
+    this.browserLaunching = undefined;
   }
 }

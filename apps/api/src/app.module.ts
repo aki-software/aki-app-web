@@ -1,18 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
-import { SessionsModule } from './sessions/sessions.module';
-import { CategoriesModule } from './categories/categories.module';
-import { AuthModule } from './auth/auth.module';
-import { typeOrmConfig } from './config/typeorm.config';
-import { MailModule } from './mail/mail.module';
+import { UsersModule } from './users/users.module.js';
+import { SessionsModule } from './sessions/sessions.module.js';
+import { CategoriesModule } from './categories/categories.module.js';
+import { AuthModule } from './auth/auth.module.js';
+import { typeOrmConfig } from './config/typeorm.config.js';
+import { MailModule } from './mail/mail.module.js';
 import { LoggerModule } from 'nestjs-pino';
-import { InstitutionsModule } from './institutions/institutions.module';
-import { VouchersModule } from './vouchers/vouchers.module';
-import { StatsModule } from './stats/stats.module';
+import { InstitutionsModule } from './institutions/institutions.module.js';
+import { VouchersModule } from './vouchers/vouchers.module.js';
+import { StatsModule } from './stats/stats.module.js';
 
 @Module({
   imports: [
@@ -52,7 +50,7 @@ import { StatsModule } from './stats/stats.module';
     VouchersModule,
     StatsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

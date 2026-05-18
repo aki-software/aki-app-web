@@ -1,0 +1,38 @@
+---
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { t } = Astro.props;
+---
+
+<section class="py-24 md:py-32 bg-surface" id="faq">
+  <div class="container">
+    <div class="text-center mb-10">
+      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mb-3 reveal">{t.faq.title}</h2>
+    </div>
+    <div class="max-w-xl mx-auto flex flex-col gap-2">
+      {t.faq.items.map((faq) => (
+        <details class="group bg-bg rounded-lg border border-border/60 open:border-primary/30 reveal">
+          <summary class="flex items-center justify-between cursor-pointer p-4 list-none">
+            <span class="font-medium text-text text-sm pr-4">{faq.q}</span>
+            <span class="text-primary text-lg font-light transition-transform duration-200 group-open:rotate-45 flex-shrink-0">+</span>
+          </summary>
+          <div class="px-4 pb-4">
+            <p class="text-sm text-text-muted leading-relaxed">{faq.a}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+</script>

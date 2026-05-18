@@ -34,7 +34,7 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="app-card !p-6 md:!p-8 space-y-4 h-full flex flex-col">
+    <div className="app-card !p-6 md:!p-8 space-y-4 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 min-w-0 mb-2">
         <h3 className="app-label !text-xs opacity-70">Alertas Operativas</h3>
@@ -44,7 +44,7 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
       </div>
 
       {/* Contenido */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto max-h-[320px]">
         {alerts.length === 0 ? (
           <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/5 px-5 py-6">
             <div className="flex items-center gap-3 mb-2">

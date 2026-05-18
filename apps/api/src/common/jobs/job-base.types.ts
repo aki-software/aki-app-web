@@ -5,4 +5,5 @@ export type JobRetryOptions = {
   timeoutMs?: number;
   concurrencyKey?: string;
   concurrencyLimit?: number;
+  jobId?: string;
 };

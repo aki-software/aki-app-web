@@ -4,6 +4,7 @@ import { StatCard } from "../../../../components/molecules/StatCard";
 
 interface Props {
   periodLabel: string;
+  totalHistoricalVouchers: number;
   vouchersGeneratedPeriod: number;
   vouchersRedeemedPeriod: number;
   testsCompletedPeriod: number;
@@ -24,6 +25,7 @@ const MiniStat = ({ label, value }: { label: string; value: string | number }) =
 
 export function OverviewHighlights({
   periodLabel,
+  totalHistoricalVouchers,
   vouchersGeneratedPeriod,
   vouchersRedeemedPeriod,
   testsCompletedPeriod,
@@ -100,6 +102,12 @@ export function OverviewHighlights({
           {/* Reemplazamos el map por nuestras StatCards reutilizables */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
             <StatCard 
+              label="Total histórico de Vouchers" 
+              value={totalHistoricalVouchers} 
+              description="Acumulado histórico total desde el lanzamiento de la plataforma."
+              className="rounded-2xl border border-app-primary/20 bg-app-primary/5 px-4 py-4 md:col-span-2"
+            />
+            <StatCard 
               label="Vouchers generados" 
               value={vouchersGeneratedPeriod} 
               description="Vouchers creados para instituciones o terapeutas."
@@ -128,7 +136,7 @@ export function OverviewHighlights({
       </div>
 
       {/* ─── Columna Derecha: Rendimiento por Canal ─── */}
-      <div className="lg:col-span-4 app-card !p-6 md:!p-7 lg:!p-8 border-2 border-app-primary/10 bg-app-surface flex flex-col justify-between group overflow-hidden min-w-0">
+      <div className="lg:col-span-4 app-card !p-6 md:!p-7 lg:!p-8 border-2 border-app-primary/10 bg-app-surface flex flex-col justify-start group overflow-hidden min-w-0">
         <div className="space-y-6">
           <div className="flex items-center gap-4 min-w-0">
             <div className="p-3 bg-app-primary/5 rounded-xl border border-app-primary/20">

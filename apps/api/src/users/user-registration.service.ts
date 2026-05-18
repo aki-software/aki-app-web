@@ -1,0 +1,172 @@
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { User, UserRole } from './entities/user.entity.js';
+import { UsersService } from './users.service.js';
+import { InstitutionsService } from '../institutions/institutions.service.js';
+import { AccountActivationNotifierService } from '../common/notifications/account-activation-notifier.service.js';
+import { CryptoService } from '../common/services/crypto.service.js';
+import { normalizeUserRole } from '../common/utils/role.utils.js';
+import { USER_ERROR_MESSAGES } from './users.constants.js';
+
+export interface RegisterUserDto {
+  name: string;
+  email?: string;
+  role?: UserRole | string;
+  institutionId?: string | null;
+}
+
+@Injectable()
+export class UserRegistrationService {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
+    @Inject(forwardRef(() => InstitutionsService))
+    private readonly institutionsService: InstitutionsService,
+    private readonly notifier: AccountActivationNotifierService,
+    private readonly cryptoService: CryptoService,
+  ) {}
+
+  async register(payload: RegisterUserDto): Promise<User> {
+    const { name, email, role, institutionId } = payload;
+    const normalizedRole = normalizeUserRole(role);
+
+    if (email) {
+      const existingUser = await this.usersService.findByEmail(email);
+      if (existingUser) {
+        return await this.usersService.register({
+          ...existingUser,
+          name,
+        });
+      }
+    }
+
+    const normalizedEmail =
+      email ??
+      `${name.toLowerCase().replace(/[^a-z0-9]+/g, '.')}.${Date.now()}@akit.local`;
+
+    const passwordSetupToken = this.cryptoService.generateToken(24);
+    const passwordSetupExpiresAt = this.buildPasswordSetupExpiry();
+
+    let user = await this.usersService.register({
+      name,
+      email: normalizedEmail,
+      role: normalizedRole,
+      institutionId: institutionId ?? null,
+      passwordSetupToken,
+      passwordSetupExpiresAt,
+      passwordHash: 'pending-password-setup',
+    });
+
+    if (
+      (normalizedRole === UserRole.THERAPIST ||
+        normalizedRole === UserRole.INSTITUTION_ADMIN) &&
+      !user.institutionId
+    ) {
+      const institution = await this.institutionsService.create({
+        name: `Consultorio ${user.name}`,
+        email: user.email,
+        billingEmail: user.email,
+        responsibleTherapistUserId: user.id,
+      });
+      user = await this.usersService.register({
+        ...user,
+        institutionId: institution.id,
+      });
+    }
+
+    if (
+      user.passwordSetupToken &&
+      user.email &&
+      !user.email.endsWith('@akit.local')
+    ) {
+      const activationLink = this.usersService.buildPasswordSetupLink(
+        user.passwordSetupToken,
+      );
+      await this.notifier.notifyAccountActivation(
+        user.email,
+        user.name,
+        activationLink,
+        user.institution?.name ?? null,
+      );
+    }
+
+    return user;
+  }
+
+  async ensureInstitutionOwner(userOrId: User | string): Promise<User> {
+    const user =
+      typeof userOrId === 'string'
+        ? await this.usersService.findOne(userOrId)
+        : userOrId;
+
+    if (!user) {
+      throw new Error(USER_ERROR_MESSAGES.institutionOwnerMissing);
+    }
+
+    if (user.institutionId) {
+      return user;
+    }
+
+    const privateInstitution = await this.institutionsService.create({
+      name: `Consultorio ${user.name}`,
+      email: user.email,
+      billingEmail: user.email,
+      responsibleTherapistUserId: user.id,
+    });
+
+    return await this.usersService.register({
+      ...user,
+      institutionId: privateInstitution.id,
+    });
+  }
+
+  async refreshPasswordSetupToken(userId: string): Promise<User> {
+    const user = await this.usersService.findOneWithInstitution(userId);
+    if (!user) {
+      throw new Error(USER_ERROR_MESSAGES.notFound);
+    }
+
+    if (this.usersService.hasPasswordConfigured(user)) {
+      throw new Error(USER_ERROR_MESSAGES.accountAlreadyActive);
+    }
+
+    const passwordSetupToken = this.cryptoService.generateToken(24);
+    const passwordSetupExpiresAt = this.buildPasswordSetupExpiry();
+
+    return await this.usersService.register({
+      ...user,
+      passwordSetupToken,
+      passwordSetupExpiresAt,
+    });
+  }
+
+  async getOrCreateIndividualTestsOwner(): Promise<User> {
+    const email =
+      this.configService.get<string>('INDIVIDUAL_TEST_OWNER_EMAIL') ||
+      this.configService.get<string>('ADMIN_USER') ||
+      'owner@akit.app';
+    const name =
+      this.configService.get<string>('INDIVIDUAL_TEST_OWNER_NAME') ||
+      'Owner Plataforma';
+    const role = normalizeUserRole(
+      this.configService.get<string>('INDIVIDUAL_TEST_OWNER_ROLE') ||
+        UserRole.THERAPIST,
+    );
+    const institutionId =
+      this.configService.get<string>('INDIVIDUAL_TEST_OWNER_INSTITUTION_ID') ||
+      null;
+
+    const existingUser = await this.usersService.findByEmail(email);
+    if (existingUser) {
+      return existingUser;
+    }
+
+    return await this.register({ name, role, email, institutionId });
+  }
+
+  private buildPasswordSetupExpiry(): Date {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 72); // 72h default
+    return expiresAt;
+  }
+}

@@ -10,6 +10,8 @@ import { AppErrorBoundary } from "../components/errors/AppErrorBoundary";
 // Auth Views
 const LoginPage = lazy(() => import("../features/auth/views/LoginPage").then(m => ({ default: m.LoginPage })));
 const SetupPasswordPage = lazy(() => import("../features/auth/views/SetupPasswordPage").then(m => ({ default: m.SetupPasswordPage })));
+const ForgotPasswordPage = lazy(() => import("../features/auth/views/ForgotPasswordPage").then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import("../features/auth/views/ResetPasswordPage").then(m => ({ default: m.ResetPasswordPage })));
 
 // Dashboard Views
 const DashboardOverview = lazy(() => import("../features/dashboard/views/DashboardOverview").then(m => ({ default: m.DashboardOverview })));
@@ -34,6 +36,14 @@ export const router = createBrowserRouter([
   {
     path: APP_ROUTES.AUTH.SETUP_PASSWORD,
     element: <SuspenseWrapper><SetupPasswordPage /></SuspenseWrapper>,
+  },
+  {
+    path: APP_ROUTES.AUTH.FORGOT_PASSWORD,
+    element: <SuspenseWrapper><ForgotPasswordPage /></SuspenseWrapper>,
+  },
+  {
+    path: APP_ROUTES.AUTH.RESET_PASSWORD,
+    element: <SuspenseWrapper><ResetPasswordPage /></SuspenseWrapper>,
   },
   {
     element: <ProtectedRoute />,

@@ -2,6 +2,7 @@ import { Filter } from "lucide-react";
 import { VoucherData } from "../../api/dashboard";
 import { VoucherTableRow } from "./VoucherTableRow";
 import { Pagination } from "../../../../components/molecules/Pagination";
+import { EmptyState } from "../../../../components/molecules/EmptyState";
 
 interface VouchersIndividualTableProps {
   items: VoucherData[];
@@ -9,8 +10,16 @@ interface VouchersIndividualTableProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  onVoucherUpdated: (result: { ok: boolean; message: string }) => Promise<void>;
+  onVoucherUpdated: (result: { ok: boolean; message: string }) => void | Promise<void>;
   onViewSessions: (voucherId: string) => void;
+  actionManager: {
+    actionBusy: boolean;
+    copiedType: "CODE" | "MAIL" | null;
+    handleWhatsApp: (v: VoucherData) => void;
+    handleCopyCode: (c: string) => void;
+    handleSendEmail: (id: string, c: string, e: string, resend: boolean) => Promise<boolean>;
+    handleRevokeAction: (id: string, c: string) => Promise<boolean>;
+  };
 }
 
 export const VouchersIndividualTable = ({
@@ -19,8 +28,8 @@ export const VouchersIndividualTable = ({
   currentPage,
   totalPages,
   onPageChange,
-  onVoucherUpdated,
   onViewSessions,
+  actionManager
 }: VouchersIndividualTableProps) => {
   return (
     <div className="space-y-8">
@@ -39,11 +48,12 @@ export const VouchersIndividualTable = ({
             <tbody className="divide-y divide-app-border bg-app-surface">
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 5 : 4} className="px-5 py-20 text-center opacity-40">
-                    <div className="flex flex-col items-center gap-4">
-                      <Filter className="h-10 w-10" />
-                      <p className="app-label">Sin resultados para estos filtros</p>
-                    </div>
+                  <td colSpan={isAdmin ? 5 : 4} className="px-5 py-5">
+                    <EmptyState
+                      icon={<Filter className="h-10 w-10" />}
+                      title="Sin resultados"
+                      description="No se encontraron vouchers que coincidan con los filtros seleccionados."
+                    />
                   </td>
                 </tr>
               ) : (
@@ -52,7 +62,19 @@ export const VouchersIndividualTable = ({
                     key={voucher.id}
                     voucher={voucher}
                     isAdmin={isAdmin}
-                    onVoucherUpdated={onVoucherUpdated}
+                    actionBusy={actionManager.actionBusy}
+                    copiedType={actionManager.copiedType}
+                    onWhatsApp={() => actionManager.handleWhatsApp(voucher)}
+                    onCopyCode={() => actionManager.handleCopyCode(voucher.code)}
+                    onSendEmail={(email) => 
+                      actionManager.handleSendEmail(
+                        voucher.id, 
+                        voucher.code, 
+                        email || voucher.assignedPatientEmail || "", 
+                        voucher.status === "SENT"
+                      )
+                    }
+                    onRevoke={() => actionManager.handleRevokeAction(voucher.id, voucher.code)}
                     onViewSessions={() => onViewSessions(voucher.id)}
                   />
                 ))

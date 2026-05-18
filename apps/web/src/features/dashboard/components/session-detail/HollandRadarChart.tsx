@@ -44,24 +44,30 @@ export function HollandRadarChart({ results }: HollandRadarChartProps) {
     <div className="h-[320px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-          {/* Usamos variables CSS para que Recharts las tome del tema activo */}
+          <defs>
+            <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="var(--color-app-primary)" stopOpacity={0.4}/>
+              <stop offset="95%" stopColor="var(--color-app-primary)" stopOpacity={0.05}/>
+            </linearGradient>
+          </defs>
           <PolarGrid stroke="var(--color-app-border)" />
           <PolarAngleAxis
             dataKey="subject"
             tick={{
               fill: "var(--color-app-text-muted)",
               fontSize: 10,
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           />
           <Tooltip
             contentStyle={{
               backgroundColor: "var(--color-app-surface)",
               border: "1px solid var(--color-app-border)",
-              borderRadius: "12px",
+              borderRadius: "16px",
               boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
               fontSize: "12px",
               color: "var(--color-app-text-main)",
+              fontWeight: 800,
             }}
             itemStyle={{ color: "var(--color-app-primary)" }}
           />
@@ -69,8 +75,10 @@ export function HollandRadarChart({ results }: HollandRadarChartProps) {
             name="Afinidad"
             dataKey="A"
             stroke="var(--color-app-primary)"
-            fill="var(--color-app-primary)"
-            fillOpacity={0.25}
+            strokeWidth={3}
+            fill="url(#radarGradient)"
+            fillOpacity={1}
+            activeDot={{ r: 6, fill: "var(--color-app-primary)", stroke: "var(--color-app-surface)", strokeWidth: 2 }}
           />
         </RadarChart>
       </ResponsiveContainer>

@@ -1,0 +1,10 @@
+export const SESSION_CONSTANTS = {
+  PAGINATION: {
+    DEFAULT_PAGE: 1,
+    DEFAULT_LIMIT: 20,
+  },
+  ADMIN: {
+    DEFAULT_OVERVIEW_DAYS: 7,
+    DEFAULT_ACTIVITY_LIMIT: 50,
+  },
+};

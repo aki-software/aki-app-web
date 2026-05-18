@@ -1,8 +1,8 @@
 import { DataSource, EntityManager } from 'typeorm';
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
-import { typeOrmConfig } from '../../config/typeorm.config';
-import { VocationalCategory } from '../../categories/entities/vocational-category.entity';
+import { typeOrmConfig } from '../../config/typeorm.config.js';
+import { VocationalCategory } from '../../categories/entities/vocational-category.entity.js';
 
 type RepoProvider = Pick<DataSource, 'getRepository'> | EntityManager;
 

@@ -1,0 +1,14 @@
+{
+  "name": "@akit/design-tokens",
+  "version": "1.0.0",
+  "description": "A.kit Design Tokens (Single Source of Truth)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && node build.js",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

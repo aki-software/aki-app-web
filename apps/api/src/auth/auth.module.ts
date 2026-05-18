@@ -1,31 +1,39 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { JwtStrategy } from './jwt.strategy';
-import { RolesGuard } from './roles.guard';
-import { UsersModule } from '../users/users.module';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
+import { NotificationsModule } from '../common/notifications/notifications.module.js';
+import { UsersModule } from '../users/users.module.js';
+import { AuthController } from './auth.controller.js';
+import { AuthService } from './auth.service.js';
+import { AuthJwtModule } from './config/auth-jwt.module.js';
+import { AuthResponseFactory } from './factories/auth-response.factory.js';
+import { AuthUserFactory } from './factories/auth-user.factory.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
+import { AuthLoginService } from './services/auth-login.service.js';
+import { AuthPasswordFlowService } from './services/auth-password-flow.service.js';
+import { AuthTokenService } from './services/auth-token.service.js';
+import { JwtTokenDecoderService } from './services/jwt-token-decoder.service.js';
+import { FirebaseCertService } from './services/firebase-cert.service.js';
+import { FirebaseClaimsValidatorService } from './services/firebase-claims-validator.service.js';
+import { RolesGuard } from './guards/roles.guard.js';
 
 @Module({
-  imports: [
-    UsersModule,
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.getOrThrow<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
-            '12h') as any,
-        },
-      }),
-    }),
-  ],
+  imports: [UsersModule, NotificationsModule, PassportModule, AuthJwtModule],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RolesGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RolesGuard,
+    RateLimitGuard,
+    FirebaseCertService,
+    JwtTokenDecoderService,
+    FirebaseClaimsValidatorService,
+    AuthTokenService,
+    AuthLoginService,
+    AuthPasswordFlowService,
+    AuthResponseFactory,
+    AuthUserFactory,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}
