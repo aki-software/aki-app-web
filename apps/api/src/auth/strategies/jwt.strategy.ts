@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AUTH_JWT_MESSAGES } from '../auth.constants.js';
-import type { FirebaseJwtPayload, JwtPayload } from '../auth.types.js';
+import type { FirebaseJwtPayload, JwtPayload } from '@akit/contracts';
 import { AuthUserFactory } from '../factories/auth-user.factory.js';
 import { FirebaseClaimsValidatorService } from '../services/firebase-claims-validator.service.js';
 import { FirebaseCertService } from '../services/firebase-cert.service.js';
@@ -60,9 +60,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     done: (err: Error | null, key?: string) => void,
   ) {
     try {
-      const payload = (this.jwtTokenDecoder.decodePayload(
+      const payload = this.jwtTokenDecoder.decodePayload(
         rawJwtToken,
-      ) as unknown) as JwtPayload;
+      ) as unknown as JwtPayload;
 
       if (!this.isFirebasePayload(payload)) {
         const localJwtSecret =

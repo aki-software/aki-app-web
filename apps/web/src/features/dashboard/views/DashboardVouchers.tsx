@@ -1,5 +1,5 @@
 import { AlertTriangle, Layers3 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { PERIOD_DAYS } from "../constants/vouchers.constants";
 import { useVoucherList } from "../hooks/useVoucherList";
@@ -54,9 +54,14 @@ export function DashboardVouchers() {
   const [expirationFilter, setExpirationFilter] = useState<"ALL" | "EXPIRING_7D" | "NO_EXPIRATION">("ALL");
   const [clientFilter, setClientFilter] = useState("ALL");
 
-  const listManager = useVoucherList({
-    searchTerm, statusFilter, expirationFilter, clientFilter
-  }, viewMode, reloadToken);
+  const filters = useMemo(() => ({
+    searchTerm, 
+    statusFilter, 
+    expirationFilter, 
+    clientFilter
+  }), [searchTerm, statusFilter, expirationFilter, clientFilter]);
+
+  const listManager = useVoucherList(filters, viewMode, reloadToken);
 
   // UI Local State
   const [showCreateForm, setShowCreateForm] = useState(false);

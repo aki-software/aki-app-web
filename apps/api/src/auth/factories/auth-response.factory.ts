@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AUTH_ADMIN } from '../auth.constants.js';
-import type { AuthLoginResponse, AuthUserSummary } from '../auth.types.js';
+import type { AuthLoginResponse, AuthUserSummary } from '@akit/contracts';
 import { User, UserRole } from '../../users/entities/user.entity.js';
 import { AuthTokenService } from '../services/auth-token.service.js';
 

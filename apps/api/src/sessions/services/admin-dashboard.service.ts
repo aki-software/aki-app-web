@@ -1,17 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { CategoriesService } from '../../categories/categories.service.js';
 import { SessionsService } from '../sessions.service.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
-import {
-  DashboardStatsPayload,
-  AdminActivityItem,
-} from '@akit/contracts';
+import { DashboardStatsPayload, AdminActivityItem } from '@akit/contracts';
 import { AdminDashboardStatsService } from './admin-dashboard-stats.service.js';
 
 @Injectable()
 export class AdminDashboardService {
   constructor(
     private readonly categoriesService: CategoriesService,
+    @Inject(forwardRef(() => SessionsService))
     private readonly sessionsService: SessionsService,
     private readonly vouchersService: VouchersService,
     private readonly statsService: AdminDashboardStatsService,

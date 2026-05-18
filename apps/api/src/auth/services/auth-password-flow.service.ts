@@ -13,7 +13,7 @@ import type {
   AuthLoginResponse,
   AuthOkResponse,
   AuthTokenResolutionResponse,
-} from '../auth.types.js';
+} from '@akit/contracts';
 import { AuthResponseFactory } from '../factories/auth-response.factory.js';
 
 @Injectable()

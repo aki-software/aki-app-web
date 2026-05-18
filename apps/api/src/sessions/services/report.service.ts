@@ -128,25 +128,31 @@ export class ReportService {
       topResults,
       categoriesById,
     );
-const hollandPercentages = this.calculateHollandPercentages(
-  session.results || [],
-);
+    const hollandPercentages = this.calculateHollandPercentages(
+      session.results || [],
+    );
 
-return {
-  patientName: session.patientName,
-  patientEmail: email,
-  hollandCode: session.hollandCode ?? undefined,
-  hollandPercentages,
-  topResults: formattedResults,
-  summary,
-  tripletInsight,
-  strengths: Array.from(new Set(strengths)).slice(0, 6),
-};
-}
+    return {
+      patientName: session.patientName,
+      patientEmail: email,
+      hollandCode: session.hollandCode ?? undefined,
+      hollandPercentages,
+      topResults: formattedResults,
+      summary,
+      tripletInsight,
+      strengths: Array.from(new Set(strengths)).slice(0, 6),
+    };
+  }
 
   renderReportPdfHtml(reportData: ReportData): string {
-    const templatePath = path.join(process.cwd(), 'src', 'mail', 'templates', 'report-pdf.pug');
-    
+    const templatePath = path.join(
+      process.cwd(),
+      'src',
+      'mail',
+      'templates',
+      'report-pdf.pug',
+    );
+
     return pug.renderFile(templatePath, {
       patientName: reportData.patientName,
       patientEmail: reportData.patientEmail || null,

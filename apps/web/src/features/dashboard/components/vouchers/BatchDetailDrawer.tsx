@@ -1,7 +1,9 @@
-import { X,} from "lucide-react";
+import { X, Filter } from "lucide-react";
 import { useMemo, useState } from "react";
-import { getStatusLabel, getStatusPillClass, DETAIL_ITEMS_PER_PAGE } from "../../constants/vouchers.constants";
+import { DETAIL_ITEMS_PER_PAGE } from "../../constants/vouchers.constants";
 import { Pagination } from "../../../../components/molecules/Pagination";
+import { EmptyState } from "../../../../components/molecules/EmptyState";
+import { StatusBadge } from "../../../../components/atoms/StatusBadge";
 import { VoucherBatchDetailResponse } from "../../api/dashboard";
 import { formatDateTime } from "../../../../utils/date";
 
@@ -89,15 +91,21 @@ export const BatchDetailDrawer = ({ batchId, detail, loading, error, isAdmin, on
                   </thead>
                   <tbody className="divide-y divide-app-border bg-app-surface">
                     {paginatedData.items.length === 0 ? (
-                      <tr><td colSpan={4} className="px-3 py-8 text-center text-sm text-app-text-muted">Este lote no tiene vouchers.</td></tr>
+                      <tr>
+                        <td colSpan={4} className="px-3 py-5">
+                          <EmptyState
+                            icon={<Filter className="h-8 w-8" />}
+                            title="Lote vacío"
+                            description="Este lote no tiene vouchers registrados."
+                          />
+                        </td>
+                      </tr>
                     ) : (
                       paginatedData.items.map((voucher) => (
                         <tr key={voucher.id}>
                           <td className="px-3 py-3 text-sm font-semibold">{voucher.code}</td>
                           <td className="px-3 py-3">
-                            <span className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-black uppercase ${getStatusPillClass(voucher.status)}`}>
-                              {getStatusLabel(voucher.status)}
-                            </span>
+                            <StatusBadge status={voucher.status} type="voucher" />
                           </td>
                           <td className="px-3 py-3 text-xs text-app-text-muted">
                             <p>{voucher.assignedPatientName ?? "Sin asignar"}</p>

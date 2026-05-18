@@ -6,6 +6,7 @@ import { PdfService } from './services/pdf.service.js';
 import { StorageService } from './services/storage.service.js';
 import { TresAreasService } from './services/tres-areas.service.js';
 import { CryptoService } from './services/crypto.service.js';
+import { RateLimitService } from './services/rate-limit.service.js';
 import {
   PDF_GENERATOR,
   STORAGE_ADAPTER,
@@ -28,6 +29,7 @@ import { JobDispatcherService } from './services/job-dispatcher.service.js';
     StorageService,
     TresAreasService,
     CryptoService,
+    RateLimitService,
     JobDispatcherService,
     InMemoryQueueAdapter,
     BullMQQueueAdapter,
@@ -47,6 +49,7 @@ import { JobDispatcherService } from './services/job-dispatcher.service.js';
     StorageService,
     TresAreasService,
     CryptoService,
+    RateLimitService,
     JobDispatcherService,
     PDF_GENERATOR,
     STORAGE_ADAPTER,

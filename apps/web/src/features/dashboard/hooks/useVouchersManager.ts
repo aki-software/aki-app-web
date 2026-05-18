@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, type FormEvent, useMemo } from "react";
+import { AuthUser, UserRole } from "@akit/contracts";
 import {
   createVoucher,
   fetchVoucherBatchDetail,
@@ -21,8 +22,8 @@ import type { SessionData } from "../api/sessions.api";
 import { initialFormState, type VoucherFormState } from "../components/vouchers/VoucherEmitForm";
 import { ITEMS_PER_PAGE } from "../constants/vouchers.constants";
 
-export const useVouchersManager = (user: any) => {
-  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+export const useVouchersManager = (user: AuthUser | null) => {
+  const isAdmin = user?.role?.toUpperCase() === UserRole.ADMIN;
   const [vouchers, setVouchers] = useState<VoucherData[]>([]);
   const [institutions, setInstitutions] = useState<InstitutionOption[]>([]);
   const [therapists, setTherapists] = useState<TherapistOption[]>([]);

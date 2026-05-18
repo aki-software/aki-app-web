@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -25,10 +26,7 @@ import { SessionScope } from './types/session-scope.type.js';
 import { VouchersService } from '../vouchers/vouchers.service.js';
 import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
-import {
-  AdminActivityItem,
-  RawRecentSessionRow,
-} from '@akit/contracts';
+import { AdminActivityItem, RawRecentSessionRow } from '@akit/contracts';
 
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 
@@ -39,6 +37,7 @@ export class SessionsService {
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
+    @Inject(forwardRef(() => AdminDashboardService))
     private readonly adminDashboardService: AdminDashboardService,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,

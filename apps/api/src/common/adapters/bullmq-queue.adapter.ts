@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
 import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
-import { JobNames } from '../jobs/job-names.js';
 import { InMemoryQueueAdapter } from './in-memory-queue.adapter.js';
+import { applyQueueDefaults } from './queue-defaults.js';
 
 type RedisConnectionConfig =
   | { url: string }
@@ -47,7 +47,7 @@ export class BullMQQueueAdapter implements QueueAdapter {
       return;
     }
 
-    const resolvedOptions = this.applyDefaults(jobName, options);
+    const resolvedOptions = applyQueueDefaults(jobName, options);
     await this.queue.add(jobName, payload, this.mapJobOptions(resolvedOptions));
   }
 
@@ -129,26 +129,5 @@ export class BullMQQueueAdapter implements QueueAdapter {
     }
 
     return jobOptions;
-  }
-
-  private applyDefaults(
-    jobName: string,
-    options?: QueueJobOptions,
-  ): QueueJobOptions | undefined {
-    const shouldDefault =
-      jobName === JobNames.SendEmail ||
-      jobName === JobNames.SendReport ||
-      jobName === JobNames.GeneratePdf;
-
-    if (!shouldDefault) {
-      return options;
-    }
-
-    return {
-      ...options,
-      attempts: options?.attempts ?? 3,
-      backoffMs: options?.backoffMs ?? 60_000,
-      backoffType: options?.backoffType ?? 'exponential',
-    };
   }
 }

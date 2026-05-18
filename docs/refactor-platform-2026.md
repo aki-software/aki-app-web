@@ -123,7 +123,26 @@ src/
 | `<DataTable>` genérico | 4 tablas con estructura similar | Config-driven |
 | `<EventIcon>` | 2 funciones `getIcon` idénticas | 2 → 1 |
 
-### 2.3 Android (CotejoApp/)
+### 2.3 Responsiveness Audit (Web)
+
+| Componente | Problema | Impacto |
+|-----------|----------|---------|
+| `VoucherTableRow` | `whitespace-nowrap` excesivo en nombres de instituciones y fechas | Scroll horizontal innecesario en tablets |
+| `VoucherStatsCards` | Grid de 5 columnas en XL con 6 items | Layout desbalanceado y apretado |
+| `Email Input Popover` | `min-w-[320px]` hardcodeado | Desborda en dispositivos pequeños (iPhone SE) |
+| `StatCard` (Atoms) | Padding fijo `!p-7` | Pierde espacio útil en mobile |
+| `OverviewHighlights` | Títulos grandes (`text-2xl`) sin ajuste sm/md | Corte de texto en dispositivos medianos |
+| `BatchDetailDrawer` | Tabla interna sin `overflow-x-auto` | Rompe el layout del drawer en mobile |
+
+### 2.4 Data & Feature Audit (Web/API)
+
+| Problema | Causa Raíz | Impacto |
+|----------|------------|---------|
+| **Falta de Ordenamiento** | El API no soporta parámetros `sortBy` / `sortOrder` en `findAll` | Tablas estáticas (solo DESC por creación). Ineficiente para encontrar vouchers expirando o lotes grandes. |
+| **Dashboard Vacío** | Posible falta de tests en el ambiente o error en `AdminDashboardService` (12 queries paralelas) | El usuario no ve actividad reciente aunque existan datos en DB. |
+| **Paginación Incompleta** | Se pasa `page` y `limit` pero no hay control de orden | El usuario no puede invertir el orden de la lista. |
+
+### 2.5 Android (CotejoApp/)
 
 #### 2.3.1 Estructura Actual
 
@@ -1369,15 +1388,16 @@ val useNewResultsScreen = firebaseRemoteConfig.getBoolean("use_new_results_scree
 | **3. Android Quick Wins** | 1-2 days | Phase 1 | 🟡 High | Yes (Lane C) |
 | **4. Android Critical Fixes** | 2-3 days | Phase 3 | 🔴 Critical | Yes (Lane C) |
 | **5. Web Hooks Extraction** | 3-5 days | Phase 1 | 🟡 High | Yes (Lane B) | ✅ COMPLETED |
-| **6. Web Components** | 3-4 days | Phase 5 | 🟢 Medium | Yes (Lane B) |
+| **6. Web Components** | 3-4 days | Phase 5 | 🟢 Medium | Yes (Lane B) | ✅ COMPLETED |
 | **7. Android God Classes** | 3-4 weeks | Phase 4 | 🔴 Critical | Yes (Lane C) |
 | **8. API Circular Deps** | 3-4 days | Phase 1 | 🟡 High | Yes (Lane A) |
 | **9. API God Services** | 3-4 days | Phase 8 | 🟡 High | Yes (Lane A) |
 | **10. Testing** | Ongoing | All phases | 🔴 Critical | Yes (Across all) |
+| **11. Responsiveness & UI** | 3-4 days | Phase 6 | 🟢 Medium | Yes (Lane B) |
 
 ### Parallel Lanes post-Phase 1:
 - **Lane A (Backend):** Phases 2, 8, 9
-- **Lane B (Web):** Phases 5, 6
+- **Lane B (Web):** Phases 5, 6, 11
 - **Lane C (Android):** Phases 3, 4, 7
 
 Executing these lanes in parallel can reduce the total time by approximately 40-50%.

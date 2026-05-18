@@ -48,7 +48,7 @@ export class ReportOrchestratorService {
         pdfBuffer = await this.pdfService.generateFromHtml(htmlContent);
         const fileName = `report_${sessionId}_${Date.now()}.pdf`;
         reportUrl = await this.storageService.uploadFile(pdfBuffer, fileName);
-        
+
         if (reportUrl) {
           session.reportUrl = reportUrl;
           await this.sessionRepository.save(session);
