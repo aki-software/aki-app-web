@@ -797,9 +797,9 @@ private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
 - [ ] Test scope is cancelled on app shutdown
 
-#### 4.4 Fix FirebaseAuthSessionProvider to Use DI
+#### 4.4 Fix FirebaseAuthSessionProvider to Use DI and Abstraction (AuthRepository)
 
-**File:** `CotejoApp/app/src/main/java/com/akit/app/data/auth/FirebaseAuthSessionProvider.kt`
+**File:** `CotejoApp/app/src/main/java/com/akit/app/data/auth/FirebaseAuthSessionProvider.kt`, `CotejoApp/app/src/main/java/com/akit/app/domain/repository/AuthRepository.kt`
 
 **Current:**
 
@@ -810,22 +810,32 @@ override fun currentUserId(): String? = FirebaseAuth.getInstance().currentUser?.
 **Target:**
 
 ```kotlin
+// domain/repository/AuthRepository.kt
+interface AuthRepository {
+    fun currentUserId(): String?
+    suspend fun getFreshToken(): ApiResult<String>
+}
+
+// data/auth/FirebaseAuthSessionProvider.kt
 class FirebaseAuthSessionProvider @Inject constructor(
     private val firebaseAuth: FirebaseAuth
-) : AuthSessionProvider {
+) : AuthRepository {
     override fun currentUserId(): String? = firebaseAuth.currentUser?.uid
+    // ... suspended function with FirebaseAuth token fetch
 }
 ```
 
 **Tasks:**
 
-- [ ] Inject `FirebaseAuth` instance via constructor
-- [ ] Update DI module to provide `FirebaseAuth`
-- [ ] Update all usages
+- [ ] Create `AuthRepository` interface in Domain module.
+- [ ] Implement `AuthRepository` with `FirebaseAuthSessionProvider` in Data module.
+- [ ] Inject `FirebaseAuth` instance via constructor in Data module.
+- [ ] Update DI module to provide `FirebaseAuth` and bind `AuthRepository` to `FirebaseAuthSessionProvider`.
+- [ ] Update all ViewModels and classes to depend on the abstract `AuthRepository` instead of direct Firebase libraries.
 
 **Tests:**
 
-- [ ] Test with mocked FirebaseAuth
+- [ ] Test AuthRepository using a clean mock of AuthRepository (no Google/Firebase library overhead in unit tests).
 
 #### 4.5 Split BackendApiClient into Specific Clients
 
@@ -869,25 +879,29 @@ class FirebaseAuthSessionProvider @Inject constructor(
 - [ ] Test shareWhatsApp opens correct URL
 - [ ] Test copyCode copies to clipboard
 
-#### 5.2 Split `useVouchersManager` into 4 Hooks
+#### 5.2 Split `useVouchersManager` into 4 Hooks (and Integrate State Management/React Query)
 
 **Files:**
 
-- `useVoucherList.ts` — fetch, pagination, loading
-- `useVoucherBatches.ts` — batch queries, batch detail
-- `useVoucherForm.ts` — create/edit form state
+- `useVoucherList.ts` — fetch, pagination, loading (using TanStack Query for cache invalidation)
+- `useVoucherBatches.ts` — batch queries, batch detail (using TanStack Query)
+- `useVoucherForm.ts` — create/edit form state (Zustand/local context)
 - `useVoucherFilters.ts` — filter state (status, expiration, search)
 
 **Tasks:**
 
-- [ ] Create each hook with single responsibility
-- [ ] Update `VouchersView` to compose the 4 hooks
-- [ ] Remove `useVouchersManager.ts`
+- [ ] Install `@tanstack/react-query` and `zustand` if not already in the monorepo web package.
+- [ ] Create each hook with single responsibility.
+- [ ] Implement query caching and optimistic updates using TanStack Query, so creating/redeeming vouchers immediately refreshes lists without full reload.
+- [ ] Create a lightweight Zustand store for sharing transient states (like active filters, sidebar states, active modales).
+- [ ] Update `VouchersView` to compose the 4 hooks.
+- [ ] Remove `useVouchersManager.ts`.
 
 **Tests:**
 
-- [ ] Test each hook independently
-- [ ] Test composition in view
+- [ ] Test each hook independently with MSW (Mock Service Worker) for network requests.
+- [ ] Test query cache invalidation on mutations (e.g., list invalidates on voucher creation).
+- [ ] Test composition in view.
 
 #### 5.3 Create `useAdminDashboardStats`
 
@@ -1187,6 +1201,21 @@ InstitutionsModule → forwardRef(UsersModule)
 - [ ] Remove `@Inject(forwardRef(() => SessionsService))`
 - [ ] Remove `SessionsService` import from VouchersModule
 
+#### 8.5 Implement Idempotency Guard for Offline Sync and Writes
+
+**Files:** `apps/api/src/common/guards/idempotency.guard.ts`, `apps/api/src/common/services/idempotency.service.ts`
+
+**Tasks:**
+- [ ] Create `IdempotencyService` that stores execution hashes/keys in Redis (Render Redis instance) with a 24-hour TTL.
+- [ ] Create `IdempotencyGuard` to intercept POST/PUT operations with a `X-Idempotency-Key` header.
+- [ ] Ensure that if a duplicate request arrives while the first is running, it blocks; if the first has completed, it returns the cached response directly from Redis.
+- [ ] Apply `IdempotencyGuard` to key endpoints: `sessions/complete` and `vouchers/redeem`.
+- [ ] In `CotejoApp`'s `WorkManager` API synchronization layer, ensure a unique UUID is generated per transaction and sent as the `X-Idempotency-Key` header on all retry attempts.
+
+**Tests:**
+- [ ] Test that simultaneous requests with the same key block and wait, or return a 409 Conflict.
+- [ ] Test that sequential identical requests with the same key return the exact same cached JSON response without running database operations again.
+
 ---
 
 ### Phase 9: API God Service Decomposition (3-4 days)
@@ -1213,21 +1242,23 @@ InstitutionsModule → forwardRef(UsersModule)
 - [ ] Test dispatcher routes to correct handler
 - [ ] Test unknown job throws error
 
-#### 9.2 Split AdminDashboardService
+#### 9.2 Split and Optimize AdminDashboardService (Consolidation against Neon PostgreSQL)
 
 **Files:** `apps/api/src/sessions/services/`
 
 **Tasks:**
 
-- [ ] Create `AdminDashboardQueriesService` — 12 query methods
-- [ ] Create `AdminDashboardFormatterService` — formatting and calculations
-- [ ] Refactor `AdminDashboardService` to ~30 lines (orchestrator)
+- [ ] Create `AdminDashboardQueriesService` — Replace 12 individual sequential/parallel queries with consolidated queries. Write a single database view or utilize PostgreSQL JSON aggregation functions (`JSON_AGG`, `JSON_BUILD_OBJECT`) to fetch dashboard statistics in a maximum of 2 database roundtrips, reducing cold start/network latency issues with Neon Serverless DB.
+- [ ] Create `AdminDashboardFormatterService` — formatting and calculations.
+- [ ] Implement Redis-based caching layer for dashboard data (5-minute TTL) to avoid hitting Neon DB for every admin page reload.
+- [ ] Refactor `AdminDashboardService` to ~30 lines (orchestrator).
 
 **Tests:**
 
-- [ ] Test queries return correct data
-- [ ] Test formatter produces correct output
-- [ ] Test orchestrator combines correctly
+- [ ] Test queries return correct data with mock Postgres.
+- [ ] Test performance is below 200ms roundtrip.
+- [ ] Test caching hit and eviction on new session completion.
+- [ ] Test formatter produces correct output.
 
 #### 9.3 Split ReportOrchestratorService
 
