@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { createVoucher, type TherapistOption } from "../api/dashboard";
-import { initialFormState, type VoucherFormState } from "../components/vouchers/VoucherEmitForm";
+import { initialFormState, type VoucherFormState } from "../components/vouchers/VoucherEmitForm.types";
 
 export const useVoucherForm = (therapists: TherapistOption[]) => {
   const [formState, setFormState] = useState<VoucherFormState>(initialFormState);

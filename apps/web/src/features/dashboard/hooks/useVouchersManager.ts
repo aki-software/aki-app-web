@@ -19,7 +19,7 @@ import {
   type VoucherAlert,
 } from "../api/dashboard";
 import type { SessionData } from "../api/sessions.api";
-import { initialFormState, type VoucherFormState } from "../components/vouchers/VoucherEmitForm";
+import { initialFormState, type VoucherFormState } from "../components/vouchers/VoucherEmitForm.types";
 import { ITEMS_PER_PAGE } from "../constants/vouchers.constants";
 
 export const useVouchersManager = (user: AuthUser | null) => {

@@ -59,7 +59,7 @@ export async function fetchInstitutions(): Promise<InstitutionOption[]> {
       responsibleTherapistName: institution.responsibleTherapistName ?? null,
       responsibleTherapistActive:
         institution.responsibleTherapistActive ?? false,
-      activationEmailSent: (institution as any).activationEmailSent,
+      activationEmailSent: institution.activationEmailSent,
     }));
   } catch (error) {
     console.error("Error fetching institutions:", error);

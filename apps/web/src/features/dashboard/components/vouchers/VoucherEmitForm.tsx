@@ -1,20 +1,7 @@
 import { Loader2, Send } from "lucide-react";
 import { type FormEvent, useMemo } from "react";
 import type { InstitutionOption, TherapistOption } from "../../api/dashboard";
-
-export type VoucherFormState = {
-  ownerInstitutionId: string;
-  ownerUserId: string;
-  quantity: string;
-  expiresAt: string;
-};
-
-export const initialFormState: VoucherFormState = {
-  ownerInstitutionId: "",
-  ownerUserId: "",
-  quantity: "1",
-  expiresAt: "",
-};
+import type { VoucherFormState } from "./VoucherEmitForm.types";
 
 interface Props {
   institutions: InstitutionOption[];

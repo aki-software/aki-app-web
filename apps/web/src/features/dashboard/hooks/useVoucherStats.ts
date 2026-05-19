@@ -10,14 +10,14 @@ import {
   type VoucherAlert,
 } from "../api/dashboard";
 
-import { AuthUser } from "@akit/contracts";
+import { AuthUser, VoucherData } from "@akit/contracts";
 
 export const useVoucherStats = (user: AuthUser | null, isAdmin: boolean) => {
   const [stats, setStats] = useState<VoucherStats | null>(null);
   const [alerts, setAlerts] = useState<VoucherAlert[]>([]);
   const [institutions, setInstitutions] = useState<InstitutionOption[]>([]);
   const [therapists, setTherapists] = useState<TherapistOption[]>([]);
-  const [vouchers, setVouchers] = useState<unknown[]>([]); // For client options calculation
+  const [vouchers, setVouchers] = useState<VoucherData[]>([]); // For client options calculation
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
@@ -46,7 +46,7 @@ export const useVoucherStats = (user: AuthUser | null, isAdmin: boolean) => {
 
   const clientOptions = useMemo(() => {
     const entries = new Map<string, string>();
-    (vouchers as any[]).forEach((v) => {
+    vouchers.forEach((v) => {
       const key = v.ownerInstitutionId ?? "__UNASSIGNED__";
       const label = v.ownerInstitutionName || "Institución no informada";
       if (!entries.has(key)) entries.set(key, label);

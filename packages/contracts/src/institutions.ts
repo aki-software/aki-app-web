@@ -10,6 +10,7 @@ export interface InstitutionResponse {
 
 export interface InstitutionListItemResponse extends InstitutionResponse {
   responsibleTherapistActive: boolean;
+  activationEmailSent?: boolean;
 }
 
 export type InstitutionOption = InstitutionListItemResponse;
