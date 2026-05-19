@@ -2,7 +2,6 @@ import { DashboardStatsResponse } from "@akit/contracts";
 import { BarChart3, Calendar, Sparkles, TrendingUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
-import { fetchDashboardStats } from "../api/dashboard";
 import { getFormattedCurrentDate } from "../../../utils/date";
 import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashboard.constants";
 import { Spinner } from "../../../components/atoms/Spinner";
@@ -17,28 +16,13 @@ import { QuickActions } from "../components/overview/QuickActions";
 import { ResultsDistributionChart } from "../components/ResultsDistributionChart";
 import { SessionsChart } from "../components/SessionsChart";
 import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
+import { useAdminDashboardStats } from "../hooks/useAdminDashboardStats";
 
 function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
-  const [adminStats, setAdminStats] = useState<DashboardStatsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [periodDays, setPeriodDays] = useState<number>(7);
-
-  useEffect(() => {
-    const loadStats = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchDashboardStats(periodDays);
-        setAdminStats(data);
-      } catch (error) {
-        console.error("Error loading stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadStats();
-  }, [periodDays]);
+  const { stats: adminStats, loading, periodDays, setPeriodDays } = useAdminDashboardStats();
 
   const sessionsSummary = useMemo(() => {
+
     if (!adminStats || adminStats.sessionsActivity.length === 0) return null;
 
     const totalStarted = adminStats.sessionsActivity.reduce((acc, item) => acc + item.count, 0);
