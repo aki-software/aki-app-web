@@ -1414,18 +1414,51 @@ val useNewResultsScreen = firebaseRemoteConfig.getBoolean("use_new_results_scree
 | **8. API Circular Deps** | 3-4 days | Phase 1 | 🟡 High | Yes (Lane A) |
 | **9. API God Services** | 3-4 days | Phase 8 | 🟡 High | Yes (Lane A) |
 | **10. Testing** | Ongoing | All phases | 🔴 Critical | Yes (Across all) |
-| **11. Responsiveness & UI** | 3-4 days | Phase 6 | 🟢 Medium | Yes (Lane B) |
+| **11. CI/CD & Deployment** | 3-4 days | All phases | 🔴 Critical | No |
 
 ### Parallel Lanes post-Phase 1:
 - **Lane A (Backend):** Phases 2, 8, 9
-- **Lane B (Web):** Phases 5, 6, 11
+- **Lane B (Web):** Phases 5, 6, 11 (UI)
 - **Lane C (Android):** Phases 3, 4, 7
 
 Executing these lanes in parallel can reduce the total time by approximately 40-50%.
 
 ---
 
-## 8. Success Criteria
+## 8. CI/CD & Deployment Strategy
+
+Esta fase final asegura que la estabilidad lograda durante el refactor se mantenga mediante automatización total del ciclo de vida.
+
+### 8.1 Continuous Integration (CI) - FINALIZADA ✅
+- **Web/API (Monorepo)**: Implementado `lint`, `test`, y `build` con Turbo Cache.
+- **Android**: Configurado `verify`, `test`, y `assembleDebug` con inyección de secretos para Firebase.
+- **ESM Support**: Configurado Babel en API para soportar tests Jest con NodeNext/ESM.
+
+### 8.2 Continuous Deployment (CD) - PRÓXIMAMENTE
+Se implementará un flujo de deploy basado en ambientes:
+
+#### 8.2.1 Entorno de Staging (Test)
+- **Trigger**: Merge automático a la rama `dev`.
+- **Acciones**:
+  - Deploy automático del API (Docker/PM2).
+  - Correr migraciones de Base de Datos.
+  - Deploy de la Web a CDN/Hosting.
+- **Objetivo**: Validación final en un entorno idéntico a producción.
+
+#### 8.2.2 Entorno de Producción
+- **Trigger**: Push/Merge a la rama `main` (vía `releases/*`).
+- **Acciones**:
+  - Build optimizado de producción.
+  - Deploy *zero-downtime*.
+  - Notificación de éxito/fallo.
+
+### 8.3 Infraestructura Necesaria
+- Configuración de Secrets en GitHub (SSH Keys, DB URLs, API Keys).
+- Dockerización completa de los servicios para reproducibilidad.
+
+---
+
+## 9. Success Criteria
 
 | Metric | Current | Target |
 |--------|---------|--------|

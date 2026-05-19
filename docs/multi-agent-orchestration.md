@@ -56,27 +56,34 @@
 ## Conflict Prevention Rules
 
 ### Rule 1: File Ownership
+
 Cada agente SOLO modifica archivos en su dominio:
+
 - API Agent: `apps/api/` + `packages/contracts/` (solo types de API)
 - Web Agent: `apps/web/` + `packages/contracts/` (solo types de Web)
 - Android Agent: `CotejoApp/` + `packages/contracts/` (solo types de Android)
 
 ### Rule 2: Contracts Package Protocol
+
 1. API Agent crea los types en `packages/contracts/src/`
 2. API Agent mergea a `develop`
 3. Web Agent y Android Agent pull de `develop` y consumen los types
 4. NO editar contracts simultáneamente
 
 ### Rule 3: Branch Sync
+
 Cada agente debe hacer `git merge develop` en su rama al menos cada 2 días para evitar drift.
 
 ### Rule 4: PR Size
+
 - Máximo 400 líneas por PR
 - Si un cambio es más grande, split en múltiples PRs
 - Cada PR debe ser reviewable en < 15 minutos
 
 ### Rule 5: Test Requirement
+
 Cada PR debe incluir tests para el código nuevo o modificado.
+
 - API Agent: Jest tests en `apps/api/src/**/*.spec.ts`
 - Web Agent: Vitest tests en `apps/web/src/**/*.test.ts`
 - Android Agent: JUnit tests en `CotejoApp/app/src/test/`
@@ -121,6 +128,7 @@ Cada PR debe incluir tests para el código nuevo o modificado.
 ## CI/CD per Agent
 
 ### API Agent CI
+
 ```yaml
 test-api:
   runs-on: ubuntu-latest
@@ -132,6 +140,7 @@ test-api:
 ```
 
 ### Web Agent CI
+
 ```yaml
 test-web:
   runs-on: ubuntu-latest
@@ -143,6 +152,7 @@ test-web:
 ```
 
 ### Android Agent CI
+
 ```yaml
 test-android:
   runs-on: ubuntu-latest
@@ -181,13 +191,17 @@ Numbers indicate merge order within each wave. Items with the same number can me
 ## Communication Protocol
 
 ### Agent-to-Agent (via user)
+
 Los agentes NO se comunican directamente. El usuario es el orchestrator:
+
 - User relays contract changes from API Agent to Web/Android Agents
 - User coordinates merge order
 - User resolves conflicts if any arise
 
 ### Status Updates
+
 Cada agente debe reportar al finalizar cada task:
+
 ```
 ✅ Completed: [task description]
 📁 Files modified: [list]
@@ -196,7 +210,9 @@ Cada agente debe reportar al finalizar cada task:
 ```
 
 ### Blocking Issues
+
 Si un agente encuentra un blocking issue:
+
 ```
 🚫 BLOCKED: [description]
 📋 Needs: [what's needed to unblock]
