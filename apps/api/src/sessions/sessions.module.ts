@@ -1,9 +1,8 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VouchersModule } from '../vouchers/vouchers.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
 import { VocationalCategory } from '../categories/entities/vocational-category.entity.js';
-import { CommonModule } from '../common/common.module.js';
 import { MailModule } from '../mail/mail.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { SessionResult } from './entities/session-result.entity.js';
@@ -19,6 +18,8 @@ import { ReportService } from './services/report.service.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { SessionCompleteMapperService } from './services/session-complete-mapper.service.js';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
+import { TresAreasModule } from '../tres-areas/tres-areas.module.js';
+import { VoucherRedemptionModule } from '../common/modules/voucher-redemption.module.js';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
     CategoriesModule,
     MailModule,
     UsersModule,
-    forwardRef(() => CommonModule),
+    TresAreasModule,
+    VoucherRedemptionModule,
     VouchersModule,
   ],
   controllers: [SessionsController],

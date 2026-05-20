@@ -1,5 +1,5 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UsersService } from '../../users/users.service.js';
+import { Injectable } from '@nestjs/common';
+import { hasPasswordConfigured } from '../../users/users.utils.js';
 import { Institution } from '../entities/institution.entity.js';
 import {
   InstitutionListItemResponse,
@@ -8,11 +8,6 @@ import {
 
 @Injectable()
 export class InstitutionPresenterService {
-  constructor(
-    @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
-  ) {}
-
   toInstitutionResponse(institution: Institution): InstitutionResponse {
     return {
       id: institution.id,
@@ -31,10 +26,11 @@ export class InstitutionPresenterService {
     return {
       ...this.toInstitutionResponse(institution),
       responsibleTherapistActive: institution.responsibleTherapist
-        ? this.usersService.hasPasswordConfigured(
+        ? hasPasswordConfigured(
             institution.responsibleTherapist,
           )
         : false,
     };
   }
 }
+

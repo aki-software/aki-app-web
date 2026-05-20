@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as pug from 'pug';
 import { colors } from '@akit/design-tokens';
 import { VocationalCategory } from '../../categories/entities/vocational-category.entity.js';
-import { TresAreasService } from '../../common/services/tres-areas.service.js';
+import { TresAreasService } from '../../tres-areas/tres-areas.service.js';
 import {
   CategoryResult,
   ReportData,

@@ -29,7 +29,7 @@ import { type VoucherScope } from './types/voucher-query.types.js';
 import { CurrentVoucherScope } from './decorators/voucher-scope.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { SessionsService } from '../sessions/sessions.service.js';
+import { VoucherRedemptionService } from '../common/services/voucher-redemption.service.js';
 
 @Controller('vouchers')
 export class VouchersController {
@@ -39,8 +39,7 @@ export class VouchersController {
     private readonly vouchersService: VouchersService,
     private readonly queryService: VoucherQueryService,
     private readonly batchQueryService: VoucherBatchQueryService,
-    @Inject(forwardRef(() => SessionsService))
-    private readonly sessionsService: SessionsService,
+    private readonly voucherRedemptionService: VoucherRedemptionService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -113,7 +112,7 @@ export class VouchersController {
       `redeem requested code=${redeemVoucherDto.code?.trim()?.toUpperCase()} sessionId=${redeemVoucherDto.sessionId} userId=${scope.ownerUserId} role=${scope.role}`,
     );
 
-    return await this.sessionsService.redeemVoucher(
+    return await this.voucherRedemptionService.redeemVoucher(
       redeemVoucherDto.code,
       redeemVoucherDto.sessionId,
     );

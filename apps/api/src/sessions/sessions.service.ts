@@ -23,7 +23,6 @@ import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { SessionScope } from './types/session-scope.type.js';
-import { VouchersService } from '../vouchers/vouchers.service.js';
 import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
 import { AdminActivityItem, RawRecentSessionRow } from '@akit/contracts';
@@ -41,7 +40,6 @@ export class SessionsService {
     private readonly adminDashboardService: AdminDashboardService,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
-    private readonly vouchersService: VouchersService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
     private readonly dataSource: DataSource,
@@ -275,54 +273,6 @@ export class SessionsService {
     };
   }
 
-  async redeemVoucher(
-    code: string,
-    sessionId: string,
-  ): Promise<{
-    success: boolean;
-    status: 'REDEEMED' | 'ALREADY_REDEEMED_BY_THIS_SESSION';
-    voucherCode: string;
-    sessionId: string;
-  }> {
-    return await this.dataSource.transaction(async (manager: EntityManager) => {
-      const { voucher, action } = await this.vouchersService.redeemVoucher(
-        manager,
-        code,
-        sessionId,
-      );
-
-      const sessionRepository = manager.getRepository(Session);
-      const session = await sessionRepository.findOne({
-        where: { id: sessionId },
-      });
-
-      if (!session) {
-        throw new NotFoundException('SESSION_NOT_FOUND');
-      }
-
-      if (action === 'ALREADY_REDEEMED') {
-        this.applyVoucherToSession(session, voucher);
-        await sessionRepository.save(session);
-        return {
-          success: true,
-          status: 'ALREADY_REDEEMED_BY_THIS_SESSION' as const,
-          voucherCode: voucher.code,
-          sessionId,
-        };
-      }
-
-      this.applyVoucherToSession(session, voucher);
-      await sessionRepository.save(session);
-
-      return {
-        success: true,
-        status: 'REDEEMED' as const,
-        voucherCode: voucher.code,
-        sessionId,
-      };
-    });
-  }
-
   async findVoucherSessions(
     voucherId: string,
     scope: VoucherScope,
@@ -371,20 +321,6 @@ export class SessionsService {
     }
 
     return await qb.orderBy('session.createdAt', 'DESC').getMany();
-  }
-
-  private applyVoucherToSession(session: Session, voucher: Voucher) {
-    session.voucherId = voucher.id;
-    session.paymentStatus = SessionPaymentStatus.VOUCHER_REDEEMED;
-    session.reportUnlockedAt =
-      session.reportUnlockedAt ?? voucher.redeemedAt ?? new Date();
-
-    if (!session.institutionId && voucher.ownerInstitutionId) {
-      session.institutionId = voucher.ownerInstitutionId;
-    }
-    if (!session.therapistUserId && voucher.ownerUserId) {
-      session.therapistUserId = voucher.ownerUserId;
-    }
   }
 
   protected _isUuid(value?: string | null): value is string {

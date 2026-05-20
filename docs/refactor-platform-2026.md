@@ -388,16 +388,19 @@ app/src/main/java/com/akit/app/
 > ⚠️ **MANDATORY** — No refactoring starts without these guardrails.
 
 #### 0.1 Establish CI Pipeline (Monorepo)
+
 - [ ] Create `.github/workflows/ci-platform.yml`
 - [ ] Implement `lint`, `test`, and `build` jobs using Turbo Cache.
 - [ ] Mandate status checks passing before merging to `dev`.
 
 #### 0.2 Establish CI Pipeline (Android)
+
 - [ ] Create `.github/workflows/ci-android.yml`
 - [ ] Implement `verify` (detekt + lint), `test`, and `assembleDebug` jobs.
 - [ ] Cache Gradle dependencies to optimize run time.
 
 #### 0.3 Git & Workflow Standards
+
 - [ ] Enforce "Conventional Commits".
 - [ ] Define PR template with refactor-specific checklist.
 - [ ] Branch protection for `main` and `dev`.
@@ -1206,6 +1209,7 @@ InstitutionsModule → forwardRef(UsersModule)
 **Files:** `apps/api/src/common/guards/idempotency.guard.ts`, `apps/api/src/common/services/idempotency.service.ts`
 
 **Tasks:**
+
 - [ ] Create `IdempotencyService` that stores execution hashes/keys in Redis (Render Redis instance) with a 24-hour TTL.
 - [ ] Create `IdempotencyGuard` to intercept POST/PUT operations with a `X-Idempotency-Key` header.
 - [ ] Ensure that if a duplicate request arrives while the first is running, it blocks; if the first has completed, it returns the cached response directly from Redis.
@@ -1213,6 +1217,7 @@ InstitutionsModule → forwardRef(UsersModule)
 - [ ] In `CotejoApp`'s `WorkManager` API synchronization layer, ensure a unique UUID is generated per transaction and sent as the `X-Idempotency-Key` header on all retry attempts.
 
 **Tests:**
+
 - [ ] Test that simultaneous requests with the same key block and wait, or return a 409 Conflict.
 - [ ] Test that sequential identical requests with the same key return the exact same cached JSON response without running database operations again.
 
@@ -1447,7 +1452,8 @@ val useNewResultsScreen = firebaseRemoteConfig.getBoolean("use_new_results_scree
 | **10. Testing** | Ongoing | All phases | 🔴 Critical | Yes (Across all) |
 | **11. CI/CD & Deployment** | 3-4 days | All phases | 🔴 Critical | No |
 
-### Parallel Lanes post-Phase 1:
+### Parallel Lanes post-Phase 1
+
 - **Lane A (Backend):** Phases 2, 8, 9
 - **Lane B (Web):** Phases 5, 6, 11 (UI)
 - **Lane C (Android):** Phases 3, 4, 7
@@ -1461,14 +1467,17 @@ Executing these lanes in parallel can reduce the total time by approximately 40-
 Esta fase final asegura que la estabilidad lograda durante el refactor se mantenga mediante automatización total del ciclo de vida.
 
 ### 8.1 Continuous Integration (CI) - FINALIZADA ✅
+
 - **Web/API (Monorepo)**: Implementado `lint`, `test`, y `build` con Turbo Cache.
 - **Android**: Configurado `verify`, `test`, y `assembleDebug` con inyección de secretos para Firebase.
 - **ESM Support**: Configurado Babel en API para soportar tests Jest con NodeNext/ESM.
 
 ### 8.2 Continuous Deployment (CD) - PRÓXIMAMENTE
+
 Se implementará un flujo de deploy basado en ambientes:
 
 #### 8.2.1 Entorno de Staging (Test)
+
 - **Trigger**: Merge automático a la rama `dev`.
 - **Acciones**:
   - Deploy automático del API (Docker/PM2).
@@ -1477,6 +1486,7 @@ Se implementará un flujo de deploy basado en ambientes:
 - **Objetivo**: Validación final en un entorno idéntico a producción.
 
 #### 8.2.2 Entorno de Producción
+
 - **Trigger**: Push/Merge a la rama `main` (vía `releases/*`).
 - **Acciones**:
   - Build optimizado de producción.
@@ -1484,6 +1494,7 @@ Se implementará un flujo de deploy basado en ambientes:
   - Notificación de éxito/fallo.
 
 ### 8.3 Infraestructura Necesaria
+
 - Configuración de Secrets en GitHub (SSH Keys, DB URLs, API Keys).
 - Dockerización completa de los servicios para reproducibilidad.
 

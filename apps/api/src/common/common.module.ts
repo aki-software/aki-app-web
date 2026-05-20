@@ -1,10 +1,8 @@
-import { Module, Global, forwardRef } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from '../mail/mail.module.js';
-import { SessionsModule } from '../sessions/sessions.module.js';
 import { PdfService } from './services/pdf.service.js';
 import { StorageService } from './services/storage.service.js';
-import { TresAreasService } from './services/tres-areas.service.js';
 import { CryptoService } from './services/crypto.service.js';
 import { RateLimitService } from './services/rate-limit.service.js';
 import {
@@ -12,22 +10,21 @@ import {
   STORAGE_ADAPTER,
   QUEUE_ADAPTER,
 } from './constants/adapters.constants.js';
-import { TresAreasCombination } from './entities/tres-areas-combination.entity.js';
 import { InMemoryQueueAdapter } from './adapters/in-memory-queue.adapter.js';
 import { BullMQQueueAdapter } from './adapters/bullmq-queue.adapter.js';
 import { JobDispatcherService } from './services/job-dispatcher.service.js';
+import { IdempotencyService } from './services/idempotency.service.js';
+import { IdempotencyInterceptor } from './interceptors/idempotency.interceptor.js';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TresAreasCombination]),
     MailModule,
-    forwardRef(() => SessionsModule),
   ],
   providers: [
     PdfService,
     StorageService,
-    TresAreasService,
     CryptoService,
     RateLimitService,
     JobDispatcherService,
@@ -43,17 +40,22 @@ import { JobDispatcherService } from './services/job-dispatcher.service.js';
       ) => (bullMqAdapter.isEnabled ? bullMqAdapter : inMemoryAdapter),
       inject: [BullMQQueueAdapter, InMemoryQueueAdapter],
     },
+    IdempotencyService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: IdempotencyInterceptor,
+    },
   ],
   exports: [
     PdfService,
     StorageService,
-    TresAreasService,
     CryptoService,
     RateLimitService,
     JobDispatcherService,
     PDF_GENERATOR,
     STORAGE_ADAPTER,
     QUEUE_ADAPTER,
+    IdempotencyService,
   ],
 })
 export class CommonModule {}
