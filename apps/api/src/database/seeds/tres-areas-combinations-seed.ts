@@ -2,7 +2,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
 import { typeOrmConfig } from '../../config/typeorm.config.js';
-import { TresAreasCombination } from '../../common/entities/tres-areas-combination.entity.js';
+import { TresAreasCombination } from '../../tres-areas/entities/tres-areas-combination.entity.js';
 
 type RepoProvider = Pick<DataSource, 'getRepository'> | EntityManager;
 

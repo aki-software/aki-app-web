@@ -1,16 +1,5 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
-
-export type EntityFormState = {
-  name: string;
-  email: string;
-  billingEmail: string;
-};
-
-export const initialFormState: EntityFormState = {
-  name: "",
-  email: "",
-  billingEmail: "",
-};
+import type { EntityFormState } from "./CreateEntityForm.types";
 
 interface Props {
   formState: EntityFormState;

@@ -1,8 +1,10 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity.js';
 import { UsersService } from './users.service.js';
-import { InstitutionsService } from '../institutions/institutions.service.js';
+import { Institution } from '../institutions/entities/institution.entity.js';
 import { AccountActivationNotifierService } from '../common/notifications/account-activation-notifier.service.js';
 import { CryptoService } from '../common/services/crypto.service.js';
 import { normalizeUserRole } from '../common/utils/role.utils.js';
@@ -20,8 +22,8 @@ export class UserRegistrationService {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
-    @Inject(forwardRef(() => InstitutionsService))
-    private readonly institutionsService: InstitutionsService,
+    @InjectRepository(Institution)
+    private readonly institutionRepository: Repository<Institution>,
     private readonly notifier: AccountActivationNotifierService,
     private readonly cryptoService: CryptoService,
   ) {}
@@ -62,15 +64,17 @@ export class UserRegistrationService {
         normalizedRole === UserRole.INSTITUTION_ADMIN) &&
       !user.institutionId
     ) {
-      const institution = await this.institutionsService.create({
+      const institution = this.institutionRepository.create({
         name: `Consultorio ${user.name}`,
-        email: user.email,
-        billingEmail: user.email,
+        billingEmail: user.email?.trim() || null,
         responsibleTherapistUserId: user.id,
+        isActive: true,
       });
+      const savedInstitution =
+        await this.institutionRepository.save(institution);
       user = await this.usersService.register({
         ...user,
-        institutionId: institution.id,
+        institutionId: savedInstitution.id,
       });
     }
 
@@ -107,16 +111,18 @@ export class UserRegistrationService {
       return user;
     }
 
-    const privateInstitution = await this.institutionsService.create({
+    const privateInstitution = this.institutionRepository.create({
       name: `Consultorio ${user.name}`,
-      email: user.email,
-      billingEmail: user.email,
+      billingEmail: user.email?.trim() || null,
       responsibleTherapistUserId: user.id,
+      isActive: true,
     });
+    const savedInstitution =
+      await this.institutionRepository.save(privateInstitution);
 
     return await this.usersService.register({
       ...user,
-      institutionId: privateInstitution.id,
+      institutionId: savedInstitution.id,
     });
   }
 

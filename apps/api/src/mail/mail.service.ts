@@ -6,7 +6,6 @@ import * as nodemailer from 'nodemailer';
 import * as pug from 'pug';
 import { ConfigService } from '@nestjs/config';
 import {
-  CategoryResult,
   ReportSummary,
   ReportTripletInsight,
 } from '../common/types/report.types.js';

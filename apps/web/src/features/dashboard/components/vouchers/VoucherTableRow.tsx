@@ -14,28 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { VoucherData } from "../../api/dashboard";
-
-function statusLabel(status: string) {
-  switch (status) {
-    case "AVAILABLE": return "Disponible";
-    case "SENT": return "Enviado";
-    case "USED": return "Canjeado";
-    case "EXPIRED": return "Expirado";
-    case "REVOKED": return "Revocado";
-    default: return status;
-  }
-}
-
-function statusClasses(status: string) {
-  switch (status) {
-    case "AVAILABLE": return "text-emerald-700 dark:text-emerald-300 border-emerald-500/40 bg-emerald-200/60 dark:bg-emerald-500/10 shadow-emerald-500/10";
-    case "SENT": return "text-amber-700 dark:text-amber-300 border-amber-500/40 bg-amber-200/60 dark:bg-amber-500/10 shadow-amber-500/10";
-    case "USED": return "text-rose-800 dark:text-rose-200 border-rose-600/50 bg-rose-300/70 dark:bg-rose-500/15 shadow-rose-500/10";
-    case "EXPIRED": return "text-rose-600 dark:text-rose-300 border-rose-500/40 bg-rose-200/60 dark:bg-rose-500/10 shadow-rose-500/10";
-    case "REVOKED": return "text-zinc-600 dark:text-zinc-300 border-zinc-500/30 bg-zinc-200/60 dark:bg-zinc-500/10 shadow-zinc-500/10";
-    default: return "text-app-text-muted border-app-border bg-app-bg";
-  }
-}
+import { StatusBadge } from "../../../../components/atoms/StatusBadge";
 
 function formatDate(value: string | number | Date | null) {
   if (!value) return "—";
@@ -100,10 +79,7 @@ export function VoucherTableRow({
       </td>
 
       <td className="px-5 py-4">
-        <span className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-sm transition-all group-hover:scale-105 ${statusClasses(voucher.status)} whitespace-nowrap`}>
-          {voucher.status === "USED" && <BadgeCheck className="mr-1 h-3.5 w-3.5" />}
-          {statusLabel(voucher.status)}
-        </span>
+        <StatusBadge status={voucher.status} type="voucher" className="group-hover:scale-105" />
       </td>
 
       {isAdmin && (

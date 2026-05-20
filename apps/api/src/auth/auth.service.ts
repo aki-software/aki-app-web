@@ -5,7 +5,7 @@ import type {
   AuthLoginResponse,
   AuthOkResponse,
   AuthTokenResolutionResponse,
-} from './auth.types.js';
+} from '@akit/contracts';
 import { AuthLoginService } from './services/auth-login.service.js';
 import { AuthPasswordFlowService } from './services/auth-password-flow.service.js';
 

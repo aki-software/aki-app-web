@@ -3,7 +3,7 @@ import type {
   AuthUserPayload,
   FirebaseJwtPayload,
   JwtPayload,
-} from '../auth.types.js';
+} from '@akit/contracts';
 
 @Injectable()
 export class AuthUserFactory {

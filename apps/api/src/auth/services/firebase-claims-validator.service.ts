@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AUTH_JWT_MESSAGES } from '../auth.constants.js';
-import type { FirebaseJwtPayload } from '../auth.types.js';
+import type { FirebaseJwtPayload } from '@akit/contracts';
 
 @Injectable()
 export class FirebaseClaimsValidatorService {

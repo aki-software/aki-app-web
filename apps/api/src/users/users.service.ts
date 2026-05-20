@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity.js';
-import { Institution } from '../institutions/entities/institution.entity.js';
 import { USER_ERROR_MESSAGES } from './users.constants.js';
+import { hasPasswordConfigured } from './users.utils.js';
 
 @Injectable()
 export class UsersService {
@@ -77,6 +76,6 @@ export class UsersService {
   }
 
   hasPasswordConfigured(user: User): boolean {
-    return !!user.passwordSetAt && user.passwordHash.startsWith('scrypt$');
+    return hasPasswordConfigured(user);
   }
 }

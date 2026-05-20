@@ -1,5 +1,6 @@
 import { BrainCircuit, ActivitySquare, AlertCircle, HeartCrack, Info, Zap } from "lucide-react";
 import { useMemo } from "react";
+import { CategoryData } from "@akit/contracts";
 
 interface SwipeData {
   cardId: string;
@@ -10,7 +11,7 @@ interface SwipeData {
 
 interface SessionClinicalInsightsProps {
   swipes?: SwipeData[];
-  categoriesMap: Record<string, any>;
+  categoriesMap: Record<string, CategoryData>;
 }
 
 export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinicalInsightsProps) {

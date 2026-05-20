@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
 import { JobNames } from '../jobs/job-names.js';
 import { JobDispatcherService } from '../services/job-dispatcher.service.js';
+import { applyQueueDefaults } from './queue-defaults.js';
 
 @Injectable()
 export class InMemoryQueueAdapter implements QueueAdapter {
@@ -22,7 +23,7 @@ export class InMemoryQueueAdapter implements QueueAdapter {
     payload: unknown,
     options?: QueueJobOptions,
   ): Promise<void> {
-    const resolvedOptions = this.applyDefaults(jobName, options);
+    const resolvedOptions = applyQueueDefaults(jobName, options);
     if (!this.isConfigured()) {
       return this.runInline(jobName, payload, resolvedOptions);
     }
@@ -54,7 +55,11 @@ export class InMemoryQueueAdapter implements QueueAdapter {
       },
     );
 
-    if (promise && typeof (promise as any).catch === 'function') {
+    if (
+      promise !== undefined &&
+      promise !== null &&
+      typeof (promise as any).catch === 'function'
+    ) {
       (promise as any).catch((error: any) => {
         const message = error instanceof Error ? error.message : String(error);
         this.logger.error(`Inline job failed job=${jobName} error=${message}`);
@@ -73,27 +78,5 @@ export class InMemoryQueueAdapter implements QueueAdapter {
     const url = this.configService.get<string>('REDIS_URL');
     const host = this.configService.get<string>('REDIS_HOST');
     return !!url?.trim() || !!host?.trim();
-  }
-
-  private applyDefaults(
-    jobName: string,
-    options?: QueueJobOptions,
-  ): QueueJobOptions | undefined {
-    const shouldDefault = new Set<string>([
-      JobNames.SendEmail,
-      JobNames.SendReport,
-      JobNames.GeneratePdf,
-    ]).has(jobName);
-
-    if (!shouldDefault) {
-      return options;
-    }
-
-    return {
-      ...options,
-      attempts: options?.attempts ?? 3,
-      backoffMs: options?.backoffMs ?? 60_000,
-      backoffType: options?.backoffType ?? 'exponential',
-    };
   }
 }

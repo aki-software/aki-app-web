@@ -1,13 +1,13 @@
-export * from './dashboard.contracts';
-export * from './errors.schemas';
-export * from './auth';
-export * from './sessions';
-export * from './vouchers';
-export * from './institutions';
-export * from './categories';
-export * from './common';
+export * from './dashboard.contracts.js';
+export * from './errors.schemas.js';
+export * from './auth.js';
+export * from './sessions.js';
+export * from './vouchers.js';
+export * from './institutions.js';
+export * from './categories.js';
+export * from './common.js';
 
 // Explicit schema exports for test compatibility
-export { sessionApiSchema } from './sessions';
-export { voucherApiSchema } from './vouchers';
-export { apiErrorResponseSchema } from './common';
+export { sessionApiSchema } from './sessions.js';
+export { voucherApiSchema } from './vouchers.js';
+export { apiErrorResponseSchema } from './common.js';

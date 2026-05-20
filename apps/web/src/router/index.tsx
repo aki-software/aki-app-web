@@ -6,6 +6,7 @@ import { DashboardLayout } from "../features/dashboard/layouts/DashboardLayout";
 import { NotFoundFeature } from "../features/dashboard/views/NotFoundFeature";
 import { SuspenseWrapper } from "../components/atoms/SuspenseWrapper";
 import { AppErrorBoundary } from "../components/errors/AppErrorBoundary"; 
+import { useAuth } from "../features/auth/hooks/useAuth";
 
 // Auth Views
 const LoginPage = lazy(() => import("../features/auth/views/LoginPage").then(m => ({ default: m.LoginPage })));
@@ -23,11 +24,15 @@ const InstitutionDetailOverview = lazy(() => import("../features/dashboard/views
 const DashboardSettings = lazy(() => import("../features/dashboard/views/DashboardSettings").then(m => ({ default: m.DashboardSettings })));
 const DashboardActivity = lazy(() => import("../features/dashboard/views/DashboardActivity").then(m => ({ default: m.DashboardActivity })));
 
+function RootRedirect() {
+  const { isAuthenticated } = useAuth();
+  return <Navigate to={isAuthenticated ? APP_ROUTES.DASHBOARD.ROOT : APP_ROUTES.AUTH.LOGIN} replace />;
+}
 
 export const router = createBrowserRouter([
   {
     path: APP_ROUTES.ROOT,
-    element: <Navigate to={APP_ROUTES.DASHBOARD.ROOT} replace />,
+    element: <RootRedirect />,
   },
   {
     path: APP_ROUTES.AUTH.LOGIN,

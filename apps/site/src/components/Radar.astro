@@ -6,48 +6,42 @@ interface Props {
   t: Translation;
 }
 
-const { t } = Astro.props;
+const { locale } = Astro.props;
 ---
 
-<section class="py-24 md:py-32 bg-dark-bg text-dark-text" id="radar">
+<section class="py-20 bg-dark-bg text-dark-text overflow-hidden" id="metodologia">
   <div class="container">
-    <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-      <!-- Radar chart -->
-      <div class="flex-shrink-0 w-full max-w-sm mx-auto lg:mx-0 reveal">
-        <div class="relative aspect-square">
-          <!-- Radar SVG -->
-          <svg viewBox="0 0 300 300" class="w-full h-full">
-            <!-- Grid circles -->
-            <circle cx="150" cy="150" r="120" fill="none" stroke="#1E2B26" stroke-width="1"/>
-            <circle cx="150" cy="150" r="90" fill="none" stroke="#1E2B26" stroke-width="1"/>
-            <circle cx="150" cy="150" r="60" fill="none" stroke="#1E2B26" stroke-width="1"/>
-            <circle cx="150" cy="150" r="30" fill="none" stroke="#1E2B26" stroke-width="1"/>
+    <div class="flex flex-col lg:flex-row items-center gap-16">
+      <!-- Radar Visualization Decoration -->
+      <div class="flex-1 relative max-w-md mx-auto lg:mx-0 reveal">
+        <div class="absolute inset-0 bg-primary/20 blur-[100px] rounded-full"></div>
+        <div class="relative bg-dark-surface border border-dark-border p-8 rounded-[40px] shadow-2xl">
+          <svg viewBox="0 0 100 100" class="w-full h-auto">
+            <!-- Background Polygons -->
+            <polygon points="50,5 93,30 93,80 50,95 7,80 7,30" fill="none" stroke="#2D2724" stroke-width="0.5" />
+            <polygon points="50,25 71,40 71,70 50,80 29,70 29,40" fill="none" stroke="#2D2724" stroke-width="0.5" />
+            
+            <!-- Axis -->
+            <line x1="50" y1="5" x2="50" y2="95" stroke="#2D2724" stroke-width="0.5" />
+            <line x1="93" y1="30" x2="7" y2="80" stroke="#2D2724" stroke-width="0.5" />
+            <line x1="93" y1="80" x2="7" y2="30" stroke="#2D2724" stroke-width="0.5" />
 
-            <!-- Axis lines -->
-            <line x1="150" y1="30" x2="150" y2="270" stroke="#1E2B26" stroke-width="1"/>
-            <line x1="46" y1="90" x2="254" y2="210" stroke="#1E2B26" stroke-width="1"/>
-            <line x1="46" y1="210" x2="254" y2="90" stroke="#1E2B26" stroke-width="1"/>
-
-            <!-- Data polygon -->
-            <polygon points="150,50 230,120 210,220 150,240 90,200 70,100" fill="rgba(15, 107, 104, 0.15)" stroke="#0F6B68" stroke-width="2">
-              <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" repeatCount="indefinite"/>
-            </polygon>
-
-            <!-- Data points -->
-            <circle cx="150" cy="50" r="4" fill="#0F6B68"/>
-            <circle cx="230" cy="120" r="4" fill="#0F6B68"/>
-            <circle cx="210" cy="220" r="4" fill="#0F6B68"/>
-            <circle cx="150" cy="240" r="4" fill="#0F6B68"/>
-            <circle cx="90" cy="200" r="4" fill="#0F6B68"/>
-            <circle cx="70" cy="100" r="4" fill="#0F6B68"/>
+            <!-- The "Result" Shape -->
+            <polygon 
+              points="50,15 80,40 85,75 50,60 20,70 15,35" 
+              fill="rgba(219, 116, 75, 0.3)" 
+              stroke="#DB744B" 
+              stroke-width="1.5"
+              class="animate-pulse"
+            />
 
             <!-- Labels -->
-            <text x="150" y="22" text-anchor="middle" fill="#8A8279" font-size="11" font-family="Sora">R</text>
-            <text x="248" y="115" text-anchor="start" fill="#8A8279" font-size="11" font-family="Sora">I</text>
-            <text x="222" y="232" text-anchor="start" fill="#8A8279" font-size="11" font-family="Sora">A</text>
-            <text x="150" y="258" text-anchor="middle" fill="#8A8279" font-size="11" font-family="Sora">S</text>
-            <text x="78" y="212" text-anchor="end" fill="#8A8279" font-size="11" font-family="Sora">E</text>
-            <text x="58" y="95" text-anchor="end" fill="#8A8279" font-size="11" font-family="Sora">C</text>
+            <text x="50" y="2" text-anchor="middle" fill="#8A8279" font-size="11" font-family="Sora">R</text>
+            <text x="96" y="28" text-anchor="start" fill="#8A8279" font-size="11" font-family="Sora">I</text>
+            <text x="96" y="83" text-anchor="start" fill="#8A8279" font-size="11" font-family="Sora">A</text>
+            <text x="50" y="99" text-anchor="middle" fill="#8A8279" font-size="11" font-family="Sora">S</text>
+            <text x="4" y="83" text-anchor="end" fill="#8A8279" font-size="11" font-family="Sora">E</text>
+            <text x="4" y="28" text-anchor="end" fill="#8A8279" font-size="11" font-family="Sora">C</text>
           </svg>
         </div>
       </div>
@@ -55,22 +49,22 @@ const { t } = Astro.props;
       <!-- Content -->
       <div class="flex-1 text-center lg:text-left">
         <h2 class="font-display font-bold text-3xl md:text-4xl mb-4 reveal reveal-delay-1">
-          {t.locale === 'es' ? 'Tu perfil en 6 dimensiones' : 'Your profile in 6 dimensions'}
+          {locale === 'es' ? 'Tu perfil en 6 dimensiones' : 'Your profile in 6 dimensions'}
         </h2>
         <p class="text-dark-muted leading-relaxed mb-6 reveal reveal-delay-2">
-          {t.locale === 'es'
+          {locale === 'es'
             ? 'Basado en el modelo Holland RIASEC, tu perfil muestra cómo se distribuyen tus intereses en 6 áreas: Realista, Investigativo, Artístico, Social, Emprendedor y Convencional. No hay un resultado "correcto" — hay un resultado que es el tuyo.'
             : 'Based on the Holland RIASEC model, your profile shows how your interests distribute across 6 areas: Realistic, Investigative, Artistic, Social, Enterprising and Conventional. There\'s no "correct" result — there\'s a result that is yours.'}
         </p>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 reveal reveal-delay-3">
           {[
-            { letter: 'R', label: t.locale === 'es' ? 'Realista' : 'Realistic', color: 'bg-primary' },
-            { letter: 'I', label: t.locale === 'es' ? 'Investigativo' : 'Investigative', color: 'bg-primary-light' },
-            { letter: 'A', label: t.locale === 'es' ? 'Artístico' : 'Artistic', color: 'bg-secondary' },
-            { letter: 'S', label: t.locale === 'es' ? 'Social' : 'Social', color: 'bg-tertiary' },
-            { letter: 'E', label: t.locale === 'es' ? 'Emprendedor' : 'Enterprising', color: 'bg-secondary-light' },
-            { letter: 'C', label: t.locale === 'es' ? 'Convencional' : 'Conventional', color: 'bg-primary/60' },
+            { letter: 'R', label: locale === 'es' ? 'Realista' : 'Realistic', color: 'bg-primary' },
+            { letter: 'I', label: locale === 'es' ? 'Investigativo' : 'Investigative', color: 'bg-primary-light' },
+            { letter: 'A', label: locale === 'es' ? 'Artístico' : 'Artistic', color: 'bg-secondary' },
+            { letter: 'S', label: locale === 'es' ? 'Social' : 'Social', color: 'bg-tertiary' },
+            { letter: 'E', label: locale === 'es' ? 'Emprendedor' : 'Enterprising', color: 'bg-secondary-light' },
+            { letter: 'C', label: locale === 'es' ? 'Convencional' : 'Conventional', color: 'bg-primary/60' },
           ].map((type) => (
             <div class="flex items-center gap-2.5 p-2.5 rounded-lg bg-dark-surface border border-dark-border">
               <div class={`w-6 h-6 rounded ${type.color} flex items-center justify-center`}>
@@ -85,9 +79,21 @@ const { t } = Astro.props;
   </div>
 </section>
 
-<script>
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
-</script>
+<style>
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .reveal-delay-1 { animation-delay: 0.1s; }
+  .reveal-delay-2 { animation-delay: 0.2s; }
+  .reveal-delay-3 { animation-delay: 0.3s; }
+
+  @keyframes reveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

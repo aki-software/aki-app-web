@@ -10,19 +10,22 @@ import {
   Res,
   UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { IdempotencyInterceptor } from '../common/interceptors/idempotency.interceptor.js';
 import { UserRole } from '../users/entities/user.entity.js';
+import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 import { CompleteSessionDto } from './dto/complete-session.dto.js';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { SendReportDto } from './dto/send-report.dto.js';
+import { ReportService } from './services/report.service.js';
 import { SessionCompleteMapperService } from './services/session-complete-mapper.service.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
-import { ReportService } from './services/report.service.js';
+import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { SessionsService } from './sessions.service.js';
-import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -39,6 +42,7 @@ export class SessionsController {
     private readonly sessionCompleteMapper: SessionCompleteMapperService,
     private readonly sessionMetricsService: SessionMetricsService,
     private readonly reportService: ReportService,
+    private readonly adminDashboardService: AdminDashboardService,
   ) {}
 
   @Post()
@@ -48,6 +52,7 @@ export class SessionsController {
   }
 
   @Post('complete')
+  @UseInterceptors(IdempotencyInterceptor)
   async complete(@Body() completeSessionDto: CompleteSessionDto) {
     const mapped =
       await this.sessionCompleteMapper.toCreateSessionDto(completeSessionDto);
@@ -103,7 +108,7 @@ export class SessionsController {
     const parsedDays = days
       ? parseInt(days, 10)
       : SESSION_CONSTANTS.ADMIN.DEFAULT_OVERVIEW_DAYS;
-    return await this.sessionsService.getAdminOverview(parsedDays);
+    return await this.adminDashboardService.getAdminOverview(parsedDays);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -116,7 +121,7 @@ export class SessionsController {
     const parsedLimit = limit
       ? parseInt(limit, 10)
       : SESSION_CONSTANTS.ADMIN.DEFAULT_ACTIVITY_LIMIT;
-    return await this.sessionsService.getAdminActivity(parsedLimit);
+    return await this.adminDashboardService.getAdminActivity(parsedLimit);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -129,8 +134,10 @@ export class SessionsController {
         patientId: req?.user?.userId,
         institutionId: req?.user?.institutionId,
       });
-    } catch (e) {
-      throw new NotFoundException(e.message);
+    } catch (e: unknown) {
+      throw new NotFoundException(
+        e instanceof Error ? e.message : 'Session not found',
+      );
     }
   }
 
@@ -151,8 +158,10 @@ export class SessionsController {
         totalTimeMs: session.totalTimeMs,
         startedAt: session.createdAt,
       };
-    } catch (e) {
-      throw new NotFoundException(e.message);
+    } catch (e: unknown) {
+      throw new NotFoundException(
+        e instanceof Error ? e.message : 'Session not found',
+      );
     }
   }
 

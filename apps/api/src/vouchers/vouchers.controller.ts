@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Inject,
   Logger,
   Param,
   ParseUUIDPipe,
@@ -10,7 +9,7 @@ import {
   Query,
   UnauthorizedException,
   UseGuards,
-  forwardRef,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { UserRole } from '../users/entities/user.entity.js';
@@ -24,11 +23,13 @@ import {
 } from './dto/voucher.dto.js';
 import { VouchersService } from './vouchers.service.js';
 import { VoucherQueryService } from './voucher-query.service.js';
+import { VoucherBatchQueryService } from './services/voucher-batch-query.service.js';
 import { type VoucherScope } from './types/voucher-query.types.js';
 import { CurrentVoucherScope } from './decorators/voucher-scope.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { SessionsService } from '../sessions/sessions.service.js';
+import { VoucherRedemptionService } from '../common/services/voucher-redemption.service.js';
+import { IdempotencyInterceptor } from '../common/interceptors/idempotency.interceptor.js';
 
 @Controller('vouchers')
 export class VouchersController {
@@ -37,8 +38,8 @@ export class VouchersController {
   constructor(
     private readonly vouchersService: VouchersService,
     private readonly queryService: VoucherQueryService,
-    @Inject(forwardRef(() => SessionsService))
-    private readonly sessionsService: SessionsService,
+    private readonly batchQueryService: VoucherBatchQueryService,
+    private readonly voucherRedemptionService: VoucherRedemptionService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -103,6 +104,7 @@ export class VouchersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('redeem')
+  @UseInterceptors(IdempotencyInterceptor)
   async redeem(
     @Body() redeemVoucherDto: RedeemVoucherDto,
     @CurrentVoucherScope() scope: VoucherScope,
@@ -111,7 +113,7 @@ export class VouchersController {
       `redeem requested code=${redeemVoucherDto.code?.trim()?.toUpperCase()} sessionId=${redeemVoucherDto.sessionId} userId=${scope.ownerUserId} role=${scope.role}`,
     );
 
-    return await this.sessionsService.redeemVoucher(
+    return await this.voucherRedemptionService.redeemVoucher(
       redeemVoucherDto.code,
       redeemVoucherDto.sessionId,
     );
@@ -123,7 +125,7 @@ export class VouchersController {
     @Query() query: ListVoucherBatchesDto,
     @CurrentVoucherScope('clientId') scope: VoucherScope,
   ) {
-    return await this.queryService.findBatchSummaries(query, scope);
+    return await this.batchQueryService.findBatchSummaries(query, scope);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -132,7 +134,7 @@ export class VouchersController {
     @Param('batchId', new ParseUUIDPipe()) batchId: string,
     @CurrentVoucherScope() scope: VoucherScope,
   ) {
-    return await this.queryService.findBatchDetail(batchId, scope);
+    return await this.batchQueryService.findBatchDetail(batchId, scope);
   }
 
   @UseGuards(JwtAuthGuard)

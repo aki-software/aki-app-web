@@ -1,6 +1,7 @@
 import { ArrowRight, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { type InstitutionOverviewResponse } from "../../api/dashboard";
+import { EmptyState } from "../../../../components/molecules/EmptyState";
 
 type TopSession = InstitutionOverviewResponse["topSessions"][number];
 
@@ -40,11 +41,12 @@ export const TopSessionsTable = ({ sessions }: { sessions: TopSession[] }) => {
           <tbody className="divide-y divide-app-border bg-app-surface">
             {sessions.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-16 text-center opacity-40">
-                  <div className="flex flex-col items-center gap-4">
-                     <Filter className="h-10 w-10" />
-                     <p className="app-label">Todavía no hay tests registrados.</p>
-                  </div>
+                <td colSpan={5} className="px-6 py-5">
+                  <EmptyState
+                    icon={<Filter className="h-10 w-10" />}
+                    title="Sin resultados"
+                    description="Todavía no hay tests registrados."
+                  />
                 </td>
               </tr>
             ) : (

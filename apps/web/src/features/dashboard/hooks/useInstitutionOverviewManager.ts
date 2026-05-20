@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { fetchInstitutionOverview, type InstitutionOverviewResponse } from "../api/dashboard";
+import { useLocalStorage } from "../../../hooks/useLocalStorage";
 
 export const PERIOD_DAYS = 7;
 export const LOW_STOCK_ALERT_THRESHOLD = 3;
@@ -7,9 +8,11 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<InstitutionOverviewResponse | null>(null);
   const [periodDays, setPeriodDays] = useState(PERIOD_DAYS);
-  const [isAlertDismissed, setIsAlertDismissed] = useState(false);
 
   const dismissKey = `akit:voucher-low-stock-dismissed:${institutionId ?? "global"}`;
+  
+  // Manejo del estado del alert en LocalStorage reactivo
+  const [isAlertDismissed, setIsAlertDismissed] = useLocalStorage<boolean>(dismissKey, false);
 
   // Carga de datos
   useEffect(() => {
@@ -23,7 +26,7 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
 
       setLoading(true);
       try {
-        const data = await fetchInstitutionOverview({ institutionId, days: periodDays });
+        const data = await fetchInstitutionOverview(institutionId, periodDays);
         if (isActive) setOverview(data);
       } catch (error) {
         console.error("Error loading institution dashboard data:", error);
@@ -36,16 +39,9 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
     return () => { isActive = false; };
   }, [institutionId, periodDays]);
 
-  // Manejo del estado del alert en LocalStorage
-  useEffect(() => {
-    const stored = localStorage.getItem(dismissKey);
-    setIsAlertDismissed(stored === "true");
-  }, [dismissKey]);
-
   const handleDismissAlert = useCallback(() => {
-    localStorage.setItem(dismissKey, "true");
     setIsAlertDismissed(true);
-  }, [dismissKey]);
+  }, [setIsAlertDismissed]);
 
   // Cálculos derivados
   const voucherStats = overview?.vouchers;
@@ -67,4 +63,4 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
     periodDays,
     setPeriodDays,
   };
-};
+};
