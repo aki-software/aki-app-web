@@ -26,11 +26,8 @@ export class InstitutionPresenterService {
     return {
       ...this.toInstitutionResponse(institution),
       responsibleTherapistActive: institution.responsibleTherapist
-        ? hasPasswordConfigured(
-            institution.responsibleTherapist,
-          )
+        ? hasPasswordConfigured(institution.responsibleTherapist)
         : false,
     };
   }
 }
-

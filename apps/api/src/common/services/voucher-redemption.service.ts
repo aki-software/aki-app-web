@@ -7,7 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager, DataSource } from 'typeorm';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
-import { Session, SessionPaymentStatus } from '../../sessions/entities/session.entity.js';
+import {
+  Session,
+  SessionPaymentStatus,
+} from '../../sessions/entities/session.entity.js';
 import { VoucherStatus } from '../../vouchers/entities/voucher.enums.js';
 
 @Injectable()
@@ -69,7 +72,9 @@ export class VoucherRedemptionService {
         voucher.redeem(sessionId);
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : 'Error al redimir el voucher';
+          error instanceof Error
+            ? error.message
+            : 'Error al redimir el voucher';
         throw new BadRequestException(message);
       }
 

@@ -1,5 +1,4 @@
 import { Module, Global } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from '../mail/mail.module.js';
 import { PdfService } from './services/pdf.service.js';
 import { StorageService } from './services/storage.service.js';
@@ -19,9 +18,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Global()
 @Module({
-  imports: [
-    MailModule,
-  ],
+  imports: [MailModule],
   providers: [
     PdfService,
     StorageService,

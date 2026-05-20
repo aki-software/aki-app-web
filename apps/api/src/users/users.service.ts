@@ -79,4 +79,3 @@ export class UsersService {
     return hasPasswordConfigured(user);
   }
 }
-

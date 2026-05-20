@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Inject,
   Logger,
   Param,
   ParseUUIDPipe,
@@ -10,7 +9,6 @@ import {
   Query,
   UnauthorizedException,
   UseGuards,
-  forwardRef,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { UserRole } from '../users/entities/user.entity.js';

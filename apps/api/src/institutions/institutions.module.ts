@@ -29,4 +29,3 @@ import { Session } from '../sessions/entities/session.entity.js';
   exports: [TypeOrmModule, InstitutionsService],
 })
 export class InstitutionsModule {}
-

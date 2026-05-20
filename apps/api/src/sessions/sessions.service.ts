@@ -7,13 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  type FindOptionsWhere,
-  Repository,
-  In,
-  DataSource,
-  type EntityManager,
-} from 'typeorm';
+import { type FindOptionsWhere, Repository, In, DataSource } from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { Session, SessionPaymentStatus } from './entities/session.entity.js';
 
@@ -23,7 +17,6 @@ import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { SessionScope } from './types/session-scope.type.js';
-import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
 import { AdminActivityItem, RawRecentSessionRow } from '@akit/contracts';
 

@@ -36,7 +36,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
     if (state) {
       try {
         return of(JSON.parse(state));
-      } catch (err) {
+      } catch {
         // Fallback to calling the handler if JSON parse fails
       }
     }
@@ -45,9 +45,16 @@ export class IdempotencyInterceptor implements NestInterceptor {
     await this.idempotencyService.set(trimmedKey, 'processing', 120);
 
     return next.handle().pipe(
-      tap(async (response) => {
+      tap((response) => {
         // Cache successful response for 24h
-        await this.idempotencyService.set(trimmedKey, JSON.stringify(response), 86400);
+        this.idempotencyService
+          .set(trimmedKey, JSON.stringify(response), 86400)
+          .catch((setErr) => {
+            console.error(
+              `[Idempotency] Failed to cache response for key ${trimmedKey}:`,
+              setErr,
+            );
+          });
       }),
       catchError((err) => {
         // Release the lock immediately on error so the client can retry

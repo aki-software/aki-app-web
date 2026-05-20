@@ -6,7 +6,10 @@ import Redis from 'ioredis';
 export class IdempotencyService implements OnModuleDestroy {
   private readonly redis: Redis | null = null;
   private useRedis = false;
-  private readonly memoryStore = new Map<string, { value: string; expiresAt: number }>();
+  private readonly memoryStore = new Map<
+    string,
+    { value: string; expiresAt: number }
+  >();
 
   constructor(private readonly configService: ConfigService) {
     const redisUrl = this.configService.get<string>('REDIS_URL');
@@ -37,7 +40,10 @@ export class IdempotencyService implements OnModuleDestroy {
       try {
         return await this.redis.get(`idempotency:${key}`);
       } catch (error) {
-        console.error('[Idempotency] Redis error on GET, falling back to memory', error);
+        console.error(
+          '[Idempotency] Redis error on GET, falling back to memory',
+          error,
+        );
       }
     }
     const record = this.memoryStore.get(key);
@@ -56,7 +62,10 @@ export class IdempotencyService implements OnModuleDestroy {
         await this.redis.set(`idempotency:${key}`, value, 'EX', ttlSeconds);
         return;
       } catch (error) {
-        console.error('[Idempotency] Redis error on SET, falling back to memory', error);
+        console.error(
+          '[Idempotency] Redis error on SET, falling back to memory',
+          error,
+        );
       }
     }
     this.memoryStore.set(key, {
@@ -71,7 +80,10 @@ export class IdempotencyService implements OnModuleDestroy {
         await this.redis.del(`idempotency:${key}`);
         return;
       } catch (error) {
-        console.error('[Idempotency] Redis error on DELETE, falling back to memory', error);
+        console.error(
+          '[Idempotency] Redis error on DELETE, falling back to memory',
+          error,
+        );
       }
     }
     this.memoryStore.delete(key);

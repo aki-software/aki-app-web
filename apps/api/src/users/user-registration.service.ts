@@ -70,7 +70,8 @@ export class UserRegistrationService {
         responsibleTherapistUserId: user.id,
         isActive: true,
       });
-      const savedInstitution = await this.institutionRepository.save(institution);
+      const savedInstitution =
+        await this.institutionRepository.save(institution);
       user = await this.usersService.register({
         ...user,
         institutionId: savedInstitution.id,
@@ -116,7 +117,8 @@ export class UserRegistrationService {
       responsibleTherapistUserId: user.id,
       isActive: true,
     });
-    const savedInstitution = await this.institutionRepository.save(privateInstitution);
+    const savedInstitution =
+      await this.institutionRepository.save(privateInstitution);
 
     return await this.usersService.register({
       ...user,
