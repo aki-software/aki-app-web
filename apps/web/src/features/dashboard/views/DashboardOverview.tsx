@@ -1,6 +1,5 @@
-import { DashboardStatsResponse } from "@akit/contracts";
 import { BarChart3, Calendar, Sparkles, TrendingUp } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { getFormattedCurrentDate } from "../../../utils/date";
 import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashboard.constants";
