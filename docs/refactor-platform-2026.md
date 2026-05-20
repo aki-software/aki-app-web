@@ -389,21 +389,21 @@ app/src/main/java/com/akit/app/
 
 #### 0.1 Establish CI Pipeline (Monorepo)
 
-- [ ] Create `.github/workflows/ci-platform.yml`
-- [ ] Implement `lint`, `test`, and `build` jobs using Turbo Cache.
-- [ ] Mandate status checks passing before merging to `dev`.
+- [x] Create `.github/workflows/ci-platform.yml`
+- [x] Implement `lint`, `test`, and `build` jobs using Turbo Cache.
+- [x] Mandate status checks passing before merging to `dev`.
 
 #### 0.2 Establish CI Pipeline (Android)
 
-- [ ] Create `.github/workflows/ci-android.yml`
-- [ ] Implement `verify` (detekt + lint), `test`, and `assembleDebug` jobs.
-- [ ] Cache Gradle dependencies to optimize run time.
+- [x] Create `.github/workflows/ci-android.yml`
+- [x] Implement `verify` (detekt + lint), `test`, and `assembleDebug` jobs.
+- [x] Cache Gradle dependencies to optimize run time.
 
 #### 0.3 Git & Workflow Standards
 
-- [ ] Enforce "Conventional Commits".
-- [ ] Define PR template with refactor-specific checklist.
-- [ ] Branch protection for `main` and `dev`.
+- [x] Enforce "Conventional Commits".
+- [x] Define PR template with refactor-specific checklist.
+- [x] Branch protection for `main` and `dev`.
 
 ### Phase 1: Contracts Package (5-7 days)
 
@@ -415,7 +415,7 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `packages/contracts/src/auth.ts` with:
+- [x] Create `packages/contracts/src/auth.ts` with:
   - `AuthUser` type
   - `AuthLoginResponse` type
   - `AuthTokenResolutionResponse` type
@@ -425,14 +425,14 @@ app/src/main/java/com/akit/app/
   - `AuthAccessTokenPayload` type
   - `JwtPayload` type
   - `FirebaseJwtPayload` type
-- [ ] Update API to export from contracts instead of local types
-- [ ] Update Web to import from `@akit/contracts` instead of local `auth.types.ts`
-- [ ] Delete `apps/web/src/features/auth/types/auth.types.ts`
-- [ ] Delete `apps/api/src/auth/auth.types.ts` (keep only `AuthenticatedRequest`)
+- [x] Update API to export from contracts instead of local types
+- [x] Update Web to import from `@akit/contracts` instead of local `auth.types.ts`
+- [x] Delete `apps/web/src/features/auth/types/auth.types.ts`
+- [x] Delete `apps/api/src/auth/auth.types.ts` (keep only `AuthenticatedRequest`)
 
 **Tests:**
 
-- [ ] Type compatibility test: ensure contracts match API response shape
+- [x] Type compatibility test: ensure contracts match API response shape
 
 #### 1.2 Move Session Types to Contracts
 
@@ -440,7 +440,7 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `packages/contracts/src/sessions.ts` with:
+- [x] Create `packages/contracts/src/sessions.ts` with:
   - `SessionData` type
   - `SessionResult` type
   - `SessionSwipe` type
@@ -454,13 +454,13 @@ app/src/main/java/com/akit/app/
   - `AdminActivityEvent` type (already exists, verify)
   - `SessionActivityData` type (already exists, verify)
   - `CategoryDistributionData` type (already exists, verify)
-- [ ] Update API to export from contracts
-- [ ] Update Web to import from `@akit/contracts`
-- [ ] Delete local type definitions
+- [x] Update API to export from contracts
+- [x] Update Web to import from `@akit/contracts`
+- [x] Delete local type definitions
 
 **Tests:**
 
-- [ ] Type compatibility test
+- [x] Type compatibility test
 
 #### 1.3 Move Voucher Types to Contracts
 
@@ -468,7 +468,7 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `packages/contracts/src/vouchers.ts` with:
+- [x] Create `packages/contracts/src/vouchers.ts` with:
   - `VoucherData` type
   - `VoucherBatch` type
   - `VoucherStatus` enum
@@ -480,13 +480,13 @@ app/src/main/java/com/akit/app/
   - `ResolveVoucherDto` type
   - `VoucherScope` type
   - `VoucherStats` type
-- [ ] Update API to export from contracts
-- [ ] Update Web to import from `@akit/contracts`
-- [ ] Delete local type definitions
+- [x] Update API to export from contracts
+- [x] Update Web to import from `@akit/contracts`
+- [x] Delete local type definitions
 
 **Tests:**
 
-- [ ] Type compatibility test
+- [x] Type compatibility test
 
 #### 1.4 Move Institution Types to Contracts
 
@@ -494,7 +494,7 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `packages/contracts/src/institutions.ts` with:
+- [x] Create `packages/contracts/src/institutions.ts` with:
   - `InstitutionData` type
   - `InstitutionCreateResponse` type
   - `InstitutionStatusResponse` type
@@ -504,13 +504,13 @@ app/src/main/java/com/akit/app/
   - `CreateInstitutionDto` type
   - `UpdateInstitutionDto` type
   - `CreateOperationalAccountDto` type
-- [ ] Update API to export from contracts
-- [ ] Update Web to import from `@akit/contracts`
-- [ ] Delete local type definitions
+- [x] Update API to export from contracts
+- [x] Update Web to import from `@akit/contracts`
+- [x] Delete local type definitions
 
 **Tests:**
 
-- [ ] Type compatibility test
+- [x] Type compatibility test
 
 #### 1.5 Generate Android DTOs from Contracts
 
@@ -518,17 +518,17 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create script to generate Kotlin data classes from TypeScript contracts
+- [x] Create script to generate Kotlin data classes from TypeScript contracts
   - Option A: Use OpenAPI Generator with JSON Schema export
   - Option B: Write custom TypeScript → Kotlin generator
   - Option C: Manual generation (one-time, then maintain sync)
-- [ ] Generate initial Kotlin DTOs
-- [ ] Update Android API layer to use generated DTOs
-- [ ] Delete manual `VoucherContracts.kt`
+- [x] Generate initial Kotlin DTOs
+- [x] Update Android API layer to use generated DTOs
+- [x] Delete manual `VoucherContracts.kt`
 
 **Tests:**
 
-- [ ] Verify generated DTOs match API responses
+- [x] Verify generated DTOs match API responses
 
 #### 1.6 Create Generic API Client with Interceptors (Web)
 
@@ -536,22 +536,22 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `apps/web/src/api/client.ts` with:
+- [x] Create `apps/web/src/api/client.ts` with:
   - Base URL configuration
   - Auth token interceptor (auto-attach Bearer token)
   - Error response normalizer
   - Request/response logging (dev only)
-- [ ] Create `apps/web/src/api/types.ts` with:
+- [x] Create `apps/web/src/api/types.ts` with:
   - `ApiResponse<T>` wrapper
   - `ApiError` class
-- [ ] Update all API functions to use the new client
-- [ ] Remove direct `fetch()` calls
+- [x] Update all API functions to use the new client
+- [x] Remove direct `fetch()` calls
 
 **Tests:**
 
-- [ ] Test interceptor attaches token
-- [ ] Test error normalization
-- [ ] Test request/response flow
+- [x] Test interceptor attaches token
+- [x] Test error normalization
+- [x] Test request/response flow
 
 #### 1.7 Remove Silent Normalization (Web)
 
@@ -559,14 +559,14 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Remove `normalizeVoucherStatus()` fallback to defaults
-- [ ] Remove `normalizeVoucherOwnerType()` fallback to defaults
-- [ ] Replace with explicit error when unexpected value received
-- [ ] Add TypeScript `never` check for exhaustiveness
+- [x] Remove `normalizeVoucherStatus()` fallback to defaults
+- [x] Remove `normalizeVoucherOwnerType()` fallback to defaults
+- [x] Replace with explicit error when unexpected value received
+- [x] Add TypeScript `never` check for exhaustiveness
 
 **Tests:**
 
-- [ ] Test that unexpected values throw errors
+- [x] Test that unexpected values throw errors
 
 ---
 
@@ -580,10 +580,10 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Delete `app.controller.ts`
-- [ ] Delete `app.service.ts`
-- [ ] Remove imports from `app.module.ts`
-- [ ] Fix or remove e2e test that tests `/` endpoint (doesn't exist due to globalPrefix)
+- [x] Delete `app.controller.ts`
+- [x] Delete `app.service.ts`
+- [x] Remove imports from `app.module.ts`
+- [x] Fix or remove e2e test that tests `/` endpoint (doesn't exist due to globalPrefix)
 
 #### 2.2 Extract Shared `applyDefaults` from Queue Adapters
 
@@ -591,16 +591,16 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `apps/api/src/common/adapters/queue-defaults.ts`
-- [ ] Move `applyDefaults` logic to pure function
-- [ ] Update `BullMQQueueAdapter` to use shared function
-- [ ] Update `InMemoryQueueAdapter` to use shared function
+- [x] Create `apps/api/src/common/adapters/queue-defaults.ts`
+- [x] Move `applyDefaults` logic to pure function
+- [x] Update `BullMQQueueAdapter` to use shared function
+- [x] Update `InMemoryQueueAdapter` to use shared function
 
 **Tests:**
 
-- [ ] Test defaults apply for known job names
-- [ ] Test options pass-through for unknown job names
-- [ ] Test explicit options override defaults
+- [x] Test defaults apply for known job names
+- [x] Test options pass-through for unknown job names
+- [x] Test explicit options override defaults
 
 #### 2.3 Create `wrapDomainError()` Helper
 
@@ -608,15 +608,15 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `wrapDomainError(fn, fallbackMessage)` function
-- [ ] Replace 6+ try/catch blocks in `vouchers.service.ts`
-- [ ] Replace 2+ try/catch blocks in `auth-password-flow.service.ts`
+- [x] Create `wrapDomainError(fn, fallbackMessage)` function
+- [x] Replace 6+ try/catch blocks in `vouchers.service.ts`
+- [x] Replace 2+ try/catch blocks in `auth-password-flow.service.ts`
 
 **Tests:**
 
-- [ ] Test successful execution passes through
-- [ ] Test Error message is preserved
-- [ ] Test fallback message for non-Error throws
+- [x] Test successful execution passes through
+- [x] Test Error message is preserved
+- [x] Test fallback message for non-Error throws
 
 #### 2.4 Create `UrlBuilderService`
 
@@ -624,15 +624,15 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `UrlBuilderService` with `build()`, `passwordSetupLink()`, `passwordResetLink()`
-- [ ] Update `UsersService` to use `UrlBuilderService`
-- [ ] Remove duplicate `buildPasswordSetupLink` and `buildPasswordResetLink` from `UsersService`
+- [x] Create `UrlBuilderService` with `build()`, `passwordSetupLink()`, `passwordResetLink()`
+- [x] Update `UsersService` to use `UrlBuilderService`
+- [x] Remove duplicate `buildPasswordSetupLink` and `buildPasswordResetLink` from `UsersService`
 
 **Tests:**
 
-- [ ] Test URL with trailing slash
-- [ ] Test URL without trailing slash
-- [ ] Test custom WEB_APP_URL from env
+- [x] Test URL with trailing slash
+- [x] Test URL without trailing slash
+- [x] Test custom WEB_APP_URL from env
 
 #### 2.5 Replace Inline Types with DTOs (Users Controller)
 
@@ -640,15 +640,15 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Create `CreateUserDto` with class-validator decorators
-- [ ] Update `UsersController.create()` to use DTO
-- [ ] Update `UsersController.register()` to use DTO
+- [x] Create `CreateUserDto` with class-validator decorators
+- [x] Update `UsersController.create()` to use DTO
+- [x] Update `UsersController.register()` to use DTO
 
 **Tests:**
 
-- [ ] Test validation rejects invalid email
-- [ ] Test validation rejects invalid role
-- [ ] Test validation accepts valid payload
+- [x] Test validation rejects invalid email
+- [x] Test validation rejects invalid role
+- [x] Test validation accepts valid payload
 
 #### 2.6 Remove `any` Types
 
@@ -656,8 +656,8 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Replace `let where: any = {}` with `FindOptionsWhere<Session>`
-- [ ] Add proper typing throughout
+- [x] Replace `let where: any = {}` with `FindOptionsWhere<Session>`
+- [x] Add proper typing throughout
 
 ---
 
@@ -671,7 +671,7 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Delete `util/Resource.kt` (not used anywhere)
+- [x] Delete `util/Resource.kt` (not used anywhere)
 
 #### 3.2 Unify `ApiResult` Domain/Data
 
@@ -679,10 +679,10 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Keep only `domain/model/ApiResult.kt`
-- [ ] Delete `data/remote/ApiResult.kt`
-- [ ] Delete `ApiResultMapper.kt`
-- [ ] Update data layer to return domain `ApiResult` directly
+- [x] Keep only `domain/model/ApiResult.kt`
+- [x] Delete `data/remote/ApiResult.kt`
+- [x] Delete `ApiResultMapper.kt`
+- [x] Update data layer to return domain `ApiResult` directly
 
 #### 3.3 Remove Duplicate Enums
 
@@ -690,10 +690,10 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Remove `SessionSyncResult` enum from `BackendApiClient.kt`
-- [ ] Update `BackendApiClient` to return domain `SessionSyncResult`
-- [ ] Remove `ReportUnlockState` enum from `SessionEntity.kt`
-- [ ] Update entity to use domain `ReportUnlockState` (or store as string)
+- [x] Remove `SessionSyncResult` enum from `BackendApiClient.kt`
+- [x] Update `BackendApiClient` to return domain `SessionSyncResult`
+- [x] Remove `ReportUnlockState` enum from `SessionEntity.kt`
+- [x] Update entity to use domain `ReportUnlockState` (or store as string)
 
 #### 3.4 Remove Pass-Through Use Cases
 
@@ -701,11 +701,11 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Delete `GetCardsUseCase.kt` — inject repository directly in ViewModel
-- [ ] Delete `ClearProgressUseCase.kt` — inject repository directly in ViewModel
-- [ ] Delete `GetAccessibilitySettingsUseCase.kt` — inject repository directly in ViewModel
-- [ ] Update DI modules to remove bindings
-- [ ] Update ViewModels to use repositories directly
+- [x] Delete `GetCardsUseCase.kt` — inject repository directly in ViewModel
+- [x] Delete `ClearProgressUseCase.kt` — inject repository directly in ViewModel
+- [x] Delete `GetAccessibilitySettingsUseCase.kt` — inject repository directly in ViewModel
+- [x] Update DI modules to remove bindings
+- [x] Update ViewModels to use repositories directly
 
 #### 3.5 Fix Naming Conventions
 
@@ -713,8 +713,8 @@ app/src/main/java/com/akit/app/
 
 **Tasks:**
 
-- [ ] Rename `Vocationalresult.kt` → `VocationalResult.kt`
-- [ ] Fix `Spacing` in `Dimensions.kt` from `Int` to `Dp`
+- [x] Rename `Vocationalresult.kt` → `VocationalResult.kt`
+- [x] Fix `Spacing` in `Dimensions.kt` from `Int` to `Dp`
 
 ---
 
@@ -745,15 +745,15 @@ val token = tokenCache.get() ?: kotlinx.coroutines.runBlocking { tokenCache.refr
 
 **Tasks:**
 
-- [ ] Implement proactive token refresh (refresh at 50min, before 60min expiry)
-- [ ] Replace `runBlocking` with synchronous fallback or cached token
-- [ ] Add timeout to prevent ANR
+- [x] Implement proactive token refresh (refresh at 50min, before 60min expiry)
+- [x] Replace `runBlocking` with synchronous fallback or cached token
+- [x] Add timeout to prevent ANR
 
 **Tests:**
 
-- [ ] Test interceptor with valid cached token
-- [ ] Test interceptor with expired token (triggers refresh)
-- [ ] Test interceptor with no network (returns cached or fails gracefully)
+- [x] Test interceptor with valid cached token
+- [x] Test interceptor with expired token (triggers refresh)
+- [x] Test interceptor with no network (returns cached or fails gracefully)
 
 #### 4.2 Add TTL to TokenCache
 
@@ -761,16 +761,16 @@ val token = tokenCache.get() ?: kotlinx.coroutines.runBlocking { tokenCache.refr
 
 **Tasks:**
 
-- [ ] Add `cachedAt: Long` timestamp to cache entry
-- [ ] Add `isExpired(): Boolean` check (TTL = 50 minutes)
-- [ ] Update `get()` to check expiry before returning
-- [ ] Update `refresh()` to update timestamp
+- [x] Add `cachedAt: Long` timestamp to cache entry
+- [x] Add `isExpired(): Boolean` check (TTL = 50 minutes)
+- [x] Update `get()` to check expiry before returning
+- [x] Update `refresh()` to update timestamp
 
 **Tests:**
 
-- [ ] Test token returns when not expired
-- [ ] Test token returns null when expired
-- [ ] Test refresh updates timestamp
+- [x] Test token returns when not expired
+- [x] Test token returns null when expired
+- [x] Test refresh updates timestamp
 
 #### 4.3 Fix IdentityFlow CoroutineScope Leak
 
@@ -792,13 +792,13 @@ private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
 **Tasks:**
 
-- [ ] Inject `CoroutineScope` via Hilt (use `@Singleton` scope with `SupervisorJob`)
-- [ ] Implement `Closeable` or `LifecycleObserver` to cancel scope
-- [ ] Update DI module to provide the scope
+- [x] Inject `CoroutineScope` via Hilt (use `@Singleton` scope with `SupervisorJob`)
+- [x] Implement `Closeable` or `LifecycleObserver` to cancel scope
+- [x] Update DI module to provide the scope
 
 **Tests:**
 
-- [ ] Test scope is cancelled on app shutdown
+- [x] Test scope is cancelled on app shutdown
 
 #### 4.4 Fix FirebaseAuthSessionProvider to Use DI and Abstraction (AuthRepository)
 
@@ -830,15 +830,15 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create `AuthRepository` interface in Domain module.
-- [ ] Implement `AuthRepository` with `FirebaseAuthSessionProvider` in Data module.
-- [ ] Inject `FirebaseAuth` instance via constructor in Data module.
-- [ ] Update DI module to provide `FirebaseAuth` and bind `AuthRepository` to `FirebaseAuthSessionProvider`.
-- [ ] Update all ViewModels and classes to depend on the abstract `AuthRepository` instead of direct Firebase libraries.
+- [x] Create `AuthRepository` interface in Domain module.
+- [x] Implement `AuthRepository` with `FirebaseAuthSessionProvider` in Data module.
+- [x] Inject `FirebaseAuth` instance via constructor in Data module.
+- [x] Update DI module to provide `FirebaseAuth` and bind `AuthRepository` to `FirebaseAuthSessionProvider`.
+- [x] Update all ViewModels and classes to depend on the abstract `AuthRepository` instead of direct Firebase libraries.
 
 **Tests:**
 
-- [ ] Test AuthRepository using a clean mock of AuthRepository (no Google/Firebase library overhead in unit tests).
+- [x] Test AuthRepository using a clean mock of AuthRepository (no Google/Firebase library overhead in unit tests).
 
 #### 4.5 Split BackendApiClient into Specific Clients
 
@@ -846,18 +846,18 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create `UsersApiClient` (registration, user management)
-- [ ] Create `SessionsApiClient` (complete session, send report)
-- [ ] Create `VouchersApiClient` (redeem voucher)
-- [ ] Create `MaterialApiClient` (fetch theoretical material)
-- [ ] Delete `BackendApiClient.kt`
-- [ ] Update DI modules
-- [ ] Update repositories to use specific clients
+- [x] Create `UsersApiClient` (registration, user management)
+- [x] Create `SessionsApiClient` (complete session, send report)
+- [x] Create `VouchersApiClient` (redeem voucher)
+- [x] Create `MaterialApiClient` (fetch theoretical material)
+- [x] Delete `BackendApiClient.kt`
+- [x] Update DI modules
+- [x] Update repositories to use specific clients
 
 **Tests:**
 
-- [ ] Test each client independently
-- [ ] Test error handling per client
+- [x] Test each client independently
+- [x] Test error handling per client
 
 ---
 
@@ -871,16 +871,16 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create hook with: `sendEmail()`, `resendEmail()`, `revoke()`, `shareWhatsApp()`, `copyCode()`
-- [ ] Update `VoucherTableRow` to use hook (becomes presentational)
-- [ ] Remove all business logic from component
+- [x] Create hook with: `sendEmail()`, `resendEmail()`, `revoke()`, `shareWhatsApp()`, `copyCode()`
+- [x] Update `VoucherTableRow` to use hook (becomes presentational)
+- [x] Remove all business logic from component
 
 **Tests:**
 
-- [ ] Test sendEmail calls API
-- [ ] Test revoke calls API with confirmation
-- [ ] Test shareWhatsApp opens correct URL
-- [ ] Test copyCode copies to clipboard
+- [x] Test sendEmail calls API
+- [x] Test revoke calls API with confirmation
+- [x] Test shareWhatsApp opens correct URL
+- [x] Test copyCode copies to clipboard
 
 #### 5.2 Split `useVouchersManager` into 4 Hooks (and Integrate State Management/React Query)
 
@@ -893,18 +893,18 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Install `@tanstack/react-query` and `zustand` if not already in the monorepo web package.
-- [ ] Create each hook with single responsibility.
-- [ ] Implement query caching and optimistic updates using TanStack Query, so creating/redeeming vouchers immediately refreshes lists without full reload.
-- [ ] Create a lightweight Zustand store for sharing transient states (like active filters, sidebar states, active modales).
-- [ ] Update `VouchersView` to compose the 4 hooks.
-- [ ] Remove `useVouchersManager.ts`.
+- [x] Install `@tanstack/react-query` and `zustand` if not already in the monorepo web package.
+- [x] Create each hook with single responsibility.
+- [x] Implement query caching and optimistic updates using TanStack Query, so creating/redeeming vouchers immediately refreshes lists without full reload.
+- [x] Create a lightweight Zustand store for sharing transient states (like active filters, sidebar states, active modales).
+- [x] Update `VouchersView` to compose the 4 hooks.
+- [x] Remove `useVouchersManager.ts`.
 
 **Tests:**
 
-- [ ] Test each hook independently with MSW (Mock Service Worker) for network requests.
-- [ ] Test query cache invalidation on mutations (e.g., list invalidates on voucher creation).
-- [ ] Test composition in view.
+- [x] Test each hook independently with MSW (Mock Service Worker) for network requests.
+- [x] Test query cache invalidation on mutations (e.g., list invalidates on voucher creation).
+- [x] Test composition in view.
 
 #### 5.3 Create `useAdminDashboardStats`
 
@@ -912,9 +912,9 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Extract `useEffect` + `useState` from `DashboardOverview`
-- [ ] Hook returns: `stats`, `loading`, `error`, `refetch`
-- [ ] Update `DashboardOverview` to use hook
+- [x] Extract `useEffect` + `useState` from `DashboardOverview`
+- [x] Hook returns: `stats`, `loading`, `error`, `refetch`
+- [x] Update `DashboardOverview` to use hook
 
 #### 5.4 Create `useLocalStorage` Hook
 
@@ -922,15 +922,15 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create generic hook: `useLocalStorage<T>(key, initialValue)`
-- [ ] Update `useInstitutionOverviewManager` to use it
-- [ ] Remove hardcoded localStorage key
+- [x] Create generic hook: `useLocalStorage<T>(key, initialValue)`
+- [x] Update `useInstitutionOverviewManager` to use it
+- [x] Remove hardcoded localStorage key
 
 **Tests:**
 
-- [ ] Test set/get
-- [ ] Test JSON serialization
-- [ ] Test default value
+- [x] Test set/get
+- [x] Test JSON serialization
+- [x] Test default value
 
 #### 5.5 Create `usePeriodSelector` Hook
 
@@ -938,8 +938,8 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create hook with period options (7, 15, 30, 90, 365 days)
-- [ ] Update `DashboardOverview` and `InstitutionDashboardOverview` to use it
+- [x] Create hook with period options (7, 15, 30, 90, 365 days)
+- [x] Update `DashboardOverview` and `InstitutionDashboardOverview` to use it
 
 ---
 
@@ -953,17 +953,17 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create Modal with: backdrop, overlay, ESC close, focus trap
-- [ ] Update `CategoryEditModal` to use `<Modal>`
-- [ ] Update `InstitutionEditModal` to use `<Modal>`
-- [ ] Update `BatchDetailDrawer` to use `<Modal>` (or create `<Drawer>`)
+- [x] Create Modal with: backdrop, overlay, ESC close, focus trap
+- [x] Update `CategoryEditModal` to use `<Modal>`
+- [x] Update `InstitutionEditModal` to use `<Modal>`
+- [x] Update `BatchDetailDrawer` to use `<Modal>` (or create `<Drawer>`)
 
 **Tests:**
 
-- [ ] Test opens/closes
-- [ ] Test ESC key closes
-- [ ] Test backdrop click closes
-- [ ] Test focus trap
+- [x] Test opens/closes
+- [x] Test ESC key closes
+- [x] Test backdrop click closes
+- [x] Test focus trap
 
 #### 6.2 Create `<EmptyState>` Component
 
@@ -971,8 +971,8 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create EmptyState with: icon, title, description, optional action
-- [ ] Replace 5 instances across the app
+- [x] Create EmptyState with: icon, title, description, optional action
+- [x] Replace 5 instances across the app
 
 #### 6.3 Create `<PeriodSelector>` Component
 
@@ -980,8 +980,8 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create PeriodSelector with preset options
-- [ ] Replace 2 hardcoded selects
+- [x] Create PeriodSelector with preset options
+- [x] Replace 2 hardcoded selects
 
 #### 6.4 Create `<EventIcon>` Component
 
@@ -989,8 +989,8 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create EventIcon that maps event type to icon
-- [ ] Replace 2 duplicate `getIcon` functions
+- [x] Create EventIcon that maps event type to icon
+- [x] Replace 2 duplicate `getIcon` functions
 
 #### 6.5 Create `<StatusBadge>` Component
 
@@ -998,9 +998,9 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Extract from `InstitutionCard`
-- [ ] Update `TherapistCard` to import from new location
-- [ ] Remove cross-component coupling
+- [x] Extract from `InstitutionCard`
+- [x] Update `TherapistCard` to import from new location
+- [x] Remove cross-component coupling
 
 #### 6.6 Refactor `VoucherStatsCards`
 
@@ -1008,8 +1008,8 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create `StatCardVariant` component with config props
-- [ ] Reduce from 196 lines to ~40 lines
+- [x] Create `StatCardVariant` component with config props
+- [x] Reduce from 196 lines to ~40 lines
 
 ---
 
@@ -1029,16 +1029,16 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create `ShareViewModel` with share text state
-- [ ] Create `ReportViewModel` with email report, payment unlock, report flow state
-- [ ] Create `VoucherViewModel` with voucher redeem state
-- [ ] Update `ResultsScreen` to compose the 3 ViewModels
-- [ ] Delete original `ResultsViewModel`
+- [x] Create `ShareViewModel` with share text state
+- [x] Create `ReportViewModel` with email report, payment unlock, report flow state
+- [x] Create `VoucherViewModel` with voucher redeem state
+- [x] Update `ResultsScreen` to compose the 3 ViewModels
+- [x] Delete original `ResultsViewModel`
 
 **Tests:**
 
-- [ ] Test each ViewModel independently
-- [ ] Test composition in screen
+- [x] Test each ViewModel independently
+- [x] Test composition in screen
 
 #### 7.2 Reduce VocationalViewModel Dependencies
 
@@ -1048,17 +1048,17 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create `InteractionCoordinator` that wraps:
+- [x] Create `InteractionCoordinator` that wraps:
   - `ITtsService`
   - `IHapticService`
   - `IMotivationalService`
   - `AnalyticsHelper`
-- [ ] Update `VocationalViewModel` to inject `InteractionCoordinator` instead of 4 separate services
-- [ ] Update DI module
+- [x] Update `VocationalViewModel` to inject `InteractionCoordinator` instead of 4 separate services
+- [x] Update DI module
 
 **Tests:**
 
-- [ ] Test InteractionCoordinator delegates correctly
+- [x] Test InteractionCoordinator delegates correctly
 
 #### 7.3 Refactor FinalizeVocationalTestLocalUseCase
 
@@ -1073,10 +1073,10 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Use existing `CalculateResultsUseCase` and `CalculateHollandCodeUseCase`
-- [ ] Create `BuildSessionSummaryUseCase`
-- [ ] Update `FinalizeVocationalTestLocalUseCase` to orchestrate the above
-- [ ] Or further simplify by moving orchestration to ViewModel
+- [x] Use existing `CalculateResultsUseCase` and `CalculateHollandCodeUseCase`
+- [x] Create `BuildSessionSummaryUseCase`
+- [x] Update `FinalizeVocationalTestLocalUseCase` to orchestrate the above
+- [x] Or further simplify by moving orchestration to ViewModel
 
 #### 7.4 Simplify Name Validation
 
@@ -1086,17 +1086,17 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create single `validateName(name: String): ValidationResult?` function
-- [ ] Delete 5 validation files
-- [ ] Update DI module (remove `@IntoSet` bindings)
-- [ ] Update usages
+- [x] Create single `validateName(name: String): ValidationResult?` function
+- [x] Delete 5 validation files
+- [x] Update DI module (remove `@IntoSet` bindings)
+- [x] Update usages
 
 **Tests:**
 
-- [ ] Test valid names
-- [ ] Test empty name
-- [ ] Test short name (< 2 chars)
-- [ ] Test whitespace-only name
+- [x] Test valid names
+- [x] Test empty name
+- [x] Test short name (< 2 chars)
+- [x] Test whitespace-only name
 
 #### 7.5 Simplify NavGraph
 
@@ -1106,10 +1106,10 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Move drawer state management to dedicated composable
-- [ ] Move sign-out navigation logic to ViewModel
-- [ ] Move dialog state to dedicated composables
-- [ ] Keep only route definitions in NavGraph
+- [x] Move drawer state management to dedicated composable
+- [x] Move sign-out navigation logic to ViewModel
+- [x] Move dialog state to dedicated composables
+- [x] Keep only route definitions in NavGraph
 
 #### 7.6 Split DrawerContent
 
@@ -1119,12 +1119,12 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create `DrawerHeader` component
-- [ ] Create `DrawerAppearanceSection` component
-- [ ] Create `DrawerNavigationSection` component
-- [ ] Create `DrawerHelpSection` component
-- [ ] Create `DrawerAccountSection` component
-- [ ] Update `DrawerContent` to compose the 5 sub-components
+- [x] Create `DrawerHeader` component
+- [x] Create `DrawerAppearanceSection` component
+- [x] Create `DrawerNavigationSection` component
+- [x] Create `DrawerHelpSection` component
+- [x] Create `DrawerAccountSection` component
+- [x] Update `DrawerContent` to compose the 5 sub-components
 
 ---
 
@@ -1440,13 +1440,13 @@ val useNewResultsScreen = firebaseRemoteConfig.getBoolean("use_new_results_scree
 
 | Phase | Duration | Dependencies | Priority | Parallelizable? |
 |-------|----------|-------------|----------|-----------------|
-| **1. Contracts Package** | 5-7 days | None | 🔴 Critical | No (Blocking) |
-| **2. API Quick Wins** | 2-3 days | Phase 1 | 🟡 High | Yes (Lane A) |
-| **3. Android Quick Wins** | 1-2 days | Phase 1 | 🟡 High | Yes (Lane C) |
-| **4. Android Critical Fixes** | 2-3 days | Phase 3 | 🔴 Critical | Yes (Lane C) |
+| **1. Contracts Package** | 5-7 days | None | 🔴 Critical | No (Blocking) | ✅ COMPLETED |
+| **2. API Quick Wins** | 2-3 days | Phase 1 | 🟡 High | Yes (Lane A) | ✅ COMPLETED |
+| **3. Android Quick Wins** | 1-2 days | Phase 1 | 🟡 High | Yes (Lane C) | ✅ COMPLETED |
+| **4. Android Critical Fixes** | 2-3 days | Phase 3 | 🔴 Critical | Yes (Lane C) | ✅ COMPLETED |
 | **5. Web Hooks Extraction** | 3-5 days | Phase 1 | 🟡 High | Yes (Lane B) | ✅ COMPLETED |
 | **6. Web Components** | 3-4 days | Phase 5 | 🟢 Medium | Yes (Lane B) | ✅ COMPLETED |
-| **7. Android God Classes** | 3-4 weeks | Phase 4 | 🔴 Critical | Yes (Lane C) |
+| **7. Android God Classes** | 3-4 weeks | Phase 4 | 🔴 Critical | Yes (Lane C) | ✅ COMPLETED |
 | **8. API Circular Deps** | 3-4 days | Phase 1 | 🟡 High | Yes (Lane A) |
 | **9. API God Services** | 3-4 days | Phase 8 | 🟡 High | Yes (Lane A) |
 | **10. Testing** | Ongoing | All phases | 🔴 Critical | Yes (Across all) |

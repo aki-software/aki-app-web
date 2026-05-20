@@ -9,6 +9,7 @@ import {
   Query,
   UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { UserRole } from '../users/entities/user.entity.js';
@@ -28,6 +29,7 @@ import { CurrentVoucherScope } from './decorators/voucher-scope.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { VoucherRedemptionService } from '../common/services/voucher-redemption.service.js';
+import { IdempotencyInterceptor } from '../common/interceptors/idempotency.interceptor.js';
 
 @Controller('vouchers')
 export class VouchersController {
@@ -102,6 +104,7 @@ export class VouchersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('redeem')
+  @UseInterceptors(IdempotencyInterceptor)
   async redeem(
     @Body() redeemVoucherDto: RedeemVoucherDto,
     @CurrentVoucherScope() scope: VoucherScope,

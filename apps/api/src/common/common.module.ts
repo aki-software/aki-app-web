@@ -15,6 +15,9 @@ import { JobDispatcherService } from './services/job-dispatcher.service.js';
 import { IdempotencyService } from './services/idempotency.service.js';
 import { IdempotencyInterceptor } from './interceptors/idempotency.interceptor.js';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { SendEmailHandler } from './jobs/handlers/send-email.handler.js';
+import { GeneratePdfHandler } from './jobs/handlers/generate-pdf.handler.js';
+import { SendReportHandler } from './jobs/handlers/send-report.handler.js';
 
 @Global()
 @Module({
@@ -25,6 +28,9 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     CryptoService,
     RateLimitService,
     JobDispatcherService,
+    SendEmailHandler,
+    GeneratePdfHandler,
+    SendReportHandler,
     InMemoryQueueAdapter,
     BullMQQueueAdapter,
     { provide: PDF_GENERATOR, useExisting: PdfService },

@@ -13,6 +13,7 @@ import { SessionsController } from './sessions.controller.js';
 import { SessionsService } from './sessions.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { AdminDashboardStatsService } from './services/admin-dashboard-stats.service.js';
+import { AdminDashboardQueriesService } from './services/admin-dashboard-queries.service.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import { ReportService } from './services/report.service.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
@@ -43,6 +44,7 @@ import { VoucherRedemptionModule } from '../common/modules/voucher-redemption.mo
     ReportService,
     AdminDashboardService,
     AdminDashboardStatsService,
+    AdminDashboardQueriesService,
     ReportOrchestratorService,
     SessionMetricsService,
     SessionCompleteMapperService,

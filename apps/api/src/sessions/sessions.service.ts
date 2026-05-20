@@ -4,21 +4,18 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { type FindOptionsWhere, Repository, In, DataSource } from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
-import { Session, SessionPaymentStatus } from './entities/session.entity.js';
+import { Session } from './entities/session.entity.js';
 
-import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { SessionScope } from './types/session-scope.type.js';
 import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
-import { AdminActivityItem, RawRecentSessionRow } from '@akit/contracts';
 
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 
@@ -29,90 +26,13 @@ export class SessionsService {
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-    @Inject(forwardRef(() => AdminDashboardService))
-    private readonly adminDashboardService: AdminDashboardService,
+
     private readonly reportOrchestratorService: ReportOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
     private readonly dataSource: DataSource,
   ) {}
-
-  async getRecentActivity(limit: number = 50): Promise<AdminActivityItem[]> {
-    const sessions = await this.sessionRepository
-      .createQueryBuilder('session')
-      .select('session.id', 'id')
-      .addSelect('session.patientName', 'patientName')
-      .addSelect('session.createdAt', 'createdAt')
-      .addSelect('session.sessionDate', 'sessionDate')
-      .addSelect('session.reportUnlockedAt', 'reportUnlockedAt')
-      .addSelect('session.paidAt', 'paidAt')
-      .addSelect('session.voucherId', 'voucherId')
-      .addSelect('session.paymentStatus', 'paymentStatus')
-      .addSelect('COUNT(result.id)', 'resultsCount')
-      .leftJoin('session.results', 'result')
-      .groupBy('session.id')
-      .addGroupBy('session.patientName')
-      .addGroupBy('session.createdAt')
-      .addGroupBy('session.sessionDate')
-      .addGroupBy('session.reportUnlockedAt')
-      .addGroupBy('session.paidAt')
-      .addGroupBy('session.voucherId')
-      .addGroupBy('session.paymentStatus')
-      .orderBy('session.createdAt', 'DESC')
-      .limit(limit)
-      .getRawMany<RawRecentSessionRow>();
-
-    return sessions.map((session) => {
-      const resultsCount = parseInt(session.resultsCount ?? '0', 10);
-      const isCompleted = resultsCount > 0;
-      const channelLabel =
-        session.voucherId ||
-        session.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
-          ? 'con voucher'
-          : 'sin voucher';
-      const occurredAt = isCompleted
-        ? this.toIso(
-            session.reportUnlockedAt,
-            session.paidAt,
-            session.sessionDate,
-            session.createdAt,
-          )
-        : this.toIso(session.sessionDate, session.createdAt);
-
-      return {
-        id: `session-${session.id}`,
-        type: isCompleted ? 'SESSION_COMPLETED' : 'SESSION_STARTED',
-        title: isCompleted ? 'Sesión completada' : 'Sesión iniciada',
-        description: isCompleted
-          ? `${session.patientName || 'Paciente sin nombre'} completó un test ${channelLabel}.`
-          : `${session.patientName || 'Paciente sin nombre'} inició un test ${channelLabel}.`,
-        occurredAt,
-      };
-    });
-  }
-
-  async getStalledSessionsCount(): Promise<number> {
-    const now = new Date();
-    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-    const countRow = await this.sessionRepository
-      .createQueryBuilder('session')
-      .where('session.createdAt < :dayAgo', { dayAgo })
-      .andWhere((qb) => {
-        const subquery = qb
-          .subQuery()
-          .select('1')
-          .from('session_results', 'sr')
-          .where('sr.session_id = session.id')
-          .getQuery();
-        return `NOT EXISTS (${subquery})`;
-      })
-      .select('COUNT(*)', 'count')
-      .getRawOne<{ count: string }>();
-
-    return parseInt(countRow?.count ?? '0', 10);
-  }
 
   private toIso(...values: Array<Date | string | null | undefined>): string {
     for (const value of values) {
@@ -237,14 +157,6 @@ export class SessionsService {
     return await this.sessionRepository.find({
       where: { id: In(ids) },
     });
-  }
-
-  async getAdminOverview(days: number): Promise<unknown> {
-    return await this.adminDashboardService.getAdminOverview(days);
-  }
-
-  async getAdminActivity(limit: number): Promise<unknown> {
-    return await this.adminDashboardService.getAdminActivity(limit);
   }
 
   async sendReport(

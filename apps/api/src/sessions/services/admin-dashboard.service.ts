@@ -1,6 +1,6 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CategoriesService } from '../../categories/categories.service.js';
-import { SessionsService } from '../sessions.service.js';
+import { AdminDashboardQueriesService } from './admin-dashboard-queries.service.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
 import { DashboardStatsPayload, AdminActivityItem } from '@akit/contracts';
 import { AdminDashboardStatsService } from './admin-dashboard-stats.service.js';
@@ -9,8 +9,7 @@ import { AdminDashboardStatsService } from './admin-dashboard-stats.service.js';
 export class AdminDashboardService {
   constructor(
     private readonly categoriesService: CategoriesService,
-    @Inject(forwardRef(() => SessionsService))
-    private readonly sessionsService: SessionsService,
+    private readonly queriesService: AdminDashboardQueriesService,
     private readonly vouchersService: VouchersService,
     private readonly statsService: AdminDashboardStatsService,
   ) {}
@@ -40,7 +39,7 @@ export class AdminDashboardService {
       this.statsService.getVoucherTotals(),
       this.statsService.getPeriodVoucherStats(periodStart),
       this.vouchersService.getExpiringSoonCount(),
-      this.sessionsService.getStalledSessionsCount(),
+      this.queriesService.getStalledSessionsCount(),
       this.statsService.getHistoricalSessionTotals(),
       this.statsService.getCompletedSessionsTotal(),
       this.statsService.getPeriodBasicStats(periodStart),
@@ -114,7 +113,7 @@ export class AdminDashboardService {
 
   async getAdminActivity(limit: number = 50): Promise<AdminActivityItem[]> {
     const [sessionActivity, voucherActivity] = await Promise.all([
-      this.sessionsService.getRecentActivity(limit),
+      this.queriesService.getRecentActivity(limit),
       this.vouchersService.getRecentActivity(limit),
     ]);
 

@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserRegistrationService } from './user-registration.service.js';
 import { UsersService } from './users.service.js';
-import { InstitutionsService } from '../institutions/institutions.service.js';
+import { Institution } from '../institutions/entities/institution.entity.js';
 import { AccountActivationNotifierService } from '../common/notifications/account-activation-notifier.service.js';
 import { CryptoService } from '../common/services/crypto.service.js';
 import { UserRole } from './entities/user.entity.js';
@@ -10,7 +11,7 @@ import { UserRole } from './entities/user.entity.js';
 describe('UserRegistrationService', () => {
   let service: UserRegistrationService;
   let usersService: any;
-  let institutionsService: any;
+  let institutionRepository: any;
   let notifier: any;
   let cryptoService: any;
 
@@ -20,9 +21,9 @@ describe('UserRegistrationService', () => {
       register: jest.fn(),
       buildPasswordSetupLink: jest.fn(),
     };
-    institutionsService = {
+    institutionRepository = {
       create: jest.fn(),
-      assignResponsibleTherapist: jest.fn(),
+      save: jest.fn(),
     };
     notifier = {
       notifyAccountActivation: jest.fn(),
@@ -36,7 +37,10 @@ describe('UserRegistrationService', () => {
         UserRegistrationService,
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: UsersService, useValue: usersService },
-        { provide: InstitutionsService, useValue: institutionsService },
+        {
+          provide: getRepositoryToken(Institution),
+          useValue: institutionRepository,
+        },
         { provide: AccountActivationNotifierService, useValue: notifier },
         { provide: CryptoService, useValue: cryptoService },
       ],
@@ -80,7 +84,8 @@ describe('UserRegistrationService', () => {
       usersService.register.mockResolvedValue(newUser);
       usersService.buildPasswordSetupLink.mockReturnValue('http://link.com');
       // Mock institution creation for therapist role
-      institutionsService.create.mockResolvedValue({ id: 'inst-1' });
+      institutionRepository.create.mockReturnValue({ id: 'inst-1' });
+      institutionRepository.save.mockResolvedValue({ id: 'inst-1' });
 
       const result = await service.register({ name, email, role });
 
@@ -104,22 +109,23 @@ describe('UserRegistrationService', () => {
         institutionId: null,
       };
       usersService.register.mockResolvedValue(userWithoutInst);
-      institutionsService.create.mockResolvedValue({
+      institutionRepository.create.mockReturnValue({
+        id: 'inst-1',
+        name: 'Consultorio John Doe',
+      });
+      institutionRepository.save.mockResolvedValue({
         id: 'inst-1',
         name: 'Consultorio John Doe',
       });
 
       await service.register({ name, email, role });
 
-      expect(institutionsService.create).toHaveBeenCalledWith(
+      expect(institutionRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           name: `Consultorio ${name}`,
           responsibleTherapistUserId: '3',
         }),
       );
-      expect(
-        institutionsService.assignResponsibleTherapist,
-      ).not.toHaveBeenCalled(); // Handled by register update in design
     });
   });
 });
