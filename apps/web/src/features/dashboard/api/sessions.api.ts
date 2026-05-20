@@ -69,7 +69,7 @@ function normalizeSessionDetail(
 ): SessionDetailData {
   return {
     ...normalizeSession(session),
-    swipes: [], // Swipes are currently not returned by the direct session endpoint
+    swipes: Array.isArray(session.swipes) ? session.swipes : [],
     reportUrl: null,
     metrics: session.metrics,
   };

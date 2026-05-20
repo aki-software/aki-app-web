@@ -24,6 +24,7 @@ import {
 } from './dto/voucher.dto.js';
 import { VouchersService } from './vouchers.service.js';
 import { VoucherQueryService } from './voucher-query.service.js';
+import { VoucherBatchQueryService } from './services/voucher-batch-query.service.js';
 import { type VoucherScope } from './types/voucher-query.types.js';
 import { CurrentVoucherScope } from './decorators/voucher-scope.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
@@ -37,6 +38,7 @@ export class VouchersController {
   constructor(
     private readonly vouchersService: VouchersService,
     private readonly queryService: VoucherQueryService,
+    private readonly batchQueryService: VoucherBatchQueryService,
     @Inject(forwardRef(() => SessionsService))
     private readonly sessionsService: SessionsService,
   ) {}
@@ -123,7 +125,7 @@ export class VouchersController {
     @Query() query: ListVoucherBatchesDto,
     @CurrentVoucherScope('clientId') scope: VoucherScope,
   ) {
-    return await this.queryService.findBatchSummaries(query, scope);
+    return await this.batchQueryService.findBatchSummaries(query, scope);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -132,7 +134,7 @@ export class VouchersController {
     @Param('batchId', new ParseUUIDPipe()) batchId: string,
     @CurrentVoucherScope() scope: VoucherScope,
   ) {
-    return await this.queryService.findBatchDetail(batchId, scope);
+    return await this.batchQueryService.findBatchDetail(batchId, scope);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -207,6 +207,7 @@ export class SessionsService {
       skip: (page - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },
+      relations: ['results', 'voucher'],
     });
 
     return { data, count };
@@ -215,7 +216,10 @@ export class SessionsService {
   async findOne(id: string, scope?: SessionScope): Promise<Session> {
     const where = { ...this.applyScope(scope), id };
 
-    const session = await this.sessionRepository.findOne({ where });
+    const session = await this.sessionRepository.findOne({
+      where,
+      relations: ['results', 'voucher', 'swipes'],
+    });
     if (!session) {
       throw new NotFoundException('Sesión no encontrada');
     }

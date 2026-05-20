@@ -48,6 +48,7 @@ export const sessionApiSchema = z.object({
   paymentStatus: z.string().optional(),
   reportUnlockedAt: z.string().nullable().optional(),
   results: z.array(sessionResultDataSchema).optional(),
+  swipes: z.array(sessionSwipeDataSchema).optional(),
   institution: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
   therapist: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
   voucher: z.object({ code: z.string().nullable().optional() }).nullable().optional(),

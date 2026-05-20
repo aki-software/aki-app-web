@@ -16,26 +16,14 @@ export const useSessionDetailManager = (id?: string) => {
     });
   }, [id]);
 
-  // Cálculos de comportamiento
+  // Comportamiento: se toman las métricas pre-calculadas por el backend
   const behaviorStats = useMemo(() => {
-    if (!session?.swipes || session.swipes.length === 0) return null;
-    const swipes = session.swipes;
-    const cardIds = swipes.map((s) => s.cardId);
-    const uniqueCards = new Set(cardIds);
-    const undosCount = cardIds.length - uniqueCards.size;
-    
-    const durations: number[] = [];
-    for (let i = 1; i < swipes.length; i++) {
-      if (swipes[i].timestamp && swipes[i - 1].timestamp) {
-        const diff = new Date(swipes[i].timestamp!).getTime() - new Date(swipes[i - 1].timestamp!).getTime();
-        if (diff > 0 && diff < 300000) durations.push(diff);
-      }
-    }
-    
+    const m = session?.metrics;
+    if (!m) return null;
     return {
-      undosCount,
-      avgTime: durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : null,
-      reliabilityLevel: undosCount > 10 ? "Baja" : undosCount > 5 ? "Variable" : "Muy Alta",
+      undosCount: m.revertedMatches ?? 0,
+      avgTime: m.avgTimeBetweenSwipesMs > 0 ? m.avgTimeBetweenSwipesMs : null,
+      reliabilityLevel: m.reliabilityLevel ?? "N/A",
     };
   }, [session]);
 
