@@ -19,7 +19,7 @@ export const useInstitutionDetailManager = (id?: string) => {
       setLoading(true);
       setError(null);
       
-      const res = await fetchInstitutionOverview({ institutionId: id, days: 7 });
+      const res = await fetchInstitutionOverview(id, 7);
       
       if (!isActive) return;
 

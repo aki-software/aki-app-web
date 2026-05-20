@@ -6,10 +6,13 @@ import { DashboardLayout } from "../features/dashboard/layouts/DashboardLayout";
 import { NotFoundFeature } from "../features/dashboard/views/NotFoundFeature";
 import { SuspenseWrapper } from "../components/atoms/SuspenseWrapper";
 import { AppErrorBoundary } from "../components/errors/AppErrorBoundary"; 
+import { useAuth } from "../features/auth/hooks/useAuth";
 
 // Auth Views
 const LoginPage = lazy(() => import("../features/auth/views/LoginPage").then(m => ({ default: m.LoginPage })));
 const SetupPasswordPage = lazy(() => import("../features/auth/views/SetupPasswordPage").then(m => ({ default: m.SetupPasswordPage })));
+const ForgotPasswordPage = lazy(() => import("../features/auth/views/ForgotPasswordPage").then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import("../features/auth/views/ResetPasswordPage").then(m => ({ default: m.ResetPasswordPage })));
 
 // Dashboard Views
 const DashboardOverview = lazy(() => import("../features/dashboard/views/DashboardOverview").then(m => ({ default: m.DashboardOverview })));
@@ -21,11 +24,15 @@ const InstitutionDetailOverview = lazy(() => import("../features/dashboard/views
 const DashboardSettings = lazy(() => import("../features/dashboard/views/DashboardSettings").then(m => ({ default: m.DashboardSettings })));
 const DashboardActivity = lazy(() => import("../features/dashboard/views/DashboardActivity").then(m => ({ default: m.DashboardActivity })));
 
+function RootRedirect() {
+  const { isAuthenticated } = useAuth();
+  return <Navigate to={isAuthenticated ? APP_ROUTES.DASHBOARD.ROOT : APP_ROUTES.AUTH.LOGIN} replace />;
+}
 
 export const router = createBrowserRouter([
   {
     path: APP_ROUTES.ROOT,
-    element: <Navigate to={APP_ROUTES.DASHBOARD.ROOT} replace />,
+    element: <RootRedirect />,
   },
   {
     path: APP_ROUTES.AUTH.LOGIN,
@@ -34,6 +41,14 @@ export const router = createBrowserRouter([
   {
     path: APP_ROUTES.AUTH.SETUP_PASSWORD,
     element: <SuspenseWrapper><SetupPasswordPage /></SuspenseWrapper>,
+  },
+  {
+    path: APP_ROUTES.AUTH.FORGOT_PASSWORD,
+    element: <SuspenseWrapper><ForgotPasswordPage /></SuspenseWrapper>,
+  },
+  {
+    path: APP_ROUTES.AUTH.RESET_PASSWORD,
+    element: <SuspenseWrapper><ResetPasswordPage /></SuspenseWrapper>,
   },
   {
     element: <ProtectedRoute />,

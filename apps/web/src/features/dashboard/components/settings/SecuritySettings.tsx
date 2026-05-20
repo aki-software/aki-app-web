@@ -37,7 +37,7 @@ export const SecuritySettings = () => {
       <div className="flex flex-col gap-1">
         <h2 className="flex items-center gap-3 text-2xl font-black tracking-tight text-app-text-main uppercase">
           <Shield className="h-6 w-6 text-app-primary" />
-          Cuenta operativa
+          Cambio de contraseña
         </h2>
         <p className="text-sm text-app-text-muted font-medium opacity-70">
           Gestioná tus credenciales de acceso y la seguridad de tu perfil.

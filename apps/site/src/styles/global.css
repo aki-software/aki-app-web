@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0F6B68;
+  --color-primary-light: #B7ECE7;
+  --color-primary-dark: #083B39;
+  --color-primary-50: #E8F8F7;
+  --color-secondary: #8E5A12;
+  --color-secondary-light: #FFDDB5;
+  --color-tertiary: #4E7F52;
+  --color-bg: #F5EFE7;
+  --color-surface: #FAF6F0;
+  --color-text: #1D1914;
+  --color-text-muted: #6B6560;
+  --color-border: #E0D8CE;
+  --color-dark-bg: #0A0F0D;
+  --color-dark-surface: #111A17;
+  --color-dark-text: #F5F1EC;
+  --color-dark-muted: #8A8279;
+  --color-dark-border: #1E2B26;
+  --color-confirm: #43A047;
+  --color-destructive: #E53935;
+  --color-warning: #F59E0B;
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font-body); background-color: var(--color-bg); color: var(--color-text); overflow-x: hidden; }
+
+.container { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+@media (min-width: 1024px) { .container { padding: 0 4rem; } }
+
+*:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+.skip-link { position: absolute; top: -40px; left: 0; background: var(--color-primary); color: white; padding: 8px 16px; z-index: 100; transition: top 0.2s; }
+.skip-link:focus { top: 0; }
+
+/* Animations */
+@keyframes swipe-right {
+  0%, 100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  40% { transform: translateX(60px) rotate(8deg); opacity: 0.7; }
+  60% { transform: translateX(60px) rotate(8deg); opacity: 0.7; }
+  100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes radar-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.animate-swipe { animation: swipe-right 3s ease-in-out infinite; }
+.animate-float { animation: float 5s ease-in-out infinite; }
+
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-dark-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 3px; }
+
+::selection { background-color: var(--color-primary); color: white; }

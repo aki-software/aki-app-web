@@ -1,4 +1,4 @@
-import { API_URL, getAuthHeaders } from "./client";
+import { apiClient } from "../../../api/client";
 
 export interface TherapistOption {
   id: string;
@@ -10,27 +10,25 @@ export interface TherapistOption {
   activationEmailSent?: boolean;
 }
 
+export interface RawTherapist {
+  id: string;
+  name: string;
+  email?: string | null;
+  institutionId?: string | null;
+  institution?: { name?: string | null } | null;
+  institutionName?: string | null;
+  isActive?: boolean;
+}
+
 export async function fetchTherapists(): Promise<TherapistOption[]> {
   try {
-    const response = await fetch(`${API_URL}/users?role=THERAPIST`, {
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error("Failed to fetch therapists");
-
-    const responseData = (await response.json()) as {
-      data?: Array<{
-        id: string;
-        name: string;
-        email?: string | null;
-        institutionId?: string | null;
-        institution?: { name?: string | null } | null;
-        institutionName?: string | null;
-        isActive?: boolean;
-      }>;
-    };
+    const responseData = await apiClient.get<{
+      data?: RawTherapist[];
+    }>("/users?role=THERAPIST");
+    
     const therapists = responseData.data || [];
 
-    return therapists.map((therapist) => ({
+    return therapists.map((therapist: RawTherapist) => ({
       id: therapist.id,
       name: therapist.name,
       email: therapist.email ?? null,
@@ -52,27 +50,10 @@ export async function createTherapist(input: {
   institutionId?: string;
 }): Promise<TherapistOption | null> {
   try {
-    const response = await fetch(`${API_URL}/users`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify({
-        ...input,
-        role: "THERAPIST",
-      }),
+    const therapist = await apiClient.post<RawTherapist>("/users", {
+      ...input,
+      role: "THERAPIST",
     });
-    if (!response.ok) throw new Error("Failed to create therapist");
-
-    const therapist = (await response.json()) as {
-      id: string;
-      name: string;
-      email: string;
-      institutionId?: string | null;
-      isActive?: boolean;
-      activationEmailSent?: boolean;
-    };
 
     return {
       id: therapist.id,
@@ -81,7 +62,7 @@ export async function createTherapist(input: {
       institutionId: therapist.institutionId ?? null,
       institutionName: null,
       isActive: therapist.isActive ?? false,
-      activationEmailSent: therapist.activationEmailSent ?? false,
+      activationEmailSent: (therapist as { activationEmailSent?: boolean }).activationEmailSent ?? false,
     };
   } catch (error) {
     console.error("Error creating therapist:", error);
@@ -93,16 +74,9 @@ export async function resendActivationInvitation(
   userId: string
 ): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/users/${userId}/resend-activation`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-    });
-    if (!response.ok) throw new Error("Failed to resend activation");
-
-    const data = (await response.json()) as { activationEmailSent?: boolean };
+    const data = await apiClient.post<{ activationEmailSent?: boolean }>(
+      `/users/${userId}/resend-activation`
+    );
     return data.activationEmailSent ?? false;
   } catch (error) {
     console.error("Error resending activation:", error);

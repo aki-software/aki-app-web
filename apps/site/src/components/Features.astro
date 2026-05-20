@@ -1,0 +1,42 @@
+---
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { t } = Astro.props;
+---
+
+<section class="py-16 md:py-24 bg-surface" id="features">
+  <div class="container">
+    <div class="text-center mb-12">
+      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mb-3 reveal">
+        {t.features.title}
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
+      {t.features.items.map((feature, i) => {
+        const icons = ['📴', '♿', '🌐', '📊', '🔒', '🎯'];
+        return (
+          <div class="bg-bg rounded-xl border border-border/60 p-5 reveal" style={`transition-delay: ${i * 0.08}s;`}>
+            <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center mb-3">
+              <span class="text-xl">{icons[i]}</span>
+            </div>
+            <h3 class="font-display font-semibold text-base text-text mb-1.5">{feature.title}</h3>
+            <p class="text-sm text-text-muted leading-relaxed">{feature.desc}</p>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+</script>

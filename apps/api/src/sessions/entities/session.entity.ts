@@ -8,18 +8,14 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { SessionResult } from './session-result.entity';
-import { SessionSwipe } from './session-swipe.entity';
-import { SessionMetrics } from './session-metrics.entity';
-import { Voucher } from '../../vouchers/entities/voucher.entity';
-import { User } from '../../users/entities/user.entity';
-import { Institution } from '../../institutions/entities/institution.entity';
-
-export enum SessionPaymentStatus {
-  PENDING = 'PENDING',
-  PAID = 'PAID',
-  VOUCHER_REDEEMED = 'VOUCHER_REDEEMED',
-}
+import { SessionPaymentStatus } from '@akit/contracts';
+export { SessionPaymentStatus };
+import { SessionResult } from './session-result.entity.js';
+import { SessionSwipe } from './session-swipe.entity.js';
+import { SessionMetrics } from './session-metrics.entity.js';
+import { Voucher } from '../../vouchers/entities/voucher.entity.js';
+import { User } from '../../users/entities/user.entity.js';
+import { Institution } from '../../institutions/entities/institution.entity.js';
 
 @Entity('sessions')
 export class Session {
@@ -48,6 +44,16 @@ export class Session {
 
   @Column({ name: 'session_date', type: 'timestamp' })
   sessionDate: Date;
+
+  @Column({
+    name: 'sync_key',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+    unique: true,
+    select: false,
+  })
+  syncKey: string | null;
 
   @Column({ name: 'holland_code', type: 'varchar', length: 20, nullable: true })
   hollandCode: string;
@@ -98,7 +104,10 @@ export class Session {
   @OneToMany('SessionSwipe', (swipe: any) => swipe.session, { cascade: true })
   swipes: SessionSwipe[];
 
-  @OneToOne(() => SessionMetrics, (metrics) => metrics.session, { cascade: true, eager: true })
+  @OneToOne(() => SessionMetrics, (metrics) => metrics.session, {
+    cascade: true,
+    eager: true,
+  })
   @JoinColumn({ name: 'id' })
   metrics?: SessionMetrics;
 }
