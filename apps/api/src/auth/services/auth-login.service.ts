@@ -4,7 +4,7 @@ import { UsersService } from '../../users/users.service.js';
 import { CryptoService } from '../../common/services/crypto.service.js';
 import { AUTH_ERROR_MESSAGES } from '../auth.constants.js';
 import { LoginDto } from '../dto/auth-login.dto.js';
-import type { AuthLoginResponse } from '../auth.types.js';
+import type { AuthLoginResponse } from '@akit/contracts';
 import { AuthResponseFactory } from '../factories/auth-response.factory.js';
 
 @Injectable()

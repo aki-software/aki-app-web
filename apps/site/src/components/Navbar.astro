@@ -7,7 +7,6 @@ interface Props {
 }
 
 const { locale, t } = Astro.props;
-const webUrl = import.meta.env.PUBLIC_WEB_URL || 'http://localhost:5173';
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 
 const langPath = locale === 'es' ? '/en' : '/';

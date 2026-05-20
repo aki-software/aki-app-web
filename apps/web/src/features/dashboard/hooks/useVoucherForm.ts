@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { createVoucher, type TherapistOption } from "../api/dashboard";
-import { initialFormState, type VoucherFormState } from "../components/vouchers/VoucherEmitForm";
+import { initialFormState, type VoucherFormState } from "../components/vouchers/VoucherEmitForm.types";
 
 export const useVoucherForm = (therapists: TherapistOption[]) => {
   const [formState, setFormState] = useState<VoucherFormState>(initialFormState);
@@ -43,7 +43,7 @@ export const useVoucherForm = (therapists: TherapistOption[]) => {
       }
       setError("No se pudo emitir el lote. Verifica los datos e intenta nuevamente.");
       return null;
-    } catch (err) {
+    } catch {
       setError("Error inesperado al emitir el lote.");
       return null;
     } finally {

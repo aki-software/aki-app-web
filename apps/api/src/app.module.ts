@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
 import { UsersModule } from './users/users.module.js';
 import { SessionsModule } from './sessions/sessions.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
@@ -13,6 +11,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { InstitutionsModule } from './institutions/institutions.module.js';
 import { VouchersModule } from './vouchers/vouchers.module.js';
 import { StatsModule } from './stats/stats.module.js';
+import { CommonModule } from './common/common.module.js';
 
 @Module({
   imports: [
@@ -43,6 +42,7 @@ import { StatsModule } from './stats/stats.module.js';
           configService.get<string>('DATABASE_NAME') || typeOrmConfig.database,
       }),
     }),
+    CommonModule,
     UsersModule,
     SessionsModule,
     CategoriesModule,
@@ -52,7 +52,7 @@ import { StatsModule } from './stats/stats.module.js';
     VouchersModule,
     StatsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

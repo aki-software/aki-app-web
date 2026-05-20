@@ -50,7 +50,7 @@ export async function createTherapist(input: {
   institutionId?: string;
 }): Promise<TherapistOption | null> {
   try {
-    const therapist = await apiClient.post<any>("/users", {
+    const therapist = await apiClient.post<RawTherapist>("/users", {
       ...input,
       role: "THERAPIST",
     });
@@ -62,7 +62,7 @@ export async function createTherapist(input: {
       institutionId: therapist.institutionId ?? null,
       institutionName: null,
       isActive: therapist.isActive ?? false,
-      activationEmailSent: therapist.activationEmailSent ?? false,
+      activationEmailSent: (therapist as { activationEmailSent?: boolean }).activationEmailSent ?? false,
     };
   } catch (error) {
     console.error("Error creating therapist:", error);

@@ -8,6 +8,7 @@ import { TopSessionsTable } from "../components/institucion/TopSessionsTable";
 import { StatCard } from "../../../components/molecules/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
 import { ResultsDistributionChart } from "../components/ResultsDistributionChart";
+import { PeriodSelector } from "../../../components/molecules/PeriodSelector";
 
 export function InstitutionDashboardOverview() {
   const navigate = useNavigate();
@@ -54,17 +55,7 @@ export function InstitutionDashboardOverview() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <select 
-            value={periodDays} 
-            onChange={(e) => setPeriodDays(Number(e.target.value))}
-            className="px-4 py-3 rounded-2xl bg-app-surface border border-app-border text-xs font-bold text-app-text-main focus:outline-none focus:ring-2 focus:ring-app-primary/20 uppercase tracking-wider"
-          >
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={7}>Últimos 7 días</option>
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={15}>Últimos 15 días</option>
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={30}>Últimos 30 días</option>
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={90}>Últimos 90 días</option>
-            <option style={{ backgroundColor: 'var(--color-app-bg)', color: 'var(--color-app-text-main)' }} value={365}>Último año</option>
-          </select>
+          <PeriodSelector value={periodDays} onChange={setPeriodDays} />
           <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-app-surface/80 border border-app-border backdrop-blur-xl">
             <Users2 className="h-4 w-4 text-app-text-muted opacity-40" />
             <span className="app-label !text-[10px] opacity-60 uppercase">

@@ -1,5 +1,5 @@
 import { AlertTriangle, Layers3 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, type FormEvent } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { PERIOD_DAYS } from "../constants/vouchers.constants";
 import { useVoucherList } from "../hooks/useVoucherList";
@@ -54,9 +54,14 @@ export function DashboardVouchers() {
   const [expirationFilter, setExpirationFilter] = useState<"ALL" | "EXPIRING_7D" | "NO_EXPIRATION">("ALL");
   const [clientFilter, setClientFilter] = useState("ALL");
 
-  const listManager = useVoucherList({
-    searchTerm, statusFilter, expirationFilter, clientFilter
-  }, viewMode, reloadToken);
+  const filters = useMemo(() => ({
+    searchTerm, 
+    statusFilter, 
+    expirationFilter, 
+    clientFilter
+  }), [searchTerm, statusFilter, expirationFilter, clientFilter]);
+
+  const listManager = useVoucherList(filters, viewMode, reloadToken);
 
   // UI Local State
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -81,7 +86,7 @@ export function DashboardVouchers() {
           if (!detail) setBatchDetailError("No se pudo cargar el detalle del lote.");
           else setSelectedBatchDetail(detail);
         }
-      } catch (err) {
+      } catch {
         if (isActive) setBatchDetailError("Error de red.");
       } finally {
         if (isActive) setBatchDetailLoading(false);
@@ -97,14 +102,14 @@ export function DashboardVouchers() {
       const sessions = await fetchVoucherSessions(voucherId);
       setVoucherSessions(sessions);
       setSelectedVoucherId(voucherId);
-    } catch (error) {
+    } catch {
       setErrorMessage('No se pudieron cargar las sesiones del voucher');
     } finally {
       setLoadingVoucherSessions(false);
     }
   };
 
-  const handleEmitVoucherSubmit = async (e: any) => {
+  const handleEmitVoucherSubmit = async (e: FormEvent<HTMLFormElement>) => {
     const result = await formManager.handleEmitVoucher(e);
     if (result) {
       setSuccessMessage(formManager.success); // Use message from hook
@@ -226,3 +231,4 @@ export function DashboardVouchers() {
     </div>
   );
 }
+

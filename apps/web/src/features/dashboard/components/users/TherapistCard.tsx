@@ -1,6 +1,6 @@
 import { Mail } from "lucide-react";
 import type { TherapistOption } from "../../api/dashboard";
-import { statusBadge } from "./InstitutionCard";
+import { StatusBadge } from "../../../../components/atoms/StatusBadge";
 
 interface Props {
   therapist: TherapistOption;
@@ -26,7 +26,9 @@ export function TherapistCard({ therapist, onResend, isResending }: Props) {
             {therapist.email ?? "Sin email"}
           </div>
         </div>
-        <div className="flex-shrink-0">{statusBadge(therapist.isActive)}</div>
+        <div className="flex-shrink-0">
+          <StatusBadge isActive={therapist.isActive} />
+        </div>
       </div>
       <div className="mt-2 truncate text-xs text-app-text-muted">
         <span className="mr-1 text-[10px] font-medium uppercase text-app-text-muted/70">

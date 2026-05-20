@@ -47,7 +47,15 @@ export const useVoucherList = (filters: VoucherListFilters, viewMode: "BATCHES" 
       }
     };
     loadBatchData();
-  }, [filters, currentPage, viewMode, reloadToken]);
+  }, [
+    filters.searchTerm,
+    filters.statusFilter,
+    filters.expirationFilter,
+    filters.clientFilter,
+    currentPage,
+    viewMode,
+    reloadToken
+  ]);
 
   useEffect(() => {
     const loadIndividualData = async () => {
@@ -71,7 +79,15 @@ export const useVoucherList = (filters: VoucherListFilters, viewMode: "BATCHES" 
       }
     };
     loadIndividualData();
-  }, [filters, currentPage, viewMode, reloadToken]);
+  }, [
+    filters.searchTerm,
+    filters.statusFilter,
+    filters.expirationFilter,
+    filters.clientFilter,
+    currentPage,
+    viewMode,
+    reloadToken
+  ]);
 
   const batchTotalPages = Math.ceil(batchTotalItems / ITEMS_PER_PAGE);
   const individualTotalPages = Math.ceil(individualTotalItems / ITEMS_PER_PAGE);

@@ -1,6 +1,7 @@
 import { BarChart3, Edit2, Mail, Power, UserPlus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import type { InstitutionOption } from "../../api/dashboard";
+import { ActivationBadge } from "../../../../components/atoms/StatusBadge";
   
 interface Props {
   institution: InstitutionOption;
@@ -14,39 +15,6 @@ interface Props {
     email: string;
   }) => Promise<void>;
   isCreatingOperationalAccount?: boolean;
-}
- 
-export function statusBadge(isActive?: boolean) {
-
-  return isActive ? (
-    <span className="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
-      Activo
-    </span>
-  ) : (
-    <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-300">
-      Pendiente
-    </span>
-  );
-}
-
-function activationBadge(hasAccount: boolean, isActive?: boolean) {
-  if (!hasAccount) {
-    return (
-      <span className="inline-flex rounded-full border border-app-border bg-app-bg px-2 py-0.5 text-[11px] font-medium text-app-text-muted">
-        Sin cuenta operativa
-      </span>
-    );
-  }
-
-  return isActive ? (
-    <span className="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
-      Activa
-    </span>
-  ) : (
-    <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-300">
-      Activación pendiente
-    </span>
-  );
 }
 
 export function InstitutionCard({
@@ -97,7 +65,7 @@ export function InstitutionCard({
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <span className="text-xs text-app-text-muted">Cuenta operativa:</span>
-            {activationBadge(hasOperationalAccount, isOperationalAccountActive)}
+            <ActivationBadge hasAccount={hasOperationalAccount} isActive={isOperationalAccountActive} />
           </div>
         </div>
         <div className="flex items-center gap-2">

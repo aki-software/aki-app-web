@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as pug from 'pug';
 import { colors } from '@akit/design-tokens';
 import { VocationalCategory } from '../../categories/entities/vocational-category.entity.js';
-import { TresAreasService } from '../../common/services/tres-areas.service.js';
+import { TresAreasService } from '../../tres-areas/tres-areas.service.js';
 import {
   CategoryResult,
   ReportData,
@@ -128,25 +128,31 @@ export class ReportService {
       topResults,
       categoriesById,
     );
-const hollandPercentages = this.calculateHollandPercentages(
-  session.results || [],
-);
+    const hollandPercentages = this.calculateHollandPercentages(
+      session.results || [],
+    );
 
-return {
-  patientName: session.patientName,
-  patientEmail: email,
-  hollandCode: session.hollandCode ?? undefined,
-  hollandPercentages,
-  topResults: formattedResults,
-  summary,
-  tripletInsight,
-  strengths: Array.from(new Set(strengths)).slice(0, 6),
-};
-}
+    return {
+      patientName: session.patientName,
+      patientEmail: email,
+      hollandCode: session.hollandCode ?? undefined,
+      hollandPercentages,
+      topResults: formattedResults,
+      summary,
+      tripletInsight,
+      strengths: Array.from(new Set(strengths)).slice(0, 6),
+    };
+  }
 
   renderReportPdfHtml(reportData: ReportData): string {
-    const templatePath = path.join(process.cwd(), 'src', 'mail', 'templates', 'report-pdf.pug');
-    
+    const templatePath = path.join(
+      process.cwd(),
+      'src',
+      'mail',
+      'templates',
+      'report-pdf.pug',
+    );
+
     return pug.renderFile(templatePath, {
       patientName: reportData.patientName,
       patientEmail: reportData.patientEmail || null,
@@ -172,7 +178,7 @@ return {
         return `data:${mime};base64,${buffer.toString('base64')}`;
       }
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
