@@ -1,42 +1,45 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ModuleRef } from '@nestjs/core';
-import { MailService } from '../../mail/mail.service';
-import { PdfService } from './pdf.service';
-import { ReportOrchestratorService } from '../../sessions/services/report-orchestrator.service';
-import { JobNames } from '../jobs/job-names';
-import { SendEmailJobPayload } from '../jobs/send-email.job';
-import { SendReportJobPayload } from '../jobs/send-report.job';
-import { GeneratePdfJobPayload } from '../jobs/generate-pdf.job';
+import { JobNames } from '../jobs/job-names.js';
+import { JobHandler } from '../jobs/handlers/job-handler.interface.js';
+import { SendEmailHandler } from '../jobs/handlers/send-email.handler.js';
+import { GeneratePdfHandler } from '../jobs/handlers/generate-pdf.handler.js';
+import { SendReportHandler } from '../jobs/handlers/send-report.handler.js';
 
 @Injectable()
 export class JobDispatcherService {
   private readonly logger = new Logger(JobDispatcherService.name);
-  private readonly defaultTimeouts = {
-    emailMs: 20_000,
-    pdfMs: 60_000,
-    reportMs: 90_000,
-  };
+  private readonly handlers = new Map<JobNames, JobHandler>();
 
   constructor(
-    private readonly pdfService: PdfService,
-    private readonly moduleRef: ModuleRef,
-  ) {}
+    private readonly sendEmailHandler: SendEmailHandler,
+    private readonly generatePdfHandler: GeneratePdfHandler,
+    private readonly sendReportHandler: SendReportHandler,
+  ) {
+    this.handlers.set(JobNames.SendEmail, this.sendEmailHandler);
+    this.handlers.set(JobNames.GeneratePdf, this.generatePdfHandler);
+    this.handlers.set(JobNames.SendReport, this.sendReportHandler);
+  }
 
-  async dispatch(jobName: string, payload: unknown): Promise<unknown> {
-    switch (jobName) {
-      case JobNames.SendEmail:
-        return await this.handleSendEmail(payload as SendEmailJobPayload);
-      case JobNames.GeneratePdf:
-        return await this.handleGeneratePdf(payload as GeneratePdfJobPayload);
-      case JobNames.SendReport:
-        return await this.handleSendReport(payload as SendReportJobPayload);
-      default:
-        throw new Error(`Unknown job name: ${jobName}`);
+  async dispatch(jobName: JobNames, payload: unknown): Promise<unknown> {
+    const handler = this.handlers.get(jobName);
+    if (!handler) {
+      throw new Error(`Unknown job name: ${String(jobName)}`);
     }
+
+    const context = handler.getJobContext?.(payload) ?? {};
+    this.logger.log(
+      `job-dispatch start jobName=${jobName} jobId=${context.jobId ?? 'none'} sessionId=${context.sessionId ?? 'none'} voucherId=${context.voucherId ?? 'none'}`,
+    );
+    const startedAt = Date.now();
+
+    return await this.trackJobDuration(jobName, startedAt, context, () => {
+      const timeoutMs = handler.getTimeoutMs?.(payload) ?? 60_000;
+      return this.runWithTimeout(timeoutMs, () => handler.handle(payload));
+    });
   }
 
   async dispatchWithRetry(
-    jobName: string,
+    jobName: JobNames,
     payload: unknown,
     options: {
       attempts: number;
@@ -53,6 +56,11 @@ export class JobDispatcherService {
 
     for (let attempt = 1; attempt <= attemptCount; attempt += 1) {
       try {
+        const handler = this.handlers.get(jobName);
+        const context = handler?.getJobContext?.(payload) ?? {};
+        this.logger.log(
+          `job-dispatch attempt jobName=${jobName} attempt=${attempt}/${attemptCount} jobId=${context.jobId ?? 'none'} sessionId=${context.sessionId ?? 'none'} voucherId=${context.voucherId ?? 'none'}`,
+        );
         await this.dispatch(jobName, payload);
         return;
       } catch (error) {
@@ -70,61 +78,6 @@ export class JobDispatcherService {
         }
       }
     }
-  }
-
-  private async handleSendEmail(
-    payload: SendEmailJobPayload,
-  ): Promise<boolean> {
-    const { template, payload: templatePayload, meta } = payload;
-    const timeoutMs = payload.timeoutMs ?? this.defaultTimeouts.emailMs;
-
-    return await this.runWithTimeout(timeoutMs, async () => {
-      if (template === 'voucher-code') {
-        return await this.getMailService().sendVoucherCode(
-          meta.to,
-          String(templatePayload.voucherCode ?? ''),
-          typeof templatePayload.patientName === 'string'
-            ? templatePayload.patientName
-            : undefined,
-        );
-      }
-
-      if (template === 'account-activation') {
-        return await this.getMailService().sendAccountActivation(
-          meta.to,
-          String(templatePayload.name ?? ''),
-          String(templatePayload.activationLink ?? ''),
-          typeof templatePayload.institutionName === 'string'
-            ? templatePayload.institutionName
-            : null,
-        );
-      }
-
-      throw new Error(`Unsupported email template: ${template}`);
-    });
-  }
-
-  private async handleGeneratePdf(
-    payload: GeneratePdfJobPayload,
-  ): Promise<Buffer> {
-    const timeoutMs = payload.timeoutMs ?? this.defaultTimeouts.pdfMs;
-    return await this.runWithTimeout(timeoutMs, () =>
-      this.pdfService.generateFromHtml(payload.html),
-    );
-  }
-
-  private async handleSendReport(
-    payload: SendReportJobPayload,
-  ): Promise<unknown> {
-    const { sessionId, targetEmail, scope } = payload;
-    const timeoutMs = payload.timeoutMs ?? this.defaultTimeouts.reportMs;
-    return await this.runWithTimeout(timeoutMs, () =>
-      this.getReportOrchestratorService().sendReport(
-        sessionId,
-        targetEmail,
-        scope,
-      ),
-    );
   }
 
   private runWithTimeout<T>(
@@ -164,11 +117,19 @@ export class JobDispatcherService {
     return baseMs * Math.pow(2, Math.max(0, attempt - 1));
   }
 
-  private getMailService(): MailService {
-    return this.moduleRef.get(MailService, { strict: false });
-  }
-
-  private getReportOrchestratorService(): ReportOrchestratorService {
-    return this.moduleRef.get(ReportOrchestratorService, { strict: false });
+  private async trackJobDuration<T>(
+    jobType: string,
+    startedAt: number,
+    context: { jobId?: string; sessionId?: string; voucherId?: string | null },
+    task: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await task();
+    } finally {
+      const elapsedMs = Date.now() - startedAt;
+      this.logger.log(
+        `job-duration type=${jobType} durationMs=${elapsedMs} jobId=${context.jobId ?? 'none'} sessionId=${context.sessionId ?? 'none'} voucherId=${context.voucherId ?? 'none'}`,
+      );
+    }
   }
 }

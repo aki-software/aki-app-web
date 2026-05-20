@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Institution } from '../../institutions/entities/institution.entity';
+import { Institution } from '../../institutions/entities/institution.entity.js';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -47,6 +47,21 @@ export class User {
 
   @Column({ name: 'password_set_at', type: 'timestamp', nullable: true })
   passwordSetAt: Date | null;
+
+  @Column({
+    name: 'password_reset_token',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  passwordResetToken: string | null;
+
+  @Column({
+    name: 'password_reset_expires_at',
+    type: 'timestamp',
+    nullable: true,
+  })
+  passwordResetExpiresAt: Date | null;
 
   @Column({
     type: 'enum',

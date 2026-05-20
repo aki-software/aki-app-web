@@ -1,6 +1,8 @@
-import { Controller, Get, Put, Param, Body, UseGuards } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { CategoriesService } from './categories.service.js';
+import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import { CategoryMaterialListResponse } from '@akit/contracts';
 
 @Controller('categories')
 export class CategoriesController {
@@ -12,13 +14,15 @@ export class CategoriesController {
   }
 
   @Get('material-teorico')
-  async getMaterial() {
+  async getMaterial(): Promise<CategoryMaterialListResponse> {
     const categories = await this.categoriesService.findAll();
     return {
-      items: categories.map((c) => ({
-        categoryId: c.categoryId,
+      categoryId: 'ALL',
+      materials: categories.map((c) => ({
+        id: c.categoryId,
         title: c.title,
-        text: c.description,
+        url: '#',
+        type: 'TEXT',
       })),
     };
   }
@@ -27,7 +31,7 @@ export class CategoriesController {
   @Put(':categoryId')
   async updateCategory(
     @Param('categoryId') categoryId: string,
-    @Body() updateData: { title: string; description: string },
+    @Body() updateData: UpdateCategoryDto,
   ) {
     return this.categoriesService.updateCategory(categoryId, updateData);
   }

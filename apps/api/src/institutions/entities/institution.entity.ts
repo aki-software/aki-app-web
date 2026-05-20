@@ -7,38 +7,38 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { User } from '../../users/entities/user.entity.js';
 
 @Entity('institutions')
 export class Institution {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ name: 'billing_email', type: 'varchar', nullable: true })
-  billingEmail: string | null;
+  billingEmail!: string | null;
 
   @Column({
     name: 'responsible_therapist_user_id',
     type: 'uuid',
     nullable: true,
   })
-  responsibleTherapistUserId: string | null;
+  responsibleTherapistUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'responsible_therapist_user_id' })
   responsibleTherapist?: User | null;
 
   @Column({ name: 'is_active', default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   // Domain Methods for Encapsulation
   deactivate() {

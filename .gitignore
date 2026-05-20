@@ -2,6 +2,13 @@ node_modules
 dist
 .env
 .env.*
+
+# Keystore - NO versionar nunca
+*.jks
+*.keystore
+keystore.properties
+*.pem
+*.key
 .next
 .turbo
 coverage

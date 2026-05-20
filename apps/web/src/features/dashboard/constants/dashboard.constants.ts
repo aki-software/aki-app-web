@@ -3,6 +3,7 @@ import { DashboardStatsResponse } from "@akit/contracts";
 export const DEFAULT_DASHBOARD_STATS: DashboardStatsResponse = {
 
     redeemedVouchers: 0,
+    totalHistoricalVouchers: 0,
     periodDays: 7,
     periodLabel: "Últimos 7 días",
     vouchersGeneratedPeriod: 0,
@@ -33,8 +34,8 @@ export const DASHBOARD_UI_TEXTS = {
   },
   widgets: {
     sessions: {
-      title: "Sesiones iniciadas por día",
-      description: "Cantidad diaria de sesiones iniciadas en la plataforma durante",
+      title: "Volumen de Evaluaciones Diarias",
+      description: "Tráfico y uso de la plataforma (evaluaciones iniciadas) en",
     },
     results: {
       title: "Resultados predominantes",

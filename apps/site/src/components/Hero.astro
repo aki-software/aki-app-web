@@ -1,0 +1,111 @@
+---
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { t, locale } = Astro.props;
+const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
+---
+
+<section class="min-h-screen flex flex-col justify-center bg-dark-bg text-dark-text relative overflow-hidden" id="hero">
+  <!-- Subtle grid background -->
+  <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+  <div class="container relative z-10">
+    <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      <!-- Left: Bold typography + CTA -->
+      <div class="flex-1 text-center lg:text-left">
+        <p class="text-xs font-medium text-primary-light tracking-wider uppercase mb-6 reveal">
+          {t.hero.badge}
+        </p>
+
+        <h1 class="font-display font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 reveal reveal-delay-1">
+          {t.hero.title}<br />
+          <span class="text-primary">{t.hero.titleAccent}</span>
+        </h1>
+
+        <p class="text-base text-dark-muted leading-relaxed max-w-md mx-auto lg:mx-0 mb-8 reveal reveal-delay-2">
+          {t.hero.subtitle}
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start reveal reveal-delay-3">
+          <a href={playStoreUrl} class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-dark-bg bg-primary rounded-lg hover:bg-primary-light transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
+            </svg>
+            {t.hero.ctaPrimary}
+          </a>
+        </div>
+
+        <p class="text-xs text-dark-muted mt-4 reveal reveal-delay-3">
+          {locale === 'es' ? 'Gratis · Sin registro · 10 minutos' : 'Free · No signup · 10 minutes'}
+        </p>
+      </div>
+
+      <!-- Right: Swipe cards demo -->
+      <div class="flex-shrink-0 w-full max-w-sm lg:max-w-none lg:w-[340px] reveal reveal-delay-2">
+        <div class="relative" style="height: 400px;">
+          <!-- Card Stack Decoration -->
+          <div class="absolute inset-0 bg-primary/20 rounded-[32px] rotate-3 translate-x-4 translate-y-4"></div>
+          <div class="absolute inset-0 bg-dark-surface border border-dark-border rounded-[32px] -rotate-3 -translate-x-2 -translate-y-2"></div>
+          
+          <!-- Main Card Content -->
+          <div class="absolute inset-0 bg-dark-surface border-2 border-primary/30 rounded-[32px] p-6 shadow-2xl flex flex-col overflow-hidden">
+            <div class="h-48 bg-dark-bg/50 rounded-2xl mb-6 overflow-hidden flex items-center justify-center">
+               <svg class="w-20 h-20 text-primary opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                  <path d="M12 7v10M8 12h8" />
+               </svg>
+            </div>
+            
+            <div class="space-y-3">
+              <div class="h-6 w-3/4 bg-primary/10 rounded-full"></div>
+              <div class="h-4 w-full bg-dark-muted/10 rounded-full"></div>
+              <div class="h-4 w-5/6 bg-dark-muted/10 rounded-full"></div>
+            </div>
+
+            <div class="mt-auto flex justify-between gap-4">
+              <div class="w-12 h-12 rounded-full border border-rose-500/30 flex items-center justify-center text-rose-500">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </div>
+              <div class="w-12 h-12 rounded-full border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating Badges -->
+          <div class="absolute -top-4 -right-4 bg-primary text-dark-bg text-[10px] font-black uppercase tracking-tighter px-3 py-1.5 rounded-full shadow-lg rotate-12">
+            Holland RIASEC
+          </div>
+          <div class="absolute -bottom-2 -left-6 bg-dark-surface border border-dark-border px-3 py-2 rounded-xl shadow-xl flex items-center gap-2 -rotate-6">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span class="text-[10px] font-medium text-dark-muted uppercase tracking-widest">{t.hero.phoneCardSub}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .reveal-delay-1 { animation-delay: 0.1s; }
+  .reveal-delay-2 { animation-delay: 0.2s; }
+  .reveal-delay-3 { animation-delay: 0.3s; }
+
+  @keyframes reveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

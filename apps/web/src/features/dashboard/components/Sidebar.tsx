@@ -45,7 +45,7 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
         <nav className="space-y-2">
           {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== APP_ROUTES.DASHBOARD.ROOT && location.pathname.startsWith(item.path));
-            const displayName = item.name === "Ajustes" ? (isAdmin ? "Material teórico (CMS)" : "Cuenta operativa") : item.name;
+            const displayName = item.name === "Ajustes" ? (isAdmin ? "Material teórico (CMS)" : "Cambio de contraseña") : item.name;
 
             return (
               <Link

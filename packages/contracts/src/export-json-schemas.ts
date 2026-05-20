@@ -1,6 +1,7 @@
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+/// <reference types="node" />
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   appErrorSchema,
   listVoucherBatchesQuerySchema,
@@ -11,48 +12,53 @@ import {
   voucherBatchDetailResponseSchema,
   voucherBatchListResponseSchema,
   voucherListResponseSchema,
-} from './index';
+} from "./index.js";
 
-const outputDir = join(process.cwd(), 'dist', 'json-schema');
+const outputDir = join(process.cwd(), "dist", "json-schema");
 mkdirSync(outputDir, { recursive: true });
 
 const schemas: Record<string, unknown> = {
-  AppError: zodToJsonSchema(appErrorSchema, 'AppError'),
+  AppError: zodToJsonSchema(appErrorSchema, "AppError"),
   RedeemVoucherRequest: zodToJsonSchema(
     redeemVoucherRequestSchema,
-    'RedeemVoucherRequest',
+    "RedeemVoucherRequest",
   ),
   RedeemVoucherResponse: zodToJsonSchema(
     redeemVoucherResponseSchema,
-    'RedeemVoucherResponse',
+    "RedeemVoucherResponse",
   ),
   VoucherListResponse: zodToJsonSchema(
     voucherListResponseSchema,
-    'VoucherListResponse',
+    "VoucherListResponse",
   ),
   VoucherBatchListResponse: zodToJsonSchema(
     voucherBatchListResponseSchema,
-    'VoucherBatchListResponse',
+    "VoucherBatchListResponse",
   ),
   VoucherBatchDetailResponse: zodToJsonSchema(
     voucherBatchDetailResponseSchema,
-    'VoucherBatchDetailResponse',
+    "VoucherBatchDetailResponse",
   ),
   VoucherBatchCreateResult: zodToJsonSchema(
     voucherBatchCreateResultSchema,
-    'VoucherBatchCreateResult',
+    "VoucherBatchCreateResult",
   ),
-  ListVouchersQuery: zodToJsonSchema(listVouchersQuerySchema, 'ListVouchersQuery'),
+  ListVouchersQuery: zodToJsonSchema(
+    listVouchersQuerySchema,
+    "ListVouchersQuery",
+  ),
   ListVoucherBatchesQuery: zodToJsonSchema(
     listVoucherBatchesQuerySchema,
-    'ListVoucherBatchesQuery',
+    "ListVoucherBatchesQuery",
   ),
 };
 
 writeFileSync(
-  join(outputDir, 'vouchers.schemas.json'),
+  join(outputDir, "vouchers.schemas.json"),
   `${JSON.stringify(schemas, null, 2)}\n`,
-  'utf-8',
+  "utf-8",
 );
 
-console.log(`Exported JSON Schemas to ${join(outputDir, 'vouchers.schemas.json')}`);
+console.log(
+  `Exported JSON Schemas to ${join(outputDir, "vouchers.schemas.json")}`,
+);

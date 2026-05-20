@@ -1,31 +1,18 @@
-import { API_URL, getAuthHeaders } from "./client";
+import { apiClient } from "../../../api/client";
 import type {
   VoucherBatchCreateResult,
+  VoucherBatchDetailItem,
   VoucherBatchDetailResponse,
   VoucherBatchListResponse,
+  VoucherBatchSummary,
   VoucherOwnerType,
   VoucherStatus,
   VoucherData,
   VoucherListResponse,
+  VoucherStats,
+  VoucherAlert,
+  VoucherApi,
 } from "@akit/contracts";
-
-export type VoucherApi = {
-  id: string;
-  code: string;
-  batchId: string;
-  status: string;
-  ownerType: string;
-  ownerInstitutionId?: string | null;
-  ownerInstitution?: { name?: string | null } | null;
-  ownerUserId?: string | null;
-  ownerUser?: { name?: string | null } | null;
-  assignedPatientName?: string | null;
-  assignedPatientEmail?: string | null;
-  redeemedSessionId?: string | null;
-  createdAt: string | Date | number;
-  redeemedAt?: string | Date | number | null;
-  expiresAt?: string | Date | number | null;
-};
 
 export type {
   VoucherBatchCreateResult,
@@ -33,45 +20,28 @@ export type {
   VoucherBatchDetailResponse,
   VoucherBatchListResponse,
   VoucherBatchSummary,
+  VoucherOwnerType,
+  VoucherStatus,
   VoucherData,
   VoucherListResponse,
-} from "@akit/contracts";
-
-export type VoucherStats = {
-  totalBatches: number;
-  totalVouchers: number;
-  availableVouchers: number;
-  usedVouchers: number;
-  sentVouchers: number;
-  expiredVouchers: number;
-  revokedVouchers: number;
-  redemptionRate: number;
+  VoucherStats,
+  VoucherAlert,
+  VoucherApi,
 };
 
-export type VoucherAlert = {
-  institutionId: string;
-  institutionName: string;
-  availableCount: number;
-  message: string;
-  severity: 'warning' | 'critical';
-};
 
 export async function fetchVoucherStats(institutionId?: string): Promise<{
   stats: VoucherStats;
   alerts: VoucherAlert[];
 }> {
   try {
-    const params = new URLSearchParams();
-    if (institutionId) params.set("institutionId", institutionId);
+    const params: Record<string, string> = {};
+    if (institutionId) params.institutionId = institutionId;
 
-    const response = await fetch(
-      `${API_URL}/stats/vouchers${params.toString() ? `?${params.toString()}` : ""}`,
-      {
-        headers: getAuthHeaders(),
-      },
+    return await apiClient.get<{ stats: VoucherStats; alerts: VoucherAlert[] }>(
+      "/stats/vouchers",
+      { params }
     );
-    if (!response.ok) throw new Error("Failed to fetch voucher stats");
-    return await response.json();
   } catch (error) {
     console.error("Error fetching voucher stats:", error);
     return {
@@ -92,12 +62,10 @@ export async function fetchVoucherStats(institutionId?: string): Promise<{
 
 export async function fetchVouchersList(): Promise<VoucherData[]> {
   try {
-    const response = await fetch(`${API_URL}/vouchers?limit=1000`, {
-      headers: getAuthHeaders(),
+    const responseData = await apiClient.get<{ data: VoucherApi[] }>("/vouchers", {
+      params: { limit: "1000" }
     });
-    if (!response.ok) throw new Error("Failed to fetch vouchers");
-    const responseData = await response.json();
-    const vouchers: VoucherApi[] = responseData.data || [];
+    const vouchers = responseData.data || [];
     const normalized = vouchers.map((voucher) => ({
       id: voucher.id,
       code: voucher.code,
@@ -130,13 +98,7 @@ export async function createVoucher(input: {
   expiresAt?: string;
 }): Promise<VoucherBatchCreateResult | null> {
   try {
-    const response = await fetch(`${API_URL}/vouchers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-      body: JSON.stringify(input),
-    });
-    if (!response.ok) throw new Error("Failed to create voucher");
-    return (await response.json()) as VoucherBatchCreateResult;
+    return await apiClient.post<VoucherBatchCreateResult>("/vouchers", input);
   } catch (error) {
     console.error("Error creating voucher:", error);
     return null;
@@ -152,26 +114,21 @@ export async function fetchVouchersPage(input: {
   limit?: number;
 }): Promise<VoucherListResponse> {
   try {
-    const params = new URLSearchParams();
-    if (input.search?.trim()) params.set("search", input.search.trim());
-    if (input.status && input.status !== "ALL") params.set("status", input.status);
-    if (input.clientId?.trim()) params.set("clientId", input.clientId.trim());
+    const params: Record<string, string> = {};
+    if (input.search?.trim()) params.search = input.search.trim();
+    if (input.status && input.status !== "ALL") params.status = input.status;
+    if (input.clientId?.trim()) params.clientId = input.clientId.trim();
     if (input.expiration && input.expiration !== "ALL") {
-      params.set("expiration", input.expiration);
+      params.expiration = input.expiration;
     }
-    if (input.page) params.set("page", String(input.page));
-    if (input.limit) params.set("limit", String(input.limit));
+    if (input.page) params.page = String(input.page);
+    if (input.limit) params.limit = String(input.limit);
 
-    const queryString = params.toString();
-    const response = await fetch(
-      `${API_URL}/vouchers${queryString ? `?${queryString}` : ""}`,
-      {
-        headers: getAuthHeaders(),
-      },
+    const responseData = await apiClient.get<{ data: VoucherApi[], count: number, page: number, limit: number }>(
+      "/vouchers",
+      { params }
     );
-    if (!response.ok) throw new Error("Failed to fetch vouchers page");
-    const responseData = await response.json();
-    const vouchers: VoucherApi[] = responseData.data || [];
+    const vouchers = responseData.data || [];
     const mapped = vouchers.map((voucher) => ({
         id: voucher.id,
         code: voucher.code,
@@ -190,13 +147,12 @@ export async function fetchVouchersPage(input: {
         redeemedAt: voucher.redeemedAt ?? null,
         expiresAt: voucher.expiresAt ?? null,
       }));
-    const payload = {
+    return {
       data: mapped.map((voucher) => voucherBaseForUi(voucher)),
       count: Number(responseData.count ?? 0),
       page: Number(responseData.page ?? input.page ?? 1),
       limit: Number(responseData.limit ?? input.limit ?? 10),
     };
-    return payload;
   } catch (error) {
     console.error("Error fetching vouchers page:", error);
     return {
@@ -216,31 +172,25 @@ export async function fetchVoucherBatches(input: {
   limit?: number;
 }): Promise<VoucherBatchListResponse> {
   try {
-    const params = new URLSearchParams();
-    if (input.search?.trim()) params.set("search", input.search.trim());
-    if (input.clientId?.trim()) params.set("clientId", input.clientId.trim());
+    const params: Record<string, string> = {};
+    if (input.search?.trim()) params.search = input.search.trim();
+    if (input.clientId?.trim()) params.clientId = input.clientId.trim();
     if (input.expiration && input.expiration !== "ALL") {
-      params.set("expiration", input.expiration);
+      params.expiration = input.expiration;
     }
-    if (input.page) params.set("page", String(input.page));
-    if (input.limit) params.set("limit", String(input.limit));
+    if (input.page) params.page = String(input.page);
+    if (input.limit) params.limit = String(input.limit);
 
-    const queryString = params.toString();
-    const response = await fetch(
-      `${API_URL}/vouchers/batches${queryString ? `?${queryString}` : ""}`,
-      {
-        headers: getAuthHeaders(),
-      },
+    const responseData = await apiClient.get<VoucherBatchListResponse>(
+      "/vouchers/batches",
+      { params }
     );
-    if (!response.ok) throw new Error("Failed to fetch voucher batches");
-    const responseData = await response.json();
-    const payload = {
+    return {
       data: Array.isArray(responseData.data) ? responseData.data : [],
       count: Number(responseData.count ?? 0),
       page: Number(responseData.page ?? input.page ?? 1),
       limit: Number(responseData.limit ?? input.limit ?? 10),
     };
-    return payload;
   } catch (error) {
     console.error("Error fetching voucher batches:", error);
     return {
@@ -256,11 +206,7 @@ export async function fetchVoucherBatchDetail(
   batchId: string,
 ): Promise<VoucherBatchDetailResponse | null> {
   try {
-    const response = await fetch(`${API_URL}/vouchers/batches/${batchId}`, {
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error("Failed to fetch voucher batch detail");
-    return (await response.json()) as VoucherBatchDetailResponse;
+    return await apiClient.get<VoucherBatchDetailResponse>(`/vouchers/batches/${batchId}`);
   } catch (error) {
     console.error("Error fetching voucher batch detail:", error);
     return null;
@@ -302,12 +248,8 @@ function normalizeVoucherOwnerType(value: string): VoucherOwnerType {
 
 export async function sendVoucherEmail(id: string, email?: string): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/vouchers/${id}/send-email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-      body: JSON.stringify({ email }),
-    });
-    return response.ok;
+    await apiClient.post(`/vouchers/${id}/send-email`, { email });
+    return true;
   } catch (error) {
     console.error("Error sending voucher email:", error);
     return false;
@@ -316,12 +258,8 @@ export async function sendVoucherEmail(id: string, email?: string): Promise<bool
 
 export async function resendVoucherEmail(id: string, email?: string): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/vouchers/${id}/resend`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-      body: JSON.stringify({ email }),
-    });
-    return response.ok;
+    await apiClient.post(`/vouchers/${id}/resend`, { email });
+    return true;
   } catch (error) {
     console.error("Error resending voucher email:", error);
     return false;
@@ -330,11 +268,8 @@ export async function resendVoucherEmail(id: string, email?: string): Promise<bo
 
 export async function revokeVoucher(id: string): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/vouchers/${id}/revoke`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-    });
-    return response.ok;
+    await apiClient.post(`/vouchers/${id}/revoke`);
+    return true;
   } catch (error) {
     console.error("Error revoking voucher:", error);
     return false;

@@ -30,8 +30,11 @@ export interface ReportTripletInsight {
 
 export interface ReportData {
   patientName: string;
+  patientEmail?: string;
   hollandCode?: string;
+  hollandPercentages?: Record<string, number>;
   topResults: CategoryResult[];
   summary: ReportSummary;
   tripletInsight: ReportTripletInsight | null;
+  strengths: string[];
 }

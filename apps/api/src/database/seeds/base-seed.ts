@@ -1,9 +1,9 @@
 import { DataSource } from 'typeorm';
-import { typeOrmConfig } from '../../config/typeorm.config';
-import { upsertAdminUser } from './admin-seed';
-import { upsertInstitution } from './institution-seed';
-import { upsertVocationalCategories } from './categories-seed';
-import { upsertTresAreasCombinations } from './tres-areas-combinations-seed';
+import { typeOrmConfig } from '../../config/typeorm.config.js';
+import { upsertAdminUser } from './admin-seed.js';
+import { upsertInstitution } from './institution-seed.js';
+import { upsertVocationalCategories } from './categories-seed.js';
+import { upsertTresAreasCombinations } from './tres-areas-combinations-seed.js';
 
 function validateRequiredSeedVariables() {
   const hasAdminEmail = Boolean(

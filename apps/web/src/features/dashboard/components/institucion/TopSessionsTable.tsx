@@ -1,6 +1,7 @@
 import { ArrowRight, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { type InstitutionOverviewResponse } from "../../api/dashboard";
+import { EmptyState } from "../../../../components/molecules/EmptyState";
 
 type TopSession = InstitutionOverviewResponse["topSessions"][number];
 
@@ -32,7 +33,6 @@ export const TopSessionsTable = ({ sessions }: { sessions: TopSession[] }) => {
             <tr>
               <th className="px-6 py-5 app-label opacity-40">Paciente</th>
               <th className="px-6 py-5 app-label opacity-40">Fecha</th>
-              <th className="px-6 py-5 app-label opacity-40">Código</th>
               <th className="px-6 py-5 app-label opacity-40">Canal</th>
               <th className="px-6 py-5 app-label opacity-40">Estado</th>
               <th className="px-6 py-5 app-label opacity-40 text-right">Detalle</th>
@@ -41,11 +41,12 @@ export const TopSessionsTable = ({ sessions }: { sessions: TopSession[] }) => {
           <tbody className="divide-y divide-app-border bg-app-surface">
             {sessions.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-16 text-center opacity-40">
-                  <div className="flex flex-col items-center gap-4">
-                     <Filter className="h-10 w-10" />
-                     <p className="app-label">Todavía no hay tests registrados.</p>
-                  </div>
+                <td colSpan={5} className="px-6 py-5">
+                  <EmptyState
+                    icon={<Filter className="h-10 w-10" />}
+                    title="Sin resultados"
+                    description="Todavía no hay tests registrados."
+                  />
                 </td>
               </tr>
             ) : (
@@ -53,7 +54,6 @@ export const TopSessionsTable = ({ sessions }: { sessions: TopSession[] }) => {
                 <tr key={s.id} className="hover:bg-app-surface/60 transition-colors">
                   <td className="px-6 py-4 text-sm font-semibold text-app-text-main">{s.patientName}</td>
                   <td className="px-6 py-4 text-xs text-app-text-muted">{formatShortDate(s.sessionDate ?? s.createdAt)}</td>
-                  <td className="px-6 py-4 text-xs font-black tracking-widest text-app-text-main">{s.hollandCode}</td>
                   <td className="px-6 py-4 text-xs text-app-text-muted">{getSessionChannel(s) === "VOUCHER" ? "Con voucher" : "Pago individual"}</td>
                   <td className="px-6 py-4 text-xs text-app-text-muted">{getSessionStatusLabel(s)}</td>
                   <td className="px-6 py-4 text-right">

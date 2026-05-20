@@ -3,6 +3,8 @@ export const APP_ROUTES = {
     AUTH: {
         LOGIN: '/login',
         SETUP_PASSWORD: '/setup-password',
+        FORGOT_PASSWORD: '/forgot-password',
+        RESET_PASSWORD: '/reset-password',
     },
     DASHBOARD: {
         ROOT: '/dashboard',

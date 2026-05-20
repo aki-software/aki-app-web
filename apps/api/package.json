@@ -31,6 +31,8 @@
     "db:reset": "pnpm build && node ./node_modules/typeorm/cli.js schema:drop -d dist/config/typeorm.config.js && node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js && node dist/database/seeds/base-seed.js"
   },
   "dependencies": {
+    "@akit/contracts": "workspace:*",
+    "@akit/design-tokens": "workspace:*",
     "@aws-sdk/client-s3": "^3.1014.0",
     "@aws-sdk/lib-storage": "^3.1014.0",
     "@nestjs/common": "^11.0.1",
@@ -38,10 +40,14 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/helmet": "^4.0.0",
+    "@types/ioredis": "^5.0.0",
     "bullmq": "^5.33.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "dotenv": "^17.3.1",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
     "nestjs-pino": "^4.6.0",
     "pg": "^8.19.0",
     "pino-http": "^11.0.0",
@@ -52,6 +58,13 @@
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-decorators": "^7.29.0",
+    "@babel/plugin-transform-class-properties": "^7.28.6",
+    "@babel/plugin-transform-runtime": "^7.29.0",
+    "@babel/preset-env": "^7.29.5",
+    "@babel/preset-typescript": "^7.28.5",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
@@ -61,6 +74,9 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
+    "babel-jest": "^30.4.1",
+    "babel-plugin-transform-import-extension": "^1.0.3",
+    "babel-plugin-transform-typescript-metadata": "^0.4.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
@@ -68,6 +84,7 @@
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
+    "sqlite3": "^6.0.1",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.2",
@@ -75,22 +92,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }

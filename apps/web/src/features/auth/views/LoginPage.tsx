@@ -1,6 +1,6 @@
 import { LogIn, Moon, Sun } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Input } from "../../../components/atoms/Input";
 import { Button } from "../../../components/atoms/Button";
@@ -9,6 +9,7 @@ import logoTransparent from "../../../assets/Logo app transparente.png";
 import logoDark from "../../../assets/logo.png";
 import { AuthLayout } from "./AuthLayout";
 import { useTheme } from "../../../hooks/useTheme";
+import { APP_ROUTES } from "../../../router/routes.constants";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -87,6 +88,11 @@ export function LoginPage() {
           disabled={isSubmitting}
           required
         />
+        <div className="text-right">
+          <Link className="text-sm text-app-primary hover:underline" to={APP_ROUTES.AUTH.FORGOT_PASSWORD}>
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
 
         <Button
           type="submit"

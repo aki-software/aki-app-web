@@ -13,144 +13,56 @@ import {
     X,
 } from "lucide-react";
 import { useState } from "react";
-import { PUBLIC_TEST_URL, WHATSAPP_BASE_URL } from "../../../../config/app-config";
 import type { VoucherData } from "../../api/dashboard";
-import { resendVoucherEmail, revokeVoucher } from "../../api/dashboard";
-
-function statusLabel(status: string) {
-  switch (status) {
-    case "AVAILABLE":
-      return "Disponible";
-    case "SENT":
-      return "Enviado";
-    case "USED":
-      return "Canjeado";
-    case "EXPIRED":
-      return "Expirado";
-    case "REVOKED":
-      return "Revocado";
-    default:
-      return status;
-  }
-}
-
-function statusClasses(status: string) {
-  switch (status) {
-    case "AVAILABLE":
-      return "text-rose-700 dark:text-rose-300 border-rose-500/40 bg-rose-200/60 dark:bg-rose-500/10 shadow-rose-500/10";
-    case "SENT":
-      return "text-amber-700 dark:text-amber-300 border-amber-500/40 bg-amber-200/60 dark:bg-amber-500/10 shadow-amber-500/10";
-    case "USED":
-      return "text-rose-800 dark:text-rose-200 border-rose-600/50 bg-rose-300/70 dark:bg-rose-500/15 shadow-rose-500/10";
-    case "EXPIRED":
-      return "text-rose-600 dark:text-rose-300 border-rose-500/40 bg-rose-200/60 dark:bg-rose-500/10 shadow-rose-500/10";
-    case "REVOKED":
-      return "text-zinc-600 dark:text-zinc-300 border-zinc-500/30 bg-zinc-200/60 dark:bg-zinc-500/10 shadow-zinc-500/10";
-    default:
-      return "text-app-text-muted border-app-border bg-app-bg";
-  }
-}
+import { StatusBadge } from "../../../../components/atoms/StatusBadge";
 
 function formatDate(value: string | number | Date | null) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
+    day: "2-digit", month: "2-digit", year: "numeric",
   }).format(date);
+}
+
+function formatVoucherCode(code: string) {
+  if (!code) return "";
+  return code.match(/.{1,4}/g)?.join("-") || "";
 }
 
 interface Props {
   voucher: VoucherData;
   isAdmin?: boolean;
-  onVoucherUpdated?: (result: { ok: boolean; message: string }) => void | Promise<void>;
+  copiedType: "CODE" | "MAIL" | null;
+  actionBusy: boolean;
+  onWhatsApp: () => void;
+  onCopyCode: () => void;
+  onSendEmail: (email?: string) => void;
+  onRevoke: () => void;
   onViewSessions?: () => void;
 }
 
-export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSessions }: Props) {
-  const [copiedType, setCopiedType] = useState<"CODE" | "MAIL" | null>(
-    null,
-  );
+export function VoucherTableRow({ 
+  voucher, 
+  isAdmin, 
+  copiedType, 
+  actionBusy,
+  onWhatsApp,
+  onCopyCode,
+  onSendEmail,
+  onRevoke,
+  onViewSessions 
+}: Props) {
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [customEmail, setCustomEmail] = useState("");
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [revoking, setRevoking] = useState(false);
 
-  const testUrl = `${PUBLIC_TEST_URL}/v/${voucher.code}`;
   const canSendOrResend = voucher.status === "AVAILABLE" || voucher.status === "SENT";
   const canRevoke = voucher.status === "AVAILABLE" || voucher.status === "SENT";
-  const actionBusy = sendingEmail || revoking;
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(voucher.code);
-    setCopiedType("CODE");
-    setTimeout(() => setCopiedType(null), 2000);
-  };
-
-
-  const handleWhatsApp = () => {
-    const message = encodeURIComponent(
-      `Hola! Este es tu código para realizar el test vocacional en A.kit: ${voucher.code}\n\nPodés ingresar directamente aquí: ${testUrl}`,
-    );
-    window.open(`${WHATSAPP_BASE_URL}?text=${message}`, "_blank");
-  };
-
-  const notifyVoucherUpdate = async (ok: boolean, message: string) => {
-    if (!onVoucherUpdated) {
-      return;
-    }
-    await onVoucherUpdated({ ok, message });
-  };
-
-  const handleSendEmail = async (emailToUse?: string) => {
-    if (!canSendOrResend) return;
-    const target = emailToUse || voucher.assignedPatientEmail || customEmail;
-    if (!target && !showEmailInput) {
-      setShowEmailInput(true);
-      return;
-    }
-    if (!target) return;
-    setSendingEmail(true);
-    const success = await resendVoucherEmail(voucher.id, target);
-    setSendingEmail(false);
-    if (success) {
-      setCopiedType("MAIL");
-      setShowEmailInput(false);
-      setCustomEmail("");
-      await notifyVoucherUpdate(
-        true,
-        voucher.status === "SENT"
-          ? `Voucher ${voucher.code} reenviado por email.`
-          : `Voucher ${voucher.code} enviado por email.`,
-      );
-      setTimeout(() => setCopiedType(null), 3000);
-      return;
-    }
-    await notifyVoucherUpdate(
-      false,
-      `No se pudo enviar el voucher ${voucher.code} por email.`,
-    );
-  };
-
-  const handleRevoke = async () => {
-    if (!canRevoke || actionBusy) return;
-    const shouldRevoke = window.confirm(
-      `Vas a revocar el voucher ${voucher.code}. Esta acción no se puede deshacer. ¿Continuar?`,
-    );
-    if (!shouldRevoke) return;
-    setRevoking(true);
-    const success = await revokeVoucher(voucher.id);
-    setRevoking(false);
-    if (success) {
-      await notifyVoucherUpdate(true, `Voucher ${voucher.code} revocado.`);
-      return;
-    }
-    await notifyVoucherUpdate(
-      false,
-      `No se pudo revocar el voucher ${voucher.code}.`,
-    );
+  const handleEmailSubmit = () => {
+    onSendEmail(customEmail);
+    setShowEmailInput(false);
+    setCustomEmail("");
   };
 
   return (
@@ -158,23 +70,16 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
       <td className="px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="rounded-lg bg-app-text-main p-2.5 border border-app-text-main shadow-lg group-hover:scale-105 transition-transform">
-            <Ticket className="h-4 w-4 text-app-surface" />
+            <Ticket className="h-4 w-4 text-app-bg" />
           </div>
           <span className="font-mono text-lg font-black text-app-text-main tracking-tight group-hover:text-app-primary transition-colors leading-none">
-            {voucher.code}
+            {formatVoucherCode(voucher.code)}
           </span>
         </div>
       </td>
 
       <td className="px-5 py-4">
-        <span
-          className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-sm transition-all group-hover:scale-105 ${statusClasses(voucher.status)} whitespace-nowrap`}
-        >
-          {voucher.status === "USED" && (
-            <BadgeCheck className="mr-1 h-3.5 w-3.5" />
-          )}
-          {statusLabel(voucher.status)}
-        </span>
+        <StatusBadge status={voucher.status} type="voucher" className="group-hover:scale-105" />
       </td>
 
       {isAdmin && (
@@ -186,9 +91,7 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
             </div>
             <div className="flex items-center gap-1.5 opacity-40">
               <UserRound className="h-3 w-3" />
-              <span className="app-label lowercase tracking-normal">
-                {voucher.ownerUserName}
-              </span>
+              <span className="app-label lowercase tracking-normal">{voucher.ownerUserName}</span>
             </div>
           </div>
         </td>
@@ -208,7 +111,7 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
           )}
           <div className="flex items-center gap-1.5 opacity-60">
             <Calendar className="h-3 w-3" />
-            Venc.: {formatDate(voucher.expiresAt)}
+            Venc.: {formatDate(voucher.expiresAt ?? null)}
           </div>
         </div>
       </td>
@@ -223,16 +126,8 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
                 <div className="absolute right-0 -top-20 z-[100] animate-in fade-in zoom-in slide-in-from-bottom-4 duration-300">
                   <div className="app-card !p-3 flex flex-col gap-3 shadow-2xl border-app-primary bg-app-surface min-w-[320px] ring-4 ring-black/5">
                     <div className="flex items-center justify-between px-2 pt-1">
-                      <span className="app-label opacity-60">
-                        INGRESAR DESTINATARIO
-                      </span>
-                      <button
-                        onClick={() => setShowEmailInput(false)}
-                        disabled={actionBusy}
-                        className="text-app-text-muted hover:text-rose-500 transition-colors"
-                        aria-label="Cerrar envío por email"
-                        title="Cerrar"
-                      >
+                      <span className="app-label opacity-60">INGRESAR DESTINATARIO</span>
+                      <button onClick={() => setShowEmailInput(false)} disabled={actionBusy} className="text-app-text-muted hover:text-rose-500 transition-colors">
                         <X className="h-3 w-3" />
                       </button>
                     </div>
@@ -247,65 +142,43 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
                       />
                       <button
                         disabled={actionBusy || !customEmail}
-                        onClick={() => handleSendEmail(customEmail)}
-                        aria-label="Enviar voucher por email"
-                        title="Enviar por email"
+                        onClick={handleEmailSubmit}
                         className="p-3 bg-app-primary text-white rounded-lg hover:bg-app-primary-hover shadow-lg shadow-app-primary/20 disabled:opacity-30 transition-all active:scale-90"
                       >
-                        {sendingEmail ? (
-                          <div className="h-4 w-4 border-2 border-white/50 border-t-white animate-spin rounded-full" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
+                        {actionBusy ? <div className="h-4 w-4 border-2 border-white/50 border-t-white animate-spin rounded-full" /> : <Send className="h-4 w-4" />}
                       </button>
                     </div>
                   </div>
                 </div>
               )}
               <button
-                onClick={handleCopyCode}
+                onClick={onCopyCode}
                 disabled={actionBusy}
-                aria-label="Copiar código del voucher"
                 className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all disabled:opacity-40 ${copiedType === "CODE" ? "bg-emerald-500 text-white border-emerald-500" : "bg-app-bg text-app-text-muted hover:text-emerald-500 hover:border-emerald-500/20 shadow-sm"}`}
                 title="Copiar código"
               >
-                {copiedType === "CODE" ? (
-                  <Check className="h-3.5 w-3.5" />
-                ) : (
-                  <Copy className="h-3.5 w-3.5" />
-                )}
+                {copiedType === "CODE" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
               <button
-                onClick={handleWhatsApp}
+                onClick={onWhatsApp}
                 disabled={actionBusy}
-                aria-label="Compartir por WhatsApp"
                 className="flex items-center justify-center p-2 rounded-lg border border-app-border bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 shadow-sm transition-all disabled:opacity-40"
                 title="WhatsApp"
               >
                 <MessageCircle className="h-3.5 w-3.5" />
               </button>
               <button
-                onClick={() => handleSendEmail()}
+                onClick={() => (voucher.assignedPatientEmail ? onSendEmail() : setShowEmailInput(true))}
                 disabled={actionBusy}
-                aria-label={
-                  voucher.status === "SENT"
-                    ? "Reenviar voucher por correo"
-                    : "Enviar voucher por correo"
-                }
                 className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all disabled:opacity-40 ${copiedType === "MAIL" ? "bg-amber-500 text-white border-amber-500" : "bg-app-bg text-app-text-muted hover:text-amber-500 hover:border-amber-500/20 shadow-sm"}`}
                 title={voucher.status === "SENT" ? "Reenviar por Email" : "Enviar por Email"}
               >
-                {copiedType === "MAIL" ? (
-                  <BadgeCheck className="h-3.5 w-3.5" />
-                ) : (
-                  <Mail className="h-3.5 w-3.5" />
-                )}
+                {copiedType === "MAIL" ? <BadgeCheck className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
               </button>
               {voucher.status === "USED" && onViewSessions && (
                 <button
                   onClick={onViewSessions}
                   disabled={actionBusy}
-                  aria-label="Ver sesiones de este voucher"
                   className="flex items-center justify-center p-2 rounded-lg border border-blue-500/20 bg-blue-500/5 text-blue-500 hover:bg-blue-500 hover:text-white hover:border-blue-500 shadow-sm transition-all disabled:opacity-40"
                   title="Ver sesiones"
                 >
@@ -314,25 +187,17 @@ export function VoucherTableRow({ voucher, isAdmin, onVoucherUpdated, onViewSess
               )}
               {canRevoke && (
                 <button
-                  onClick={handleRevoke}
+                  onClick={onRevoke}
                   disabled={actionBusy}
-                  aria-label="Revocar voucher"
                   className="flex items-center justify-center p-2 rounded-lg border border-app-border bg-rose-500/5 text-rose-600 hover:bg-rose-500 hover:text-white hover:border-rose-500 shadow-sm transition-all disabled:opacity-40"
                   title="Revocar voucher"
                 >
-                  {revoking ? (
-                    <div className="h-4 w-4 border-2 border-white/50 border-t-white animate-spin rounded-full" />
-                  ) : (
-                    <X className="h-3.5 w-3.5" />
-                  )}
+                  {actionBusy ? <div className="h-4 w-4 border-2 border-white/50 border-t-white animate-spin rounded-full" /> : <X className="h-3.5 w-3.5" />}
                 </button>
               )}
-              
             </>
           ) : (
-            <div className="app-tag !px-3 !py-1 opacity-20 !bg-transparent border-dashed">
-              Sin acciones
-            </div>
+            <div className="app-tag !px-3 !py-1 opacity-20 !bg-transparent border-dashed">Sin acciones</div>
           )}
         </div>
       </td>

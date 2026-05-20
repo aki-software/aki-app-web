@@ -1,23 +1,39 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { HttpAdapterHost } from '@nestjs/core';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const start = Date.now();
   console.log(`[Bootstrap] Starting application...`);
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  console.log(`[Bootstrap] NestFactory.create completed in ${Date.now() - start}ms`);
+  console.log(
+    `[Bootstrap] NestFactory.create completed in ${Date.now() - start}ms`,
+  );
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
 
   app.useLogger(app.get(Logger));
 
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
-  // Habilitamos CORS restrictivo (VULN-06 Fix)
   const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? [
     'http://localhost:5173',
   ];
@@ -27,7 +43,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Habilitamos validación DTO global y rechazamos campos no permitidos.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
