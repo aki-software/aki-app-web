@@ -1138,22 +1138,22 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create `VoucherRedemptionService` that:
+- [x] Create `VoucherRedemptionService` that:
   - Receives voucher code + sessionId
   - Validates voucher (uses VoucherAccessService)
   - Redeems voucher (uses Voucher entity domain method)
   - Updates session (uses SessionRepository)
-- [ ] Does NOT import SessionsModule or VouchersModule
-- [ ] Create `VoucherRedemptionModule`
-- [ ] Update `VouchersController` to use `VoucherRedemptionService` instead of `SessionsService`
-- [ ] Update `SessionsService` to use `VoucherRedemptionService` for attach
-- [ ] Remove `forwardRef` between VouchersModule and SessionsModule
+- [x] Does NOT import SessionsModule or VouchersModule
+- [x] Create `VoucherRedemptionModule`
+- [x] Update `VouchersController` to use `VoucherRedemptionService` instead of `SessionsService`
+- [x] Update `SessionsService` to use `VoucherRedemptionService` for attach
+- [x] Remove `forwardRef` between VouchersModule and SessionsModule
 
 **Tests:**
 
-- [ ] Test redemption flow end-to-end
-- [ ] Test already-redeemed scenario
-- [ ] Test invalid code scenario
+- [x] Test redemption flow end-to-end
+- [x] Test already-redeemed scenario
+- [x] Test invalid code scenario
 
 #### 8.2 Move TresAreas to Own Module
 
@@ -1161,13 +1161,13 @@ class FirebaseAuthSessionProvider @Inject constructor(
 
 **Tasks:**
 
-- [ ] Create `tres-areas/` module with:
+- [x] Create `tres-areas/` module with:
   - `tres-areas.module.ts`
   - `tres-areas.service.ts`
   - `entities/tres-areas-combination.entity.ts`
-- [ ] Move files from `common/`
-- [ ] Update `CommonModule` to import `TresAreasModule` instead of defining locally
-- [ ] Remove `forwardRef` between CommonModule and SessionsModule
+- [x] Move files from `common/`
+- [x] Update `CommonModule` to import `TresAreasModule` instead of defining locally
+- [x] Remove `forwardRef` between CommonModule and SessionsModule
 
 #### 8.3 Break Users ↔ Institutions Circular Dependency
 
@@ -1188,9 +1188,9 @@ InstitutionsModule → forwardRef(UsersModule)
 
 **Option B (Direct Repository — simpler):**
 
-- [ ] Inject `Repository<Institution>` directly in `UserRegistrationService`
-- [ ] Remove `InstitutionsModule` import from `UsersModule`
-- [ ] Remove `UsersModule` import from `InstitutionsModule`
+- [x] Inject `Repository<Institution>` directly in `UserRegistrationService`
+- [x] Remove `InstitutionsModule` import from `UsersModule`
+- [x] Remove `UsersModule` import from `InstitutionsModule`
 
 **Recommendation:** Option B (simpler, no new dependency)
 
@@ -1200,9 +1200,9 @@ InstitutionsModule → forwardRef(UsersModule)
 
 **Tasks:**
 
-- [ ] Update `redeem` endpoint to use `VoucherRedemptionService` (from 8.1)
-- [ ] Remove `@Inject(forwardRef(() => SessionsService))`
-- [ ] Remove `SessionsService` import from VouchersModule
+- [x] Update `redeem` endpoint to use `VoucherRedemptionService` (from 8.1)
+- [x] Remove `@Inject(forwardRef(() => SessionsService))`
+- [x] Remove `SessionsService` import from VouchersModule
 
 #### 8.5 Implement Idempotency Guard for Offline Sync and Writes
 
@@ -1210,16 +1210,16 @@ InstitutionsModule → forwardRef(UsersModule)
 
 **Tasks:**
 
-- [ ] Create `IdempotencyService` that stores execution hashes/keys in Redis (Render Redis instance) with a 24-hour TTL.
-- [ ] Create `IdempotencyGuard` to intercept POST/PUT operations with a `X-Idempotency-Key` header.
-- [ ] Ensure that if a duplicate request arrives while the first is running, it blocks; if the first has completed, it returns the cached response directly from Redis.
-- [ ] Apply `IdempotencyGuard` to key endpoints: `sessions/complete` and `vouchers/redeem`.
-- [ ] In `CotejoApp`'s `WorkManager` API synchronization layer, ensure a unique UUID is generated per transaction and sent as the `X-Idempotency-Key` header on all retry attempts.
+- [x] Create `IdempotencyService` that stores execution hashes/keys in Redis (Render Redis instance) with a 24-hour TTL.
+- [x] Create `IdempotencyGuard` to intercept POST/PUT operations with a `X-Idempotency-Key` header.
+- [x] Ensure that if a duplicate request arrives while the first is running, it blocks; if the first has completed, it returns the cached response directly from Redis.
+- [x] Apply `IdempotencyGuard` to key endpoints: `sessions/complete` and `vouchers/redeem`.
+- [x] In `CotejoApp`'s `WorkManager` API synchronization layer, ensure a unique UUID is generated per transaction and sent as the `X-Idempotency-Key` header on all retry attempts.
 
 **Tests:**
 
-- [ ] Test that simultaneous requests with the same key block and wait, or return a 409 Conflict.
-- [ ] Test that sequential identical requests with the same key return the exact same cached JSON response without running database operations again.
+- [x] Test that simultaneous requests with the same key block and wait, or return a 409 Conflict.
+- [x] Test that sequential identical requests with the same key return the exact same cached JSON response without running database operations again.
 
 ---
 
@@ -1233,19 +1233,19 @@ InstitutionsModule → forwardRef(UsersModule)
 
 **Tasks:**
 
-- [ ] Create `JobHandler` interface
-- [ ] Create `SendEmailHandler`
-- [ ] Create `GeneratePdfHandler`
-- [ ] Create `SendReportHandler`
-- [ ] Create `JobRegistry` to register handlers
-- [ ] Refactor `JobDispatcherService` to ~20 lines (delegates to handlers)
-- [ ] Update `CommonModule` to register handlers
+- [x] Create `JobHandler` interface
+- [x] Create `SendEmailHandler`
+- [x] Create `GeneratePdfHandler`
+- [x] Create `SendReportHandler`
+- [x] Create `JobRegistry` to register handlers
+- [x] Refactor `JobDispatcherService` to ~20 lines (delegates to handlers)
+- [x] Update `CommonModule` to register handlers
 
 **Tests:**
 
-- [ ] Test each handler independently
-- [ ] Test dispatcher routes to correct handler
-- [ ] Test unknown job throws error
+- [x] Test each handler independently
+- [x] Test dispatcher routes to correct handler
+- [x] Test unknown job throws error
 
 #### 9.2 Split and Optimize AdminDashboardService (Consolidation against Neon PostgreSQL)
 
@@ -1253,17 +1253,17 @@ InstitutionsModule → forwardRef(UsersModule)
 
 **Tasks:**
 
-- [ ] Create `AdminDashboardQueriesService` — Replace 12 individual sequential/parallel queries with consolidated queries. Write a single database view or utilize PostgreSQL JSON aggregation functions (`JSON_AGG`, `JSON_BUILD_OBJECT`) to fetch dashboard statistics in a maximum of 2 database roundtrips, reducing cold start/network latency issues with Neon Serverless DB.
-- [ ] Create `AdminDashboardFormatterService` — formatting and calculations.
-- [ ] Implement Redis-based caching layer for dashboard data (5-minute TTL) to avoid hitting Neon DB for every admin page reload.
-- [ ] Refactor `AdminDashboardService` to ~30 lines (orchestrator).
+- [x] Create `AdminDashboardQueriesService` — Replace 12 individual sequential/parallel queries with consolidated queries. Write a single database view or utilize PostgreSQL JSON aggregation functions (`JSON_AGG`, `JSON_BUILD_OBJECT`) to fetch dashboard statistics in a maximum of 2 database roundtrips, reducing cold start/network latency issues with Neon Serverless DB.
+- [x] Create `AdminDashboardFormatterService` — formatting and calculations.
+- [x] Implement Redis-based caching layer for dashboard data (5-minute TTL) to avoid hitting Neon DB for every admin page reload.
+- [x] Refactor `AdminDashboardService` to ~30 lines (orchestrator).
 
 **Tests:**
 
-- [ ] Test queries return correct data with mock Postgres.
-- [ ] Test performance is below 200ms roundtrip.
-- [ ] Test caching hit and eviction on new session completion.
-- [ ] Test formatter produces correct output.
+- [x] Test queries return correct data with mock Postgres.
+- [x] Test performance is below 200ms roundtrip.
+- [x] Test caching hit and eviction on new session completion.
+- [x] Test formatter produces correct output.
 
 #### 9.3 Split ReportOrchestratorService
 
@@ -1304,25 +1304,25 @@ InstitutionsModule → forwardRef(UsersModule)
 
 **Tasks:**
 
-- [ ] Configure SQLite in-memory for tests
-- [ ] Create test factory helpers (`createUserFactory`, `createSessionFactory`, etc.)
-- [ ] Create test database setup utility
+- [x] Configure SQLite in-memory for tests
+- [x] Create test factory helpers (`createUserFactory`, `createSessionFactory`, etc.)
+- [x] Create test database setup utility
 
 #### 10.2 Web Testing Setup
 
 **Tasks:**
 
-- [ ] Install Vitest + Testing Library
-- [ ] Configure test setup file
-- [ ] Create mock API client for tests
+- [x] Install Vitest + Testing Library
+- [x] Configure test setup file
+- [x] Create mock API client for tests
 
 #### 10.3 Android Testing Setup
 
 **Tasks:**
 
-- [ ] Configure test database (Room in-memory)
-- [ ] Create test factories for entities
-- [ ] Set up mock WebServer for API tests
+- [x] Configure test database (Room in-memory)
+- [x] Create test factories for entities
+- [x] Set up mock WebServer for API tests
 
 ---
 
@@ -1447,9 +1447,9 @@ val useNewResultsScreen = firebaseRemoteConfig.getBoolean("use_new_results_scree
 | **5. Web Hooks Extraction** | 3-5 days | Phase 1 | 🟡 High | Yes (Lane B) | ✅ COMPLETED |
 | **6. Web Components** | 3-4 days | Phase 5 | 🟢 Medium | Yes (Lane B) | ✅ COMPLETED |
 | **7. Android God Classes** | 3-4 weeks | Phase 4 | 🔴 Critical | Yes (Lane C) | ✅ COMPLETED |
-| **8. API Circular Deps** | 3-4 days | Phase 1 | 🟡 High | Yes (Lane A) |
-| **9. API God Services** | 3-4 days | Phase 8 | 🟡 High | Yes (Lane A) |
-| **10. Testing** | Ongoing | All phases | 🔴 Critical | Yes (Across all) |
+| **8. API Circular Deps** | 3-4 days | Phase 1 | 🟡 High | Yes (Lane A) | ✅ COMPLETED |
+| **9. API God Services** | 3-4 days | Phase 8 | 🟡 High | Yes (Lane A) | ⏳ IN PROGRESS |
+| **10. Testing** | Ongoing | All phases | 🔴 Critical | Yes (Across all) | ✅ COMPLETED |
 | **11. CI/CD & Deployment** | 3-4 days | All phases | 🔴 Critical | No |
 
 ### Parallel Lanes post-Phase 1

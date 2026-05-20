@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Session, SessionPaymentStatus } from '../entities/session.entity.js';
-import { AdminActivityItem, RawRecentSessionRow } from '@akit/contracts';
+import { Session } from '../entities/session.entity.js';
+import { RawRecentSessionRow } from '@akit/contracts';
 
 @Injectable()
 export class AdminDashboardQueriesService {
@@ -11,8 +11,10 @@ export class AdminDashboardQueriesService {
     private readonly sessionRepository: Repository<Session>,
   ) {}
 
-  async getRecentActivity(limit: number = 50): Promise<AdminActivityItem[]> {
-    const sessions = await this.sessionRepository
+  async getRecentSessionRows(
+    limit: number = 50,
+  ): Promise<RawRecentSessionRow[]> {
+    return await this.sessionRepository
       .createQueryBuilder('session')
       .select('session.id', 'id')
       .addSelect('session.patientName', 'patientName')
@@ -35,34 +37,6 @@ export class AdminDashboardQueriesService {
       .orderBy('session.createdAt', 'DESC')
       .limit(limit)
       .getRawMany<RawRecentSessionRow>();
-
-    return sessions.map((session) => {
-      const resultsCount = parseInt(session.resultsCount ?? '0', 10);
-      const isCompleted = resultsCount > 0;
-      const channelLabel =
-        session.voucherId ||
-        session.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
-          ? 'con voucher'
-          : 'sin voucher';
-      const occurredAt = isCompleted
-        ? this.toIso(
-            session.reportUnlockedAt,
-            session.paidAt,
-            session.sessionDate,
-            session.createdAt,
-          )
-        : this.toIso(session.sessionDate, session.createdAt);
-
-      return {
-        id: `session-${session.id}`,
-        type: isCompleted ? 'SESSION_COMPLETED' : 'SESSION_STARTED',
-        title: isCompleted ? 'Sesión completada' : 'Sesión iniciada',
-        description: isCompleted
-          ? `${session.patientName || 'Paciente sin nombre'} completó un test ${channelLabel}.`
-          : `${session.patientName || 'Paciente sin nombre'} inició un test ${channelLabel}.`,
-        occurredAt,
-      };
-    });
   }
 
   async getStalledSessionsCount(): Promise<number> {
@@ -85,16 +59,5 @@ export class AdminDashboardQueriesService {
       .getRawOne<{ count: string }>();
 
     return parseInt(countRow?.count ?? '0', 10);
-  }
-
-  private toIso(...values: Array<Date | string | null | undefined>): string {
-    for (const value of values) {
-      if (!value) continue;
-      const parsed = new Date(value);
-      if (!Number.isNaN(parsed.getTime())) {
-        return parsed.toISOString();
-      }
-    }
-    return new Date(0).toISOString();
   }
 }
