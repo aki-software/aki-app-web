@@ -55,10 +55,6 @@ export const SessionDetailHeader = ({
       </div>
 
       <div className="flex items-center gap-10">
-        <div className="hidden lg:flex flex-col items-end border-r border-app-border pr-12">
-          <span className="app-label mb-3 opacity-40">CÓDIGO HOLLAND</span>
-          <span className="app-value !text-4xl">{hollandCode}</span>
-        </div>
         <div className="flex items-start gap-4">
           <Button 
             variant="outline"

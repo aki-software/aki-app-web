@@ -132,8 +132,10 @@ export class ReportService {
       session.results || [],
     );
 
+    const cleanPatientName = session.patientName.replace(/\s*\(.*?\)\s*/g, '').trim();
+
     return {
-      patientName: session.patientName,
+      patientName: cleanPatientName,
       patientEmail: email,
       hollandCode: session.hollandCode ?? undefined,
       hollandPercentages,

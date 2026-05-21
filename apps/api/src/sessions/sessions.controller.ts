@@ -9,6 +9,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  InternalServerErrorException,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -52,29 +53,33 @@ export class SessionsController {
   }
 
   @Post('complete')
-  @UseInterceptors(IdempotencyInterceptor)
   async complete(@Body() completeSessionDto: CompleteSessionDto) {
-    const mapped =
-      await this.sessionCompleteMapper.toCreateSessionDto(completeSessionDto);
-    const syncKey = this.sessionCompleteMapper.buildSyncKey(
-      mapped.payloadId ?? null,
-      mapped.payloadUserId ?? null,
-      mapped.payloadStartedAt,
-    );
-    const { session: createdSession, duplicated } =
-      await this.sessionsService.create(mapped.createSessionDto, {
-        idempotencyKey: syncKey ?? undefined,
-      });
+    try {
+      const mapped =
+        await this.sessionCompleteMapper.toCreateSessionDto(completeSessionDto);
+      const syncKey = this.sessionCompleteMapper.buildSyncKey(
+        mapped.payloadId ?? null,
+        mapped.payloadUserId ?? null,
+        mapped.payloadStartedAt,
+      );
+      const { session: createdSession, duplicated } =
+        await this.sessionsService.create(mapped.createSessionDto, {
+          idempotencyKey: syncKey ?? undefined,
+        });
 
-    await this.sessionCompleteMapper.attachVoucherIfNeeded(
-      mapped,
-      createdSession.id,
-    );
+      await this.sessionCompleteMapper.attachVoucherIfNeeded(
+        mapped,
+        createdSession.id,
+      );
 
-    return {
-      id: createdSession.id,
-      duplicated,
-    };
+      return {
+        id: createdSession.id,
+        duplicated,
+      };
+    } catch (e: any) {
+      require('fs').writeFileSync('debug_error.txt', e.message + '\\n' + e.stack);
+      throw e;
+    }
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,4 +1,4 @@
-import { Linkedin, MessageCircle } from "lucide-react";
+import { Globe, Mail, Linkedin, MessageCircle } from "lucide-react";
 import type { ReactNode } from "react";
 import logoTransparent from "../../../assets/Logo app transparente.png";
 import logoDark from "../../../assets/logo.png";
@@ -49,14 +49,19 @@ export function GlobalFooter() {
 
             <div className="flex flex-wrap items-center gap-2">
               <SocialLink
+                href="https://akituespacio.com.ar"
+                label="akituespacio.com.ar"
+                icon={<Globe className="h-4 w-4" />}
+              />
+              <SocialLink
+                href="mailto:akituvocacion@gmail.com"
+                label="akituvocacion@gmail.com"
+                icon={<Mail className="h-4 w-4" />}
+              />
+              <SocialLink
                 href="https://wa.me/"
                 label="WhatsApp"
                 icon={<MessageCircle className="h-4 w-4" />}
-              />
-              <SocialLink
-                href="https://x.com"
-                label="X"
-                icon={<span className="text-[13px] font-bold">X</span>}
               />
               <SocialLink
                 href="https://www.linkedin.com"
