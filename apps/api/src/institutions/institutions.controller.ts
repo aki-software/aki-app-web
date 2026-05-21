@@ -89,7 +89,7 @@ export class InstitutionsController {
   ): Promise<InstitutionOverviewResponse> {
     this.assertOwnerOrAdmin(req, id);
 
-    const normalizedDays = query?.days ?? 7;
+    const normalizedDays = query?.periodDays ?? 7;
 
     return (await this.institutionAnalyticsService.getOverview(
       id,

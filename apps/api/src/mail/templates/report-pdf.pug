@@ -3,7 +3,7 @@ html(lang="es")
   head
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title Informe Vocacional - A.kit
+    title Informe Vocacional - Orient A.ki
     style.
       @page { margin: 15mm; }
       * { box-sizing: border-box; }
@@ -444,7 +444,7 @@ html(lang="es")
     .page
       .header
         if logoDataUri
-          img.logo-lg(src=logoDataUri alt="A.kit")
+          img.logo-lg(src=logoDataUri alt="Orient A.ki")
 
       .intro
         p.greeting ¡Hola!
@@ -471,8 +471,6 @@ html(lang="es")
         .meta-row(style="margin-top: 20px;")
           .meta-chip Informe ocupacional
           .meta-chip #{brandDomain}
-        if hollandCode
-          .pill Código Holland: #{hollandCode}
 
 
       if strengths && strengths.length > 0
@@ -573,14 +571,14 @@ html(lang="es")
 
 
       .final-disclaimer.avoid-break
-        h4 OrientA.ki
-        p Tomar una decisión es un proceso de elegir una opción entre varias. OrientA.ki te presenta posibilidades para andamiar esa decisión.
-        p Si deseas realizar el proceso Ocupacional y ampliar la información, comunícate con A.ki y te brindaremos apoyo profesional.
+        h4 Orient A.ki
+        p Tomar una decisión es un proceso de elegir una opción entre varias. Orient A.ki te presenta posibilidades para andamiar esa decisión.
+        p Si deseas realizar el proceso Ocupacional y ampliar la información, comunícate con Orient A.ki y te brindaremos apoyo profesional.
         div(style="margin-top: 16px;")
-          a(href=`mailto:${supportEmail}` style="display:inline-block;padding:10px 24px;background:#{colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:0.02em;") Contactar a A.ki
+          a(href=`mailto:${supportEmail}` style="display:inline-block;padding:10px 24px;background:#{colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:0.02em;") Contactar a Orient A.ki
 
       .footer
-        p(style="margin:0 0 4px;") A.kit - Orientacion ocupacional asistida
+        p(style="margin:0 0 4px;") Orient A.ki - Orientacion vocacional
         div(style="margin-top: 6px;")
           p(style="margin:0; opacity: 0.8;") #{supportEmail}
           p(style="margin:2px 0 0; font-weight: 700;") #{brandDomain}

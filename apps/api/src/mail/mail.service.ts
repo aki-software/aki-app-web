@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { colors } from '@akit/design-tokens';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as nodemailer from 'nodemailer';
 import * as pug from 'pug';
 import { ConfigService } from '@nestjs/config';
 import {
-  CategoryResult,
   ReportSummary,
   ReportTripletInsight,
 } from '../common/types/report.types.js';
@@ -74,15 +72,10 @@ export class MailService {
   }
 
   private getLogoDataUri(): string | null {
-    try {
-      const buffer = fs.readFileSync(this.logoAssetPath);
-      const ext = path.extname(this.logoAssetPath).toLowerCase();
-      const mime = ext === '.png' ? 'image/png' : 'image/jpeg';
-      return `data:${mime};base64,${buffer.toString('base64')}`;
-    } catch (error) {
-      console.warn('Logo asset not found for emails/PDF.', error);
-      return null;
-    }
+    // Use an absolute static URL instead of Base64 Data URI
+    // Base64 Data URIs for images are aggressively blocked by Gmail and Resend
+    // causing the HTML layout to be stripped out completely.
+    return `https://${this.brandDomain}/logo.png`;
   }
 
   renderReportEmailTemplate(
@@ -110,15 +103,20 @@ export class MailService {
     summary?: ReportSummary,
     tripletInsight?: ReportTripletInsight,
   ): Promise<boolean> {
+    const rawName = patientName.replace(/\s*\(.*?\)\s*/g, '').trim();
+    const cleanPatientName = rawName.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+    );
     const htmlContent = this.renderReportEmailTemplate(
-      patientName,
+      cleanPatientName,
       targetEmail,
       hollandCode,
       reportUrl,
       summary,
     );
     const textContent = this.renderReportText(
-      patientName,
+      cleanPatientName,
       hollandCode,
       reportUrl,
       summary,
@@ -130,16 +128,16 @@ export class MailService {
         'reportes@akit.app',
       );
       const mailOptions: nodemailer.SendMailOptions = {
-        from: `A.kit Test Vocacional <${from}>`,
+        from: `Orient A.ki <${from}>`,
         to: targetEmail,
-        subject: `📊 Tu Informe Vocacional${hollandCode ? ` — Código ${hollandCode}` : ''}`,
+        subject: `📊 Tu Informe Vocacional`,
         html: htmlContent,
         text: textContent,
       };
       if (pdfAttachment) {
         mailOptions.attachments = [
           {
-            filename: `Informe_Vocacional_${patientName.replace(/\s+/g, '_')}.pdf`,
+            filename: `Informe_Vocacional_${cleanPatientName.replace(/\s+/g, '_')}.pdf`,
             content: pdfAttachment,
             contentType: 'application/pdf',
           },
@@ -166,9 +164,6 @@ export class MailService {
     lines.push(
       `Hola ${patientName}, aqui tienes los detalles de tu exploracion vocacional.`,
     );
-    if (hollandCode) {
-      lines.push(`Codigo Holland: ${hollandCode}`);
-    }
 
     if (summary) {
       lines.push('');
@@ -235,9 +230,9 @@ export class MailService {
       });
 
       await this.transporter.sendMail({
-        from: `A.kit Test Vocacional <${from}>`,
+        from: `Orient A.ki <${from}>`,
         to: targetEmail,
-        subject: `🔑 Tu código de acceso para A.kit`,
+        subject: `🔑 Tu código de acceso para Orient A.ki`,
         html,
       });
 
@@ -260,7 +255,7 @@ export class MailService {
         'reportes@akit.app',
       );
       const html = this.renderTemplate('account-activation.pug', {
-        titleText: 'Activá tu cuenta de A.kit',
+        titleText: 'Activá tu cuenta de Orient A.ki',
         headerLabel: 'Activación de cuenta',
         name,
         greetingName: this.buildGreetingName(name, targetEmail),
@@ -268,9 +263,9 @@ export class MailService {
         institutionName: institutionName || null,
       });
       await this.transporter.sendMail({
-        from: `A.kit <${from}>`,
+        from: `Orient A.ki <${from}>`,
         to: targetEmail,
-        subject: 'Activá tu cuenta de A.kit',
+        subject: 'Activá tu cuenta de Orient A.ki',
         html,
       });
       return true;
@@ -298,9 +293,9 @@ export class MailService {
         resetLink,
       });
       await this.transporter.sendMail({
-        from: `A.kit <${from}>`,
+        from: `Orient A.ki <${from}>`,
         to: targetEmail,
-        subject: 'Restablecé tu contraseña de A.kit',
+        subject: 'Restablecé tu contraseña de Orient A.ki',
         html,
       });
       return true;

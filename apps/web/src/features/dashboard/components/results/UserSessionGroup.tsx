@@ -109,9 +109,7 @@ export function UserSessionGroup({
                       {formatDuration(session.totalTimeMs)}
                     </span>
 
-                    <span className="app-tag !bg-app-surface !text-app-text-main !border-app-border !px-4 !py-1.5 shadow-sm scale-105">
-                      {session.hollandCode}
-                    </span>
+
 
                     <span
                       className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${

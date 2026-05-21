@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Voucher } from './entities/voucher.entity.js';
 import { VoucherBatch } from './entities/voucher-batch.entity.js';
@@ -12,14 +12,15 @@ import { VoucherQueryService } from './voucher-query.service.js';
 import { VoucherAccessService } from './services/voucher-access.service.js';
 import { VoucherCodeGenerator } from './services/voucher-code-generator.service.js';
 import { VoucherOwnerResolver } from './services/voucher-owner-resolver.service.js';
-import { SessionsModule } from '../sessions/sessions.module.js';
+import { VoucherBatchQueryService } from './services/voucher-batch-query.service.js';
+import { VoucherRedemptionModule } from '../common/modules/voucher-redemption.module.js';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Voucher, VoucherBatch]),
     UsersModule,
     MailModule,
-    forwardRef(() => SessionsModule),
+    VoucherRedemptionModule,
   ],
   controllers: [VouchersController],
   providers: [
@@ -29,6 +30,7 @@ import { SessionsModule } from '../sessions/sessions.module.js';
     VoucherAccessService,
     VoucherCodeGenerator,
     VoucherOwnerResolver,
+    VoucherBatchQueryService,
   ],
   exports: [VouchersService, TypeOrmModule],
 })

@@ -4,29 +4,18 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  type FindOptionsWhere,
-  Repository,
-  In,
-  DataSource,
-  type EntityManager,
-} from 'typeorm';
+import { type FindOptionsWhere, Repository, In, DataSource } from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
-import { Session, SessionPaymentStatus } from './entities/session.entity.js';
+import { Session } from './entities/session.entity.js';
 
-import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { SessionScope } from './types/session-scope.type.js';
-import { VouchersService } from '../vouchers/vouchers.service.js';
-import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
-import { AdminActivityItem, RawRecentSessionRow } from '@akit/contracts';
 
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 
@@ -37,91 +26,13 @@ export class SessionsService {
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-    @Inject(forwardRef(() => AdminDashboardService))
-    private readonly adminDashboardService: AdminDashboardService,
+
     private readonly reportOrchestratorService: ReportOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
-    private readonly vouchersService: VouchersService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
     private readonly dataSource: DataSource,
   ) {}
-
-  async getRecentActivity(limit: number = 50): Promise<AdminActivityItem[]> {
-    const sessions = await this.sessionRepository
-      .createQueryBuilder('session')
-      .select('session.id', 'id')
-      .addSelect('session.patientName', 'patientName')
-      .addSelect('session.createdAt', 'createdAt')
-      .addSelect('session.sessionDate', 'sessionDate')
-      .addSelect('session.reportUnlockedAt', 'reportUnlockedAt')
-      .addSelect('session.paidAt', 'paidAt')
-      .addSelect('session.voucherId', 'voucherId')
-      .addSelect('session.paymentStatus', 'paymentStatus')
-      .addSelect('COUNT(result.id)', 'resultsCount')
-      .leftJoin('session.results', 'result')
-      .groupBy('session.id')
-      .addGroupBy('session.patientName')
-      .addGroupBy('session.createdAt')
-      .addGroupBy('session.sessionDate')
-      .addGroupBy('session.reportUnlockedAt')
-      .addGroupBy('session.paidAt')
-      .addGroupBy('session.voucherId')
-      .addGroupBy('session.paymentStatus')
-      .orderBy('session.createdAt', 'DESC')
-      .limit(limit)
-      .getRawMany<RawRecentSessionRow>();
-
-    return sessions.map((session) => {
-      const resultsCount = parseInt(session.resultsCount ?? '0', 10);
-      const isCompleted = resultsCount > 0;
-      const channelLabel =
-        session.voucherId ||
-        session.paymentStatus === SessionPaymentStatus.VOUCHER_REDEEMED
-          ? 'con voucher'
-          : 'sin voucher';
-      const occurredAt = isCompleted
-        ? this.toIso(
-            session.reportUnlockedAt,
-            session.paidAt,
-            session.sessionDate,
-            session.createdAt,
-          )
-        : this.toIso(session.sessionDate, session.createdAt);
-
-      return {
-        id: `session-${session.id}`,
-        type: isCompleted ? 'SESSION_COMPLETED' : 'SESSION_STARTED',
-        title: isCompleted ? 'Sesión completada' : 'Sesión iniciada',
-        description: isCompleted
-          ? `${session.patientName || 'Paciente sin nombre'} completó un test ${channelLabel}.`
-          : `${session.patientName || 'Paciente sin nombre'} inició un test ${channelLabel}.`,
-        occurredAt,
-      };
-    });
-  }
-
-  async getStalledSessionsCount(): Promise<number> {
-    const now = new Date();
-    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-    const countRow = await this.sessionRepository
-      .createQueryBuilder('session')
-      .where('session.createdAt < :dayAgo', { dayAgo })
-      .andWhere((qb) => {
-        const subquery = qb
-          .subQuery()
-          .select('1')
-          .from('session_results', 'sr')
-          .where('sr.session_id = session.id')
-          .getQuery();
-        return `NOT EXISTS (${subquery})`;
-      })
-      .select('COUNT(*)', 'count')
-      .getRawOne<{ count: string }>();
-
-    return parseInt(countRow?.count ?? '0', 10);
-  }
 
   private toIso(...values: Array<Date | string | null | undefined>): string {
     for (const value of values) {
@@ -172,7 +83,7 @@ export class SessionsService {
     let savedSession: Session;
     try {
       savedSession = await this.sessionRepository.save(session);
-    } catch (_error: unknown) {
+    } catch {
       if (idempotencyKey) {
         const existing = await this.sessionRepository.findOne({
           where: { syncKey: idempotencyKey },
@@ -207,6 +118,7 @@ export class SessionsService {
       skip: (page - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },
+      relations: ['results', 'voucher'],
     });
 
     return { data, count };
@@ -215,7 +127,10 @@ export class SessionsService {
   async findOne(id: string, scope?: SessionScope): Promise<Session> {
     const where = { ...this.applyScope(scope), id };
 
-    const session = await this.sessionRepository.findOne({ where });
+    const session = await this.sessionRepository.findOne({
+      where,
+      relations: ['results', 'voucher', 'swipes'],
+    });
     if (!session) {
       throw new NotFoundException('Sesión no encontrada');
     }
@@ -244,14 +159,6 @@ export class SessionsService {
     });
   }
 
-  async getAdminOverview(days: number): Promise<unknown> {
-    return await this.adminDashboardService.getAdminOverview(days);
-  }
-
-  async getAdminActivity(limit: number): Promise<unknown> {
-    return await this.adminDashboardService.getAdminActivity(limit);
-  }
-
   async sendReport(
     id: string,
     email: string,
@@ -269,54 +176,6 @@ export class SessionsService {
       success: result.success,
       message: result.message,
     };
-  }
-
-  async redeemVoucher(
-    code: string,
-    sessionId: string,
-  ): Promise<{
-    success: boolean;
-    status: 'REDEEMED' | 'ALREADY_REDEEMED_BY_THIS_SESSION';
-    voucherCode: string;
-    sessionId: string;
-  }> {
-    return await this.dataSource.transaction(async (manager: EntityManager) => {
-      const { voucher, action } = await this.vouchersService.redeemVoucher(
-        manager,
-        code,
-        sessionId,
-      );
-
-      const sessionRepository = manager.getRepository(Session);
-      const session = await sessionRepository.findOne({
-        where: { id: sessionId },
-      });
-
-      if (!session) {
-        throw new NotFoundException('SESSION_NOT_FOUND');
-      }
-
-      if (action === 'ALREADY_REDEEMED') {
-        this.applyVoucherToSession(session, voucher);
-        await sessionRepository.save(session);
-        return {
-          success: true,
-          status: 'ALREADY_REDEEMED_BY_THIS_SESSION' as const,
-          voucherCode: voucher.code,
-          sessionId,
-        };
-      }
-
-      this.applyVoucherToSession(session, voucher);
-      await sessionRepository.save(session);
-
-      return {
-        success: true,
-        status: 'REDEEMED' as const,
-        voucherCode: voucher.code,
-        sessionId,
-      };
-    });
   }
 
   async findVoucherSessions(
@@ -367,20 +226,6 @@ export class SessionsService {
     }
 
     return await qb.orderBy('session.createdAt', 'DESC').getMany();
-  }
-
-  private applyVoucherToSession(session: Session, voucher: Voucher) {
-    session.voucherId = voucher.id;
-    session.paymentStatus = SessionPaymentStatus.VOUCHER_REDEEMED;
-    session.reportUnlockedAt =
-      session.reportUnlockedAt ?? voucher.redeemedAt ?? new Date();
-
-    if (!session.institutionId && voucher.ownerInstitutionId) {
-      session.institutionId = voucher.ownerInstitutionId;
-    }
-    if (!session.therapistUserId && voucher.ownerUserId) {
-      session.therapistUserId = voucher.ownerUserId;
-    }
   }
 
   protected _isUuid(value?: string | null): value is string {

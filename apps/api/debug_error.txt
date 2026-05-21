@@ -1,0 +1,10 @@
+column Session.sync_key does not exist\nQueryFailedError: column Session.sync_key does not exist
+    at PostgresQueryRunner.query (C:\Dev\Personal\A.kit\akit-platform\node_modules\.pnpm\typeorm@0.3.28_ioredis@5.10_e2e256a2cefff5af1abe5db6f44faec9\node_modules\typeorm\driver\src\driver\postgres\PostgresQueryRunner.ts:325:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async SelectQueryBuilder.loadRawResults (C:\Dev\Personal\A.kit\akit-platform\node_modules\.pnpm\typeorm@0.3.28_ioredis@5.10_e2e256a2cefff5af1abe5db6f44faec9\node_modules\typeorm\query-builder\src\query-builder\SelectQueryBuilder.ts:3868:25)
+    at async SelectQueryBuilder.getRawMany (C:\Dev\Personal\A.kit\akit-platform\node_modules\.pnpm\typeorm@0.3.28_ioredis@5.10_e2e256a2cefff5af1abe5db6f44faec9\node_modules\typeorm\query-builder\src\query-builder\SelectQueryBuilder.ts:1627:29)
+    at async SelectQueryBuilder.executeEntitiesAndRawResults (C:\Dev\Personal\A.kit\akit-platform\node_modules\.pnpm\typeorm@0.3.28_ioredis@5.10_e2e256a2cefff5af1abe5db6f44faec9\node_modules\typeorm\query-builder\src\query-builder\SelectQueryBuilder.ts:3530:26)
+    at async SelectQueryBuilder.getRawAndEntities (C:\Dev\Personal\A.kit\akit-platform\node_modules\.pnpm\typeorm@0.3.28_ioredis@5.10_e2e256a2cefff5af1abe5db6f44faec9\node_modules\typeorm\query-builder\src\query-builder\SelectQueryBuilder.ts:1671:29)
+    at async SelectQueryBuilder.getOne (C:\Dev\Personal\A.kit\akit-platform\node_modules\.pnpm\typeorm@0.3.28_ioredis@5.10_e2e256a2cefff5af1abe5db6f44faec9\node_modules\typeorm\query-builder\src\query-builder\SelectQueryBuilder.ts:1698:25)
+    at async SessionsService.create (C:\Dev\Personal\A.kit\akit-platform\apps\api\src\sessions\sessions.service.ts:70:24)
+    at async SessionsController.complete (C:\Dev\Personal\A.kit\akit-platform\apps\api\src\sessions\sessions.controller.ts:66:9)

@@ -6,7 +6,7 @@ interface Props {
   t: Translation;
 }
 
-const { t } = Astro.props;
+const { t, locale } = Astro.props;
 ---
 
 <section class="py-16 md:py-24 bg-primary-50" id="problema">
@@ -16,32 +16,43 @@ const { t } = Astro.props;
         {t.problem.title}
       </h2>
       <p class="text-text-muted reveal reveal-delay-1">
-        {t.locale === 'es'
+        {locale === 'es'
           ? 'Elegir una carrera es una de las decisiones más importantes. Herramientas tradicionales no ayudan.'
           : 'Choosing a career is one of the most important decisions. Traditional tools don\'t help.'}
       </p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-      {t.problem.cards.map((card, i) => {
-        const icons = ['📋', '⏱️', '💰'];
-        return (
-          <div class="bg-surface rounded-xl border border-border/60 p-6 reveal" style={`transition-delay: ${i * 0.1}s;`}>
-            <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center mb-4">
-              <span class="text-xl">{icons[i]}</span>
-            </div>
-            <h3 class="font-display font-semibold text-base text-text mb-2">{card.title}</h3>
-            <p class="text-sm text-text-muted leading-relaxed">{card.desc}</p>
+      {t.problem.cards.map((card, idx) => (
+        <div class={`bg-white p-8 rounded-2xl border border-primary-100 shadow-sm reveal reveal-delay-${idx + 1}`}>
+          <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary mb-6">
+            {idx === 0 && <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>}
+            {idx === 1 && <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>}
+            {idx === 2 && <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
           </div>
-        );
-      })}
+          <h3 class="font-display font-bold text-lg mb-2">{card.title}</h3>
+          <p class="text-sm text-text-muted leading-relaxed">{card.desc}</p>
+        </div>
+      ))}
     </div>
   </div>
 </section>
 
-<script>
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
-</script>
+<style>
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .reveal-delay-1 { animation-delay: 0.1s; }
+  .reveal-delay-2 { animation-delay: 0.2s; }
+  .reveal-delay-3 { animation-delay: 0.3s; }
+
+  @keyframes reveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
