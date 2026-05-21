@@ -4,7 +4,6 @@ import { SessionReportButton } from "./SessionReportButton";
 
 interface SessionDetailHeaderProps {
   patientName: string;
-  hollandCode: string;
   sessionId: string;
   onBack: () => void;
   onDownloadPdf: () => void;
@@ -12,7 +11,6 @@ interface SessionDetailHeaderProps {
 
 export const SessionDetailHeader = ({
   patientName,
-  hollandCode,
   sessionId,
   onBack,
   onDownloadPdf,

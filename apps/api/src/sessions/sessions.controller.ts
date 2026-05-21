@@ -77,7 +77,10 @@ export class SessionsController {
         duplicated,
       };
     } catch (e: any) {
-      require('fs').writeFileSync('debug_error.txt', e.message + '\\n' + e.stack);
+      require('fs').writeFileSync(
+        'debug_error.txt',
+        e.message + '\\n' + e.stack,
+      );
       throw e;
     }
   }

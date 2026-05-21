@@ -105,7 +105,10 @@ export class MailService {
     tripletInsight?: ReportTripletInsight,
   ): Promise<boolean> {
     const rawName = patientName.replace(/\s*\(.*?\)\s*/g, '').trim();
-    const cleanPatientName = rawName.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    const cleanPatientName = rawName.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+    );
     const htmlContent = this.renderReportEmailTemplate(
       cleanPatientName,
       targetEmail,

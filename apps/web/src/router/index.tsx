@@ -24,6 +24,7 @@ const InstitutionDetailOverview = lazy(() => import("../features/dashboard/views
 const DashboardSettings = lazy(() => import("../features/dashboard/views/DashboardSettings").then(m => ({ default: m.DashboardSettings })));
 const DashboardActivity = lazy(() => import("../features/dashboard/views/DashboardActivity").then(m => ({ default: m.DashboardActivity })));
 
+// eslint-disable-next-line react-refresh/only-export-components
 function RootRedirect() {
   const { isAuthenticated } = useAuth();
   return <Navigate to={isAuthenticated ? APP_ROUTES.DASHBOARD.ROOT : APP_ROUTES.AUTH.LOGIN} replace />;
