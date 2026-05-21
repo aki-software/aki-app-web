@@ -8,6 +8,7 @@ interface Props {
 
 const { t, locale } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
+const dashboardUrl = import.meta.env.PUBLIC_DASHBOARD_URL || 'https://app-qa.akituespacio.com.ar';
 ---
 
 <section class="min-h-screen flex flex-col justify-center bg-dark-bg text-dark-text relative overflow-hidden" id="hero">
@@ -37,6 +38,9 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
               <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
             </svg>
             {t.hero.ctaPrimary}
+          </a>
+          <a href={dashboardUrl} class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-primary border border-primary/30 rounded-lg hover:bg-primary/10 transition-colors">
+            Acceso Instituciones
           </a>
         </div>
 
@@ -79,7 +83,7 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
 
           <!-- Floating Badges -->
           <div class="absolute -top-4 -right-4 bg-primary text-dark-bg text-[10px] font-black uppercase tracking-tighter px-3 py-1.5 rounded-full shadow-lg rotate-12">
-            Holland RIASEC
+            ORIENT A.KI
           </div>
           <div class="absolute -bottom-2 -left-6 bg-dark-surface border border-dark-border px-3 py-2 rounded-xl shadow-xl flex items-center gap-2 -rotate-6">
             <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
