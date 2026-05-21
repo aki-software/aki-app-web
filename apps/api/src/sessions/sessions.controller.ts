@@ -9,14 +9,11 @@ import {
   Req,
   Res,
   UnauthorizedException,
-  InternalServerErrorException,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
-import { IdempotencyInterceptor } from '../common/interceptors/idempotency.interceptor.js';
 import { UserRole } from '../users/entities/user.entity.js';
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 import { CompleteSessionDto } from './dto/complete-session.dto.js';
@@ -54,32 +51,27 @@ export class SessionsController {
 
   @Post('complete')
   async complete(@Body() completeSessionDto: CompleteSessionDto) {
-    try {
-      const mapped =
-        await this.sessionCompleteMapper.toCreateSessionDto(completeSessionDto);
-      const syncKey = this.sessionCompleteMapper.buildSyncKey(
-        mapped.payloadId ?? null,
-        mapped.payloadUserId ?? null,
-        mapped.payloadStartedAt,
-      );
-      const { session: createdSession, duplicated } =
-        await this.sessionsService.create(mapped.createSessionDto, {
-          idempotencyKey: syncKey ?? undefined,
-        });
+    const mapped =
+      await this.sessionCompleteMapper.toCreateSessionDto(completeSessionDto);
+    const syncKey = this.sessionCompleteMapper.buildSyncKey(
+      mapped.payloadId ?? null,
+      mapped.payloadUserId ?? null,
+      mapped.payloadStartedAt,
+    );
+    const { session: createdSession, duplicated } =
+      await this.sessionsService.create(mapped.createSessionDto, {
+        idempotencyKey: syncKey ?? undefined,
+      });
 
-      await this.sessionCompleteMapper.attachVoucherIfNeeded(
-        mapped,
-        createdSession.id,
-      );
+    await this.sessionCompleteMapper.attachVoucherIfNeeded(
+      mapped,
+      createdSession.id,
+    );
 
-      return {
-        id: createdSession.id,
-        duplicated,
-      };
-    } catch (e: any) {
-      require('fs').writeFileSync('debug_error.txt', e.message + '\\n' + e.stack);
-      throw e;
-    }
+    return {
+      id: createdSession.id,
+      duplicated,
+    };
   }
 
   @UseGuards(JwtAuthGuard)
