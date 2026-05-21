@@ -6,6 +6,6 @@ export class InstitutionOverviewQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(90)
-  days?: number;
+  @Max(365)
+  periodDays?: number;
 }

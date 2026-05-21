@@ -3,10 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
 import { ReportService } from './report.service.js';
-import { MailService } from '../../mail/mail.service.js';
-import { PdfService } from '../../common/services/pdf.service.js';
-import { StorageService } from '../../common/services/storage.service.js';
+import { ReportCacheService } from './report-cache.service.js';
+import { ReportGeneratorService } from './report-generator.service.js';
+import { ReportDeliveryService } from './report-delivery.service.js';
 import { SessionScope } from '../types/session-scope.type.js';
+import type { ReportData } from '../../common/types/report.types.js';
 
 @Injectable()
 export class ReportOrchestratorService {
@@ -16,9 +17,9 @@ export class ReportOrchestratorService {
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
     private readonly reportService: ReportService,
-    private readonly mailService: MailService,
-    private readonly pdfService: PdfService,
-    private readonly storageService: StorageService,
+    private readonly reportCacheService: ReportCacheService,
+    private readonly reportGeneratorService: ReportGeneratorService,
+    private readonly reportDeliveryService: ReportDeliveryService,
   ) {}
 
   async sendReport(
@@ -26,72 +27,42 @@ export class ReportOrchestratorService {
     targetEmail: string,
     voucherId?: string | null,
     scope?: SessionScope,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(sessionId, scope);
     const voucherIdForLogging = voucherId ?? session.voucherId ?? undefined;
-    const reportData = await this.reportService.buildReportData(
-      session,
-      targetEmail,
-    );
+    const cacheKey = `report:${sessionId}:${targetEmail}`;
 
-    const htmlContent = this.reportService.renderReportPdfHtml(reportData);
+    const cached: {
+      reportData: ReportData;
+      pdfBuffer?: Buffer;
+      reportUrl?: string;
+    } = await this.reportCacheService.getOrCreate(cacheKey, async () => {
+      this.logger.debug(`Generating report for session: ${sessionId}`);
 
-    let pdfBuffer: Buffer | undefined;
-    let reportUrl = session.reportUrl;
-
-    try {
-      // Si no hay URL, generamos el PDF y lo subimos
-      if (!reportUrl) {
-        pdfBuffer = await this.pdfService.generateFromHtml(htmlContent);
-        const fileName = `report_${sessionId}_${Date.now()}.pdf`;
-        reportUrl = await this.storageService.uploadFile(pdfBuffer, fileName);
-
-        if (reportUrl) {
-          session.reportUrl = reportUrl;
-          await this.sessionRepository.save(session);
-        }
-      } else {
-        // Si ya hay URL, solo generamos el buffer para el adjunto si es necesario
-        // Opcionalmente podríamos descargar el archivo desde StorageService
-        pdfBuffer = await this.pdfService.generateFromHtml(htmlContent);
-      }
-    } catch (err) {
-      this.logger.warn(
-        `sendReport pdf-generation-failed sessionId=${sessionId} reason=${(err as Error)?.message ?? 'unknown'}`,
+      const reportData = await this.reportService.buildReportData(
+        session,
+        targetEmail,
       );
-    }
 
-    const sent = await this.mailService.sendVocationalReport(
+      const { pdfBuffer, reportUrl } =
+        await this.reportGeneratorService.generateAndUploadPdf(
+          session,
+          reportData,
+        );
+
+      return { reportData, pdfBuffer, reportUrl };
+    });
+
+    this.logger.debug(`Sending report for session: ${sessionId}`);
+
+    return await this.reportDeliveryService.deliverReport(
       targetEmail,
-      reportData.patientName,
-      reportData.hollandCode,
-      pdfBuffer,
-      reportUrl ?? undefined,
-      reportData.summary,
-      reportData.tripletInsight ?? undefined,
+      sessionId,
+      voucherIdForLogging,
+      cached.reportData,
+      cached.pdfBuffer,
+      cached.reportUrl,
     );
-
-    if (!sent) {
-      this.logger.error(
-        `sendReport mail-dispatch-failed sessionId=${sessionId} targetEmail=${targetEmail}`,
-      );
-      return {
-        success: false,
-        message: 'Hubo un error despachando el correo electrónico.',
-      };
-    }
-
-    this.logger.log(
-      `sendReport dispatched sessionId=${sessionId} voucherId=${voucherIdForLogging ?? 'none'} targetEmail=${targetEmail} mode=${pdfBuffer ? 'pdf' : 'html_fallback'}`,
-    );
-
-    return {
-      success: true,
-      message: `Email despachado hacia ${targetEmail}`,
-    };
   }
 
   private async findOne(id: string, scope?: SessionScope): Promise<Session> {

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TresAreasCombination as TresAreasCombinationEntity } from '../entities/tres-areas-combination.entity.js';
+import { TresAreasCombination as TresAreasCombinationEntity } from './entities/tres-areas-combination.entity.js';
 
 export type TresAreasCombination = {
   id: string;

@@ -45,7 +45,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     });
 
     if (!response.ok) {
-      let errorData: any;
+      let errorData: unknown;
       try {
         errorData = await response.json();
       } catch {
@@ -79,11 +79,11 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 export const apiClient = {
   get: <T>(endpoint: string, options?: RequestOptions) => 
     request<T>(endpoint, { ...options, method: 'GET' }),
-  post: <T>(endpoint: string, body?: any, options?: RequestOptions) => 
+  post: <T>(endpoint: string, body?: unknown, options?: RequestOptions) => 
     request<T>(endpoint, { ...options, method: 'POST', body: JSON.stringify(body) }),
-  patch: <T>(endpoint: string, body?: any, options?: RequestOptions) => 
+  patch: <T>(endpoint: string, body?: unknown, options?: RequestOptions) => 
     request<T>(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) }),
-  put: <T>(endpoint: string, body?: any, options?: RequestOptions) => 
+  put: <T>(endpoint: string, body?: unknown, options?: RequestOptions) => 
     request<T>(endpoint, { ...options, method: 'PUT', body: JSON.stringify(body) }),
   delete: <T>(endpoint: string, options?: RequestOptions) => 
     request<T>(endpoint, { ...options, method: 'DELETE' }),

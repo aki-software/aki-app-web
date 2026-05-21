@@ -11,6 +11,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { InstitutionsModule } from './institutions/institutions.module.js';
 import { VouchersModule } from './vouchers/vouchers.module.js';
 import { StatsModule } from './stats/stats.module.js';
+import { CommonModule } from './common/common.module.js';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { StatsModule } from './stats/stats.module.js';
           configService.get<string>('DATABASE_NAME') || typeOrmConfig.database,
       }),
     }),
+    CommonModule,
     UsersModule,
     SessionsModule,
     CategoriesModule,

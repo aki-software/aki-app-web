@@ -7,8 +7,8 @@ interface Props {
 }
 
 const { locale, t } = Astro.props;
-const webUrl = import.meta.env.PUBLIC_WEB_URL || 'http://localhost:5173';
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
+const dashboardUrl = import.meta.env.PUBLIC_DASHBOARD_URL || 'https://app-qa.akituespacio.com.ar';
 
 const langPath = locale === 'es' ? '/en' : '/';
 ---
@@ -25,6 +25,7 @@ const langPath = locale === 'es' ? '/en' : '/';
     <div class="hidden md:flex items-center gap-6">
       <a href="#como-funciona" class="text-xs text-text-muted hover:text-primary transition-colors">{t.nav.howItWorks}</a>
       <a href="#instituciones" class="text-xs text-text-muted hover:text-primary transition-colors">{t.nav.forInstitutions}</a>
+      <a href={dashboardUrl} class="text-xs text-text-muted hover:text-primary transition-colors">Dashboard</a>
       <a href={langPath} class="text-xs text-text-muted hover:text-primary transition-colors">{t.langSwitch}</a>
       <a href={playStoreUrl} class="px-4 py-1.5 text-xs font-semibold text-surface bg-primary rounded-md hover:bg-primary-dark transition-colors">
         {t.nav.startFree}
@@ -45,6 +46,7 @@ const langPath = locale === 'es' ? '/en' : '/';
     <div class="container py-3 flex flex-col gap-1">
       <a href="#como-funciona" class="py-2 text-sm text-text-muted">{t.nav.howItWorks}</a>
       <a href="#instituciones" class="py-2 text-sm text-text-muted">{t.nav.forInstitutions}</a>
+      <a href={dashboardUrl} class="py-2 text-sm text-text-muted">Dashboard</a>
       <a href={playStoreUrl} class="py-2.5 text-sm text-center text-surface bg-primary rounded-md font-semibold mt-2">{t.nav.startFree}</a>
     </div>
   </div>

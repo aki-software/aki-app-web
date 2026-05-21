@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as pug from 'pug';
 import { colors } from '@akit/design-tokens';
 import { VocationalCategory } from '../../categories/entities/vocational-category.entity.js';
-import { TresAreasService } from '../../common/services/tres-areas.service.js';
+import { TresAreasService } from '../../tres-areas/tres-areas.service.js';
 import {
   CategoryResult,
   ReportData,
@@ -132,8 +132,12 @@ export class ReportService {
       session.results || [],
     );
 
+    const cleanPatientName = session.patientName
+      .replace(/\s*\(.*?\)\s*/g, '')
+      .trim();
+
     return {
-      patientName: session.patientName,
+      patientName: cleanPatientName,
       patientEmail: email,
       hollandCode: session.hollandCode ?? undefined,
       hollandPercentages,
@@ -178,7 +182,7 @@ export class ReportService {
         return `data:${mime};base64,${buffer.toString('base64')}`;
       }
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
