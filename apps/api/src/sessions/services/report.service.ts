@@ -132,7 +132,9 @@ export class ReportService {
       session.results || [],
     );
 
-    const cleanPatientName = session.patientName.replace(/\s*\(.*?\)\s*/g, '').trim();
+    const cleanPatientName = session.patientName
+      .replace(/\s*\(.*?\)\s*/g, '')
+      .trim();
 
     return {
       patientName: cleanPatientName,
