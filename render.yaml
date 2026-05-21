@@ -3,51 +3,63 @@ services:
   # ENTORNO QA (Rama: dev)
   # ==========================================
   
-  # Redis para QA (Free tier)
-  - type: redis
-    name: akit-redis-qa
-    plan: free
-    ipAllowList: [] # Permite acceso interno desde otros servicios Render
-
   # Backend (API) para QA
   - type: web
     name: akit-api-qa
     env: node
     branch: dev
-    # Instalamos dependencias y buildamos solo la API usando turborepo / pnpm filter
     buildCommand: pnpm install && pnpm run build --filter api
-    # Iniciamos solo la API
     startCommand: pnpm --filter api run start:prod
     envVars:
       - key: NODE_ENV
         value: production
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: akit-redis-qa
-          property: connectionString
-      # Variables de BD que se completarán desde el Dashboard de Render
+      # Variables de Base de Datos (Neon)
       - key: DATABASE_HOST
         sync: false
+      - key: DATABASE_PORT
+        value: "5432"
       - key: DATABASE_USER
         sync: false
       - key: DATABASE_PASSWORD
         sync: false
       - key: DATABASE_NAME
         sync: false
+      # Variables JWT
       - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRATION
+        value: 8h
+      # Variables de Redis (Upstash)
+      - key: REDIS_URL
+        sync: false
+      # Variables de Email
+      - key: MAIL_TRANSPORT_TYPE
+        value: pro
+      - key: MAIL_PRO_HOST
+        sync: false
+      - key: MAIL_PRO_PORT
+        value: "465"
+      - key: MAIL_PRO_USER
+        sync: false
+      - key: MAIL_PRO_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: akituvocacion@akituespacio.com.ar
+      # CORS
+      - key: CORS_ORIGIN
+        sync: false
+      # Auth Inicial (Semillas)
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASS
+        sync: false
+      - key: ADMIN_NAME
         sync: false
 
   # ==========================================
   # ENTORNO PRODUCCIÓN (Rama: main)
   # ==========================================
   
-  # Redis para Producción (Free tier / starter según requieras luego)
-  - type: redis
-    name: akit-redis-prod
-    plan: free
-    ipAllowList: []
-
   # Backend (API) para Producción
   - type: web
     name: akit-api-prod
@@ -58,19 +70,45 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: akit-redis-prod
-          property: connectionString
-      # Variables de BD que se completarán desde el Dashboard de Render
+      # Variables de Base de Datos (Neon)
       - key: DATABASE_HOST
         sync: false
+      - key: DATABASE_PORT
+        value: "5432"
       - key: DATABASE_USER
         sync: false
       - key: DATABASE_PASSWORD
         sync: false
       - key: DATABASE_NAME
         sync: false
+      # Variables JWT
       - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRATION
+        value: 8h
+      # Variables de Redis (Upstash)
+      - key: REDIS_URL
+        sync: false
+      # Variables de Email
+      - key: MAIL_TRANSPORT_TYPE
+        value: pro
+      - key: MAIL_PRO_HOST
+        sync: false
+      - key: MAIL_PRO_PORT
+        value: "465"
+      - key: MAIL_PRO_USER
+        sync: false
+      - key: MAIL_PRO_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: akituvocacion@akituespacio.com.ar
+      # CORS
+      - key: CORS_ORIGIN
+        sync: false
+      # Auth Inicial (Semillas)
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASS
+        sync: false
+      - key: ADMIN_NAME
         sync: false
