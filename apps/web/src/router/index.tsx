@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { APP_ROUTES } from "./routes.constants";
