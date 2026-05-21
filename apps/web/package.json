@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@akit/contracts": "workspace:^",
-    "@akit/design-tokens": "file:../../packages/design-tokens",
+    "@akit/design-tokens": "workspace:*",
     "@tailwindcss/vite": "^4.2.1",
     "lucide-react": "^0.576.0",
     "react": "^18.3.1",

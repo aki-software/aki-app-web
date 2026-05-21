@@ -246,7 +246,7 @@ importers:
         specifier: workspace:^
         version: link:../../packages/contracts
       '@akit/design-tokens':
-        specifier: file:../../packages/design-tokens
+        specifier: workspace:*
         version: link:../../packages/design-tokens
       '@tailwindcss/vite':
         specifier: ^4.2.1
