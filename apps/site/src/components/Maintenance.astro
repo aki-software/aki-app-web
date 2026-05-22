@@ -1,0 +1,120 @@
+---
+import type { Locale, Translation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+  t: Translation;
+}
+
+const { locale, t } = Astro.props;
+---
+
+<div class="relative min-h-screen bg-dark-bg text-dark-text flex flex-col justify-between overflow-hidden font-sans">
+  <!-- Glowing Background Orbs -->
+  <div class="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] bg-primary/20 rounded-full blur-[80px] sm:blur-[120px] animate-pulse pointer-events-none" style="animation-duration: 8s;"></div>
+  <div class="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[300px] sm:w-[450px] h-[300px] sm:h-[450px] bg-secondary/10 rounded-full blur-[80px] sm:blur-[120px] animate-pulse pointer-events-none" style="animation-duration: 12s; animation-delay: 2s;"></div>
+
+  <!-- Ambient grid line overlay -->
+  <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
+
+  <!-- Header / Lang Switcher -->
+  <header class="w-full max-w-7xl mx-auto px-6 py-6 sm:py-8 flex justify-between items-center relative z-10">
+    <div class="flex items-center gap-3">
+      <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-emerald-400 p-[1px] shadow-[0_0_15px_rgba(15,107,104,0.3)]">
+        <div class="absolute inset-0 bg-dark-bg rounded-xl m-[1px] flex items-center justify-center overflow-hidden">
+          <img src="/logo.png" alt="A.kit Logo" class="h-5 w-auto" />
+        </div>
+      </div>
+      <span class="font-display font-bold text-lg tracking-tight text-white">ORIENT A.KI</span>
+    </div>
+    
+    <a 
+      href={locale === 'es' ? '/en' : '/'} 
+      class="text-xs font-semibold uppercase tracking-wider text-dark-muted hover:text-white px-3 py-1.5 rounded-lg border border-dark-border bg-dark-surface/50 backdrop-blur-sm transition-all hover:border-white/20 active:scale-95"
+    >
+      {t.langSwitch}
+    </a>
+  </header>
+
+  <!-- Main Content Card -->
+  <main class="flex-grow flex items-center justify-center px-6 relative z-10 py-12">
+    <div class="w-full max-w-xl text-center flex flex-col items-center">
+      
+      <!-- Premium Animated Glowing Icon -->
+      <div class="relative mb-8 group">
+        <!-- Glow backing -->
+        <div class="absolute -inset-4 bg-gradient-to-tr from-primary via-emerald-400 to-secondary rounded-3xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-700 animate-pulse"></div>
+        
+        <!-- Rotating border ring -->
+        <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-tr from-primary via-emerald-500 to-secondary p-[1.5px] shadow-[0_10px_30px_rgba(15,107,104,0.2)]">
+          <div class="absolute inset-0 bg-dark-bg rounded-3xl m-[1.5px] flex items-center justify-center overflow-hidden">
+            <img 
+              src="/logo.png" 
+              alt="A.kit" 
+              class="h-12 w-auto animate-float" 
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary-light text-xs font-semibold tracking-wider uppercase mb-6 backdrop-blur-sm animate-pulse">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+        {t.maintenance.badge}
+      </div>
+
+      <!-- Title -->
+      <h1 class="font-display font-extrabold text-3.5xl sm:text-5xl tracking-tight leading-[1.1] text-white mb-6">
+        {t.maintenance.title.split(' ').map((word, idx, arr) => {
+          // Highlight key words in gradient (e.g. "futuro", "orientación", "future", "vocational")
+          const isHighlight = ['futuro', 'orientación', 'future', 'vocational', 'guidance', 'vocacional'].includes(word.toLowerCase().replace(/[^a-záéíóúüñ]/g, ''));
+          if (isHighlight) {
+            return <span class="bg-gradient-to-r from-primary-light via-emerald-300 to-secondary-light bg-clip-text text-transparent">{word} </span>;
+          }
+          return <span>{word} </span>;
+        })}
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-dark-muted text-base sm:text-lg leading-relaxed max-w-lg mb-10">
+        {t.maintenance.subtitle}
+      </p>
+
+      <!-- CTA Contact / Email -->
+      <div class="flex flex-col sm:flex-row gap-4 items-center justify-center w-full sm:w-auto">
+        <a 
+          href="mailto:contacto@orientaki.com" 
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-primary text-white font-semibold text-sm shadow-[0_4px_20px_rgba(15,107,104,0.3)] hover:shadow-[0_4px_30px_rgba(15,107,104,0.5)] transition-all hover:bg-primary/95 active:scale-98"
+        >
+          <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          {t.maintenance.ctaContact}
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 relative z-10 border-t border-white/5 bg-dark-bg/40 backdrop-blur-xs">
+    <p class="text-xs text-dark-muted/60">
+      {t.maintenance.footer}
+    </p>
+    <div class="text-[10px] uppercase tracking-widest text-dark-muted/30 font-mono">
+      Made with AI
+    </div>
+  </footer>
+</div>
+
+<style>
+  /* Local styles & micro-animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-6px) scale(1.03); }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+</style>

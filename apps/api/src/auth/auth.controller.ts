@@ -77,4 +77,10 @@ export class AuthController {
       body.newPassword,
     );
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout() {
+    return { ok: true };
+  }
 }
