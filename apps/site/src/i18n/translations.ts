@@ -99,6 +99,13 @@ export const translations = {
       terms: 'Términos',
       copyright: 'Tu futuro comienza aquí.',
     },
+    maintenance: {
+      badge: 'Próximamente',
+      title: 'Diseñando el futuro de la orientación vocacional',
+      subtitle: 'Estamos preparando una experiencia revolucionaria para ayudarte a encontrar tu camino profesional con inteligencia artificial. Muy pronto vas a poder descargar la app y acceder al dashboard.',
+      ctaContact: 'Consultas o Instituciones',
+      footer: '© 2026 A.kit. Todos los derechos reservados.',
+    },
     langSwitch: 'EN',
   },
   en: {
@@ -200,6 +207,13 @@ export const translations = {
       privacy: 'Privacy',
       terms: 'Terms',
       copyright: 'Your future starts here.',
+    },
+    maintenance: {
+      badge: 'Coming Soon',
+      title: 'Designing the future of vocational guidance',
+      subtitle: 'We are preparing a revolutionary experience to help you find your career path with artificial intelligence. Very soon you will be able to download the app and access the dashboard.',
+      ctaContact: 'Inquiries & Institutions',
+      footer: '© 2026 A.kit. All rights reserved.',
     },
     langSwitch: 'ES',
   },
