@@ -63,6 +63,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error("Fallo al cerrar sesión en el servidor:", error);
     } finally {
       clearStoredAuth();
+      try {
+        sessionStorage.setItem('voluntary_logout', 'true');
+      } catch (e) {
+        console.error("Error setting voluntary_logout", e);
+      }
       setUser(null);
       setAccessToken(null);
       setIsLoading(false);
