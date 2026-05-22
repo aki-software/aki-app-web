@@ -152,22 +152,20 @@ export class MailService {
         'SMTP_FROM',
         'reportes@akit.app',
       );
-      const mailOptions: nodemailer.SendMailOptions = {
+      const mailOptions = {
         from: `Orient A.ki <${from}>`,
         to: targetEmail,
         subject: `📊 Tu Informe Vocacional`,
         html: htmlContent,
         text: textContent,
-      };
-      if (pdfAttachment) {
-        mailOptions.attachments = [
+        attachments: pdfAttachment ? [
           {
             filename: `Informe_Vocacional_${cleanPatientName.replace(/\s+/g, '_')}.pdf`,
             content: pdfAttachment,
             contentType: 'application/pdf',
           },
-        ];
-      }
+        ] : undefined,
+      };
       const success = await this.dispatchEmail(mailOptions);
       return success;
     } catch (error) {
