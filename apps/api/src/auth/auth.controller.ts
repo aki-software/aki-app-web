@@ -80,7 +80,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout() {
+  logout() {
     return { ok: true };
   }
 }
