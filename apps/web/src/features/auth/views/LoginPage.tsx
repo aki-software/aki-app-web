@@ -22,7 +22,18 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [darkMode] = useState(true); 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/dashboard";
+  const [redirectTo] = useState(() => {
+    try {
+      const voluntary = sessionStorage.getItem('voluntary_logout');
+      if (voluntary === 'true') {
+        sessionStorage.removeItem('voluntary_logout');
+        return "/dashboard";
+      }
+    } catch (e) {
+      console.error("Error reading voluntary_logout", e);
+    }
+    return (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/dashboard";
+  });
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,7 +44,7 @@ export function LoginPage() {
 
     try {
       await login({ email: email.trim(), password });
-      navigate(from, { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       const msg = err instanceof Error && err.message === 'UNAUTHORIZED' 
         ? "Credenciales incorrectas. Verificá tu email y contraseña." 
