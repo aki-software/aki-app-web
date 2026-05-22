@@ -12,82 +12,157 @@ const dashboardUrl = import.meta.env.PUBLIC_DASHBOARD_URL || 'https://app-qa.aki
 ---
 
 <section class="min-h-screen flex flex-col justify-center bg-dark-bg text-dark-text relative overflow-hidden" id="hero">
-  <!-- Subtle grid background -->
-  <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 32px 32px;"></div>
+  <!-- Ambient Glowing Orbs -->
+  <div class="absolute top-0 -left-1/4 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow"></div>
+  <div class="absolute bottom-0 -right-1/4 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[100px] mix-blend-screen"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] opacity-[0.02]" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 32px 32px; mask-image: radial-gradient(circle, black, transparent 70%);"></div>
 
   <div class="container relative z-10">
     <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
       <!-- Left: Bold typography + CTA -->
       <div class="flex-1 text-center lg:text-left">
-        <p class="text-xs font-medium text-primary-light tracking-wider uppercase mb-6 reveal">
-          {t.hero.badge}
-        </p>
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 reveal shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+          <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+          <p class="text-[11px] font-medium text-white/80 tracking-widest uppercase">
+            {t.hero.badge}
+          </p>
+        </div>
 
-        <h1 class="font-display font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] mb-6 reveal reveal-delay-1">
+        <h1 class="font-display font-bold text-5xl sm:text-6xl md:text-7xl lg:text-[5rem] leading-[1.05] tracking-tight mb-6 reveal reveal-delay-1">
           {t.hero.title}<br />
-          <span class="text-primary">{t.hero.titleAccent}</span>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-light to-emerald-400 animate-gradient-x">
+            {t.hero.titleAccent}
+          </span>
         </h1>
 
-        <p class="text-base text-dark-muted leading-relaxed max-w-md mx-auto lg:mx-0 mb-8 reveal reveal-delay-2">
+        <p class="text-lg text-dark-muted leading-relaxed max-w-xl mx-auto lg:mx-0 mb-10 reveal reveal-delay-2 font-medium">
           {t.hero.subtitle}
         </p>
 
-        <div class="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start reveal reveal-delay-3">
-          <a href={playStoreUrl} class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-dark-bg bg-primary rounded-lg hover:bg-primary-light transition-colors">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+        <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start reveal reveal-delay-3">
+          <a href={playStoreUrl} class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-semibold text-dark-bg bg-white rounded-xl hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-primary to-primary-light opacity-0 group-hover:opacity-10 transition-opacity"></div>
+            <svg class="w-5 h-5 text-dark-bg" viewBox="0 0 24 24" fill="currentColor">
               <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
             </svg>
             {t.hero.ctaPrimary}
           </a>
-          <a href={dashboardUrl} class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-primary border border-primary/30 rounded-lg hover:bg-primary/10 transition-colors">
-            Acceso Instituciones
+          <a href="#instituciones" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-sm font-semibold text-white bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 backdrop-blur-md transition-all duration-300">
+            {t.hero.ctaSecondary}
           </a>
         </div>
 
-        <p class="text-xs text-dark-muted mt-4 reveal reveal-delay-3">
-          {locale === 'es' ? 'Gratis · Sin registro · 10 minutos' : 'Free · No signup · 10 minutes'}
+        <p class="text-xs text-dark-muted/60 mt-6 reveal reveal-delay-3 font-mono">
+          {locale === 'es' ? 'APP MÓVIL · SIN REGISTRO · 10 MINUTOS' : 'MOBILE APP · NO SIGNUP · 10 MINUTES'}
         </p>
       </div>
 
-      <!-- Right: Swipe cards demo -->
-      <div class="flex-shrink-0 w-full max-w-sm lg:max-w-none lg:w-[340px] reveal reveal-delay-2">
-        <div class="relative" style="height: 400px;">
-          <!-- Card Stack Decoration -->
-          <div class="absolute inset-0 bg-primary/20 rounded-[32px] rotate-3 translate-x-4 translate-y-4"></div>
-          <div class="absolute inset-0 bg-dark-surface border border-dark-border rounded-[32px] -rotate-3 -translate-x-2 -translate-y-2"></div>
-          
-          <!-- Main Card Content -->
-          <div class="absolute inset-0 bg-dark-surface border-2 border-primary/30 rounded-[32px] p-6 shadow-2xl flex flex-col overflow-hidden">
-            <div class="h-48 bg-dark-bg/50 rounded-2xl mb-6 overflow-hidden flex items-center justify-center">
-               <svg class="w-20 h-20 text-primary opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
-                  <path d="M12 7v10M8 12h8" />
-               </svg>
-            </div>
+      <!-- Right: Ultra-modern Floating UI Demo -->
+      <div class="flex-shrink-0 w-full max-w-sm lg:max-w-none lg:w-[400px] reveal reveal-delay-2 mt-12 lg:mt-0 relative perspective-1000">
+        <div class="relative w-full aspect-[4/5] transform-gpu hover:rotate-y-12 hover:-rotate-x-12 transition-transform duration-700 ease-out">
+          <!-- Glassmorphism Card -->
+          <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-[40px] p-8 shadow-[0_30px_60px_rgba(0,0,0,0.4)] backdrop-blur-2xl flex flex-col overflow-hidden group">
             
-            <div class="space-y-3">
-              <div class="h-6 w-3/4 bg-primary/10 rounded-full"></div>
-              <div class="h-4 w-full bg-dark-muted/10 rounded-full"></div>
-              <div class="h-4 w-5/6 bg-dark-muted/10 rounded-full"></div>
+            <!-- App UI Header Mockup -->
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                <span class="text-[10px] font-mono tracking-widest text-white/40 uppercase">A.KIT ASSESSMENT</span>
+              </div>
+              <!-- Mini progress bar and text -->
+              <div class="flex items-center gap-3">
+                <span class="text-[10px] font-mono text-white/50">{t.hero.phoneProgress}</span>
+                <div class="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden border border-white/5">
+                  <div class="w-[30%] h-full bg-gradient-to-r from-primary to-primary-light rounded-full"></div>
+                </div>
+              </div>
             </div>
 
-            <div class="mt-auto flex justify-between gap-4">
-              <div class="w-12 h-12 rounded-full border border-rose-500/30 flex items-center justify-center text-rose-500">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </div>
-              <div class="w-12 h-12 rounded-full border border-emerald-500/30 flex items-center justify-center text-emerald-500">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            <!-- Phone Instruction Title -->
+            <div class="text-center mb-4">
+              <span class="text-[11px] font-bold text-white/40 uppercase tracking-widest">{t.hero.phoneTitle}</span>
+            </div>
+
+            <!-- Card sorting space -->
+            <div class="flex-1 relative flex items-center justify-center mb-6">
+              <!-- Depth deck cards -->
+              <div class="absolute w-[94%] h-[94%] bg-white/5 border border-white/10 rounded-3xl -rotate-3 scale-95 opacity-40 blur-[0.5px]"></div>
+              
+              <!-- Active sorting Card -->
+              <div class="w-full h-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-6 flex flex-col justify-between shadow-[0_15px_30px_rgba(0,0,0,0.3)] backdrop-blur-md relative overflow-hidden group/card hover:border-primary/50 transition-all duration-500 transform-gpu rotate-2 translate-x-2">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-primary/20 rounded-full blur-xl opacity-60"></div>
+                
+                <!-- Category badge -->
+                <div class="flex justify-between items-start">
+                  <span class="text-[9px] font-bold tracking-wider px-2 py-0.5 rounded bg-primary/20 text-primary-light border border-primary/30 uppercase">
+                    {t.hero.phoneTag}
+                  </span>
+                  <div class="flex gap-1 items-center opacity-60">
+                    <svg class="w-3.5 h-3.5 text-white/40 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                  </div>
+                </div>
+                
+                <!-- SVG Icon depicting art/design -->
+                <div class="my-4 flex-1 flex items-center justify-center">
+                  <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-primary/30 to-emerald-500/20 flex items-center justify-center border border-white/10 shadow-[0_8px_20px_rgba(0,0,0,0.2)] group-hover/card:scale-110 transition-transform duration-500 relative">
+                    <div class="absolute inset-0 rounded-2xl bg-primary/10 blur-md"></div>
+                    <svg class="w-10 h-10 text-white/90 relative z-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-2.22 1.124l-.39.456a.75.75 0 01-1.155-.905l.39-.456a4.5 4.5 0 013.33-1.685h4.156a4.5 4.5 0 013.33 1.685l.39.456a.75.75 0 11-1.154.905l-.39-.456a3 3 0 00-2.22-1.124H9.53z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 12.75a3.75 3.75 0 110-7.5 3.75 3.75 0 010 7.5z" />
+                    </svg>
+                  </div>
+                </div>
+                
+                <!-- Content text -->
+                <div>
+                  <h3 class="font-display font-bold text-white text-base leading-tight tracking-tight mb-2 whitespace-pre-line group-hover/card:text-primary-light transition-colors duration-300">
+                    {t.hero.phoneCardTitle}
+                  </h3>
+                  <p class="text-xs text-white/60 leading-relaxed font-medium">
+                    {t.hero.phoneCardSub}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Floating Badges -->
-          <div class="absolute -top-4 -right-4 bg-primary text-dark-bg text-[10px] font-black uppercase tracking-tighter px-3 py-1.5 rounded-full shadow-lg rotate-12">
-            ORIENT A.KI
+            <!-- High-Fidelity Classification Panel (Removes Tinder Vibe entirely) -->
+            <div class="flex flex-col gap-3 w-full pb-2">
+              <div class="flex justify-between items-center px-4 text-[9px] font-mono text-white/30 tracking-widest uppercase">
+                <span>&larr; Descartar</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-white/20 animate-ping"></span>
+                <span>Afinidad &rarr;</span>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white/50 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20 transition-all duration-300 cursor-pointer text-xs font-semibold select-none group/btn shadow-[0_2px_10px_rgba(0,0,0,0.1)]">
+                  <svg class="w-4 h-4 text-white/40 group-hover/btn:text-rose-400 group-hover/btn:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  {t.hero.phoneActions.discard}
+                </div>
+                <div class="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-gradient-to-r from-primary/90 to-primary-light/90 border border-primary/20 text-white hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer text-xs font-bold select-none group/btn">
+                  <svg class="w-4 h-4 text-white/90 group-hover/btn:scale-110 group-hover/btn:rotate-12 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l5-1.5 5.5-5.5-3.5-3.5-6.187 5.404z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 12h2M12 3v2M12 19v2M3 12h2" />
+                  </svg>
+                  {t.hero.phoneActions.select}
+                </div>
+            </div>
           </div>
-          <div class="absolute -bottom-2 -left-6 bg-dark-surface border border-dark-border px-3 py-2 rounded-xl shadow-xl flex items-center gap-2 -rotate-6">
-            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span class="text-[10px] font-medium text-dark-muted uppercase tracking-widest">{t.hero.phoneCardSub}</span>
+        </div>
+
+        <!-- Floating Badges (Glass) -->
+          <div class="absolute -top-6 -right-6 bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[11px] font-bold uppercase tracking-widest px-4 py-2 rounded-2xl shadow-2xl rotate-6 hover:scale-110 transition-transform">
+            AI POWERED
+          </div>
+          <div class="absolute bottom-12 -left-12 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl shadow-2xl flex items-center gap-3 -rotate-6 hover:scale-110 transition-transform">
+            <div class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </div>
+            <span class="text-xs font-semibold text-white/90">Análisis Inmediato</span>
           </div>
         </div>
       </div>
@@ -98,18 +173,36 @@ const dashboardUrl = import.meta.env.PUBLIC_DASHBOARD_URL || 'https://app-qa.aki
 <style>
   .reveal {
     opacity: 0;
-    transform: translateY(20px);
-    animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform: translateY(30px);
+    animation: reveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   
-  .reveal-delay-1 { animation-delay: 0.1s; }
-  .reveal-delay-2 { animation-delay: 0.2s; }
-  .reveal-delay-3 { animation-delay: 0.3s; }
+  .reveal-delay-1 { animation-delay: 0.15s; }
+  .reveal-delay-2 { animation-delay: 0.3s; }
+  .reveal-delay-3 { animation-delay: 0.45s; }
 
   @keyframes reveal {
     to {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 4s ease infinite;
+  }
+
+  @keyframes gradient-x {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
   }
 </style>
