@@ -34,21 +34,25 @@ export class MailService {
     );
 
     if (transportType === 'smtp') {
+      const port = Number(this.configService.get<number>('SMTP_PORT', 2525));
       this.transporter = nodemailer.createTransport({
         host: this.configService.get<string>(
           'SMTP_HOST',
           'sandbox.smtp.mailtrap.io',
         ),
-        port: Number(this.configService.get<number>('SMTP_PORT', 2525)),
+        port,
+        secure: port === 465,
         auth: {
           user: this.configService.get<string>('SMTP_USER'),
           pass: this.configService.get<string>('SMTP_PASS'),
         },
       });
     } else {
+      const port = Number(this.configService.get<number>('MAIL_PRO_PORT', 587));
       this.transporter = nodemailer.createTransport({
         host: this.configService.get<string>('MAIL_PRO_HOST'),
-        port: Number(this.configService.get<number>('MAIL_PRO_PORT', 587)),
+        port,
+        secure: port === 465,
         auth: {
           user: this.configService.get<string>('MAIL_PRO_USER'),
           pass: this.configService.get<string>('MAIL_PRO_PASS'),
