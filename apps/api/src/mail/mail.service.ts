@@ -9,9 +9,13 @@ import {
   ReportTripletInsight,
 } from '../common/types/report.types.js';
 
+import { Resend } from 'resend';
+
 @Injectable()
 export class MailService {
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null = null;
+  private resend: Resend | null = null;
+  private transportType: string = 'smtp';
   private readonly brandDomain = 'akituespacio.com.ar';
   private readonly supportEmail = 'akituvocacion@gmail.com';
   private readonly logoAssetPath = path.join(
@@ -28,12 +32,12 @@ export class MailService {
   }
 
   private initTransporter() {
-    const transportType = this.configService.get<string>(
+    this.transportType = this.configService.get<string>(
       'MAIL_TRANSPORT_TYPE',
       'smtp',
     );
 
-    if (transportType === 'smtp') {
+    if (this.transportType === 'smtp') {
       const port = Number(this.configService.get<number>('SMTP_PORT', 2525));
       this.transporter = nodemailer.createTransport({
         host: this.configService.get<string>(
@@ -48,16 +52,33 @@ export class MailService {
         },
       });
     } else {
-      const port = Number(this.configService.get<number>('MAIL_PRO_PORT', 587));
-      this.transporter = nodemailer.createTransport({
-        host: this.configService.get<string>('MAIL_PRO_HOST'),
-        port,
-        secure: port === 465,
-        auth: {
-          user: this.configService.get<string>('MAIL_PRO_USER'),
-          pass: this.configService.get<string>('MAIL_PRO_PASS'),
-        },
-      });
+      // PRO mode uses HTTP Resend API because Render Free tier blocks outbound SMTP ports
+      this.resend = new Resend(this.configService.get<string>('MAIL_PRO_PASS'));
+    }
+  }
+
+  private async dispatchEmail(options: {
+    from: string;
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+    attachments?: Array<{ filename: string; content: Buffer; contentType?: string }>;
+  }): Promise<boolean> {
+    try {
+      if (this.transportType === 'smtp' && this.transporter) {
+        await this.transporter.sendMail(options);
+      } else if (this.resend) {
+        const { error } = await this.resend.emails.send(options);
+        if (error) {
+          console.error(`❌ Resend HTTP API Error:`, error);
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error(`❌ Error dispatching email:`, error);
+      return false;
     }
   }
 
@@ -147,8 +168,8 @@ export class MailService {
           },
         ];
       }
-      await this.transporter.sendMail(mailOptions);
-      return true;
+      const success = await this.dispatchEmail(mailOptions);
+      return success;
     } catch (error) {
       console.error(`❌ Error dispatching vocational report:`, error);
       return false;
@@ -233,14 +254,14 @@ export class MailService {
         testUrl,
       });
 
-      await this.transporter.sendMail({
+      const success = await this.dispatchEmail({
         from: `Orient A.ki <${from}>`,
         to: targetEmail,
         subject: `🔑 Tu código de acceso para Orient A.ki`,
         html,
       });
 
-      return true;
+      return success;
     } catch (error) {
       console.error(`❌ Error dispatching voucher email:`, error);
       return false;
@@ -266,13 +287,13 @@ export class MailService {
         activationLink,
         institutionName: institutionName || null,
       });
-      await this.transporter.sendMail({
+      const success = await this.dispatchEmail({
         from: `Orient A.ki <${from}>`,
         to: targetEmail,
         subject: 'Activá tu cuenta de Orient A.ki',
         html,
       });
-      return true;
+      return success;
     } catch (error) {
       console.error(`❌ Error dispatching activation email:`, error);
       return false;
@@ -296,13 +317,13 @@ export class MailService {
         greetingName: this.buildGreetingName(name, targetEmail),
         resetLink,
       });
-      await this.transporter.sendMail({
+      const success = await this.dispatchEmail({
         from: `Orient A.ki <${from}>`,
         to: targetEmail,
         subject: 'Restablecé tu contraseña de Orient A.ki',
         html,
       });
-      return true;
+      return success;
     } catch (error) {
       console.error(`❌ Error dispatching password reset email:`, error);
       return false;
