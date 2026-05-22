@@ -9,7 +9,7 @@ services:
     env: node
     plan: free
     branch: dev
-    buildCommand: pnpm install && pnpm exec puppeteer browsers install chrome && pnpm run build --filter api
+    buildCommand: pnpm install && pnpm --filter api exec puppeteer browsers install chrome && pnpm run build --filter api
     startCommand: pnpm --filter api run start:prod
     envVars:
       - key: PUPPETEER_CACHE_DIR
@@ -69,7 +69,7 @@ services:
     env: node
     plan: free
     branch: main
-    buildCommand: pnpm install && pnpm exec puppeteer browsers install chrome && pnpm run build --filter api
+    buildCommand: pnpm install && pnpm --filter api exec puppeteer browsers install chrome && pnpm run build --filter api
     startCommand: pnpm --filter api run start:prod
     envVars:
       - key: PUPPETEER_CACHE_DIR
