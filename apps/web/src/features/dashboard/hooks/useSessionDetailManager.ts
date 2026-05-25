@@ -56,11 +56,14 @@ export const useSessionDetailManager = (id?: string) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `session-${session.id}.html`; 
+      a.download = `informe-${session.patientName.replace(/\s+/g, '-')}-${session.id}.pdf`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading PDF:', error);
+      alert('No se pudo descargar el informe. Intente nuevamente.');
     }
   }, [session]);
 

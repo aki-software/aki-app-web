@@ -309,7 +309,7 @@ export function BehavioralMethodologyPanel({
         role="dialog"
         aria-modal="true"
         aria-label="Metodología de Análisis Conductual"
-        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-app-surface shadow-2xl border-l border-app-border animate-in slide-in-from-right duration-300"
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-app-bg shadow-2xl border-l border-app-border animate-in slide-in-from-right duration-300"
       >
         {/* Header */}
         <div className="flex items-center gap-4 border-b border-app-border p-6">

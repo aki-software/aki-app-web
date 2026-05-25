@@ -20,6 +20,7 @@ import { CompleteSessionDto } from './dto/complete-session.dto.js';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { SendReportDto } from './dto/send-report.dto.js';
 import { ReportService } from './services/report.service.js';
+import { PdfService } from '../common/services/pdf.service.js';
 import { SessionCompleteMapperService } from './services/session-complete-mapper.service.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
@@ -40,6 +41,7 @@ export class SessionsController {
     private readonly sessionCompleteMapper: SessionCompleteMapperService,
     private readonly sessionMetricsService: SessionMetricsService,
     private readonly reportService: ReportService,
+    private readonly pdfService: PdfService,
     private readonly adminDashboardService: AdminDashboardService,
   ) {}
 
@@ -235,12 +237,19 @@ export class SessionsController {
 
     const reportData = await this.reportService.buildReportData(session);
     const html = this.reportService.renderReportPdfHtml(reportData);
+    const pdfBuffer = await this.pdfService.generateFromHtml(html);
 
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    const safeName = (session.patientName ?? 'informe')
+      .replace(/[^a-z0-9\s-]/gi, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .toLowerCase();
+
+    res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="session-${sessionId}.html"`,
+      `attachment; filename="informe-${safeName}-${sessionId}.pdf"`,
     );
-    res.send(html);
+    res.send(pdfBuffer);
   }
 }
