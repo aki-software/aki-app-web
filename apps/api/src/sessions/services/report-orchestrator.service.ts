@@ -55,13 +55,53 @@ export class ReportOrchestratorService {
 
     this.logger.debug(`Sending report for session: ${sessionId}`);
 
-    return await this.reportDeliveryService.deliverReport(
-      targetEmail,
-      sessionId,
-      voucherIdForLogging,
-      cached.reportData,
-      cached.pdfBuffer,
-      cached.reportUrl,
+    const deliveryCacheKey = `delivery:${sessionId}:${targetEmail}`;
+    const deliveryLockKey = `lock:${deliveryCacheKey}`;
+
+    // Fast-path: delivery already completed successfully (e.g. second request hits after first finishes)
+    const previousResult = this.reportCacheService.get<{
+      success: boolean;
+      message: string;
+    }>(deliveryCacheKey);
+    if (previousResult) {
+      this.logger.debug(
+        `Delivery already completed for session: ${sessionId}, returning cached result`,
+      );
+      return previousResult;
+    }
+
+    // Slow-path: acquire lock so concurrent requests don't double-send
+    return await this.reportCacheService.withLock(
+      deliveryLockKey,
+      async () => {
+        // Re-check inside lock (another request may have finished while we waited)
+        const cachedDelivery = this.reportCacheService.get<{
+          success: boolean;
+          message: string;
+        }>(deliveryCacheKey);
+        if (cachedDelivery) {
+          this.logger.debug(
+            `Delivery already completed (post-lock check) for session: ${sessionId}`,
+          );
+          return cachedDelivery;
+        }
+
+        const result = await this.reportDeliveryService.deliverReport(
+          targetEmail,
+          sessionId,
+          voucherIdForLogging,
+          cached.reportData,
+          cached.pdfBuffer,
+          cached.reportUrl,
+        );
+
+        // Only cache on success — failed deliveries should remain retryable
+        if (result.success) {
+          this.reportCacheService.set(deliveryCacheKey, result, 10 * 60 * 1000);
+        }
+
+        return result;
+      },
     );
   }
 
