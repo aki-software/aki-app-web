@@ -410,6 +410,24 @@ La forma correcta de validar Google Play Billing es por capas:
 
 ---
 
+## Matriz de pruebas
+
+> Nota: mientras la compra esté en `PENDING`, idealmente **no se llama al endpoint de verificación**. La verificación real empieza cuando Play la pasa a `PURCHASED`.
+
+| Caso | Entorno | Cuenta | Método / input | Backend esperado | App esperado |
+|---|---|---|---|---|---|
+| Mock local de UI | Unit/UI tests | N/A | Fake `BillingClient` + fake backend | No llamadas reales | Estados correctos: loading, error, success, cancel |
+| Compra aprobada | Internal test track | License tester | Test instrument que aprueba | `valid` → marca `PAID` | Desbloquea el informe y envía el reporte |
+| Compra rechazada | Internal test track | License tester | Test instrument que rechaza | No persiste entitlement | Vuelve al paywall sin desbloquear |
+| Compra pendiente → aprobada | Internal test track | License tester | Slow test card que aprueba luego | No verifica mientras está `PENDING`; luego `valid` cuando pasa a `PURCHASED` | No desbloquea hasta que llegue el estado final |
+| Compra pendiente → rechazada | Internal test track | License tester | Slow test card que declina luego | No verifica mientras está `PENDING`; luego `invalid`/cancel | No desbloquea y mantiene el flujo recuperable |
+| Duplicado / retry | Internal test track o restore | License tester | Reenviar el mismo `purchaseToken` | `duplicate` / already processed | Trata la respuesta como idempotente, sin doble envío |
+| Restore después de reinicio | Internal test track | License tester | Cerrar app y reabrir con compra previa | Revalida compra ya hecha | Recupera el entitlement con `queryPurchasesAsync` |
+| Sin acknowledge | Internal test track | License tester | No hacer acknowledge en el build de prueba | La compra termina revertida/refunded | No se considera pagada; debe reintentarse |
+| Smoke test con pago real | Track de test o producción | No license tester | Método de pago real | `valid` y persistencia real | Confirma que la pasarela cobra y desbloquea |
+
+---
+
 ## Próximo paso recomendado
 
 Empezar por el contrato del backend y el PR 1 de Android en paralelo.  
