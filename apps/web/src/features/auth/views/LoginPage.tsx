@@ -20,7 +20,17 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('expired') === 'true') {
+        return "Tu sesión ha expirado por inactividad. Por favor, volvé a ingresar.";
+      }
+    } catch {
+      // Ignorar
+    }
+    return null;
+  });
   const [darkMode] = useState(true); 
   const [redirectTo] = useState(() => {
     try {
