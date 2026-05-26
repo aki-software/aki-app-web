@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
-  let sessionsService: SessionsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,7 +27,6 @@ describe('PaymentsService', () => {
     }).compile();
 
     service = module.get<PaymentsService>(PaymentsService);
-    sessionsService = module.get<SessionsService>(SessionsService);
   });
 
   it('should be defined', () => {

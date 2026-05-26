@@ -35,9 +35,11 @@ describe('PaymentsController', () => {
         productId: 'report_unlock',
         purchaseToken: 'token-abc',
       };
-      
+
       const expectedResult = { success: true };
-      jest.mocked(service.verifyGooglePlayPurchase).mockResolvedValue(expectedResult);
+      jest
+        .mocked(service.verifyGooglePlayPurchase)
+        .mockResolvedValue(expectedResult);
 
       const result = await controller.verifyGooglePlay(dto);
 
