@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  AuthUserPayload,
-  FirebaseJwtPayload,
-  JwtPayload,
-} from '@akit/contracts';
+import type { AuthUserPayload, JwtPayload } from '@akit/contracts';
+
+interface LocalFirebaseJwtPayload {
+  role?: string;
+  user_id?: string;
+}
 
 @Injectable()
 export class AuthUserFactory {
@@ -11,15 +12,14 @@ export class AuthUserFactory {
     payload: JwtPayload,
     isFirebase: boolean,
   ): AuthUserPayload {
+    const firebasePayload = payload as unknown as LocalFirebaseJwtPayload;
     const role = this.normalizeRole(
-      isFirebase
-        ? ((payload as FirebaseJwtPayload).role ?? 'PATIENT')
-        : payload.role,
+      isFirebase ? (firebasePayload.role ?? 'PATIENT') : payload.role,
     );
 
     return {
       userId: isFirebase
-        ? ((payload as FirebaseJwtPayload).user_id ?? payload.sub)
+        ? (firebasePayload.user_id ?? payload.sub)
         : payload.sub,
       email: payload.email,
       role,
