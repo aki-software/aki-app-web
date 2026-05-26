@@ -139,11 +139,29 @@ export class UserRegistrationService {
     const passwordSetupToken = this.cryptoService.generateToken(24);
     const passwordSetupExpiresAt = this.buildPasswordSetupExpiry();
 
-    return await this.usersService.register({
+    const updatedUser = await this.usersService.register({
       ...user,
       passwordSetupToken,
       passwordSetupExpiresAt,
     });
+
+    if (
+      updatedUser.passwordSetupToken &&
+      updatedUser.email &&
+      !updatedUser.email.endsWith('@akit.local')
+    ) {
+      const activationLink = this.usersService.buildPasswordSetupLink(
+        updatedUser.passwordSetupToken,
+      );
+      await this.notifier.notifyAccountActivation(
+        updatedUser.email,
+        updatedUser.name,
+        activationLink,
+        updatedUser.institution?.name ?? null,
+      );
+    }
+
+    return updatedUser;
   }
 
   async getOrCreateIndividualTestsOwner(): Promise<User> {

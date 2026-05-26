@@ -39,6 +39,7 @@ Dado que este proyecto es un **Monorepo**, toda la documentación técnica detal
 ### 💻 Aplicaciones Individuales
 
 - 🔙 **[API Backend (NestJS)](docs/api-backend.md):** Stack técnico en profundidad (TypeORM, BullMQ, AWS S3), flujos de asincronía y convenciones de controladores.
+- 💰 **[Monetización del Informe sin Voucher](docs/report-unlock-monetization.md):** Plan de implementación del unlock pagado, contrato backend/Android y setup de Play Console.
 - 🎨 **[Web Frontend (React+Vite)](docs/web-frontend.md):** Detalles sobre Tailwind v4, Vitest, JSDOM y arquitectura Feature-first.
 - *(Para la App Móvil, consultar el repositorio hermano `CotejoApp` que cuenta con su propia documentación `README.md` a profundidad).*
 

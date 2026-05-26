@@ -1,6 +1,6 @@
 import { API_URL } from "../config/app-config";
 export { API_URL };
-import { getStoredToken } from "../utils/storage";
+import { getStoredToken, clearStoredAuth } from "../utils/storage";
 import { ApiErrorResponse } from "@akit/contracts";
 
 export interface RequestOptions extends RequestInit {
@@ -45,6 +45,11 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        clearStoredAuth();
+        window.location.href = '/login?expired=true';
+      }
+
       let errorData: unknown;
       try {
         errorData = await response.json();

@@ -74,9 +74,11 @@ export class SessionMetricsService {
   }
 
   private calculateSpeedScore(avgTimeMs: number): number {
-    if (avgTimeMs >= 1000 && avgTimeMs <= 3000) return 100;
-    if (avgTimeMs < 1000) return Math.max(0, 100 - (1000 - avgTimeMs) / 10);
-    return Math.max(0, 100 - (avgTimeMs - 3000) / 100);
+    // Solo penalizamos la impulsividad real: respuestas < 1s indican que
+    // el paciente no leyó la tarjeta. Los tiempos lentos (reflexivos) no
+    // penalizan — tomarse tiempo para decidir no es falta de fiabilidad.
+    if (avgTimeMs >= 1000) return 100;
+    return Math.max(0, 100 - (1000 - avgTimeMs) / 10);
   }
 
   async getMetricsBySessionId(sessionId: string): Promise<SessionMetrics> {
