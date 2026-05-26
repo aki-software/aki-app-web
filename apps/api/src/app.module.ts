@@ -12,6 +12,7 @@ import { InstitutionsModule } from './institutions/institutions.module.js';
 import { VouchersModule } from './vouchers/vouchers.module.js';
 import { StatsModule } from './stats/stats.module.js';
 import { CommonModule } from './common/common.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CommonModule } from './common/common.module.js';
     InstitutionsModule,
     VouchersModule,
     StatsModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],
