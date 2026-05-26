@@ -63,7 +63,11 @@ export class MailService {
     subject: string;
     html: string;
     text?: string;
-    attachments?: Array<{ filename: string; content: Buffer; contentType?: string }>;
+    attachments?: Array<{
+      filename: string;
+      content: Buffer;
+      contentType?: string;
+    }>;
   }): Promise<boolean> {
     try {
       if (this.transportType === 'smtp' && this.transporter) {
@@ -158,13 +162,15 @@ export class MailService {
         subject: `📊 Tu Informe Vocacional`,
         html: htmlContent,
         text: textContent,
-        attachments: pdfAttachment ? [
-          {
-            filename: `Informe_Vocacional_${cleanPatientName.replace(/\s+/g, '_')}.pdf`,
-            content: pdfAttachment,
-            contentType: 'application/pdf',
-          },
-        ] : undefined,
+        attachments: pdfAttachment
+          ? [
+              {
+                filename: `Informe_Vocacional_${cleanPatientName.replace(/\s+/g, '_')}.pdf`,
+                content: pdfAttachment,
+                contentType: 'application/pdf',
+              },
+            ]
+          : undefined,
       };
       const success = await this.dispatchEmail(mailOptions);
       return success;

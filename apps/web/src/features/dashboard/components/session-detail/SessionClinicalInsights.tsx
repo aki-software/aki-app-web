@@ -1,6 +1,7 @@
-import { BrainCircuit, ActivitySquare, AlertCircle, HeartCrack, Info, Zap } from "lucide-react";
-import { useMemo } from "react";
+import { BrainCircuit, ActivitySquare, AlertCircle, HeartCrack, Info, Zap, BookOpen } from "lucide-react";
+import { useMemo, useState } from "react";
 import { CategoryData } from "@akit/contracts";
+import { BehavioralMethodologyPanel } from "./BehavioralMethodologyPanel";
 
 interface SwipeData {
   cardId: string;
@@ -15,6 +16,8 @@ interface SessionClinicalInsightsProps {
 }
 
 export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinicalInsightsProps) {
+  const [methodologyOpen, setMethodologyOpen] = useState(false);
+
   const insights = useMemo(() => {
     if (!swipes || swipes.length === 0) return null;
 
@@ -82,6 +85,8 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
     // 2. Análisis de Dudas y Conflicto
     let maxUndosCat = "";
     let maxUndosCount = 0;
+    const totalUndos = Object.values(undosPerCategory).reduce((a, b) => a + b, 0);
+
     Object.entries(undosPerCategory).forEach(([cat, count]) => {
       if (count > maxUndosCount) {
         maxUndosCount = count;
@@ -92,10 +97,15 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
     if (maxUndosCount > 0) {
       const catKey = maxUndosCat.toUpperCase();
       const catName = categoriesMap[catKey]?.title || maxUndosCat;
+      // Bug 3 fix: determinar si fue exclusivo o predominante para no mentir al terapeuta
+      const otherUndos = totalUndos - maxUndosCount;
+      const isExclusive = otherUndos === 0;
+      const adverb = isExclusive ? "exclusivamente" : "principalmente";
+
       items.push({
         title: "Foco de Conflicto",
         desc: `La mayor cantidad de dudas y retrocesos ocurrieron en el área de ${catName}. Excelente punto para explorar en sesión.`,
-        info: `Métrica: El paciente presionó "Deshacer" ${maxUndosCount} vez/veces exclusivamente en la categoría ${catName}, evidenciando inseguridad vocacional en este ámbito.`,
+        info: `Métrica: El paciente presionó "Deshacer" ${adverb} en la categoría ${catName} (${maxUndosCount} de ${totalUndos} retrocesos totales), evidenciando ambivalencia vocacional en este ámbito.`,
         icon: <AlertCircle className="h-5 w-5 text-yellow-500" />,
         color: "text-yellow-500",
         bg: "bg-yellow-500/10",
@@ -124,7 +134,7 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
       items.push({
         title: "Intereses Polarizados",
         desc: desc.trim(),
-        info: `Métrica: Basado en categorías donde vio al menos 4 tarjetas. Aceptación total (100% de likes) o Rechazo total (0% de likes) en áreas específicas.`,
+        info: `Métrica: Basado en categorías donde vio al menos 4 tarjetas. Aceptación total (100% de likes) o Rechazo total (0% de likes) en áreas específicas indican señales muy sólidas y confiables.`,
         icon: <Zap className="h-5 w-5 text-purple-500" />,
         color: "text-purple-500",
         bg: "bg-purple-500/10",
@@ -132,7 +142,12 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
     }
 
     // 4. Curva de fatiga
-    const validTimestamps = swipes.filter(s => s.timestamp).map(s => new Date(s.timestamp!).getTime());
+    // Bug 2 fix: ordenar cronológicamente antes de calcular cuartos
+    const validTimestamps = swipes
+      .filter(s => s.timestamp)
+      .map(s => new Date(s.timestamp!).getTime())
+      .sort((a, b) => a - b);
+
     if (validTimestamps.length > 20) {
       const firstQuarter = validTimestamps.slice(0, Math.floor(validTimestamps.length / 4));
       const lastQuarter = validTimestamps.slice(-Math.floor(validTimestamps.length / 4));
@@ -154,7 +169,7 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
         items.push({
           title: "Impulsividad o Fatiga Final",
           desc: `El ritmo promedio inicial (${(firstAvg / 1000).toFixed(1)}s por imagen) bajó drásticamente al final del test (${(lastAvg / 1000).toFixed(1)}s por imagen).`,
-          info: `Métrica: La velocidad del último 25% del test fue de ${(lastAvg / 1000).toFixed(1)}s, menos de la mitad del tiempo de lectura que mantenía al inicio (${(firstAvg / 1000).toFixed(1)}s).`,
+          info: `Métrica: La velocidad del último 25% del test fue de ${(lastAvg / 1000).toFixed(1)}s, menos de la mitad del tiempo de lectura que mantenía al inicio (${(firstAvg / 1000).toFixed(1)}s). Puede indicar cansancio o apuro al final.`,
           icon: <ActivitySquare className="h-5 w-5 text-orange-500" />,
           color: "text-orange-500",
           bg: "bg-orange-500/10",
@@ -168,47 +183,62 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
   if (!insights || insights.length === 0) return null;
 
   return (
-    <div className="app-card shadow-2xl h-full flex flex-col">
-      <div className="flex items-center gap-6 mb-8">
-        <div className="rounded-2xl bg-app-bg p-4 border border-app-border shadow-md">
-          <BrainCircuit className="h-8 w-8 text-app-primary" />
+    <>
+      <div className="app-card shadow-2xl h-full flex flex-col">
+        <div className="flex items-center gap-6 mb-8">
+          <div className="rounded-2xl bg-app-bg p-4 border border-app-border shadow-md">
+            <BrainCircuit className="h-8 w-8 text-app-primary" />
+          </div>
+          <div className="flex-1">
+            <h4 className="app-value !text-2xl mt-0">Análisis Conductual</h4>
+            <p className="app-label mt-2">
+              Patrones de comportamiento en sesión
+            </p>
+          </div>
+          <button
+            onClick={() => setMethodologyOpen(true)}
+            title="¿Cómo se calcula esto?"
+            className="flex items-center gap-2 rounded-xl border border-app-border bg-app-bg px-3 py-2 text-xs font-semibold text-app-text-muted hover:border-app-primary/40 hover:text-app-primary transition-all"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden sm:inline">¿Cómo funciona?</span>
+          </button>
         </div>
-        <div>
-          <h4 className="app-value !text-2xl mt-0">Análisis Conductual</h4>
-          <p className="app-label mt-2">
-            Patrones de comportamiento en sesión
-          </p>
+
+        <div className="flex flex-col gap-6 flex-1">
+          {insights.map((insight, idx) => (
+            <div key={idx} className="flex gap-4 p-5 rounded-2xl bg-app-bg border border-app-border items-start transition-all hover:shadow-md">
+              <div className={`p-3 rounded-xl ${insight.bg} flex-shrink-0 mt-1`}>
+                {insight.icon}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h5 className={`text-sm font-black uppercase tracking-wider ${insight.color}`}>
+                    {insight.title}
+                  </h5>
+                  {insight.info && (
+                    <div className="group relative flex items-center">
+                      <Info className="h-5 w-5 text-app-text-muted hover:text-app-primary cursor-help transition-colors" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 p-5 bg-app-text-main text-app-bg text-sm font-medium rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-20 text-left leading-relaxed">
+                        {insight.info}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-app-text-main" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm font-medium text-app-text-muted leading-relaxed">
+                  {insight.desc}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="flex flex-col gap-6 flex-1">
-        {insights.map((insight, idx) => (
-          <div key={idx} className="flex gap-4 p-5 rounded-2xl bg-app-bg border border-app-border items-start transition-all hover:shadow-md">
-            <div className={`p-3 rounded-xl ${insight.bg} flex-shrink-0 mt-1`}>
-              {insight.icon}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h5 className={`text-sm font-black uppercase tracking-wider ${insight.color}`}>
-                  {insight.title}
-                </h5>
-                {insight.info && (
-                  <div className="group relative flex items-center">
-                    <Info className="h-5 w-5 text-app-text-muted hover:text-app-primary cursor-help transition-colors" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 p-5 bg-app-text-main text-app-bg text-sm font-medium rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-20 text-left leading-relaxed">
-                      {insight.info}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-app-text-main" />
-                    </div>
-                  </div>
-                )}
-              </div>
-              <p className="text-sm font-medium text-app-text-muted leading-relaxed">
-                {insight.desc}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      <BehavioralMethodologyPanel
+        open={methodologyOpen}
+        onClose={() => setMethodologyOpen(false)}
+      />
+    </>
   );
 }
