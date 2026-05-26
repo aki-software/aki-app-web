@@ -108,7 +108,7 @@ export function DashboardUsers() {
                 institution={inst}
                 onEdit={() => setEditingInst(inst)}
                 onToggleStatus={() => handleToggleStatus(inst)}
-                onResendActivation={() => onCardAction(handleResendActivation(inst.id), inst.id)}
+                onResendActivation={() => inst.responsibleTherapistUserId && onCardAction(handleResendActivation(inst.responsibleTherapistUserId), inst.id)}
                 isResendingActivation={activeAsyncId === inst.id}
                 onCreateOperationalAccount={(data) => onCardAction(handleCreateOperational(data.institutionId, data.email), inst.id)}
                 isCreatingOperationalAccount={activeAsyncId === inst.id}
