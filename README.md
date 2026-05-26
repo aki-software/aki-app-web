@@ -63,4 +63,3 @@ graph LR
     Test --> Build[Build Afectados]
     Build --> Merge{Merge a dev?}
 ```
-

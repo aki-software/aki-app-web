@@ -40,7 +40,12 @@ import { SendReportHandler } from './jobs/handlers/send-report.handler.js';
       useFactory: (
         bullMqAdapter: BullMQQueueAdapter,
         inMemoryAdapter: InMemoryQueueAdapter,
-      ) => (bullMqAdapter.isEnabled ? bullMqAdapter : inMemoryAdapter),
+      ) => {
+        const enableBullMq = process.env.ENABLE_BULLMQ === 'true';
+        return enableBullMq && bullMqAdapter.isEnabled
+          ? bullMqAdapter
+          : inMemoryAdapter;
+      },
       inject: [BullMQQueueAdapter, InMemoryQueueAdapter],
     },
     IdempotencyService,
