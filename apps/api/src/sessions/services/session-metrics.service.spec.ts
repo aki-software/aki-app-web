@@ -110,9 +110,11 @@ describe('SessionMetricsService', () => {
   describe('reliabilityLevel assignment', () => {
     it('returns "Muy Alta" when score >= 85', async () => {
       // gap=2000ms → speedScore=100, 0 undos → reliabilityScore = 70 + 30 = 100
-      sessionsRepository.findOne.mockResolvedValue(buildSessionWith(2000, 0));
+      sessionsRepository.findOne.mockResolvedValue(buildSessionWith(2000));
       await service.calculateAndSaveMetrics('session-1');
-      expect(metricsRepository.save.mock.calls[0][0].reliabilityLevel).toBe('Muy Alta');
+      expect(metricsRepository.save.mock.calls[0][0].reliabilityLevel).toBe(
+        'Muy Alta',
+      );
     });
 
     it('returns "Baja" when undo percentage is very high', async () => {
@@ -148,7 +150,7 @@ describe('SessionMetricsService', () => {
 
   // ─── helper usada en tests de nivel ─────────────────────────────────────────
 
-  function buildSessionWith(gapMs: number, _undos: number): Session {
+  function buildSessionWith(gapMs: number): Session {
     const base = new Date('2024-01-01T10:00:00.000Z').getTime();
     const swipes = Array.from({ length: 5 }, (_, i) => ({
       cardId: `card-${i}`,
@@ -156,6 +158,10 @@ describe('SessionMetricsService', () => {
       isLiked: true,
       timestamp: new Date(base + i * gapMs),
     }));
-    return { id: 'session-1', totalTimeMs: 5 * gapMs, swipes } as unknown as Session;
+    return {
+      id: 'session-1',
+      totalTimeMs: 5 * gapMs,
+      swipes,
+    } as unknown as Session;
   }
 });

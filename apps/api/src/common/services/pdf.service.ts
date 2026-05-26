@@ -112,7 +112,7 @@ export class PdfService implements OnModuleDestroy {
           '--single-process',
           '--no-zygote',
           '--memory-pressure-off',
-          '--js-flags=--max-old-space-size=256'
+          '--js-flags=--max-old-space-size=256',
         ],
       })
       .then((browser) => {

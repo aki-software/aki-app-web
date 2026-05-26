@@ -8,7 +8,12 @@ describe('ReportOrchestratorService — delivery idempotency', () => {
 
   const sessionId = 'session-abc';
   const targetEmail = 'patient@example.com';
-  const mockReportData = { patientName: 'Juan', hollandCode: 'RIS', summary: null, tripletInsight: null };
+  const mockReportData = {
+    patientName: 'Juan',
+    hollandCode: 'RIS',
+    summary: null,
+    tripletInsight: null,
+  };
   const mockSession = {
     id: sessionId,
     voucherId: null,
@@ -19,11 +24,18 @@ describe('ReportOrchestratorService — delivery idempotency', () => {
 
   beforeEach(() => {
     cacheService = new ReportCacheService();
-    deliverReport = jest.fn().mockResolvedValue({ success: true, message: 'ok' });
+    deliverReport = jest
+      .fn()
+      .mockResolvedValue({ success: true, message: 'ok' });
 
-    const mockReportService = { buildReportData: jest.fn().mockResolvedValue(mockReportData) };
+    const mockReportService = {
+      buildReportData: jest.fn().mockResolvedValue(mockReportData),
+    };
     const mockGeneratorService = {
-      generateAndUploadPdf: jest.fn().mockResolvedValue({ pdfBuffer: undefined, reportUrl: 'https://example.com/report.pdf' }),
+      generateAndUploadPdf: jest.fn().mockResolvedValue({
+        pdfBuffer: undefined,
+        reportUrl: 'https://example.com/report.pdf',
+      }),
     };
     const mockDeliveryService = { deliverReport };
     const mockSessionRepository = {
@@ -65,7 +77,10 @@ describe('ReportOrchestratorService — delivery idempotency', () => {
   });
 
   it('debería reintentar el envío si el primero falló (no cachear fallas)', async () => {
-    deliverReport.mockResolvedValueOnce({ success: false, message: 'error de red' });
+    deliverReport.mockResolvedValueOnce({
+      success: false,
+      message: 'error de red',
+    });
 
     const first = await service.sendReport(sessionId, targetEmail);
     expect(first.success).toBe(false);

@@ -71,38 +71,35 @@ export class ReportOrchestratorService {
     }
 
     // Slow-path: acquire lock so concurrent requests don't double-send
-    return await this.reportCacheService.withLock(
-      deliveryLockKey,
-      async () => {
-        // Re-check inside lock (another request may have finished while we waited)
-        const cachedDelivery = this.reportCacheService.get<{
-          success: boolean;
-          message: string;
-        }>(deliveryCacheKey);
-        if (cachedDelivery) {
-          this.logger.debug(
-            `Delivery already completed (post-lock check) for session: ${sessionId}`,
-          );
-          return cachedDelivery;
-        }
-
-        const result = await this.reportDeliveryService.deliverReport(
-          targetEmail,
-          sessionId,
-          voucherIdForLogging,
-          cached.reportData,
-          cached.pdfBuffer,
-          cached.reportUrl,
+    return await this.reportCacheService.withLock(deliveryLockKey, async () => {
+      // Re-check inside lock (another request may have finished while we waited)
+      const cachedDelivery = this.reportCacheService.get<{
+        success: boolean;
+        message: string;
+      }>(deliveryCacheKey);
+      if (cachedDelivery) {
+        this.logger.debug(
+          `Delivery already completed (post-lock check) for session: ${sessionId}`,
         );
+        return cachedDelivery;
+      }
 
-        // Only cache on success — failed deliveries should remain retryable
-        if (result.success) {
-          this.reportCacheService.set(deliveryCacheKey, result, 10 * 60 * 1000);
-        }
+      const result = await this.reportDeliveryService.deliverReport(
+        targetEmail,
+        sessionId,
+        voucherIdForLogging,
+        cached.reportData,
+        cached.pdfBuffer,
+        cached.reportUrl,
+      );
 
-        return result;
-      },
-    );
+      // Only cache on success — failed deliveries should remain retryable
+      if (result.success) {
+        this.reportCacheService.set(deliveryCacheKey, result, 10 * 60 * 1000);
+      }
+
+      return result;
+    });
   }
 
   private async findOne(id: string, scope?: SessionScope): Promise<Session> {
