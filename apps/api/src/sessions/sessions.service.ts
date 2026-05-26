@@ -18,6 +18,7 @@ import { SessionScope } from './types/session-scope.type.js';
 import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
 
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
+import { SessionPaymentStatus } from '@akit/contracts';
 
 @Injectable()
 export class SessionsService {
@@ -226,6 +227,23 @@ export class SessionsService {
     }
 
     return await qb.orderBy('session.createdAt', 'DESC').getMany();
+  }
+
+  async updatePaymentStatus(
+    id: string,
+    status: SessionPaymentStatus,
+    reference?: string,
+  ): Promise<Session> {
+    const session = await this.findOne(id);
+    session.paymentStatus = status;
+    if (reference) {
+      session.paymentReference = reference;
+    }
+    if (status === SessionPaymentStatus.PAID) {
+      session.paidAt = new Date();
+      session.reportUnlockedAt = new Date();
+    }
+    return await this.sessionRepository.save(session);
   }
 
   protected _isUuid(value?: string | null): value is string {
