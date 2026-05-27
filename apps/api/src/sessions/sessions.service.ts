@@ -50,6 +50,11 @@ export class SessionsService {
     const where: FindOptionsWhere<Session> = {};
 
     if (scope) {
+      // El administrador tiene acceso global e ilimitado; no se le aplican filtros de alcance
+      if (scope.role?.toUpperCase() === 'ADMIN') {
+        return where;
+      }
+
       if (scope.institutionId) {
         where.institutionId = scope.institutionId;
       } else if (scope.therapistUserId) {
