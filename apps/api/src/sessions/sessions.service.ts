@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository, In, DataSource } from 'typeorm';
+import { type FindOptionsWhere, Repository, In, DataSource, Not } from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { Session } from './entities/session.entity.js';
 
@@ -54,6 +54,10 @@ export class SessionsService {
       if (scope.role?.toUpperCase() === 'ADMIN') {
         return where;
       }
+
+      // Las sesiones pagadas (PAID) son privadas del usuario que compró el informe.
+      // Nunca deben ser visibles en el dashboard de terapeutas o instituciones.
+      where.paymentStatus = Not(SessionPaymentStatus.PAID);
 
       if (scope.institutionId) {
         where.institutionId = scope.institutionId;
