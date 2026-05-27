@@ -13,6 +13,7 @@ import { VouchersModule } from './vouchers/vouchers.module.js';
 import { StatsModule } from './stats/stats.module.js';
 import { CommonModule } from './common/common.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
+import { HealthController } from './health.controller.js';
 
 @Module({
   imports: [
@@ -54,7 +55,7 @@ import { PaymentsModule } from './payments/payments.module.js';
     StatsModule,
     PaymentsModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}
