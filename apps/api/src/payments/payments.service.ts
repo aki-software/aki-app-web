@@ -32,6 +32,16 @@ export class PaymentsService {
       return { success: true, valid: true };
     }
 
+    const existingSession = await this.sessionsService.findByPaymentToken(
+      dto.purchaseToken,
+    );
+    if (existingSession && existingSession.id !== session.id) {
+      this.logger.warn(
+        `Purchase token ${dto.purchaseToken} is already used by session ${existingSession.id}. Rejecting for session ${session.id}.`,
+      );
+      return { success: false, valid: false, reason: 'ALREADY_CONSUMED' };
+    }
+
     const { packageName, serviceAccountBase64 } = this.getPlayBillingConfig();
 
     try {
