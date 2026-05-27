@@ -3,26 +3,26 @@ extends ./base-email.pug
 block bodyContent
   tr
     td(style="padding:26px 30px 8px;")
-      h1(style="margin:0 0 4px 0;font-size:26px;line-height:1.2;color:#{colors.text.primary};letter-spacing:0.02em;") Tu código de acceso al test
-      p(style="margin:0 0 8px 0;font-size:14px;color:#{colors.outline.light};")
+      h1(style=`margin:0 0 4px 0;font-size:26px;line-height:1.2;color:${colors.text.primary};letter-spacing:0.02em;`) Tu código de acceso al test
+      p(style=`margin:0 0 8px 0;font-size:14px;color:${colors.outline.light};`)
         | Hola
         if patientName
           |  
           strong #{patientName}
         | ,
-      p(style="margin:0 0 12px 0;font-size:14px;line-height:1.7;color:#{colors.outline.light};") Te enviaron un código para realizar tu test vocacional en A.kit.
+      p(style=`margin:0 0 12px 0;font-size:14px;line-height:1.7;color:${colors.outline.light};`) Te enviaron un código para realizar tu test vocacional en A.kit.
 
   tr
     td(style="padding:6px 30px 10px;")
-      div(style="background:#{colors.surface.light};border:2px dashed #{colors.surface.variantLight};border-radius:12px;padding:28px;text-align:center;")
-        span(style="font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:900;color:#{colors.primary.DEFAULT};letter-spacing:4px;display:block;margin-bottom:8px;") #{voucherCode}
-        span(style="font-size:10px;color:#{colors.outline.light};font-weight:bold;text-transform:uppercase;") CÓDIGO ÚNICO
+      div(style=`background:${colors.surface.light};border:2px dashed ${colors.surface.variantLight};border-radius:12px;padding:28px;text-align:center;`)
+        span(style=`font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:900;color:${colors.primary.DEFAULT};letter-spacing:4px;display:block;margin-bottom:8px;`) #{voucherCode}
+        span(style=`font-size:10px;color:${colors.outline.light};font-weight:bold;text-transform:uppercase;`) CÓDIGO ÚNICO
 
   tr
     td(style="padding:12px 30px 26px;")
-      table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #{colors.surface.variantLight};background:#{colors.surface.light};border-radius:16px;box-shadow:0 10px 20px rgba(15,107,104,0.08);")
+      table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`border:1px solid ${colors.surface.variantLight};background:${colors.surface.light};border-radius:16px;box-shadow:0 10px 20px rgba(15,107,104,0.08);`)
         tr
           td(style="padding:18px;")
-            a(href=testUrl style="display:inline-block;padding:12px 18px;background:#{colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 8px 16px rgba(15,107,104,0.25);") Comenzar mi test
-            p(style="margin:10px 0 0 0;font-size:12px;color:#{colors.outline.light};word-break:break-all;") #{testUrl}
+            a(href=testUrl style=`display:inline-block;padding:12px 18px;background:${colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 8px 16px rgba(15,107,104,0.25);`) Comenzar mi test
+            p(style=`margin:10px 0 0 0;font-size:12px;color:${colors.outline.light};word-break:break-all;`) #{testUrl}
 

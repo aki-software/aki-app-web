@@ -338,9 +338,12 @@ export class MailService {
     const normalized = name?.trim();
     if (!normalized) return null;
 
-    const lowerName = normalized.toLowerCase();
+    let lowerName = normalized.toLowerCase();
     const lowerEmail = email?.trim().toLowerCase();
-    if (lowerName.includes('@')) return null;
+    if (lowerName.includes('@')) {
+      lowerName = lowerName.split('@')[0];
+      return lowerName.charAt(0).toUpperCase() + lowerName.slice(1);
+    }
     if (lowerEmail && lowerName === lowerEmail) return null;
     return normalized;
   }
