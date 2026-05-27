@@ -3,29 +3,29 @@ extends ./base-email.pug
 block bodyContent
   tr
     td(style="padding:26px 30px 8px;")
-      h1(style="margin:0 0 4px 0;font-size:26px;line-height:1.2;color:#{colors.text.primary};letter-spacing:0.02em;") Activá tu cuenta
+      h1(style=`margin:0 0 4px 0;font-size:26px;line-height:1.2;color:${colors.text.primary};letter-spacing:0.02em;`) Activá tu cuenta
       if greetingName
-        p(style="margin:0 0 8px 0;font-size:14px;color:#{colors.outline.light};")
+        p(style=`margin:0 0 8px 0;font-size:14px;color:${colors.outline.light};`)
           | Hola 
           strong #{greetingName}
           | ,
       else
-        p(style="margin:0 0 8px 0;font-size:14px;color:#{colors.outline.light};") Hola,
-      p(style="margin:0 0 8px 0;font-size:14px;line-height:1.7;color:#{colors.outline.light};")
+        p(style=`margin:0 0 8px 0;font-size:14px;color:${colors.outline.light};`) Hola,
+      p(style=`margin:0 0 8px 0;font-size:14px;line-height:1.7;color:${colors.outline.light};`)
         | Te dimos acceso a A.kit
         if institutionName
           |  para 
           strong #{institutionName}
         | .
-      p(style="margin:0 0 12px 0;font-size:14px;line-height:1.7;color:#{colors.outline.light};") Para definir tu contraseña inicial y entrar al panel, usá este enlace:
+      p(style=`margin:0 0 12px 0;font-size:14px;line-height:1.7;color:${colors.outline.light};`) Para definir tu contraseña inicial y entrar al panel, usá este enlace:
 
   tr
     td(style="padding:6px 30px 26px;")
-      table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #{colors.surface.variantLight};background:#{colors.surface.light};border-radius:16px;box-shadow:0 10px 20px rgba(15,107,104,0.08);")
+      table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`border:1px solid ${colors.surface.variantLight};background:${colors.surface.light};border-radius:16px;box-shadow:0 10px 20px rgba(15,107,104,0.08);`)
         tr
           td(style="padding:18px;")
-            a(href=activationLink style="display:inline-block;padding:12px 18px;background:#{colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 8px 16px rgba(15,107,104,0.25);") Activar cuenta
-            p(style="margin:12px 0 0 0;font-size:12px;color:#{colors.outline.light};") Si el botón no funciona, copiá y pegá este enlace:
-            p(style="margin:6px 0 0 0;padding:10px 12px;background:#{colors.background.light};border:1px dashed #{colors.surface.variantLight};border-radius:10px;font-size:11px;font-family:'Courier New',Courier,monospace;color:#{colors.outline.light};word-break:break-all;") #{activationLink}
-            p(style="margin:10px 0 0 0;font-size:12px;color:#{colors.outline.light};") Este enlace vence en 72 horas.
+            a(href=activationLink style=`display:inline-block;padding:12px 18px;background:${colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 8px 16px rgba(15,107,104,0.25);`) Activar cuenta
+            p(style=`margin:12px 0 0 0;font-size:12px;color:${colors.outline.light};`) Si el botón no funciona, copiá y pegá este enlace:
+            p(style=`margin:6px 0 0 0;padding:10px 12px;background:${colors.background.light};border:1px dashed ${colors.surface.variantLight};border-radius:10px;font-size:11px;font-family:'Courier New',Courier,monospace;color:${colors.outline.light};word-break:break-all;`) #{activationLink}
+            p(style=`margin:10px 0 0 0;font-size:12px;color:${colors.outline.light};`) Este enlace vence en 72 horas.
 
