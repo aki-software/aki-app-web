@@ -55,15 +55,20 @@ export class SessionsService {
         return where;
       }
 
+      const isPatient = scope.role?.toUpperCase() === 'PATIENT';
+
       // Las sesiones pagadas (PAID) son privadas del usuario que compró el informe.
       // Nunca deben ser visibles en el dashboard de terapeutas o instituciones.
-      where.paymentStatus = Not(SessionPaymentStatus.PAID);
+      // IMPORTANTE: NO excluir para PATIENT, ya que el paciente necesita ver su propia sesión.
+      if (!isPatient) {
+        where.paymentStatus = Not(SessionPaymentStatus.PAID);
+      }
 
       if (scope.institutionId) {
         where.institutionId = scope.institutionId;
       } else if (scope.therapistUserId) {
         where.therapistUserId = scope.therapistUserId;
-      } else if (scope.patientId && scope.role?.toUpperCase() === 'PATIENT') {
+      } else if (scope.patientId && isPatient) {
         where.patientId = scope.patientId;
       }
     }
