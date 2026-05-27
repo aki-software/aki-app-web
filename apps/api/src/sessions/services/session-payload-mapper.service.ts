@@ -32,17 +32,21 @@ export class SessionPayloadMapperService {
     return {
       id: payloadId || undefined,
       therapistUserId:
-        payloadTherapistUserId ||
-        voucher?.ownerUserId ||
-        (isTherapistUser ? (user?.id ?? undefined) : undefined) ||
-        fallbackOwner?.id ||
-        undefined,
+        (!isTherapistUser && !voucher)
+          ? (fallbackOwner?.id || undefined)
+          : (payloadTherapistUserId ||
+             voucher?.ownerUserId ||
+             (isTherapistUser ? (user?.id ?? undefined) : undefined) ||
+             fallbackOwner?.id ||
+             undefined),
       institutionId:
-        payloadInstitutionId ||
-        voucher?.ownerInstitutionId ||
-        user?.institutionId ||
-        fallbackOwner?.institutionId ||
-        undefined,
+        (!isTherapistUser && !voucher)
+          ? undefined
+          : (payloadInstitutionId ||
+             voucher?.ownerInstitutionId ||
+             user?.institutionId ||
+             fallbackOwner?.institutionId ||
+             undefined),
       patientId:
         (payloadPatientId ?? undefined) ||
         (!isTherapistUser ? (payloadUserId ?? undefined) : undefined),
