@@ -144,6 +144,12 @@ export class SessionsService {
     return session;
   }
 
+  async findByPaymentToken(token: string): Promise<Session | null> {
+    return await this.sessionRepository.findOne({
+      where: { paymentReference: token },
+    });
+  }
+
   async update(
     id: string,
     updateSessionDto: Partial<CreateSessionDto>,
