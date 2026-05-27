@@ -112,14 +112,15 @@ export class PaymentsService {
       return { success: false, valid: false, reason: 'PURCHASE_NOT_VALID' };
     }
 
-    if (purchase.acknowledgementState === 0) {
-      await publisher.purchases.products.acknowledge({
-        packageName,
-        productId: dto.productId,
-        token: dto.purchaseToken,
-      });
-      this.logger.log(`Acknowledged purchase for token ${dto.purchaseToken}`);
-    }
+    // Consume the purchase so the product becomes available for re-purchase.
+    // This is intentional: report_unlock is a consumable — each test session
+    // must be unlocked independently. Consuming resets ownership in Google Play.
+    await publisher.purchases.products.consume({
+      packageName,
+      productId: dto.productId,
+      token: dto.purchaseToken,
+    });
+    this.logger.log(`Consumed purchase for token ${dto.purchaseToken}`);
 
     await this.sessionsService.updatePaymentStatus(
       sessionId,
