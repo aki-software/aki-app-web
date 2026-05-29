@@ -80,7 +80,7 @@ export class PdfService implements OnModuleDestroy {
       // La cerramos y evitamos devolverla al pool.
       try {
         await page.close();
-      } catch (closeError) {
+      } catch {
         // Ignoramos errores al forzar el cierre
       }
       return;
