@@ -15,9 +15,11 @@ import { TresAreasCombination } from '../tres-areas/entities/tres-areas-combinat
 
 dotenv.config();
 
+const databaseHost = process.env.DATABASE_HOST || 'localhost';
+
 export const typeOrmConfig: PostgresConnectionOptions = {
   type: 'postgres',
-  host: process.env.DATABASE_HOST || 'localhost',
+  host: databaseHost,
   port: parseInt(process.env.DATABASE_PORT || '5432', 10),
   username: process.env.DATABASE_USER || 'test_user',
   password: process.env.DATABASE_PASSWORD || 'test_password',
@@ -36,10 +38,7 @@ export const typeOrmConfig: PostgresConnectionOptions = {
   ],
   migrations: ['dist/migrations/*.js'],
   synchronize: false,
-  ssl:
-    process.env.DATABASE_HOST !== 'localhost'
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
 };
 
 export default new DataSource(typeOrmConfig);
