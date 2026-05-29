@@ -76,11 +76,11 @@ export class PdfService implements OnModuleDestroy {
       this.logger.warn(
         `PDF page reset failed: ${(error as Error)?.message ?? 'unknown'}`,
       );
-      // Si falla el reset (ej. 'detached Frame'), la página quedó corrupta. 
+      // Si falla el reset (ej. 'detached Frame'), la página quedó corrupta.
       // La cerramos y evitamos devolverla al pool.
       try {
         await page.close();
-      } catch {
+      } catch (closeError) {
         // Ignoramos errores al forzar el cierre
       }
       return;
