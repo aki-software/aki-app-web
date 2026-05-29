@@ -6,7 +6,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository, In, DataSource, Not } from 'typeorm';
+import {
+  type FindOptionsWhere,
+  Repository,
+  In,
+  DataSource,
+  Not,
+} from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { Session } from './entities/session.entity.js';
 
