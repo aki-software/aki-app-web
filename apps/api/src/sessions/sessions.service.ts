@@ -56,6 +56,20 @@ export class SessionsService {
     const where: FindOptionsWhere<Session> = {};
 
     if (scope) {
+      // Si el scope no tiene ningún dato de autenticación (petición pública/anónima),
+      // no aplicamos ningún filtro restrictivo. Esto permite que endpoints públicos
+      // como /send-report puedan encontrar sesiones PAID correctamente.
+      const hasAuth = !!(
+        scope.role ||
+        scope.institutionId ||
+        scope.therapistUserId ||
+        scope.patientId
+      );
+
+      if (!hasAuth) {
+        return where;
+      }
+
       // El administrador tiene acceso global e ilimitado; no se le aplican filtros de alcance
       if (scope.role?.toUpperCase() === 'ADMIN') {
         return where;

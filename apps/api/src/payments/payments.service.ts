@@ -50,7 +50,7 @@ export class PaymentsService {
         androidPublisher,
         packageName,
         dto,
-        session.id,
+        session,
       );
     } catch (error) {
       const errorMessage =
@@ -105,15 +105,36 @@ export class PaymentsService {
     publisher: androidpublisher_v3.Androidpublisher,
     packageName: string,
     dto: VerifyPlayPurchaseDto,
-    sessionId: string,
+    session: { id: string; paymentReference?: string | null; paymentStatus?: SessionPaymentStatus },
   ) {
-    const response = await publisher.purchases.products.get({
-      packageName,
-      productId: dto.productId,
-      token: dto.purchaseToken,
-    });
+    let purchase: androidpublisher_v3.Schema$ProductPurchase;
 
-    const purchase = response.data;
+    try {
+      const response = await publisher.purchases.products.get({
+        packageName,
+        productId: dto.productId,
+        token: dto.purchaseToken,
+      });
+      purchase = response.data;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Google Play already consumed / detached the token. If our session already
+      // references this token, treat it as an idempotent success instead of failing
+      // the unlock flow again on retries or duplicate callbacks.
+      if (
+        errorMessage.toLowerCase().includes('not owned by the user') &&
+        (session.paymentReference === dto.purchaseToken ||
+          session.paymentStatus === SessionPaymentStatus.PAID)
+      ) {
+        this.logger.warn(
+          `Purchase token ${dto.purchaseToken} is no longer owned but session ${session.id} already references it. Treating as idempotent success.`,
+        );
+        return { success: true, valid: true };
+      }
+
+      throw error;
+    }
 
     if (purchase.purchaseState !== 0) {
       this.logger.warn(
@@ -122,18 +143,15 @@ export class PaymentsService {
       return { success: false, valid: false, reason: 'PURCHASE_NOT_VALID' };
     }
 
-    // Consume the purchase so the product becomes available for re-purchase.
-    // This is intentional: report_unlock is a consumable — each test session
-    // must be unlocked independently. Consuming resets ownership in Google Play.
-    await publisher.purchases.products.consume({
-      packageName,
-      productId: dto.productId,
-      token: dto.purchaseToken,
-    });
-    this.logger.log(`Consumed purchase for token ${dto.purchaseToken}`);
-
+    // El consumo de la compra lo realiza EXCLUSIVAMENTE el cliente de Android
+    // (billingRepository.consumePurchase) después de recibir una respuesta exitosa
+    // de este endpoint. Consumir aquí en el backend destruye la idempotencia:
+    // si la DB falla post-consume, el token desaparece de Google Play pero la
+    // sesión queda en PENDING. En el reintento, Google retorna "not owned" y
+    // la compra se pierde. Al delegar el consume al cliente, este endpoint
+    // puede ser reintentado de forma segura ante cualquier falla de red o DB.
     await this.sessionsService.updatePaymentStatus(
-      sessionId,
+      session.id,
       SessionPaymentStatus.PAID,
       dto.purchaseToken,
     );
