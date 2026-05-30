@@ -40,9 +40,11 @@ describe('PaymentsService', () => {
     const publisher = {
       purchases: {
         products: {
-          get: jest.fn().mockRejectedValue(
-            new Error('The product purchase is not owned by the user.'),
-          ),
+          get: jest
+            .fn()
+            .mockRejectedValue(
+              new Error('The product purchase is not owned by the user.'),
+            ),
           consume: jest.fn(),
         },
       },
@@ -82,8 +84,12 @@ describe('PaymentsService', () => {
       },
     } as any;
 
-    const mockSessionsService = service['sessionsService'] as jest.Mocked<SessionsService>;
-    (mockSessionsService.updatePaymentStatus as jest.Mock).mockResolvedValue({});
+    const mockSessionsService = service[
+      'sessionsService'
+    ] as jest.Mocked<SessionsService>;
+    (mockSessionsService.updatePaymentStatus as jest.Mock).mockResolvedValue(
+      {},
+    );
 
     const session = {
       id: 'session-2',

@@ -105,7 +105,11 @@ export class PaymentsService {
     publisher: androidpublisher_v3.Androidpublisher,
     packageName: string,
     dto: VerifyPlayPurchaseDto,
-    session: { id: string; paymentReference?: string | null; paymentStatus?: SessionPaymentStatus },
+    session: {
+      id: string;
+      paymentReference?: string | null;
+      paymentStatus?: SessionPaymentStatus;
+    },
   ) {
     let purchase: androidpublisher_v3.Schema$ProductPurchase;
 
@@ -117,7 +121,8 @@ export class PaymentsService {
       });
       purchase = response.data;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
 
       // Google Play already consumed / detached the token. If our session already
       // references this token, treat it as an idempotent success instead of failing
