@@ -59,13 +59,16 @@ export class ReportService {
       .sort((a, b) => b.percentage - a.percentage)
       .slice(0, 3)
       .map((res) => {
-        const normalizedCategoryId = this.categoryParser.normalizeCategoryId(res.categoryId);
+        const normalizedCategoryId = this.categoryParser.normalizeCategoryId(
+          res.categoryId,
+        );
         const catInfo = categoriesById.get(normalizedCategoryId);
         const description = catInfo
           ? catInfo.description
           : res.materialSnippet || 'Información no disponible.';
 
-        const parsedBlocks = this.categoryParser.parseCategoryDescription(description);
+        const parsedBlocks =
+          this.categoryParser.parseCategoryDescription(description);
 
         parsedBlocks.forEach((block) => {
           if (
@@ -99,8 +102,13 @@ export class ReportService {
       });
 
     const summary = this.buildReportSummary(formattedResults);
-    const tripletInsight = await this.buildTripletInsight(topResults, categoriesById);
-    const hollandPercentages = this.hollandCalculator.calculatePercentages(session.results || []);
+    const tripletInsight = await this.buildTripletInsight(
+      topResults,
+      categoriesById,
+    );
+    const hollandPercentages = this.hollandCalculator.calculatePercentages(
+      session.results || [],
+    );
 
     const cleanPatientName = session.patientName
       .replace(/\s*\(.*?\)\s*/g, '')
@@ -124,7 +132,10 @@ export class ReportService {
 
   private async buildTripletInsight(
     topResults: Array<{ categoryId: string }>,
-    categoriesById: Map<string, { categoryId: string; title: string; description: string }>,
+    categoriesById: Map<
+      string,
+      { categoryId: string; title: string; description: string }
+    >,
   ): Promise<ReportTripletInsight | null> {
     if (topResults.length < 3) {
       return null;
@@ -133,7 +144,9 @@ export class ReportService {
     const areaNames = topResults
       .slice(0, 3)
       .map((result) => {
-        const normalizedId = this.categoryParser.normalizeCategoryId(result.categoryId);
+        const normalizedId = this.categoryParser.normalizeCategoryId(
+          result.categoryId,
+        );
         return (
           AREA_BY_CATEGORY_ID[normalizedId] ??
           categoriesById.get(normalizedId)?.title ??
@@ -166,7 +179,9 @@ export class ReportService {
     };
   }
 
-  private buildReportSummary(formattedResults: CategoryResult[]): ReportSummary {
+  private buildReportSummary(
+    formattedResults: CategoryResult[],
+  ): ReportSummary {
     const primary = formattedResults[0];
     const rankedAreas = formattedResults.map((result) => ({
       title: result.title,

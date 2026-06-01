@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
@@ -157,10 +162,9 @@ export class ReportOrchestratorService {
 
     // Pacientes: solo sus propias sesiones
     if (role === 'PATIENT') {
-      query
-        .andWhere('session.patientId = :patientId', {
-          patientId: scope.patientId, 
-        });
+      query.andWhere('session.patientId = :patientId', {
+        patientId: scope.patientId,
+      });
       return;
     }
 
