@@ -36,7 +36,7 @@ export class UserRegistrationService {
       const existingUser = await this.usersService.findByEmail(email);
       if (existingUser) {
         if (normalizedRole === UserRole.PATIENT) {
-          if (name && existingUser.name !== name) {
+          if (name && existingUser.name !== name && existingUser.role === UserRole.PATIENT) {
             existingUser.name = name;
             await this.usersService.register(existingUser);
           }
