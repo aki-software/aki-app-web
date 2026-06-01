@@ -59,7 +59,12 @@ describe('UserRegistrationService', () => {
     const role = UserRole.THERAPIST;
 
     it('should throw BadRequestException if email already exists and role is not PATIENT', async () => {
-      const existingUser = { id: '1', name: 'Old Name', email, role: UserRole.THERAPIST };
+      const existingUser = {
+        id: '1',
+        name: 'Old Name',
+        email,
+        role: UserRole.THERAPIST,
+      };
       usersService.findByEmail.mockResolvedValue(existingUser);
 
       await expect(service.register({ name, email, role })).rejects.toThrow(
@@ -69,11 +74,20 @@ describe('UserRegistrationService', () => {
     });
 
     it('should return existing user and update name if role is PATIENT', async () => {
-      const existingUser = { id: '1', name: 'Old Name', email, role: UserRole.PATIENT };
+      const existingUser = {
+        id: '1',
+        name: 'Old Name',
+        email,
+        role: UserRole.PATIENT,
+      };
       usersService.findByEmail.mockResolvedValue(existingUser);
       usersService.register.mockResolvedValue({ ...existingUser, name });
 
-      const result = await service.register({ name, email, role: UserRole.PATIENT });
+      const result = await service.register({
+        name,
+        email,
+        role: UserRole.PATIENT,
+      });
 
       expect(usersService.register).toHaveBeenCalledWith(
         expect.objectContaining({ name, email }),
