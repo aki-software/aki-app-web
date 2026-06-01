@@ -20,6 +20,15 @@ export class JobDispatcherService {
     this.handlers.set(JobNames.SendReport, this.sendReportHandler);
   }
 
+  /**
+   * Allows domain modules to register their own handlers at startup without
+   * creating circular module dependencies with CommonModule.
+   */
+  registerHandler(handler: JobHandler): void {
+    this.logger.debug(`Registering handler for job=${handler.name}`);
+    this.handlers.set(handler.name, handler);
+  }
+
   async dispatch(jobName: JobNames, payload: unknown): Promise<unknown> {
     const handler = this.handlers.get(jobName);
     if (!handler) {

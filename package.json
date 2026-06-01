@@ -16,10 +16,17 @@
     "dev:web": "pnpm --filter web dev",
     "dev:marketing": "turbo run dev --filter=@akit/site --filter=web",
     "build:site": "pnpm --filter @akit/site build",
-    "preview:site": "pnpm --filter @akit/site preview"
+    "preview:site": "pnpm --filter @akit/site preview",
+    "test:stress:db": "node scripts/stress-db.mjs",
+    "test:stress:puppeteer": "node scripts/stress-puppeteer.mjs",
+    "test:stress:queue": "node scripts/stress-queue.mjs",
+    "test:stress:cleanup": "node scripts/cleanup-stress-data.mjs",
+    "test:flow": "node scripts/test-report-flow.mjs"
   },
   "devDependencies": {
     "@types/passport-jwt": "^4.0.1",
+    "@types/pg": "^8.20.0",
+    "pg": "^8.19.0",
     "turbo": "^2.8.12"
   },
   "dependencies": {

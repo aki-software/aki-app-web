@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VouchersModule } from '../vouchers/vouchers.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
@@ -31,6 +31,8 @@ import { VoucherRedemptionModule } from '../common/modules/voucher-redemption.mo
 import { CategoryParserService } from './services/category-parser.service.js';
 import { HollandCalculatorService } from './services/holland-calculator.service.js';
 import { ReportPdfRendererService } from './services/report-pdf-renderer.service.js';
+import { CalculateMetricsHandler } from './services/calculate-metrics.handler.js';
+import { JobDispatcherService } from '../common/services/job-dispatcher.service.js';
 
 @Module({
   imports: [
@@ -69,7 +71,17 @@ import { ReportPdfRendererService } from './services/report-pdf-renderer.service
     SessionPayloadMapperService,
     SessionSyncKeyService,
     RateLimitGuard,
+    CalculateMetricsHandler,
   ],
   exports: [SessionsService, SessionMetricsService],
 })
-export class SessionsModule {}
+export class SessionsModule implements OnModuleInit {
+  constructor(
+    private readonly jobDispatcher: JobDispatcherService,
+    private readonly calculateMetricsHandler: CalculateMetricsHandler,
+  ) {}
+
+  onModuleInit(): void {
+    this.jobDispatcher.registerHandler(this.calculateMetricsHandler);
+  }
+}

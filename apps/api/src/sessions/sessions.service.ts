@@ -20,7 +20,7 @@ import { Session } from './entities/session.entity.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
-import { SessionMetricsService } from './services/session-metrics.service.js';
+import { JobNames } from '../common/jobs/job-names.js';
 import { SessionScope } from './types/session-scope.type.js';
 import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
 
@@ -36,7 +36,6 @@ export class SessionsService {
     private readonly sessionRepository: Repository<Session>,
 
     private readonly reportOrchestratorService: ReportOrchestratorService,
-    private readonly sessionMetricsService: SessionMetricsService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
     private readonly dataSource: DataSource,
@@ -137,14 +136,18 @@ export class SessionsService {
       }
       throw new ConflictException('No se pudo crear la sesión');
     }
-    try {
-      await this.sessionMetricsService.calculateAndSaveMetrics(savedSession.id);
-    } catch (error: unknown) {
-      this.logger.warn(
-        `Failed to calculate metrics for session ${savedSession.id}:`,
-        error,
-      );
-    }
+
+    // Encolar el cálculo de métricas de forma asíncrona.
+    // La API responde inmediatamente después de guardar la sesión sin bloquear
+    // al cliente Android mientras se calculan las métricas en segundo plano.
+    this.queueAdapter
+      .enqueue(JobNames.CalculateMetrics, { sessionId: savedSession.id })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(
+          `Failed to enqueue calculate-metrics for session ${savedSession.id}: ${msg}`,
+        );
+      });
 
     return { session: savedSession, duplicated: false };
   }

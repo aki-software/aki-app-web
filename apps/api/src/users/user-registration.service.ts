@@ -19,6 +19,8 @@ export interface RegisterUserDto {
 
 @Injectable()
 export class UserRegistrationService {
+  private individualTestsOwnerCache: User | null = null;
+
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
@@ -172,6 +174,10 @@ export class UserRegistrationService {
   }
 
   async getOrCreateIndividualTestsOwner(): Promise<User> {
+    if (this.individualTestsOwnerCache) {
+      return this.individualTestsOwnerCache;
+    }
+
     const email =
       this.configService.get<string>('INDIVIDUAL_TEST_OWNER_EMAIL') ||
       this.configService.get<string>('ADMIN_USER') ||
@@ -189,10 +195,13 @@ export class UserRegistrationService {
 
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
+      this.individualTestsOwnerCache = existingUser;
       return existingUser;
     }
 
-    return await this.register({ name, role, email, institutionId });
+    const newUser = await this.register({ name, role, email, institutionId });
+    this.individualTestsOwnerCache = newUser;
+    return newUser;
   }
 
   private buildPasswordSetupExpiry(): Date {
