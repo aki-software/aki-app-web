@@ -35,9 +35,17 @@ export class UserRegistrationService {
     if (email) {
       const existingUser = await this.usersService.findByEmail(email);
       if (existingUser) {
-        throw new BadRequestException(
-          'El correo electrónico ya está registrado por otro usuario.',
-        );
+        if (normalizedRole === UserRole.PATIENT) {
+          if (name && existingUser.name !== name) {
+            existingUser.name = name;
+            await this.usersService.register(existingUser);
+          }
+          return existingUser;
+        } else {
+          throw new BadRequestException(
+            'El correo electrónico ya está registrado por otro usuario.',
+          );
+        }
       }
     }
 
