@@ -26,6 +26,7 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
     const likeRatio = likes / totalSwipes;
 
     const items = [];
+    const normalIndicators: string[] = [];
 
     // 1. Índice de Selectividad (Sesgo de Respuesta)
     if (likeRatio > 0.75) {
@@ -110,6 +111,8 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
         color: "text-yellow-500",
         bg: "bg-yellow-500/10",
       });
+    } else {
+      normalIndicators.push("Foco de Conflicto (sin retrocesos significativos)");
     }
 
     // 3. Consolidación (Polarización)
@@ -139,6 +142,8 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
         color: "text-purple-500",
         bg: "bg-purple-500/10",
       });
+    } else {
+      normalIndicators.push("Distribución de Intereses (sin polarización extrema)");
     }
 
     // 4. Curva de fatiga
@@ -174,13 +179,19 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
           color: "text-orange-500",
           bg: "bg-orange-500/10",
         });
+      } else {
+        normalIndicators.push("Ritmo de Ejecución (sin fatiga o impulsividad detectada)");
       }
+    } else {
+      normalIndicators.push("Ritmo de Ejecución (muestra insuficiente para análisis de fatiga)");
     }
 
-    return items;
+    return { items, normalIndicators };
   }, [swipes, categoriesMap]);
 
-  if (!insights || insights.length === 0) return null;
+  if (!insights || insights.items.length === 0) return null;
+
+  const { items, normalIndicators } = insights;
 
   return (
     <>
@@ -206,7 +217,7 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
         </div>
 
         <div className="flex flex-col gap-6 flex-1">
-          {insights.map((insight, idx) => (
+          {items.map((insight, idx) => (
             <div key={idx} className="flex gap-4 p-5 rounded-2xl bg-app-bg border border-app-border items-start transition-all hover:shadow-md">
               <div className={`p-3 rounded-xl ${insight.bg} flex-shrink-0 mt-1`}>
                 {insight.icon}
@@ -232,6 +243,23 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
               </div>
             </div>
           ))}
+
+          {/* Descarte Positivo: indicadores dentro del rango normal */}
+          {normalIndicators.length > 0 && (
+            <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 px-5 py-4">
+              <p className="text-xs font-black uppercase tracking-widest text-emerald-500/60 mb-3">
+                ✓ Dentro de parámetros normales
+              </p>
+              <ul className="space-y-1.5">
+                {normalIndicators.map((label, i) => (
+                  <li key={i} className="flex items-center gap-2 text-xs font-medium text-app-text-muted/70">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/40 flex-shrink-0" />
+                    {label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 

@@ -105,7 +105,7 @@ export function DashboardResults() {
              <SearchInput
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar paciente, código Holland, terapeuta u organización..."
+              placeholder="Buscar paciente, código vocacional, terapeuta u organización..."
             />
           </div>
 

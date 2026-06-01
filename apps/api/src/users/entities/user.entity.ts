@@ -4,8 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Institution } from '../../institutions/entities/institution.entity.js';
 
@@ -17,6 +19,8 @@ export enum UserRole {
 }
 
 @Entity('users')
+@Index('IDX_users_institution_id', ['institutionId'])
+@Index('IDX_users_role', ['role'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -82,4 +86,7 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true, select: false })
+  deletedAt: Date | null;
 }

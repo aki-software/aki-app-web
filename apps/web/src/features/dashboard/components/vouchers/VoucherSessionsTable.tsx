@@ -203,7 +203,7 @@ export function VoucherSessionsTable({
                     <td colSpan={5} className="px-4 py-4">
                       <div className="space-y-2 text-sm">
                         <p>
-                          <strong>Holland Code:</strong> {session.hollandCode}
+                          <strong>Código Vocacional:</strong> {session.hollandCode}
                         </p>
                         <p>
                           <strong>Swipes Totales:</strong> {session.metrics?.totalSwipes}

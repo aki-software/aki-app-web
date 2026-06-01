@@ -1,6 +1,7 @@
 import { Building2 } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/hooks/useAuth";
 import { useInstitutionsManager } from "../hooks/useInstitutionsManager";
 import { Alert } from "../../../components/atoms/Alert";
 import { Select } from "../../../components/atoms/Select";
@@ -16,11 +17,21 @@ const ITEMS_PER_PAGE = 12;
 
 export function DashboardUsers() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
   const { 
     institutions, loading, saving, message, error, notify,
     loadData, handleCreate, handleUpdate, handleToggleStatus, 
-    handleResendActivation, handleCreateOperational 
+    handleResendActivation, handleCreateOperational, handleDelete
   } = useInstitutionsManager();
+
+  // Protección de ruta: solo ADMIN puede acceder
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAdmin, navigate]);
+
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "PENDING">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [formState, setFormState] = useState(initialFormState);
@@ -63,7 +74,7 @@ export function DashboardUsers() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-display font-bold text-app-text-main tracking-tight">Instituciones</h2>
-        <p className="mt-1 text-sm text-app-text-muted">Alta mínima de instituciones y su cuenta operativa.</p>
+        <p className="mt-1 text-sm text-app-text-muted">Alta de instituciones y sus respectivas cuentas de acceso.</p>
       </div>
 
       <Alert type="success" message={message || ""} />
@@ -108,6 +119,7 @@ export function DashboardUsers() {
                 institution={inst}
                 onEdit={() => setEditingInst(inst)}
                 onToggleStatus={() => handleToggleStatus(inst)}
+                onDelete={() => onCardAction(handleDelete(inst), inst.id)}
                 onResendActivation={() => inst.responsibleTherapistUserId && onCardAction(handleResendActivation(inst.responsibleTherapistUserId), inst.id)}
                 isResendingActivation={activeAsyncId === inst.id}
                 onCreateOperationalAccount={(data) => onCardAction(handleCreateOperational(data.institutionId, data.email), inst.id)}

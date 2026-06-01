@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, X } from "lucide-react";
 import { ReactNode } from "react";
 
 interface AlertProps {
@@ -6,9 +6,10 @@ interface AlertProps {
   message: string;
   className?: string;
   icon?: ReactNode;
+  onClose?: () => void;
 }
 
-export const Alert = ({ type, message, className = "" }: AlertProps) => {
+export const Alert = ({ type, message, className = "", onClose }: AlertProps) => {
   if (!message) return null;
 
   const isError = type === "error";
@@ -24,9 +25,17 @@ export const Alert = ({ type, message, className = "" }: AlertProps) => {
   const iconColor = isError ? "text-red-400" : "text-emerald-400";
 
   return (
-    <div className={`mb-5 flex items-start gap-3 rounded-xl border px-4 py-3 ${colorClasses} ${className}`}>
+    <div className={`mb-5 flex items-start gap-3 rounded-xl border px-4 py-3 relative group/alert ${colorClasses} ${className}`}>
       <Icon className={`mt-0.5 h-4 w-4 flex-shrink-0 ${iconColor}`} />
-      <p className="text-sm">{message}</p>
+      <p className="text-sm flex-1 pr-6">{message}</p>
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 p-0.5 rounded-md opacity-50 hover:opacity-100 hover:bg-black/10 transition-all"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 };

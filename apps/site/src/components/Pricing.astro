@@ -10,8 +10,8 @@ const { locale, t } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 
 const isEn = locale === 'en';
-const freeMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'A.kit Pilot Access Request' : 'Solicitud Acceso A.kit Piloto')}`;
-const premiumMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'A.kit Campus Plan Consultation' : 'Consulta Plan A.kit Campus')}`;
+const freeMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'A.ki Pilot Access Request' : 'Solicitud Acceso A.ki Piloto')}`;
+const premiumMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'A.ki Campus Plan Consultation' : 'Consulta Plan A.ki Campus')}`;
 ---
 
 <section class="py-24 md:py-32 relative bg-dark-bg overflow-hidden" id="precios">

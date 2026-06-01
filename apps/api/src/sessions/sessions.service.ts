@@ -12,6 +12,7 @@ import {
   In,
   DataSource,
   Not,
+  IsNull,
 } from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { Session } from './entities/session.entity.js';
@@ -58,7 +59,7 @@ export class SessionsService {
     if (scope) {
       // Si el scope no tiene ningún dato de autenticación (petición pública/anónima),
       // no aplicamos ningún filtro restrictivo. Esto permite que endpoints públicos
-      // como /send-report puedan encontrar sesiones PAID correctamente.
+      // como /send-report puedan encontrar sesiones correctamente.
       const hasAuth = !!(
         scope.role ||
         scope.institutionId ||
@@ -70,26 +71,33 @@ export class SessionsService {
         return where;
       }
 
-      // El administrador tiene acceso global e ilimitado; no se le aplican filtros de alcance
-      if (scope.role?.toUpperCase() === 'ADMIN') {
+      const role = scope.role?.toUpperCase();
+      const isPatient = role === 'PATIENT';
+      const isAdmin = role === 'ADMIN';
+
+      // Administrador: SOLO puede ver sesiones pagadas con tarjeta (sin voucher)
+      if (isAdmin) {
+        where.voucherId = IsNull();
         return where;
       }
 
-      const isPatient = scope.role?.toUpperCase() === 'PATIENT';
-
-      // Las sesiones pagadas (PAID) son privadas del usuario que compró el informe.
-      // Nunca deben ser visibles en el dashboard de terapeutas o instituciones.
-      // IMPORTANTE: NO excluir para PATIENT, ya que el paciente necesita ver su propia sesión.
-      if (!isPatient) {
-        where.paymentStatus = Not(SessionPaymentStatus.PAID);
+      // Paciente: Puede ver sus propias sesiones (sin importar cómo las pagó)
+      if (isPatient) {
+        where.patientId = scope.patientId;
+        return where;
       }
 
+      // Instituciones y Terapeutas: SOLO pueden ver sesiones de su autoría QUE TENGAN voucher.
+      // Así evitamos que vean sesiones referidas donde el paciente pagó con tarjeta por su cuenta.
       if (scope.institutionId) {
         where.institutionId = scope.institutionId;
+        where.voucherId = Not(IsNull());
       } else if (scope.therapistUserId) {
         where.therapistUserId = scope.therapistUserId;
-      } else if (scope.patientId && isPatient) {
-        where.patientId = scope.patientId;
+        where.voucherId = Not(IsNull());
+      } else {
+        // Fallback de seguridad absoluto si alguien con rol distinto a ADMIN/PATIENT no tiene IDs
+        where.id = '__forbidden__';
       }
     }
 

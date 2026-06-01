@@ -1,6 +1,7 @@
 import { AdminAlert } from "@akit/contracts";
-import { AlertOctagon, AlertTriangle, ArrowRight, Info } from "lucide-react";
+import { AlertOctagon, AlertTriangle, ArrowRight, Info, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "../../../../components/atoms/Button";
 
 interface AdminAlertsProps {
@@ -32,6 +33,9 @@ function getSeverityStyles(severity: AdminAlert["severity"]) {
 
 export function AdminAlerts({ alerts }: AdminAlertsProps) {
   const navigate = useNavigate();
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  const visibleAlerts = alerts.filter(alert => !dismissedIds.has(alert.id));
 
   return (
     <div className="app-card !p-6 md:!p-8 space-y-4 flex flex-col">
@@ -39,13 +43,13 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
       <div className="flex items-center justify-between gap-3 min-w-0 mb-2">
         <h3 className="app-label !text-xs opacity-70">Alertas Operativas</h3>
         <span className="text-[10px] font-black uppercase tracking-widest text-app-text-muted">
-          {alerts.length} incidencia(s)
+          {visibleAlerts.length} incidencia(s)
         </span>
       </div>
 
       {/* Contenido */}
-      <div className="flex-1 overflow-y-auto max-h-[320px]">
-        {alerts.length === 0 ? (
+      <div className="flex-1 overflow-y-auto max-h-[320px] pr-2">
+        {visibleAlerts.length === 0 ? (
           <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/5 px-5 py-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -71,11 +75,22 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {alerts.map((alert) => (
+            {visibleAlerts.map((alert) => (
               <div
                 key={alert.id}
-                className={`rounded-2xl border px-5 py-5 transition-all hover:scale-[1.01] ${getSeverityStyles(alert.severity)}`}
+                className={`rounded-2xl border px-5 py-5 transition-all hover:scale-[1.01] relative group/alert ${getSeverityStyles(alert.severity)}`}
               >
+                <button 
+                  onClick={() => {
+                    const next = new Set(dismissedIds);
+                    next.add(alert.id);
+                    setDismissedIds(next);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 rounded-full text-app-text-muted/50 opacity-0 group-hover/alert:opacity-100 hover:bg-app-text-main/5 hover:text-app-text-main transition-all"
+                  title="Descartar alerta"
+                >
+                  <X className="h-4 w-4" />
+                </button>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="shrink-0 p-2 bg-app-bg/50 rounded-xl border border-app-border/50">
                     {getSeverityIcon(alert.severity)}

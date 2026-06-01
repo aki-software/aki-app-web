@@ -5,12 +5,15 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity.js';
 import { Institution } from '../../institutions/entities/institution.entity.js';
 import { VoucherBatchStatus, VoucherOwnerType } from './voucher.enums.js';
 
 @Entity('voucher_batches')
+@Index('IDX_voucher_batches_owner_institution_id_status', ['ownerInstitutionId', 'status'])
+@Index('IDX_voucher_batches_owner_institution_id', ['ownerInstitutionId'])
 export class VoucherBatch {
   @PrimaryGeneratedColumn('uuid')
   id: string;

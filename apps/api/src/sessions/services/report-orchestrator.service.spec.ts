@@ -38,8 +38,15 @@ describe('ReportOrchestratorService — delivery idempotency', () => {
       }),
     };
     const mockDeliveryService = { deliverReport };
+    const mockQueryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue(mockSession),
+    };
+
     const mockSessionRepository = {
-      findOne: jest.fn().mockResolvedValue(mockSession),
+      createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
     };
 
     service = new ReportOrchestratorService(

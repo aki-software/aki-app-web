@@ -40,12 +40,12 @@ export class SessionMetricsService {
     const avgTime =
       durations.length > 0
         ? durations.reduce((a, b) => a + b) / durations.length
-        : 0;
+        : null;
     const minTime = durations.length > 0 ? Math.min(...durations) : 0;
     const maxTime = durations.length > 0 ? Math.max(...durations) : 0;
     const undoPercentage =
       totalSwipes > 0 ? (revertedMatches / totalSwipes) * 100 : 0;
-    const speedScore = this.calculateSpeedScore(avgTime);
+    const speedScore = avgTime !== null ? this.calculateSpeedScore(avgTime) : 100;
     const reliabilityScore = (100 - undoPercentage) * 0.7 + speedScore * 0.3;
 
     const reliabilityLevel =
@@ -63,7 +63,7 @@ export class SessionMetricsService {
       totalSwipes,
       uniqueCards,
       revertedMatches,
-      avgTimeBetweenSwipesMs: Math.round(avgTime),
+      avgTimeBetweenSwipesMs: Math.round(avgTime || 0),
       minTimeBetweenSwipesMs: Math.round(minTime),
       maxTimeBetweenSwipesMs: Math.round(maxTime),
       reliabilityScore: parseFloat(reliabilityScore.toFixed(2)),
@@ -74,9 +74,6 @@ export class SessionMetricsService {
   }
 
   private calculateSpeedScore(avgTimeMs: number): number {
-    // Solo penalizamos la impulsividad real: respuestas < 1s indican que
-    // el paciente no leyó la tarjeta. Los tiempos lentos (reflexivos) no
-    // penalizan — tomarse tiempo para decidir no es falta de fiabilidad.
     if (avgTimeMs >= 1000) return 100;
     return Math.max(0, 100 - (1000 - avgTimeMs) / 10);
   }

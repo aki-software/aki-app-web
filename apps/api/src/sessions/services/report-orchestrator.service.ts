@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
 import { ReportService } from './report.service.js';
 import { ReportCacheService } from './report-cache.service.js';
@@ -8,6 +8,7 @@ import { ReportGeneratorService } from './report-generator.service.js';
 import { ReportDeliveryService } from './report-delivery.service.js';
 import { SessionScope } from '../types/session-scope.type.js';
 import type { ReportData } from '../../common/types/report.types.js';
+import { SessionPaymentStatus } from '@akit/contracts';
 
 @Injectable()
 export class ReportOrchestratorService {
@@ -103,33 +104,83 @@ export class ReportOrchestratorService {
   }
 
   private async findOne(id: string, scope?: SessionScope): Promise<Session> {
-    const normalizedRole = scope?.role?.toUpperCase();
-    let where: any = {};
+    const query = this.sessionRepository
+      .createQueryBuilder('session')
+      .leftJoinAndSelect('session.results', 'results')
+      .leftJoinAndSelect('session.swipes', 'swipes')
+      .leftJoinAndSelect('session.institution', 'institution')
+      .leftJoinAndSelect('session.therapist', 'therapist')
+      .leftJoinAndSelect('session.voucher', 'voucher')
+      .where('session.id = :id', { id });
 
-    if (normalizedRole !== 'ADMIN') {
-      const scopedWhere =
-        normalizedRole === 'PATIENT' && scope?.patientId
-          ? { patientId: scope.patientId }
-          : scope?.therapistUserId
-            ? { therapistUserId: scope.therapistUserId }
-            : scope?.institutionId
-              ? { institutionId: scope.institutionId }
-              : { id: '__forbidden__' };
-      where = scopedWhere;
-    }
+    this.applySecurityBoundaries(query, scope);
 
-    if (id) {
-      where = { ...where, id };
-    }
-
-    const session = await this.sessionRepository.findOne({
-      where,
-      relations: ['results', 'swipes', 'institution', 'therapist', 'voucher'],
-    });
-
+    const session = await query.getOne();
     if (!session) {
-      throw new Error('Session not found');
+      throw new NotFoundException('Sesión no encontrada');
     }
+
+    // Validar monetización explícitamente para pacientes (los admin/instituciones no están sujetos a esta validación si llegan aquí)
+    if (scope?.role === 'PATIENT') {
+      if (
+        session.paymentStatus !== SessionPaymentStatus.PAID &&
+        session.paymentStatus !== SessionPaymentStatus.VOUCHER_REDEEMED
+      ) {
+        throw new BadRequestException(
+          'Cannot generate report for a pending payment session',
+        );
+      }
+    }
+
     return session;
+  }
+
+  /**
+   * Aplica barreras de seguridad declarativas por rol, usando early returns.
+   * Cualquier flujo no mapeado o no autenticado resulta en bloqueo absoluto (1 = 0).
+   */
+  private applySecurityBoundaries(
+    query: SelectQueryBuilder<Session>,
+    scope?: SessionScope,
+  ): void {
+    if (!scope?.role) {
+      query.andWhere('1 = 0');
+      return;
+    }
+
+    const role = scope.role.toUpperCase();
+
+    // Administradores: acceso total, sin restricciones adicionales
+    if (role === 'ADMIN') {
+      return;
+    }
+
+    // Pacientes: solo sus propias sesiones
+    if (role === 'PATIENT') {
+      query
+        .andWhere('session.patientId = :patientId', {
+          patientId: scope.patientId, 
+        });
+      return;
+    }
+
+    // Instituciones: sesiones que pertenezcan a su institución
+    if (scope.institutionId) {
+      query.andWhere('session.institutionId = :institutionId', {
+        institutionId: scope.institutionId,
+      });
+      return;
+    }
+
+    // Terapeutas: sesiones que hayan sido creadas por ellos
+    if (scope.therapistUserId) {
+      query.andWhere('session.therapistUserId = :therapistUserId', {
+        therapistUserId: scope.therapistUserId,
+      });
+      return;
+    }
+
+    // Fallback de seguridad absoluto para cualquier caso no contemplado
+    query.andWhere('1 = 0');
   }
 }
