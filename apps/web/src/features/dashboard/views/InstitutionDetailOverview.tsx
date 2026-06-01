@@ -1,5 +1,6 @@
 import { ArrowLeft, Building2 } from "lucide-react";
-import { useEffect, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { Alert } from "../../../components/atoms/Alert";
