@@ -5,9 +5,7 @@ import { CalculateMetricsJobPayload } from '../../common/jobs/calculate-metrics.
 import { SessionMetricsService } from './session-metrics.service.js';
 
 @Injectable()
-export class CalculateMetricsHandler
-  implements JobHandler<CalculateMetricsJobPayload>
-{
+export class CalculateMetricsHandler implements JobHandler<CalculateMetricsJobPayload> {
   readonly name = JobNames.CalculateMetrics;
   private readonly defaultTimeoutMs = 30_000;
   private readonly logger = new Logger(CalculateMetricsHandler.name);

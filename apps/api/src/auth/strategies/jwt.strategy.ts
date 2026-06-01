@@ -38,14 +38,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (this.isFirebasePayload(payload)) {
       this.firebaseClaimsValidator.assertFirebaseClaims(payload);
       const authUser = this.authUserFactory.buildUserFromPayload(payload, true);
-      
+
       if (authUser.email) {
-        const internalUser = await this.usersService.findByEmail(authUser.email);
+        const internalUser = await this.usersService.findByEmail(
+          authUser.email,
+        );
         if (internalUser) {
           authUser.userId = internalUser.id;
         }
       }
-      
+
       return authUser;
     }
 
