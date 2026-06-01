@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -35,10 +35,9 @@ export class UserRegistrationService {
     if (email) {
       const existingUser = await this.usersService.findByEmail(email);
       if (existingUser) {
-        return await this.usersService.register({
-          ...existingUser,
-          name,
-        });
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado por otro usuario.',
+        );
       }
     }
 

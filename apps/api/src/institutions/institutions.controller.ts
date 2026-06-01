@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -118,6 +121,13 @@ export class InstitutionsController {
       id: institution.id,
       isActive: institution.isActive,
     };
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id') id: string): Promise<void> {
+    await this.institutionsService.softRemove(id);
   }
 
   @Post(':id/operational-account')

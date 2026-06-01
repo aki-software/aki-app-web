@@ -1,5 +1,6 @@
 import { Activity, CreditCard, KeyRound } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useAuth } from "../../auth/hooks/useAuth";
 import { StatCard } from "../../../components/molecules/StatCard";
 import { useSessionDetailManager } from "../hooks/useSessionDetailManager";
 import { HollandRadarChart } from "../components/session-detail/HollandRadarChart";
@@ -15,7 +16,8 @@ export function SessionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const isInstitutionView = location.pathname.includes('/institutions');
+  const { user } = useAuth();
+  const isInstitutionView = location.pathname.includes('/institutions') || user?.role === 'INSTITUTION';
 
   const {
     session, 
@@ -82,7 +84,7 @@ export function SessionDetailPage() {
             <div className="app-card shadow-2xl relative overflow-hidden group">
               <div className="flex items-center justify-between mb-12">
                 <div>
-                  <h3 className="app-value !text-2xl mt-0">Perfil RIASEC</h3>
+                  <h3 className="app-value !text-2xl mt-0">Test Orient A.KI</h3>
                   <p className="app-label mt-3 opacity-60">DISTRIBUCIÓN DE INTERESES VOCACIONALES</p>
                 </div>
                 <div className="rounded-2xl bg-app-bg p-4 border border-app-border flex items-center justify-center transition-transform group-hover:rotate-12">

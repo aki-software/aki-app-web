@@ -4,6 +4,7 @@ import {
   clearStoredAuth,
   getStoredToken,
   getStoredUser,
+  isTokenExpired,
   setStoredToken,
   setStoredUser,
 } from '../../../utils/storage';
@@ -25,14 +26,23 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(() => {
     try {
+      const storedToken = getStoredToken();
+      if (!storedToken || isTokenExpired(storedToken)) {
+        clearStoredAuth();
+        return null;
+      }
       return getStoredUser<AuthUser>() || null;
     } catch {
       return null;
     }
   });
-  const [accessToken, setAccessToken] = useState<string | null>(() =>{
+  const [accessToken, setAccessToken] = useState<string | null>(() => {
     try {
-      return getStoredToken() || null;
+      const storedToken = getStoredToken();
+      if (!storedToken || isTokenExpired(storedToken)) {
+        return null;
+      }
+      return storedToken;
     } catch {
       return null;
     }

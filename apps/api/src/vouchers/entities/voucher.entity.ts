@@ -14,6 +14,9 @@ import { VoucherBatch } from './voucher-batch.entity.js';
 import { VoucherOwnerType, VoucherStatus } from './voucher.enums.js';
 
 @Entity('vouchers')
+@Index('IDX_vouchers_owner_institution_id_status', ['ownerInstitutionId', 'status'])
+@Index('IDX_vouchers_batch_id', ['batchId'])
+@Index('IDX_vouchers_status', ['status'])
 export class Voucher {
   @PrimaryGeneratedColumn('uuid')
   id: string;

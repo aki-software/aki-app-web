@@ -81,7 +81,7 @@ const { locale } = Astro.props;
             <circle cx="31.8" cy="60.5" r="1.5" fill="#f59e0b" filter="url(#glow)" />
             <circle cx="39.6" cy="44" r="1.5" fill="#e2e8f0" filter="url(#glow)" />
 
-            <!-- Dynamic labels (RIASEC letters positioned safely to avoid edge clipping) -->
+            <!-- Dynamic labels (Holland letters positioned safely to avoid edge clipping) -->
             <!-- R -->
             <text x="50" y="8" text-anchor="middle" fill="#a78bfa" font-size="6.5" font-weight="900" font-family="Sora, sans-serif">R</text>
             <!-- I -->
@@ -98,7 +98,7 @@ const { locale } = Astro.props;
         </div>
       </div>
 
-      <!-- RIASEC Information and Descriptions -->
+      <!-- Holland Information and Descriptions -->
       <div class="flex-1 text-center lg:text-left">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 reveal reveal-delay-1 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
           <p class="text-[11px] font-medium text-emerald-400 tracking-widest uppercase">
@@ -110,11 +110,11 @@ const { locale } = Astro.props;
         </h2>
         <p class="text-lg text-dark-muted leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
           {locale === 'es' 
-            ? 'A.kit mapea tus intereses mediante un enfoque científico de orientación vocacional validado globalmente. Identificamos tu afinidad en seis áreas clave de personalidad ocupacional para trazar el mapa de tu futuro.'
-            : 'A.kit maps your interests using a globally validated scientific approach in vocational guidance. We identify your affinity across six key areas of occupational personality to chart your future.'}
+            ? 'A.ki mapea tus intereses mediante un enfoque científico de orientación vocacional validado globalmente. Identificamos tu afinidad en seis áreas clave de personalidad ocupacional para trazar el mapa de tu futuro.'
+            : 'A.ki maps your interests using a globally validated scientific approach in vocational guidance. We identify your affinity across six key areas of occupational personality to chart your future.'}
         </p>
 
-        <!-- RIASEC Legend Grid with Modern Micro-Interactions -->
+        <!-- Legend Grid with Modern Micro-Interactions -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 reveal reveal-delay-3">
           {[
             { letter: 'R', label: locale === 'es' ? 'Realista' : 'Realistic', desc: locale === 'es' ? 'Hacer y construir' : 'Do & Build', color: 'border-violet-500/20 text-violet-400 bg-violet-500/10 hover:border-violet-500/50' },

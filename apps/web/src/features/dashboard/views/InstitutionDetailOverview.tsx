@@ -1,5 +1,6 @@
 import { ArrowLeft, Building2 } from "lucide-react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../auth/hooks/useAuth";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { Alert } from "../../../components/atoms/Alert";
 import { Button } from "../../../components/atoms/Button";
@@ -14,6 +15,15 @@ export function InstitutionDetailOverview() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+
+  // Protección de ruta: solo ADMIN puede acceder
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAdmin, navigate]);
 
   const state = (location.state ?? {}) as LocationState;
   const institutionName = state.institutionName;

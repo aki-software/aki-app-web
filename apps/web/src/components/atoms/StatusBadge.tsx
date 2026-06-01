@@ -50,9 +50,18 @@ export function StatusBadge({ isActive, status, type = "institution", className 
 interface ActivationBadgeProps {
   hasAccount: boolean;
   isActive?: boolean;
+  institutionSuspended?: boolean;
 }
 
-export function ActivationBadge({ hasAccount, isActive }: ActivationBadgeProps) {
+export function ActivationBadge({ hasAccount, isActive, institutionSuspended }: ActivationBadgeProps) {
+  if (institutionSuspended) {
+    return (
+      <span className="inline-flex rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-300">
+        Suspendida
+      </span>
+    );
+  }
+
   if (!hasAccount) {
     return (
       <span className="inline-flex rounded-full border border-app-border bg-app-bg px-2 py-0.5 text-[11px] font-medium text-app-text-muted">

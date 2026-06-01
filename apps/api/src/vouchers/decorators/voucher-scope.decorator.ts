@@ -17,10 +17,15 @@ export const CurrentVoucherScope = createParamDecorator(
 
     const isAdmin = user.role?.toUpperCase() === UserRole.ADMIN;
 
+    // Si se provee un nombre de clave (ej: 'clientId'), buscamos su valor real en el query o en los params de la request
+    const resolvedClientId = clientId && typeof clientId === 'string'
+      ? (request.query?.[clientId] || request.params?.[clientId])
+      : undefined;
+
     return {
       role: user.role,
       ownerUserId: user.userId,
-      ownerInstitutionId: isAdmin ? clientId : user.institutionId,
+      ownerInstitutionId: isAdmin ? resolvedClientId : user.institutionId,
     };
   },
 );

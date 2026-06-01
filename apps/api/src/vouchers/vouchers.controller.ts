@@ -81,6 +81,7 @@ export class VouchersController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('resolve')
   async resolve(@Body() resolveVoucherDto: ResolveVoucherDto) {
     const voucher = await this.vouchersService.resolveAvailableVoucher(
@@ -99,6 +100,7 @@ export class VouchersController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('redeem')
   async redeem(
     @Body() redeemVoucherDto: RedeemVoucherDto,

@@ -50,6 +50,16 @@ export function SetupPasswordPage() {
       return;
     }
 
+    if (!/[A-Z]/.test(password)) {
+      setError("La contraseña debe contener al menos una letra mayúscula.");
+      return;
+    }
+
+    if (!/\d/.test(password)) {
+      setError("La contraseña debe contener al menos un número.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
       return;
@@ -94,7 +104,9 @@ export function SetupPasswordPage() {
         <div className="space-y-5">
           {userInfo && (
             <div className="rounded-xl border border-app-border bg-app-bg px-4 py-3 text-sm text-app-text-muted">
-              <div className="font-medium text-app-text-main">{userInfo.name}</div>
+              {userInfo.name !== userInfo.email && (
+                <div className="font-medium text-app-text-main">{userInfo.name}</div>
+              )}
               <div>{userInfo.email}</div>
               <div className="mt-1 text-app-text-muted/80">
                 {userInfo.institutionName ?? userInfo.role}
@@ -104,15 +116,36 @@ export function SetupPasswordPage() {
           <Alert type="error" message={error || ""} />
           <Alert type="success" message={success || ""} />
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              id="setup-password"
-              type="password" 
-              label="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={submitting || !!success}
-              required
-            />
+            <div className="space-y-2">
+              <Input
+                id="setup-password"
+                type="password" 
+                label="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={submitting || !!success}
+                required
+              />
+              {password.length > 0 && (
+                <div className="rounded-xl border border-app-border bg-app-bg/50 p-3 space-y-2 text-xs">
+                  <div className="font-medium text-app-text-muted">Requisitos de la contraseña:</div>
+                  <div className="space-y-1.5">
+                    <div className={`flex items-center gap-2 ${password.length >= 8 ? "text-green-600 dark:text-green-400" : "text-app-text-muted"}`}>
+                      <div className={`h-1.5 w-1.5 rounded-full ${password.length >= 8 ? "bg-green-500" : "bg-app-text-muted/40"}`} />
+                      <span>Mínimo 8 caracteres</span>
+                    </div>
+                    <div className={`flex items-center gap-2 ${/[A-Z]/.test(password) ? "text-green-600 dark:text-green-400" : "text-app-text-muted"}`}>
+                      <div className={`h-1.5 w-1.5 rounded-full ${/[A-Z]/.test(password) ? "bg-green-500" : "bg-app-text-muted/40"}`} />
+                      <span>Al menos una letra mayúscula</span>
+                    </div>
+                    <div className={`flex items-center gap-2 ${/\d/.test(password) ? "text-green-600 dark:text-green-400" : "text-app-text-muted"}`}>
+                      <div className={`h-1.5 w-1.5 rounded-full ${/\d/.test(password) ? "bg-green-500" : "bg-app-text-muted/40"}`} />
+                      <span>Al menos un número</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <Input
               id="setup-confirm-password"

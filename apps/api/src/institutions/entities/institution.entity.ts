@@ -4,12 +4,15 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity.js';
 
 @Entity('institutions')
+@Index('IDX_institutions_name', ['name'])
 export class Institution {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -39,6 +42,9 @@ export class Institution {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true, select: false })
+  deletedAt!: Date | null;
 
   // Domain Methods for Encapsulation
   deactivate() {

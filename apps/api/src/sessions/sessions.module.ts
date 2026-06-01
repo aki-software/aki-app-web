@@ -28,6 +28,9 @@ import { SessionSyncKeyService } from './services/session-sync-key.service.js';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { TresAreasModule } from '../tres-areas/tres-areas.module.js';
 import { VoucherRedemptionModule } from '../common/modules/voucher-redemption.module.js';
+import { CategoryParserService } from './services/category-parser.service.js';
+import { HollandCalculatorService } from './services/holland-calculator.service.js';
+import { ReportPdfRendererService } from './services/report-pdf-renderer.service.js';
 
 @Module({
   imports: [
@@ -49,6 +52,9 @@ import { VoucherRedemptionModule } from '../common/modules/voucher-redemption.mo
   providers: [
     SessionsService,
     ReportService,
+    CategoryParserService,
+    HollandCalculatorService,
+    ReportPdfRendererService,
     AdminDashboardService,
     AdminDashboardStatsService,
     AdminDashboardQueriesService,

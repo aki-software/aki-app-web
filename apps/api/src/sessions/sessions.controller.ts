@@ -164,11 +164,12 @@ export class SessionsController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post(':id/send-report')
   async sendReport(
     @Param('id') id: string,
     @Body() sendReportDto: SendReportDto,
-    @Req() req?: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest,
   ) {
     return await this.sessionsService.sendReport(
       id,

@@ -7,6 +7,7 @@ import {
   OneToOne,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { SessionPaymentStatus } from '@akit/contracts';
 export { SessionPaymentStatus };
@@ -18,6 +19,11 @@ import { User } from '../../users/entities/user.entity.js';
 import { Institution } from '../../institutions/entities/institution.entity.js';
 
 @Entity('sessions')
+@Index('IDX_sessions_institution_id', ['institutionId'])
+@Index('IDX_sessions_therapist_user_id', ['therapistUserId'])
+@Index('IDX_sessions_payment_status', ['paymentStatus'])
+@Index('IDX_sessions_voucher_id', ['voucherId'])
+@Index('IDX_sessions_institution_id_created_at', ['institutionId', 'createdAt'])
 export class Session {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -26,6 +26,7 @@ export function DashboardVouchers() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   // 1. Stats & Metadata Hook
   const statsManager = useVoucherStats(user, isAdmin);
@@ -130,16 +131,23 @@ export function DashboardVouchers() {
     );
   }
 
+  const visibleAlerts = statsManager.alerts.filter(a => !dismissedAlerts.has(a.message));
+
   return (
     <div className="space-y-10 animate-in">
-      {statsManager.alerts.length > 0 && (
+      {visibleAlerts.length > 0 && (
         <div className="space-y-3">
-          {statsManager.alerts.map((alert, idx) => (
+          {visibleAlerts.map((alert, idx) => (
             <Alert 
               key={idx} 
               type={alert.severity === 'critical' ? "error" : "warning"} 
               message={alert.message} 
               icon={<AlertTriangle />}
+              onClose={() => {
+                const next = new Set(dismissedAlerts);
+                next.add(alert.message);
+                setDismissedAlerts(next);
+              }}
             />
           ))}
         </div>

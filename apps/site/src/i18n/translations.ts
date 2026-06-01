@@ -36,7 +36,7 @@ export const translations = {
     },
     howItWorks: {
       title: 'Cómo funciona',
-      subtitle: 'Descubrí cómo A.kit transforma la orientación vocacional.',
+      subtitle: 'Descubrí cómo A.ki transforma la orientación vocacional.',
       tabs: { student: 'Para Estudiantes', institution: 'Para Instituciones' },
       studentSteps: [
         { title: 'Clasificación Proyectiva', desc: 'Respondé de forma espontánea a un mazo dinámico de actividades. Lanzá cada tarjeta hacia tus áreas de atracción o descartala en segundos para capturar tus impulsos vocacionales.' },
@@ -44,7 +44,7 @@ export const translations = {
         { title: 'Recibí tu reporte', desc: 'Obtené un PDF ultra detallado con recomendaciones de carreras directamente en tu email.' },
       ],
       institutionSteps: [
-        { title: 'Solicitá acceso', desc: 'Obtené tu cuenta para el Dashboard Institucional de A.kit.' },
+        { title: 'Solicitá acceso', desc: 'Obtené tu cuenta para el Dashboard Institucional de A.ki.' },
         { title: 'Generá vouchers', desc: 'Creá códigos únicos para que tus estudiantes accedan al reporte completo gratis.' },
         { title: 'Monitoreá en vivo', desc: 'Accedé a analíticas de grupo en tiempo real y descargá reportes detallados en un clic.' },
       ],
@@ -73,8 +73,8 @@ export const translations = {
     pricing: {
       title: 'Planes Institucionales',
       subtitle: 'Llevá la orientación vocacional con IA a tu colegio o consultorio.',
-      free: { label: 'A.kit Piloto', features: ['Acceso al Dashboard Web', 'Hasta 10 estudiantes', 'Analíticas básicas', 'Soporte por email'], cta: 'Solicitar Piloto' },
-      premium: { badge: 'Pro', label: 'A.kit Campus', price: 'A medida', desc: 'Para colegios grandes y profesionales', features: ['Vouchers ilimitados', 'Múltiples orientadores', 'Analíticas de cohortes', 'Integración y soporte prioritario'], cta: 'Contactar a Ventas' },
+      free: { label: 'A.ki Piloto', features: ['Acceso al Dashboard Web', 'Hasta 10 estudiantes', 'Analíticas básicas', 'Soporte por email'], cta: 'Solicitar Piloto' },
+      premium: { badge: 'Pro', label: 'A.ki Campus', price: 'A medida', desc: 'Para colegios grandes y profesionales', features: ['Vouchers ilimitados', 'Múltiples orientadores', 'Analíticas de cohortes', 'Integración y soporte prioritario'], cta: 'Contactar a Ventas' },
     },
     faq: {
       title: 'Preguntas frecuentes',
@@ -104,7 +104,7 @@ export const translations = {
       title: 'Diseñando el futuro de la orientación vocacional',
       subtitle: 'Estamos preparando una experiencia revolucionaria para ayudarte a encontrar tu camino profesional con inteligencia artificial. Muy pronto vas a poder descargar la app y acceder al dashboard.',
       ctaContact: 'Consultas o Instituciones',
-      footer: '© 2026 A.kit. Todos los derechos reservados.',
+      footer: '© 2026 A.ki. Todos los derechos reservados.',
     },
     langSwitch: 'EN',
   },
@@ -145,7 +145,7 @@ export const translations = {
     },
     howItWorks: {
       title: 'How it works',
-      subtitle: 'Discover how A.kit transforms vocational guidance.',
+      subtitle: 'Discover how A.ki transforms vocational guidance.',
       tabs: { student: 'For Students', institution: 'For Institutions' },
       studentSteps: [
         { title: 'Projective Sorting', desc: 'Respond instinctively to a dynamic deck of activities. Flick each card toward your attraction zones or discard it in seconds to capture your raw vocational impulses.' },
@@ -153,7 +153,7 @@ export const translations = {
         { title: 'Receive your report', desc: 'Get a highly detailed PDF report with career recommendations sent straight to your email.' },
       ],
       institutionSteps: [
-        { title: 'Request access', desc: 'Get your account for the custom A.kit Institutional Dashboard.' },
+        { title: 'Request access', desc: 'Get your account for the custom A.ki Institutional Dashboard.' },
         { title: 'Generate vouchers', desc: 'Create unique codes so your students can access the full report at no cost.' },
         { title: 'Monitor in real-time', desc: 'Access group analytics instantly and download detailed reports in one click.' },
       ],
@@ -182,8 +182,8 @@ export const translations = {
     pricing: {
       title: 'Institutional Plans',
       subtitle: 'Bring AI-powered vocational guidance to your school or private practice.',
-      free: { label: 'A.kit Pilot', features: ['Web Dashboard Access', 'Up to 10 students', 'Basic analytics', 'Email support'], cta: 'Request Pilot Access' },
-      premium: { badge: 'Pro', label: 'A.kit Campus', price: 'Custom', desc: 'For large schools and professionals', features: ['Unlimited vouchers', 'Multiple counselors', 'Cohort analytics', 'Priority integration & support'], cta: 'Contact Sales' },
+      free: { label: 'A.ki Pilot', features: ['Web Dashboard Access', 'Up to 10 students', 'Basic analytics', 'Email support'], cta: 'Request Pilot Access' },
+      premium: { badge: 'Pro', label: 'A.ki Campus', price: 'Custom', desc: 'For large schools and professionals', features: ['Unlimited vouchers', 'Multiple counselors', 'Cohort analytics', 'Priority integration & support'], cta: 'Contact Sales' },
     },
     faq: {
       title: 'Frequently asked questions',
@@ -213,7 +213,7 @@ export const translations = {
       title: 'Designing the future of vocational guidance',
       subtitle: 'We are preparing a revolutionary experience to help you find your career path with artificial intelligence. Very soon you will be able to download the app and access the dashboard.',
       ctaContact: 'Inquiries & Institutions',
-      footer: '© 2026 A.kit. All rights reserved.',
+      footer: '© 2026 A.ki. All rights reserved.',
     },
     langSwitch: 'ES',
   },
