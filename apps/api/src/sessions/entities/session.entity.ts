@@ -114,6 +114,5 @@ export class Session {
     cascade: true,
     eager: true,
   })
-  @JoinColumn({ name: 'id' })
   metrics?: SessionMetrics;
 }
