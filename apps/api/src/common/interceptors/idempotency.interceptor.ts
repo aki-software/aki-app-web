@@ -26,11 +26,22 @@ export class IdempotencyInterceptor implements NestInterceptor {
 
     const trimmedKey = key.trim();
 
-    const state = await this.idempotencyService.get(trimmedKey);
+    let state = await this.idempotencyService.get(trimmedKey);
+
     if (state === 'processing') {
-      throw new ConflictException(
-        'A request with the same idempotency key is already being processed',
-      );
+      // Poll every 500ms for up to 10 seconds to handle race conditions
+      // (e.g. Android's foreground UI and background SyncSessionWorker hitting the endpoint simultaneously)
+      for (let i = 0; i < 20; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        state = await this.idempotencyService.get(trimmedKey);
+        if (state !== 'processing') break;
+      }
+
+      if (state === 'processing') {
+        throw new ConflictException(
+          'A request with the same idempotency key is already being processed',
+        );
+      }
     }
 
     if (state) {
