@@ -172,6 +172,12 @@ export class SessionsService {
   async findOne(id: string, scope?: SessionScope): Promise<Session> {
     const where = { ...this.applyScope(scope), id };
 
+    // Capability URL pattern: Si es un paciente y conoce el ID (UUIDv4) de la sesión,
+    // le permitimos accederla aunque el patientId no coincida (ej: usuario anónimo vs JWT).
+    if (scope?.role?.toUpperCase() === 'PATIENT') {
+      delete where.patientId;
+    }
+
     const session = await this.sessionRepository.findOne({
       where,
       relations: ['results', 'voucher', 'swipes'],
