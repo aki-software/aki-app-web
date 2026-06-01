@@ -58,17 +58,14 @@ describe('UserRegistrationService', () => {
     const email = 'john@example.com';
     const role = UserRole.THERAPIST;
 
-    it('should update existing user name if email exists', async () => {
+    it('should throw BadRequestException if email already exists', async () => {
       const existingUser = { id: '1', name: 'Old Name', email };
       usersService.findByEmail.mockResolvedValue(existingUser);
-      usersService.register.mockResolvedValue({ ...existingUser, name });
 
-      const result = await service.register({ name, email, role });
-
-      expect(usersService.register).toHaveBeenCalledWith(
-        expect.objectContaining({ name, email }),
+      await expect(service.register({ name, email, role })).rejects.toThrow(
+        'El correo electrónico ya está registrado por otro usuario.',
       );
-      expect(result.name).toBe(name);
+      expect(usersService.register).not.toHaveBeenCalled();
     });
 
     it('should create a new user and trigger activation', async () => {
