@@ -20,7 +20,9 @@ export class InstitutionOperationalAccountService {
     const hasResponsibleUserId = !!payload.responsibleTherapistUserId?.trim();
 
     if (!hasResponsibleUserId && payload.email) {
-      const existingUser = await this.usersService.findByEmail(payload.email.trim());
+      const existingUser = await this.usersService.findByEmail(
+        payload.email.trim(),
+      );
       if (existingUser) {
         throw new BadRequestException(
           'El correo electrónico ya está registrado por otro usuario.',

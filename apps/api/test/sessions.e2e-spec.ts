@@ -5,7 +5,10 @@ import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { AppModule } from './../src/app.module.js';
 import { AuthTokenService } from '../src/auth/services/auth-token.service.js';
-import { Session, SessionPaymentStatus } from '../src/sessions/entities/session.entity.js';
+import {
+  Session,
+  SessionPaymentStatus,
+} from '../src/sessions/entities/session.entity.js';
 import { User, UserRole } from '../src/users/entities/user.entity.js';
 import { Institution } from '../src/institutions/entities/institution.entity.js';
 import { Voucher } from '../src/vouchers/entities/voucher.entity.js';
@@ -20,7 +23,6 @@ describe('SessionsController (e2e)', () => {
   let patientToken: string;
   let patientTokenB: string;
   let institutionTokenX: string;
-  let institutionTokenY: string;
 
   // Mock entities
   let sessionPatientA: Session;
@@ -48,36 +50,73 @@ describe('SessionsController (e2e)', () => {
 
     // 1. Create Institutions
     const instX = await instRepo.save(
-      instRepo.create({ name: 'Inst X', email: 'x@x.com', phone: '123' })
+      instRepo.create({ name: 'Inst X', email: 'x@x.com', phone: '123' }),
     );
     const instY = await instRepo.save(
-      instRepo.create({ name: 'Inst Y', email: 'y@y.com', phone: '123' })
+      instRepo.create({ name: 'Inst Y', email: 'y@y.com', phone: '123' }),
     );
 
     // 2. Create Users
     const rnd = Date.now();
     const admin = await userRepo.save(
-      userRepo.create({ email: `admin-${rnd}@test.com`, name: 'Admin', role: UserRole.ADMIN, passwordHash: 'hashedpwd' })
+      userRepo.create({
+        email: `admin-${rnd}@test.com`,
+        name: 'Admin',
+        role: UserRole.ADMIN,
+        passwordHash: 'hashedpwd',
+      }),
     );
     const patientA = await userRepo.save(
-      userRepo.create({ email: `pa-${rnd}@test.com`, name: 'PA', role: UserRole.PATIENT, passwordHash: 'hashedpwd' })
+      userRepo.create({
+        email: `pa-${rnd}@test.com`,
+        name: 'PA',
+        role: UserRole.PATIENT,
+        passwordHash: 'hashedpwd',
+      }),
     );
     const patientB = await userRepo.save(
-      userRepo.create({ email: `pb-${rnd}@test.com`, name: 'PB', role: UserRole.PATIENT, passwordHash: 'hashedpwd' })
+      userRepo.create({
+        email: `pb-${rnd}@test.com`,
+        name: 'PB',
+        role: UserRole.PATIENT,
+        passwordHash: 'hashedpwd',
+      }),
     );
     const userInstX = await userRepo.save(
-      userRepo.create({ email: `ux-${rnd}@test.com`, name: 'UX', role: UserRole.INSTITUTION, institutionId: instX.id, passwordHash: 'hashedpwd' })
-    );
-    const userInstY = await userRepo.save(
-      userRepo.create({ email: `uy-${rnd}@test.com`, name: 'UY', role: UserRole.INSTITUTION, institutionId: instY.id, passwordHash: 'hashedpwd' })
+      userRepo.create({
+        email: `ux-${rnd}@test.com`,
+        name: 'UX',
+        role: UserRole.INSTITUTION,
+        institutionId: instX.id,
+        passwordHash: 'hashedpwd',
+      }),
     );
 
     // 3. Generate Tokens
-    adminToken = authTokenService.signAccessToken({ email: admin.email, sub: admin.id, role: admin.role, institutionId: null });
-    patientToken = authTokenService.signAccessToken({ email: patientA.email, sub: patientA.id, role: patientA.role, institutionId: null });
-    patientTokenB = authTokenService.signAccessToken({ email: patientB.email, sub: patientB.id, role: patientB.role, institutionId: null });
-    institutionTokenX = authTokenService.signAccessToken({ email: userInstX.email, sub: userInstX.id, role: userInstX.role, institutionId: instX.id });
-    institutionTokenY = authTokenService.signAccessToken({ email: userInstY.email, sub: userInstY.id, role: userInstY.role, institutionId: instY.id });
+    adminToken = authTokenService.signAccessToken({
+      email: admin.email,
+      sub: admin.id,
+      role: admin.role,
+      institutionId: null,
+    });
+    patientToken = authTokenService.signAccessToken({
+      email: patientA.email,
+      sub: patientA.id,
+      role: patientA.role,
+      institutionId: null,
+    });
+    patientTokenB = authTokenService.signAccessToken({
+      email: patientB.email,
+      sub: patientB.id,
+      role: patientB.role,
+      institutionId: null,
+    });
+    institutionTokenX = authTokenService.signAccessToken({
+      email: userInstX.email,
+      sub: userInstX.id,
+      role: userInstX.role,
+      institutionId: instX.id,
+    });
 
     // 4. Create Voucher Batches & Vouchers
     const batchX = await batchRepo.save(
@@ -87,8 +126,8 @@ describe('SessionsController (e2e)', () => {
         quantity: 1,
         totalPriceCents: 1000,
         currency: 'USD',
-        stripePaymentIntentId: `pi_testX_${Date.now()}`
-      })
+        stripePaymentIntentId: `pi_testX_${Date.now()}`,
+      }),
     );
     const batchY = await batchRepo.save(
       batchRepo.create({
@@ -97,11 +136,12 @@ describe('SessionsController (e2e)', () => {
         quantity: 1,
         totalPriceCents: 1000,
         currency: 'USD',
-        stripePaymentIntentId: `pi_testY_${Date.now()}`
-      })
+        stripePaymentIntentId: `pi_testY_${Date.now()}`,
+      }),
     );
 
-    const rndCode = () => Math.random().toString(36).substring(2, 9).toUpperCase();
+    const rndCode = () =>
+      Math.random().toString(36).substring(2, 9).toUpperCase();
     const voucherX = await voucherRepo.save(
       voucherRepo.create({
         code: `X${rndCode()}`,
@@ -109,8 +149,8 @@ describe('SessionsController (e2e)', () => {
         ownerType: 'INSTITUTION' as any,
         ownerInstitutionId: instX.id,
         status: 'USED' as any,
-        redeemedAt: new Date()
-      })
+        redeemedAt: new Date(),
+      }),
     );
     const voucherY = await voucherRepo.save(
       voucherRepo.create({
@@ -119,8 +159,8 @@ describe('SessionsController (e2e)', () => {
         ownerType: 'INSTITUTION' as any,
         ownerInstitutionId: instY.id,
         status: 'USED' as any,
-        redeemedAt: new Date()
-      })
+        redeemedAt: new Date(),
+      }),
     );
 
     // 5. Create Sessions
@@ -136,7 +176,7 @@ describe('SessionsController (e2e)', () => {
         syncKey: `syncA-${Date.now()}`,
         patientId: patientA.id,
         paymentStatus: SessionPaymentStatus.PENDING,
-      })
+      }),
     );
 
     sessionPatientB = await sessionRepo.save(
@@ -145,7 +185,7 @@ describe('SessionsController (e2e)', () => {
         syncKey: `syncB-${Date.now()}`,
         patientId: patientB.id,
         paymentStatus: SessionPaymentStatus.PAID,
-      })
+      }),
     );
 
     sessionInstXCard = await sessionRepo.save(
@@ -154,7 +194,7 @@ describe('SessionsController (e2e)', () => {
         syncKey: `syncXC-${Date.now()}`,
         institutionId: instX.id,
         paymentStatus: SessionPaymentStatus.PAID,
-      })
+      }),
     );
 
     sessionInstXVoucher = await sessionRepo.save(
@@ -164,7 +204,7 @@ describe('SessionsController (e2e)', () => {
         institutionId: instX.id,
         paymentStatus: SessionPaymentStatus.VOUCHER_REDEEMED,
         voucherId: voucherX.id,
-      })
+      }),
     );
 
     sessionInstYVoucher = await sessionRepo.save(
@@ -174,7 +214,7 @@ describe('SessionsController (e2e)', () => {
         institutionId: instY.id,
         paymentStatus: SessionPaymentStatus.VOUCHER_REDEEMED,
         voucherId: voucherY.id,
-      })
+      }),
     );
   });
 
@@ -232,7 +272,8 @@ describe('SessionsController (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      const items: any[] = response.body.data || response.body.items || response.body;
+      const items: any[] =
+        response.body.data || response.body.items || response.body;
       const ids = items.map((i) => i.id);
 
       // Must see Card and Pending without vouchers
@@ -251,7 +292,8 @@ describe('SessionsController (e2e)', () => {
         .set('Authorization', `Bearer ${institutionTokenX}`)
         .expect(200);
 
-      const items: any[] = response.body.data || response.body.items || response.body;
+      const items: any[] =
+        response.body.data || response.body.items || response.body;
       const ids = items.map((i) => i.id);
 
       // Must see their voucher session
@@ -274,7 +316,8 @@ describe('SessionsController (e2e)', () => {
         .set('Authorization', `Bearer ${patientTokenB}`)
         .expect(200);
 
-      const items: any[] = response.body.data || response.body.items || response.body;
+      const items: any[] =
+        response.body.data || response.body.items || response.body;
       const ids = items.map((i) => i.id);
 
       expect(ids).toContain(sessionPatientB.id);

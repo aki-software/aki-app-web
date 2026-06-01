@@ -45,7 +45,8 @@ export class SessionMetricsService {
     const maxTime = durations.length > 0 ? Math.max(...durations) : 0;
     const undoPercentage =
       totalSwipes > 0 ? (revertedMatches / totalSwipes) * 100 : 0;
-    const speedScore = avgTime !== null ? this.calculateSpeedScore(avgTime) : 100;
+    const speedScore =
+      avgTime !== null ? this.calculateSpeedScore(avgTime) : 100;
     const reliabilityScore = (100 - undoPercentage) * 0.7 + speedScore * 0.3;
 
     const reliabilityLevel =

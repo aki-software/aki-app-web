@@ -25,7 +25,9 @@ export class HollandCalculatorService {
    * Calcula los porcentajes por dimensión de Holland a partir de los resultados de categorías.
    * Cada dimensión Holland puede agrupar múltiples categorías; el valor final es el promedio.
    */
-  calculatePercentages(results: Array<{ categoryId: string; percentage: number }>): Record<string, number> {
+  calculatePercentages(
+    results: Array<{ categoryId: string; percentage: number }>,
+  ): Record<string, number> {
     const scores: Record<string, number[]> = {
       R: [],
       I: [],
