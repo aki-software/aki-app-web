@@ -38,6 +38,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
             : 'Internal server error';
 
     const responseBody = {
+      code:
+        typeof message === 'string'
+          ? message
+          : Array.isArray(message)
+            ? message[0]
+            : 'UNKNOWN_ERROR',
       statusCode: httpStatus,
       timestamp: new Date().toISOString(),
       path: httpAdapter.getRequestUrl(ctx.getRequest()),
