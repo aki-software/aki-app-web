@@ -86,8 +86,6 @@ export class SessionsService {
         return where;
       }
 
-      // Instituciones y Terapeutas: SOLO pueden ver sesiones de su autoría QUE TENGAN voucher.
-      // Así evitamos que vean sesiones referidas donde el paciente pagó con tarjeta por su cuenta.
       if (scope.institutionId) {
         where.institutionId = scope.institutionId;
         where.voucherId = Not(IsNull());
@@ -96,7 +94,8 @@ export class SessionsService {
         where.voucherId = Not(IsNull());
       } else {
         // Fallback de seguridad absoluto si alguien con rol distinto a ADMIN/PATIENT no tiene IDs
-        where.id = '__forbidden__';
+        // Debe ser un UUID válido para que Postgres no tire error de cast
+        where.id = '00000000-0000-0000-0000-000000000000';
       }
     }
 
