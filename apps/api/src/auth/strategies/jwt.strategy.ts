@@ -8,6 +8,7 @@ import { AuthUserFactory } from '../factories/auth-user.factory.js';
 import { FirebaseClaimsValidatorService } from '../services/firebase-claims-validator.service.js';
 import { FirebaseCertService } from '../services/firebase-cert.service.js';
 import { JwtTokenDecoderService } from '../services/jwt-token-decoder.service.js';
+import { UsersService } from '../../users/users.service.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -17,6 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly jwtTokenDecoder: JwtTokenDecoderService,
     private readonly firebaseClaimsValidator: FirebaseClaimsValidatorService,
     private readonly authUserFactory: AuthUserFactory,
+    private readonly usersService: UsersService,
   ) {
     const secretOrKeyProvider = (
       request: unknown,
@@ -32,10 +34,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload) {
     if (this.isFirebasePayload(payload)) {
       this.firebaseClaimsValidator.assertFirebaseClaims(payload);
-      return this.authUserFactory.buildUserFromPayload(payload, true);
+      const authUser = this.authUserFactory.buildUserFromPayload(payload, true);
+      
+      if (authUser.email) {
+        const internalUser = await this.usersService.findByEmail(authUser.email);
+        if (internalUser) {
+          authUser.userId = internalUser.id;
+        }
+      }
+      
+      return authUser;
     }
 
     return this.authUserFactory.buildUserFromPayload(payload, false);
