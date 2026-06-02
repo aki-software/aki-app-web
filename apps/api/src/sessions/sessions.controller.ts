@@ -8,11 +8,12 @@ import {
   Query,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { Request } from 'express';
+import { Roles } from '../auth/decorators/roles.decorator.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import type { AuthenticatedRequest } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { UserRole } from '../users/entities/user.entity.js';
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
@@ -21,28 +22,36 @@ import { CreateSessionDto } from './dto/create-session.dto.js';
 import { SendReportDto } from './dto/send-report.dto.js';
 import { ReportService } from './services/report.service.js';
 import { PdfService } from '../common/services/pdf.service.js';
-import { SessionCompleteMapperService } from './services/session-complete-mapper.service.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { SessionsService } from './sessions.service.js';
-
-type AuthenticatedRequest = Request & {
-  user?: {
-    userId?: string;
-    role?: string;
-    institutionId?: string | null;
-  };
-};
+import { ReportPdfService } from './services/report-pdf.service.js';
 
 @Controller('sessions')
 export class SessionsController {
+  private extractScope(req?: AuthenticatedRequest) {
+    return {
+      role: req?.user?.role,
+      therapistUserId: req?.user?.userId,
+      patientId: req?.user?.userId,
+      institutionId: req?.user?.institutionId,
+    };
+  }
+
+  private extractVoucherScope(req?: AuthenticatedRequest) {
+    return {
+      role: req?.user?.role,
+      ownerUserId: req?.user?.userId,
+      ownerInstitutionId: req?.user?.institutionId,
+    };
+  }
   constructor(
     private readonly sessionsService: SessionsService,
-    private readonly sessionCompleteMapper: SessionCompleteMapperService,
     private readonly sessionMetricsService: SessionMetricsService,
     private readonly reportService: ReportService,
     private readonly pdfService: PdfService,
     private readonly adminDashboardService: AdminDashboardService,
+    private readonly reportPdfService: ReportPdfService,
   ) {}
 
   @Post()
@@ -53,27 +62,7 @@ export class SessionsController {
 
   @Post('complete')
   async complete(@Body() completeSessionDto: CompleteSessionDto) {
-    const mapped =
-      await this.sessionCompleteMapper.toCreateSessionDto(completeSessionDto);
-    const syncKey = this.sessionCompleteMapper.buildSyncKey(
-      mapped.payloadId ?? null,
-      mapped.payloadUserId ?? null,
-      mapped.payloadStartedAt,
-    );
-    const { session: createdSession, duplicated } =
-      await this.sessionsService.create(mapped.createSessionDto, {
-        idempotencyKey: syncKey ?? undefined,
-      });
-
-    await this.sessionCompleteMapper.attachVoucherIfNeeded(
-      mapped,
-      createdSession.id,
-    );
-
-    return {
-      id: createdSession.id,
-      duplicated,
-    };
+    return await this.sessionsService.completeSession(completeSessionDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -89,34 +78,27 @@ export class SessionsController {
     const parsedLimit = limit
       ? parseInt(limit, 10)
       : SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT;
-    return this.sessionsService.findAll(parsedPage, parsedLimit, {
-      role: req?.user?.role,
-      therapistUserId: req?.user?.userId,
-      patientId: req?.user?.userId,
-      institutionId: req?.user?.institutionId,
-    });
+    return this.sessionsService.findAll(
+      parsedPage,
+      parsedLimit,
+      this.extractScope(req),
+    );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get('admin/overview')
-  async getAdminOverview(
-    @Req() req?: AuthenticatedRequest,
-    @Query('days') days?: string,
-  ) {
-    this.assertAdmin(req);
+  async getAdminOverview(@Query('days') days?: string) {
     const parsedDays = days
       ? parseInt(days, 10)
       : SESSION_CONSTANTS.ADMIN.DEFAULT_OVERVIEW_DAYS;
     return await this.adminDashboardService.getAdminOverview(parsedDays);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get('admin/activity')
-  async getAdminActivity(
-    @Req() req?: AuthenticatedRequest,
-    @Query('limit') limit?: string,
-  ) {
-    this.assertAdmin(req);
+  async getAdminActivity(@Query('limit') limit?: string) {
     const parsedLimit = limit
       ? parseInt(limit, 10)
       : SESSION_CONSTANTS.ADMIN.DEFAULT_ACTIVITY_LIMIT;
@@ -127,12 +109,7 @@ export class SessionsController {
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
     try {
-      return await this.sessionsService.findOne(id, {
-        role: req?.user?.role,
-        therapistUserId: req?.user?.userId,
-        patientId: req?.user?.userId,
-        institutionId: req?.user?.institutionId,
-      });
+      return await this.sessionsService.findOne(id, this.extractScope(req));
     } catch (e: unknown) {
       throw new NotFoundException(
         e instanceof Error ? e.message : 'Session not found',
@@ -144,12 +121,10 @@ export class SessionsController {
   @Get(':id/result')
   async findResult(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
     try {
-      const session = await this.sessionsService.findOne(id, {
-        role: req?.user?.role,
-        therapistUserId: req?.user?.userId,
-        patientId: req?.user?.userId,
-        institutionId: req?.user?.institutionId,
-      });
+      const session = await this.sessionsService.findOne(
+        id,
+        this.extractScope(req),
+      );
       return {
         sessionId: session.id,
         results: session.results || [],
@@ -175,19 +150,8 @@ export class SessionsController {
       id,
       sendReportDto.email,
       null,
-      {
-        role: req?.user?.role,
-        therapistUserId: req?.user?.userId,
-        patientId: req?.user?.userId,
-        institutionId: req?.user?.institutionId,
-      },
+      this.extractScope(req),
     );
-  }
-
-  private assertAdmin(req?: AuthenticatedRequest) {
-    if (req?.user?.role?.toUpperCase() !== UserRole.ADMIN) {
-      throw new UnauthorizedException('Se requiere usuario administrador');
-    }
   }
 
   @Get(':id/metrics')
@@ -208,11 +172,7 @@ export class SessionsController {
   ) {
     return this.sessionsService.findVoucherSessions(
       voucherId,
-      {
-        role: req.user?.role,
-        ownerUserId: req.user?.userId,
-        ownerInstitutionId: req.user?.institutionId,
-      },
+      this.extractVoucherScope(req),
       {
         startDate,
         endDate,
@@ -229,18 +189,18 @@ export class SessionsController {
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
-    const session = await this.sessionsService.findOne(sessionId, {
-      role: req.user?.role,
-      therapistUserId: req.user?.userId,
-      patientId: req.user?.userId,
-      institutionId: req.user?.institutionId,
-    });
+    const session = await this.sessionsService.findOne(
+      sessionId,
+      this.extractScope(req),
+    );
 
     const reportData = await this.reportService.buildReportData(session);
-    const html = this.reportService.renderReportPdfHtml(reportData);
+    const html = this.reportPdfService.renderHtml(reportData);
     const pdfBuffer = await this.pdfService.generateFromHtml(html);
 
-    const safeName = (session.patientName ?? 'informe')
+    const safeName = (
+      session.patientName ?? SESSION_CONSTANTS.REPORTS.DEFAULT_PDF_PREFIX
+    )
       .replace(/[^a-z0-9\s-]/gi, '')
       .trim()
       .replace(/\s+/g, '-')
@@ -249,7 +209,7 @@ export class SessionsController {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="informe-${safeName}-${sessionId}.pdf"`,
+      `attachment; filename="${SESSION_CONSTANTS.REPORTS.DEFAULT_PDF_PREFIX}-${safeName}-${sessionId}.pdf"`,
     );
     res.send(pdfBuffer);
   }

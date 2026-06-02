@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailService } from '../../mail/mail.service.js';
+import type { ReportData } from '../../common/types/report.types.js';
 
 @Injectable()
 export class ReportDeliveryService {
@@ -7,24 +8,19 @@ export class ReportDeliveryService {
 
   constructor(private readonly mailService: MailService) {}
 
-  /**
-   * Sends the vocational report email to the target.
-   * Returns a success boolean and a status message.
-   */
   async deliverReport(
     targetEmail: string,
     sessionId: string,
     voucherIdForLogging: string | undefined,
-    reportData: any,
+    reportData: ReportData,
     pdfBuffer?: Buffer,
-    reportUrl?: string,
   ): Promise<{ success: boolean; message: string }> {
     const sent = await this.mailService.sendVocationalReport(
       targetEmail,
       reportData.patientName,
       reportData.hollandCode,
       pdfBuffer,
-      reportUrl,
+      undefined,
       reportData.summary,
       reportData.tripletInsight ?? undefined,
     );

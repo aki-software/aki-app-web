@@ -1,9 +1,10 @@
 import { ReportOrchestratorService } from './report-orchestrator.service.js';
-import { ReportCacheService } from './report-cache.service.js';
+import { IReportCacheService } from '../interfaces/report-cache.interface.js';
+import { InMemoryReportCacheService } from './in-memory-report-cache.service.js';
 
-describe('ReportOrchestratorService — delivery idempotency', () => {
+describe('ReportOrchestratorService', () => {
   let service: ReportOrchestratorService;
-  let cacheService: ReportCacheService;
+  let cacheService: IReportCacheService;
   let deliverReport: jest.Mock;
 
   const sessionId = 'session-abc';
@@ -23,7 +24,7 @@ describe('ReportOrchestratorService — delivery idempotency', () => {
   };
 
   beforeEach(() => {
-    cacheService = new ReportCacheService();
+    cacheService = new InMemoryReportCacheService();
     deliverReport = jest
       .fn()
       .mockResolvedValue({ success: true, message: 'ok' });
@@ -31,11 +32,8 @@ describe('ReportOrchestratorService — delivery idempotency', () => {
     const mockReportService = {
       buildReportData: jest.fn().mockResolvedValue(mockReportData),
     };
-    const mockGeneratorService = {
-      generateAndUploadPdf: jest.fn().mockResolvedValue({
-        pdfBuffer: undefined,
-        reportUrl: 'https://example.com/report.pdf',
-      }),
+    const mockReportPdfService = {
+      generatePdfBuffer: jest.fn().mockResolvedValue(Buffer.from('pdf')),
     };
     const mockDeliveryService = { deliverReport };
     const mockQueryBuilder = {
@@ -53,7 +51,7 @@ describe('ReportOrchestratorService — delivery idempotency', () => {
       mockSessionRepository as any,
       mockReportService as any,
       cacheService,
-      mockGeneratorService as any,
+      mockReportPdfService as any,
       mockDeliveryService as any,
     );
   });

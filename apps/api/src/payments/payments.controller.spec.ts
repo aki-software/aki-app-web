@@ -36,7 +36,7 @@ describe('PaymentsController', () => {
         purchaseToken: 'token-abc',
       };
 
-      const expectedResult = { success: true };
+      const expectedResult = { success: true, valid: true };
       jest
         .mocked(service.verifyGooglePlayPurchase)
         .mockResolvedValue(expectedResult);

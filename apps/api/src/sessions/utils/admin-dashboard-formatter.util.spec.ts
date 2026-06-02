@@ -1,4 +1,10 @@
-import { AdminDashboardFormatterService } from './admin-dashboard-formatter.service.js';
+import {
+  getPeriodStart,
+  buildOverviewPayload,
+  formatSessionActivity,
+  mergeActivity,
+  formatResultsDistribution,
+} from './admin-dashboard-formatter.util.js';
 import { SessionPaymentStatus } from '../entities/session.entity.js';
 import type {
   AdminActivityItem,
@@ -7,14 +13,12 @@ import type {
   RawTopCategoryRow,
 } from '@akit/contracts';
 
-describe('AdminDashboardFormatterService', () => {
-  const service = new AdminDashboardFormatterService();
-
+describe('admin-dashboard-formatter.util', () => {
   it('builds overview payload with computed metrics', () => {
     const now = new Date('2024-02-01T12:00:00Z');
-    const periodStart = service.getPeriodStart(7, now);
+    const periodStart = getPeriodStart(7, now);
 
-    const payload = service.buildOverviewPayload({
+    const payload = buildOverviewPayload({
       periodDays: 7,
       now,
       periodStart,
@@ -70,7 +74,7 @@ describe('AdminDashboardFormatterService', () => {
         reportUnlockedAt: null,
         paidAt: null,
         voucherId: null,
-        paymentStatus: null,
+        paymentStatus: undefined as any,
         resultsCount: '0',
       },
       {
@@ -86,7 +90,7 @@ describe('AdminDashboardFormatterService', () => {
       },
     ];
 
-    const activity = service.formatSessionActivity(rows);
+    const activity = formatSessionActivity(rows);
 
     expect(activity).toHaveLength(2);
     expect(activity[0].type).toBe('SESSION_STARTED');
@@ -115,7 +119,7 @@ describe('AdminDashboardFormatterService', () => {
       },
     ];
 
-    const merged = service.mergeActivity(sessionActivity, voucherActivity, 1);
+    const merged = mergeActivity(sessionActivity, voucherActivity, 1);
 
     expect(merged).toHaveLength(1);
     expect(merged[0].id).toBe('voucher-1');
@@ -128,7 +132,7 @@ describe('AdminDashboardFormatterService', () => {
     ];
     const rows: RawTopCategoryRow[] = [{ categoryId: 'A', count: '2' }];
 
-    const distribution = service.formatResultsDistribution(categories, rows);
+    const distribution = formatResultsDistribution(categories, rows);
 
     expect(distribution).toEqual([
       { categoryId: 'A', name: 'Alpha', count: 2 },

@@ -4,37 +4,22 @@ import { Repository } from 'typeorm';
 import { Session, SessionPaymentStatus } from '../entities/session.entity.js';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
 import { VoucherStatus } from '../../vouchers/entities/voucher.enums.js';
-import { RawSessionsActivityRow, RawTopCategoryRow } from '@akit/contracts';
+import {
+  RawSessionsActivityRow,
+  RawTopCategoryRow,
+  RawRecentSessionRow,
+} from '@akit/contracts';
+import {
+  AdminDashboardVoucherTotalsRow,
+  AdminDashboardPeriodVoucherStatsRow,
+  AdminDashboardSessionTotalsRow,
+  AdminDashboardPeriodSessionStatsRow,
+} from '../types/admin-dashboard.types.js';
 
-type AdminDashboardVoucherTotalsRow = {
-  available: string;
-  redeemed: string;
-  historical: string;
-};
-
-type AdminDashboardPeriodVoucherStatsRow = {
-  issued: string;
-  redeemed: string;
-};
-
-type AdminDashboardSessionTotalsRow = {
-  totalSessions: string;
-  totalTimeMs: string;
-  completedSessions: string;
-};
-
-type AdminDashboardPeriodSessionStatsRow = {
-  started: string;
-  completed: string;
-  reportsUnlocked: string;
-  voucherStarted: string;
-  voucherCompleted: string;
-  voucherReportsUnlocked: string;
-  individualCompleted: string;
-};
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
-export class AdminDashboardStatsService {
+export class AdminDashboardRepository {
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
@@ -186,5 +171,52 @@ export class AdminDashboardStatsService {
       .where('t.rn = 1')
       .groupBy('UPPER(t.category_id)')
       .getRawMany<RawTopCategoryRow>();
+  }
+
+  async getRecentSessionRows(limit: number): Promise<RawRecentSessionRow[]> {
+    return await this.sessionRepository
+      .createQueryBuilder('session')
+      .select('session.id', 'id')
+      .addSelect('session.patientName', 'patientName')
+      .addSelect('session.createdAt', 'createdAt')
+      .addSelect('session.sessionDate', 'sessionDate')
+      .addSelect('session.reportUnlockedAt', 'reportUnlockedAt')
+      .addSelect('session.paidAt', 'paidAt')
+      .addSelect('session.voucherId', 'voucherId')
+      .addSelect('session.paymentStatus', 'paymentStatus')
+      .addSelect('COUNT(result.id)', 'resultsCount')
+      .leftJoin('session.results', 'result')
+      .groupBy('session.id')
+      .addGroupBy('session.patientName')
+      .addGroupBy('session.createdAt')
+      .addGroupBy('session.sessionDate')
+      .addGroupBy('session.reportUnlockedAt')
+      .addGroupBy('session.paidAt')
+      .addGroupBy('session.voucherId')
+      .addGroupBy('session.paymentStatus')
+      .orderBy('session.createdAt', 'DESC')
+      .limit(limit)
+      .getRawMany<RawRecentSessionRow>();
+  }
+
+  async getStalledSessionsCount(now: Date): Promise<number> {
+    const dayAgo = new Date(now.getTime() - ONE_DAY_IN_MS);
+
+    const countRow = await this.sessionRepository
+      .createQueryBuilder('session')
+      .where('session.createdAt < :dayAgo', { dayAgo })
+      .andWhere((qb) => {
+        const subquery = qb
+          .subQuery()
+          .select('1')
+          .from('session_results', 'sr')
+          .where('sr.session_id = session.id')
+          .getQuery();
+        return `NOT EXISTS (${subquery})`;
+      })
+      .select('COUNT(*)', 'count')
+      .getRawOne<{ count: string }>();
+
+    return parseInt(countRow?.count ?? '0', 10);
   }
 }

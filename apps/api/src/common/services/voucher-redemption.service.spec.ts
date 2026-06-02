@@ -1,4 +1,3 @@
-import { ConflictException, HttpException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -48,7 +47,7 @@ describe('VoucherRedemptionService', () => {
       save: jest.fn(),
     };
     dataSource = {
-      transaction: jest.fn(async (callback: any) =>
+      transaction: jest.fn((callback: any) =>
         callback({
           getRepository: (entity: unknown) =>
             entity === Voucher ? voucherRepository : sessionRepository,
@@ -71,7 +70,9 @@ describe('VoucherRedemptionService', () => {
   it('preserves INVALID_CODE and ALREADY_USED as stable business errors', async () => {
     voucherRepository.findOne.mockResolvedValueOnce(null);
 
-    await expect(service.redeemVoucher('bad-code', 'session-1')).rejects.toMatchObject({
+    await expect(
+      service.redeemVoucher('bad-code', 'session-1'),
+    ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'INVALID_CODE' }),
     });
 
@@ -79,7 +80,9 @@ describe('VoucherRedemptionService', () => {
     voucherRepository.findOne.mockResolvedValueOnce(usedVoucher);
     sessionRepository.findOne.mockResolvedValueOnce(buildSession());
 
-    await expect(service.redeemVoucher('AB12CD34', 'session-1')).rejects.toMatchObject({
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1'),
+    ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'ALREADY_USED' }),
     });
   });
@@ -89,25 +92,37 @@ describe('VoucherRedemptionService', () => {
     voucherRepository.findOne.mockResolvedValueOnce(voucher);
     sessionRepository.findOne.mockResolvedValueOnce(null);
 
-    await expect(service.redeemVoucher('AB12CD34', 'missing-session')).rejects.toMatchObject({
+    await expect(
+      service.redeemVoucher('AB12CD34', 'missing-session'),
+    ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'SESSION_NOT_FOUND' }),
     });
 
-    const expiredVoucher = buildVoucher({ expiresAt: new Date('2020-01-01T00:00:00.000Z') });
+    const expiredVoucher = buildVoucher({
+      expiresAt: new Date('2020-01-01T00:00:00.000Z'),
+    });
     voucherRepository.findOne.mockResolvedValueOnce(expiredVoucher);
     sessionRepository.findOne.mockResolvedValueOnce(buildSession());
 
-    await expect(service.redeemVoucher('AB12CD34', 'session-1')).rejects.toMatchObject({
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1'),
+    ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'VOUCHER_EXPIRED' }),
     });
   });
 
   it('normalizes unexpected domain faults to a service-unavailable style error', async () => {
-    const voucher = buildVoucher({ redeem: jest.fn(() => { throw new Error('boom'); }) });
+    const voucher = buildVoucher({
+      redeem: jest.fn(() => {
+        throw new Error('boom');
+      }),
+    });
     voucherRepository.findOne.mockResolvedValueOnce(voucher);
     sessionRepository.findOne.mockResolvedValueOnce(buildSession());
 
-    await expect(service.redeemVoucher('AB12CD34', 'session-1')).rejects.toMatchObject({
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1'),
+    ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'SERVICE_UNAVAILABLE' }),
     });
   });

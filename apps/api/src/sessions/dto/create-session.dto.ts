@@ -41,6 +41,10 @@ export class CreateSessionResultDto {
   percentage!: number;
 
   @IsOptional()
+  @IsNumber()
+  timeSpentMs?: number;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   suggestedCareers?: string[];

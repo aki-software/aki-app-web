@@ -4,6 +4,12 @@ import { Repository } from 'typeorm';
 import { SessionMetrics } from '../entities/session-metrics.entity.js';
 import { Session } from '../entities/session.entity.js';
 
+const MAX_IDLE_TIME_MS = 300000; // 5 minutos maximo entre acciones
+const RELIABILITY_WEIGHT_UNDO = 0.7;
+const RELIABILITY_WEIGHT_SPEED = 0.3;
+const SPEED_MAX_AVG_TIME_MS = 1000;
+const SPEED_PENALTY_DIVISOR = 10;
+
 @Injectable()
 export class SessionMetricsService {
   constructor(
@@ -21,20 +27,23 @@ export class SessionMetricsService {
 
     if (!session) throw new NotFoundException('Session not found');
 
-    const swipes = session.swipes.sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-    );
+    const swipesWithTime = session.swipes
+      .map((s) => ({
+        cardId: s.cardId,
+        timeMs: new Date(s.timestamp).getTime(),
+      }))
+      .sort((a, b) => a.timeMs - b.timeMs);
 
-    const totalSwipes = swipes.length;
-    const uniqueCards = new Set(swipes.map((s) => s.cardId)).size;
+    const totalSwipes = swipesWithTime.length;
+    const uniqueCards = new Set(swipesWithTime.map((s) => s.cardId)).size;
     const revertedMatches = totalSwipes - uniqueCards;
+
     const durations: number[] = [];
-    for (let i = 1; i < swipes.length; i++) {
-      const diff =
-        new Date(swipes[i].timestamp).getTime() -
-        new Date(swipes[i - 1].timestamp).getTime();
-      if (diff > 0 && diff < 300000) durations.push(diff); // Max 5 min
+    for (let i = 1; i < swipesWithTime.length; i++) {
+      const diff = swipesWithTime[i].timeMs - swipesWithTime[i - 1].timeMs;
+      if (diff > 0 && diff < MAX_IDLE_TIME_MS) {
+        durations.push(diff);
+      }
     }
 
     const avgTime =
@@ -43,20 +52,17 @@ export class SessionMetricsService {
         : null;
     const minTime = durations.length > 0 ? Math.min(...durations) : 0;
     const maxTime = durations.length > 0 ? Math.max(...durations) : 0;
+
     const undoPercentage =
       totalSwipes > 0 ? (revertedMatches / totalSwipes) * 100 : 0;
     const speedScore =
       avgTime !== null ? this.calculateSpeedScore(avgTime) : 100;
-    const reliabilityScore = (100 - undoPercentage) * 0.7 + speedScore * 0.3;
 
-    const reliabilityLevel =
-      reliabilityScore >= 85
-        ? 'Muy Alta'
-        : reliabilityScore >= 70
-          ? 'Alta'
-          : reliabilityScore >= 50
-            ? 'Variable'
-            : 'Baja';
+    const reliabilityScore =
+      (100 - undoPercentage) * RELIABILITY_WEIGHT_UNDO +
+      speedScore * RELIABILITY_WEIGHT_SPEED;
+
+    const reliabilityLevel = this.getReliabilityLevel(reliabilityScore);
 
     const metrics = this.metricsRepository.create({
       session,
@@ -75,8 +81,18 @@ export class SessionMetricsService {
   }
 
   private calculateSpeedScore(avgTimeMs: number): number {
-    if (avgTimeMs >= 1000) return 100;
-    return Math.max(0, 100 - (1000 - avgTimeMs) / 10);
+    if (avgTimeMs >= SPEED_MAX_AVG_TIME_MS) return 100;
+    return Math.max(
+      0,
+      100 - (SPEED_MAX_AVG_TIME_MS - avgTimeMs) / SPEED_PENALTY_DIVISOR,
+    );
+  }
+
+  private getReliabilityLevel(score: number): string {
+    if (score >= 85) return 'Muy Alta';
+    if (score >= 70) return 'Alta';
+    if (score >= 50) return 'Variable';
+    return 'Baja';
   }
 
   async getMetricsBySessionId(sessionId: string): Promise<SessionMetrics> {

@@ -42,9 +42,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         : undefined;
 
     const isServerError = httpStatus >= 500;
-    const responseStatusCode = isServerError ? HttpStatus.SERVICE_UNAVAILABLE : httpStatus;
+    const responseStatusCode = isServerError
+      ? HttpStatus.SERVICE_UNAVAILABLE
+      : httpStatus;
     const responseBody = {
-      code: isServerError ? 'SERVICE_UNAVAILABLE' : responseCode ?? 'UNKNOWN_ERROR',
+      code: isServerError
+        ? 'SERVICE_UNAVAILABLE'
+        : (responseCode ?? 'UNKNOWN_ERROR'),
       statusCode: responseStatusCode,
       timestamp: new Date().toISOString(),
       path: httpAdapter.getRequestUrl(ctx.getRequest()),
@@ -55,7 +59,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
           : responseMessage,
     };
 
-    // Logueamos el error con contexto completo para Pino
     this.logger.error(
       `Exception thrown at ${responseBody.path}`,
       exception instanceof Error ? exception.stack : String(exception),
