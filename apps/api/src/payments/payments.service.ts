@@ -9,6 +9,8 @@ import { SessionsService } from '../sessions/sessions.service';
 import { SessionPaymentStatus } from '@akit/contracts';
 import { google, androidpublisher_v3 } from 'googleapis';
 import { ConfigService } from '@nestjs/config';
+import { PaymentLockService } from './payment-lock.service';
+import { GaxiosError } from 'gaxios';
 
 @Injectable()
 export class PaymentsService {
@@ -17,34 +19,38 @@ export class PaymentsService {
   constructor(
     private readonly sessionsService: SessionsService,
     private readonly configService: ConfigService,
+    private readonly paymentLockService: PaymentLockService,
   ) {}
 
   async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto) {
     this.logger.log(`Verifying purchase for session ${dto.sessionId}`);
 
-    const session = await this.sessionsService.findOne(dto.sessionId);
-    if (!session) {
-      throw new BadRequestException('Sesión no encontrada');
-    }
-
-    if (this.isAlreadyProcessed(session, dto.purchaseToken)) {
-      this.logger.log(`Session ${session.id} is already PAID with this token`);
-      return { success: true, valid: true };
-    }
-
-    const existingSession = await this.sessionsService.findByPaymentToken(
-      dto.purchaseToken,
-    );
-    if (existingSession && existingSession.id !== session.id) {
-      this.logger.warn(
-        `Purchase token ${dto.purchaseToken} is already used by session ${existingSession.id}. Rejecting for session ${session.id}.`,
-      );
-      return { success: false, valid: false, reason: 'ALREADY_CONSUMED' };
-    }
-
-    const { packageName, serviceAccountBase64 } = this.getPlayBillingConfig();
-
+    this.paymentLockService.acquireLock(dto.purchaseToken);
     try {
+      const session = await this.sessionsService.findOne(dto.sessionId);
+      if (!session) {
+        throw new BadRequestException('Sesión no encontrada');
+      }
+
+      if (this.isAlreadyProcessed(session, dto.purchaseToken)) {
+        this.logger.log(
+          `Session ${session.id} is already PAID with this token`,
+        );
+        return { success: true, valid: true };
+      }
+
+      const existingSession = await this.sessionsService.findByPaymentToken(
+        dto.purchaseToken,
+      );
+      if (existingSession && existingSession.id !== session.id) {
+        this.logger.warn(
+          `Purchase token ${dto.purchaseToken} is already used by session ${existingSession.id}. Rejecting for session ${session.id}.`,
+        );
+        return { success: false, valid: false, reason: 'ALREADY_CONSUMED' };
+      }
+
+      const { packageName, serviceAccountBase64 } = this.getPlayBillingConfig();
+
       const androidPublisher = this.getAndroidPublisher(serviceAccountBase64);
       return await this.verifyAndProcessPurchase(
         androidPublisher,
@@ -53,12 +59,22 @@ export class PaymentsService {
         session,
       );
     } catch (error) {
+      if (
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(
         `Error verifying Google Play purchase: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new BadRequestException('Error verificando la compra');
+    } finally {
+      this.paymentLockService.releaseLock(dto.purchaseToken);
     }
   }
 
@@ -121,17 +137,24 @@ export class PaymentsService {
       });
       purchase = response.data;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      const isGaxiosError = error instanceof GaxiosError;
+      const status = isGaxiosError ? error.response?.status : null;
+
+      // 400 Bad Request from Google Play might mean the token is no longer owned or valid
       if (
-        errorMessage.toLowerCase().includes('not owned by the user') &&
-        (session.paymentReference === dto.purchaseToken ||
-          session.paymentStatus === SessionPaymentStatus.PAID)
+        status === 400 ||
+        (error instanceof Error &&
+          error.message.toLowerCase().includes('not owned by the user'))
       ) {
-        this.logger.warn(
-          `Purchase token ${dto.purchaseToken} is no longer owned but session ${session.id} already references it. Treating as idempotent success.`,
-        );
-        return { success: true, valid: true };
+        if (
+          session.paymentReference === dto.purchaseToken ||
+          session.paymentStatus === SessionPaymentStatus.PAID
+        ) {
+          this.logger.warn(
+            `Purchase token ${dto.purchaseToken} is no longer valid but session ${session.id} already references it. Treating as idempotent success.`,
+          );
+          return { success: true, valid: true };
+        }
       }
 
       throw error;
@@ -144,11 +167,28 @@ export class PaymentsService {
       return { success: false, valid: false, reason: 'PURCHASE_NOT_VALID' };
     }
 
-    await this.sessionsService.updatePaymentStatus(
-      session.id,
-      SessionPaymentStatus.PAID,
-      dto.purchaseToken,
-    );
+    try {
+      await this.sessionsService.updatePaymentStatus(
+        session.id,
+        SessionPaymentStatus.PAID,
+        dto.purchaseToken,
+      );
+    } catch (error) {
+      // Catch DB constraint error if another request managed to save it first despite the lock (e.g. cross-instance race condition)
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === '23505'
+      ) {
+        this.logger.warn(
+          `Unique constraint violation on payment_reference for token ${dto.purchaseToken}. Someone else consumed it.`,
+        );
+        return { success: false, valid: false, reason: 'ALREADY_CONSUMED' };
+      }
+      throw error;
+    }
+
     return { success: true, valid: true };
   }
 }
