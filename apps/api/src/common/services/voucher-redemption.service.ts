@@ -1,5 +1,7 @@
 import {
   Injectable,
+  HttpException,
+  HttpStatus,
   NotFoundException,
   ConflictException,
   BadRequestException,
@@ -12,6 +14,17 @@ import {
   SessionPaymentStatus,
 } from '../../sessions/entities/session.entity.js';
 import { VoucherStatus } from '../../vouchers/entities/voucher.enums.js';
+
+const voucherErrorResponse = (
+  code:
+    | 'INVALID_CODE'
+    | 'ALREADY_USED'
+    | 'SESSION_NOT_FOUND'
+    | 'VOUCHER_EXPIRED'
+    | 'SERVICE_UNAVAILABLE',
+  statusCode: number,
+  message: string,
+) => ({ code, statusCode, message });
 
 @Injectable()
 export class VoucherRedemptionService {
@@ -42,7 +55,13 @@ export class VoucherRedemptionService {
       });
 
       if (!voucher) {
-        throw new NotFoundException('INVALID_CODE');
+        throw new NotFoundException(
+          voucherErrorResponse(
+            'INVALID_CODE',
+            HttpStatus.NOT_FOUND,
+            'Voucher code not found',
+          ),
+        );
       }
 
       const session = await sessionRepo.findOne({
@@ -50,7 +69,24 @@ export class VoucherRedemptionService {
       });
 
       if (!session) {
-        throw new NotFoundException('SESSION_NOT_FOUND');
+        throw new NotFoundException(
+          voucherErrorResponse(
+            'SESSION_NOT_FOUND',
+            HttpStatus.NOT_FOUND,
+            'Session not found',
+          ),
+        );
+      }
+
+      if (voucher.expiresAt && voucher.expiresAt.getTime() < Date.now()) {
+        throw new HttpException(
+          voucherErrorResponse(
+            'VOUCHER_EXPIRED',
+            HttpStatus.GONE,
+            'Voucher expired',
+          ),
+          HttpStatus.GONE,
+        );
       }
 
       if (voucher.redeemedSessionId === sessionId) {
@@ -65,17 +101,26 @@ export class VoucherRedemptionService {
       }
 
       if (voucher.status === VoucherStatus.USED) {
-        throw new ConflictException('ALREADY_USED');
+        throw new ConflictException(
+          voucherErrorResponse(
+            'ALREADY_USED',
+            HttpStatus.CONFLICT,
+            'Voucher already used',
+          ),
+        );
       }
 
       try {
         voucher.redeem(sessionId);
       } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : 'Error al redimir el voucher';
-        throw new BadRequestException(message);
+        throw new HttpException(
+          voucherErrorResponse(
+            'SERVICE_UNAVAILABLE',
+            HttpStatus.SERVICE_UNAVAILABLE,
+            'Servicio temporalmente no disponible',
+          ),
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
       }
 
       await voucherRepo.save(voucher);

@@ -26,31 +26,33 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const exceptionResponse =
       exception instanceof HttpException ? exception.getResponse() : null;
-    const message =
-      typeof exceptionResponse === 'string'
-        ? exceptionResponse
-        : typeof exceptionResponse === 'object' &&
-            exceptionResponse &&
-            'message' in exceptionResponse
-          ? exceptionResponse.message
-          : exception instanceof Error
-            ? exception.message
-            : 'Internal server error';
+    const responseObject =
+      typeof exceptionResponse === 'object' && exceptionResponse
+        ? (exceptionResponse as Record<string, unknown>)
+        : null;
+    const responseMessage =
+      responseObject && 'message' in responseObject
+        ? responseObject.message
+        : exception instanceof Error
+          ? exception.message
+          : 'Internal server error';
+    const responseCode =
+      responseObject && typeof responseObject.code === 'string'
+        ? responseObject.code
+        : undefined;
 
+    const isServerError = httpStatus >= 500;
+    const responseStatusCode = isServerError ? HttpStatus.SERVICE_UNAVAILABLE : httpStatus;
     const responseBody = {
-      code:
-        typeof message === 'string'
-          ? message
-          : Array.isArray(message)
-            ? message[0]
-            : 'UNKNOWN_ERROR',
-      statusCode: httpStatus,
+      code: isServerError ? 'SERVICE_UNAVAILABLE' : responseCode ?? 'UNKNOWN_ERROR',
+      statusCode: responseStatusCode,
       timestamp: new Date().toISOString(),
       path: httpAdapter.getRequestUrl(ctx.getRequest()),
-      message:
-        httpStatus >= 500
-          ? 'Error interno del servidor'
-          : (message as string | string[]),
+      message: isServerError
+        ? 'Servicio temporalmente no disponible'
+        : Array.isArray(responseMessage)
+          ? responseMessage[0]
+          : responseMessage,
     };
 
     // Logueamos el error con contexto completo para Pino
@@ -59,6 +61,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof Error ? exception.stack : String(exception),
     );
 
-    httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
+    httpAdapter.reply(ctx.getResponse(), responseBody, responseStatusCode);
   }
 }
