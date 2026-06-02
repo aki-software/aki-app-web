@@ -24,6 +24,10 @@ import { Institution } from '../../institutions/entities/institution.entity.js';
 @Index('IDX_sessions_payment_status', ['paymentStatus'])
 @Index('IDX_sessions_voucher_id', ['voucherId'])
 @Index('IDX_sessions_institution_id_created_at', ['institutionId', 'createdAt'])
+@Index('IDX_sessions_payment_reference_unique', ['paymentReference'], {
+  unique: true,
+  where: 'payment_reference IS NOT NULL',
+})
 export class Session {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

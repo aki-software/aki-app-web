@@ -82,7 +82,6 @@ export class AddTimeSpentToSessionResult1780405141840 implements MigrationInterf
     await queryRunner.query(
       `ALTER TABLE "voucher_batches" ALTER COLUMN "owner_type" TYPE "public"."voucher_batches_owner_type_enum" USING "owner_type"::"text"::"public"."voucher_batches_owner_type_enum"`,
     );
-    await queryRunner.query(`DROP TYPE "public"."voucher_owner_type_enum_old"`);
     await queryRunner.query(
       `ALTER TYPE "public"."voucher_batch_status_enum" RENAME TO "voucher_batch_status_enum_old"`,
     );
@@ -103,9 +102,6 @@ export class AddTimeSpentToSessionResult1780405141840 implements MigrationInterf
     );
     await queryRunner.query(
       `DROP INDEX "public"."IDX_vouchers_owner_institution_id_status"`,
-    );
-    await queryRunner.query(
-      `ALTER TYPE "public"."voucher_owner_type_enum" RENAME TO "voucher_owner_type_enum_old"`,
     );
     await queryRunner.query(
       `CREATE TYPE "public"."vouchers_owner_type_enum" AS ENUM('THERAPIST', 'INSTITUTION')`,
