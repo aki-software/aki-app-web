@@ -12,44 +12,44 @@ import { Type } from 'class-transformer';
 
 class CompleteSessionSwipeDto {
   @IsString()
-  cardId: string;
+  cardId!: string;
 
   @IsString()
-  categoryId: string;
+  categoryId!: string;
 
   @IsBoolean()
-  liked: boolean;
+  liked!: boolean;
 
   @IsISO8601()
-  timestamp: string;
+  timestamp!: string;
 }
 
 class CompleteSessionRadarItemDto {
   @IsString()
-  categoryId: string;
+  categoryId!: string;
 
   @IsNumber()
-  likes: number;
+  likes!: number;
 
   @IsNumber()
-  total: number;
+  total!: number;
 
   @IsNumber()
-  affinity: number;
+  affinity!: number;
 }
 
 class CompleteSessionCategoryResultDto {
   @IsString()
-  categoryId: string;
+  categoryId!: string;
 
   @IsNumber()
-  percentage: number;
+  percentage!: number;
 
   @IsNumber()
-  score: number;
+  score!: number;
 
   @IsNumber()
-  totalPossible: number;
+  totalPossible!: number;
 
   @IsOptional()
   @IsArray()
@@ -65,20 +65,20 @@ class CompleteSessionResultPayloadDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CompleteSessionRadarItemDto)
-  radar: CompleteSessionRadarItemDto[];
+  radar!: CompleteSessionRadarItemDto[];
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CompleteSessionCategoryResultDto)
-  top3: CompleteSessionCategoryResultDto[];
+  top3!: CompleteSessionCategoryResultDto[];
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CompleteSessionCategoryResultDto)
-  bottom3: CompleteSessionCategoryResultDto[];
+  bottom3!: CompleteSessionCategoryResultDto[];
 
   @IsString()
-  hollandCode: string;
+  hollandCode!: string;
 }
 
 export class CompleteSessionDto {
@@ -87,7 +87,7 @@ export class CompleteSessionDto {
   id?: string;
 
   @IsUUID()
-  userId: string;
+  userId!: string;
 
   @IsOptional()
   @IsUUID()
@@ -114,23 +114,23 @@ export class CompleteSessionDto {
   paymentStatus?: string;
 
   @IsString()
-  patientName: string;
+  patientName!: string;
 
   @IsString()
-  catalogVersion: string;
+  catalogVersion!: string;
 
   @IsISO8601()
-  startedAt: string;
+  startedAt!: string;
 
   @IsISO8601()
-  finishedAt: string;
+  finishedAt!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CompleteSessionSwipeDto)
-  swipes: CompleteSessionSwipeDto[];
+  swipes!: CompleteSessionSwipeDto[];
 
   @ValidateNested()
   @Type(() => CompleteSessionResultPayloadDto)
-  resultPayload: CompleteSessionResultPayloadDto;
+  resultPayload!: CompleteSessionResultPayloadDto;
 }

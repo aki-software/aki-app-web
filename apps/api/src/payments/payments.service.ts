@@ -123,10 +123,6 @@ export class PaymentsService {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-
-      // Google Play already consumed / detached the token. If our session already
-      // references this token, treat it as an idempotent success instead of failing
-      // the unlock flow again on retries or duplicate callbacks.
       if (
         errorMessage.toLowerCase().includes('not owned by the user') &&
         (session.paymentReference === dto.purchaseToken ||
@@ -148,13 +144,6 @@ export class PaymentsService {
       return { success: false, valid: false, reason: 'PURCHASE_NOT_VALID' };
     }
 
-    // El consumo de la compra lo realiza EXCLUSIVAMENTE el cliente de Android
-    // (billingRepository.consumePurchase) después de recibir una respuesta exitosa
-    // de este endpoint. Consumir aquí en el backend destruye la idempotencia:
-    // si la DB falla post-consume, el token desaparece de Google Play pero la
-    // sesión queda en PENDING. En el reintento, Google retorna "not owned" y
-    // la compra se pierde. Al delegar el consume al cliente, este endpoint
-    // puede ser reintentado de forma segura ante cualquier falla de red o DB.
     await this.sessionsService.updatePaymentStatus(
       session.id,
       SessionPaymentStatus.PAID,

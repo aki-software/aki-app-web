@@ -1,13 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { IReportCacheService } from '../interfaces/report-cache.interface.js';
 
 @Injectable()
-export class ReportCacheService {
+export class InMemoryReportCacheService implements IReportCacheService {
   private readonly locks = new Map<string, Promise<any>>();
   private readonly cache = new Map<
     string,
     { value: unknown; expiresAt: number }
   >();
-  private readonly logger = new Logger(ReportCacheService.name);
+  private readonly logger = new Logger(InMemoryReportCacheService.name);
   private readonly defaultTtlMs = 5 * 60 * 1000;
 
   get<T>(key: string): T | null {
@@ -49,10 +50,6 @@ export class ReportCacheService {
     });
   }
 
-  /**
-   * Executes a factory function, ensuring that if multiple requests
-   * for the same key arrive simultaneously, they share the same execution promise.
-   */
   async withLock<T>(key: string, factory: () => Promise<T>): Promise<T> {
     if (this.locks.has(key)) {
       this.logger.debug(`Lock acquired for key: ${key}`);

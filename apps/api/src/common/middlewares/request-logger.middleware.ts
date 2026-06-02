@@ -9,7 +9,6 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     const start = Date.now();
     const { method, originalUrl, body } = req;
 
-    // Log inmediato apenas entra la petición (para no estar a ciegas)
     this.logger.log(`>> [REQ] ${method} ${originalUrl} - IP: ${req.ip}`);
     if (
       originalUrl.includes('/vouchers/redeem') ||

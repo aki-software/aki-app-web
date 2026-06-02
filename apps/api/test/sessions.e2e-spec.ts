@@ -50,10 +50,10 @@ describe('SessionsController (e2e)', () => {
 
     // 1. Create Institutions
     const instX = await instRepo.save(
-      instRepo.create({ name: 'Inst X', email: 'x@x.com', phone: '123' }),
+      instRepo.create({ name: 'Inst X', billingEmail: 'x@x.com' }),
     );
     const instY = await instRepo.save(
-      instRepo.create({ name: 'Inst Y', email: 'y@y.com', phone: '123' }),
+      instRepo.create({ name: 'Inst Y', billingEmail: 'y@y.com' }),
     );
 
     // 2. Create Users
@@ -86,7 +86,7 @@ describe('SessionsController (e2e)', () => {
       userRepo.create({
         email: `ux-${rnd}@test.com`,
         name: 'UX',
-        role: UserRole.INSTITUTION,
+        role: UserRole.INSTITUTION_ADMIN,
         institutionId: instX.id,
         passwordHash: 'hashedpwd',
       }),

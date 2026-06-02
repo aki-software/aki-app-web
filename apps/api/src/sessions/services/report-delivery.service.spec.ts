@@ -42,7 +42,6 @@ describe('ReportDeliveryService', () => {
         strengths: [],
       },
       Buffer.from('pdf'),
-      'https://cdn/report.pdf',
     );
 
     expect(mailService.sendVocationalReport).toHaveBeenCalledWith(
@@ -50,7 +49,7 @@ describe('ReportDeliveryService', () => {
       'Test User',
       'RIA',
       expect.any(Buffer),
-      'https://cdn/report.pdf',
+      undefined,
       expect.any(Object),
       undefined,
     );

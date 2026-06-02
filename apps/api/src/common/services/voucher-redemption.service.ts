@@ -112,7 +112,7 @@ export class VoucherRedemptionService {
 
       try {
         voucher.redeem(sessionId);
-      } catch (error) {
+      } catch {
         throw new HttpException(
           voucherErrorResponse(
             'SERVICE_UNAVAILABLE',
