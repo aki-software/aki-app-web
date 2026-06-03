@@ -167,7 +167,11 @@ export class SessionsService {
     }
 
     this.queueAdapter
-      .enqueue(JobNames.CalculateMetrics, { sessionId: savedSession.id })
+      .enqueue(
+        JobNames.CalculateMetrics,
+        { sessionId: savedSession.id },
+        { delayMs: 2000 },
+      )
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         this.logger.warn(
