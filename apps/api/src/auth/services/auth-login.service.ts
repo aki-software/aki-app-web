@@ -41,7 +41,7 @@ export class AuthLoginService {
       );
     }
 
-    const validPassword = this.cryptoService.verify(
+    const validPassword = await this.cryptoService.verify(
       loginDto.password,
       user.passwordHash,
     );

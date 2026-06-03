@@ -2,9 +2,9 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { VoucherRedemptionService } from './voucher-redemption.service.js';
-import { Voucher } from '../../vouchers/entities/voucher.entity.js';
+import { Voucher } from '../entities/voucher.entity.js';
 import { Session } from '../../sessions/entities/session.entity.js';
-import { VoucherStatus } from '../../vouchers/entities/voucher.enums.js';
+import { VoucherStatus } from '../entities/voucher.enums.js';
 
 describe('VoucherRedemptionService', () => {
   let service: VoucherRedemptionService;

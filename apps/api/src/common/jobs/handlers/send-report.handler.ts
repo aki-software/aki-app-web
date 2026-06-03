@@ -41,6 +41,8 @@ export class SendReportHandler implements JobHandler<SendReportJobPayload> {
       targetEmail,
       voucherId,
       scope,
+      // Pass signal here if the service ever starts supporting it
+      // signal,
     );
   }
 }

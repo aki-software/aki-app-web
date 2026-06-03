@@ -1,3 +1,3 @@
 export interface PdfGenerator {
-  generateFromHtml(html: string): Promise<Buffer>;
+  generateFromHtml(html: string, signal?: AbortSignal): Promise<Buffer>;
 }

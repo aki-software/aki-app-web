@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -117,7 +122,7 @@ export class UserRegistrationService {
         : userOrId;
 
     if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.institutionOwnerMissing);
+      throw new NotFoundException(USER_ERROR_MESSAGES.institutionOwnerMissing);
     }
 
     if (user.institutionId) {
@@ -142,11 +147,11 @@ export class UserRegistrationService {
   async refreshPasswordSetupToken(userId: string): Promise<User> {
     const user = await this.usersService.findOneWithInstitution(userId);
     if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.notFound);
+      throw new NotFoundException(USER_ERROR_MESSAGES.notFound);
     }
 
     if (this.usersService.hasPasswordConfigured(user)) {
-      throw new Error(USER_ERROR_MESSAGES.accountAlreadyActive);
+      throw new ConflictException(USER_ERROR_MESSAGES.accountAlreadyActive);
     }
 
     const passwordSetupToken = this.cryptoService.generateToken(24);

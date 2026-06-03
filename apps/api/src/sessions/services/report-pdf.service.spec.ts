@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReportPdfService } from './report-pdf.service.js';
-import { PdfService } from '../../common/services/pdf.service.js';
+import { PDF_GENERATOR } from '../../common/constants/adapters.constants.js';
 import * as pug from 'pug';
 
 jest.mock('pug', () => ({
@@ -17,7 +17,7 @@ describe('ReportPdfService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReportPdfService,
-        { provide: PdfService, useValue: pdfService },
+        { provide: PDF_GENERATOR, useValue: pdfService },
       ],
     }).compile();
 

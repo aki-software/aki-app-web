@@ -26,12 +26,16 @@ describe('InMemoryReportCacheService', () => {
   describe('getOrCreate', () => {
     it('returns cached value if exists', async () => {
       service.set('key', 'value', 1000);
-      const result = await service.getOrCreate('key', async () => 'new');
+      const result = await service.getOrCreate('key', () =>
+        Promise.resolve('new'),
+      );
       expect(result).toBe('value');
     });
 
     it('calls factory if missing', async () => {
-      const result = await service.getOrCreate('key', async () => 'new');
+      const result = await service.getOrCreate('key', () =>
+        Promise.resolve('new'),
+      );
       expect(result).toBe('new');
       expect(service.get('key')).toBe('new');
     });
@@ -57,7 +61,9 @@ describe('InMemoryReportCacheService', () => {
 
   describe('withLock', () => {
     it('returns factory result', async () => {
-      const result = await service.withLock('key', async () => 'value');
+      const result = await service.withLock('key', () =>
+        Promise.resolve('value'),
+      );
       expect(result).toBe('value');
     });
 

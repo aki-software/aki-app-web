@@ -8,16 +8,20 @@ import {
   PDF_GENERATOR,
   STORAGE_ADAPTER,
   QUEUE_ADAPTER,
+  MAIL_ADAPTER,
 } from './constants/adapters.constants.js';
 import { InMemoryQueueAdapter } from './adapters/in-memory-queue.adapter.js';
 import { BullMQQueueAdapter } from './adapters/bullmq-queue.adapter.js';
+import { BullMQWorkerService } from './services/bullmq-worker.service.js';
 import { JobDispatcherService } from './services/job-dispatcher.service.js';
 import { IdempotencyService } from './services/idempotency.service.js';
 import { IdempotencyInterceptor } from './interceptors/idempotency.interceptor.js';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { SendEmailHandler } from './jobs/handlers/send-email.handler.js';
 import { GeneratePdfHandler } from './jobs/handlers/generate-pdf.handler.js';
 import { SendReportHandler } from './jobs/handlers/send-report.handler.js';
+import { MailService } from '../mail/mail.service.js';
+import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
 
 @Global()
 @Module({
@@ -28,6 +32,7 @@ import { SendReportHandler } from './jobs/handlers/send-report.handler.js';
     CryptoService,
     RateLimitService,
     JobDispatcherService,
+    BullMQWorkerService,
     SendEmailHandler,
     GeneratePdfHandler,
     SendReportHandler,
@@ -35,6 +40,7 @@ import { SendReportHandler } from './jobs/handlers/send-report.handler.js';
     BullMQQueueAdapter,
     { provide: PDF_GENERATOR, useExisting: PdfService },
     { provide: STORAGE_ADAPTER, useExisting: StorageService },
+    { provide: MAIL_ADAPTER, useExisting: MailService },
     {
       provide: QUEUE_ADAPTER,
       useFactory: (
@@ -53,6 +59,10 @@ import { SendReportHandler } from './jobs/handlers/send-report.handler.js';
       provide: APP_INTERCEPTOR,
       useClass: IdempotencyInterceptor,
     },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
   ],
   exports: [
     PdfService,
@@ -63,6 +73,7 @@ import { SendReportHandler } from './jobs/handlers/send-report.handler.js';
     PDF_GENERATOR,
     STORAGE_ADAPTER,
     QUEUE_ADAPTER,
+    MAIL_ADAPTER,
     IdempotencyService,
   ],
 })

@@ -4,11 +4,7 @@ import { Queue } from 'bullmq';
 import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
 import { InMemoryQueueAdapter } from './in-memory-queue.adapter.js';
 import { applyQueueDefaults } from './queue-defaults.js';
-
-type RedisConnectionConfig =
-  | { url: string }
-  | { host: string; port: number }
-  | null;
+import { getRedisConnection } from '../utils/redis.utils.js';
 
 @Injectable()
 export class BullMQQueueAdapter implements QueueAdapter {
@@ -20,7 +16,7 @@ export class BullMQQueueAdapter implements QueueAdapter {
     private readonly configService: ConfigService,
     private readonly fallbackAdapter: InMemoryQueueAdapter,
   ) {
-    const connection = this.getRedisConnection();
+    const connection = getRedisConnection(this.configService);
     this.isEnabled = !!connection;
 
     if (!connection) {
@@ -49,52 +45,6 @@ export class BullMQQueueAdapter implements QueueAdapter {
 
     const resolvedOptions = applyQueueDefaults(jobName, options);
     await this.queue.add(jobName, payload, this.mapJobOptions(resolvedOptions));
-  }
-
-  private getRedisConnection(): RedisConnectionConfig {
-    const url = this.getRedisUrl();
-    if (url) {
-      return { url };
-    }
-
-    const host = this.configService.get<string>('REDIS_HOST');
-    if (!host?.trim()) {
-      return null;
-    }
-
-    const port = this.getRedisPort();
-    if (port === null) {
-      return null;
-    }
-
-    return { host: host.trim(), port };
-  }
-
-  private getRedisUrl(): string | null {
-    const primary = this.configService.get<string>('REDIS_URL');
-    if (primary?.trim()) {
-      return primary.trim();
-    }
-
-    const legacy = this.configService.get<string>('QUEUE_REDIS_URL');
-    return legacy?.trim() ?? null;
-  }
-
-  private getRedisPort(): number | null {
-    const portValue = this.configService.get<string>('REDIS_PORT');
-    if (!portValue) {
-      return 6379;
-    }
-
-    const parsed = Number(portValue);
-    if (!Number.isFinite(parsed)) {
-      this.logger.warn(
-        `Invalid REDIS_PORT value "${portValue}", disabling BullMQ`,
-      );
-      return null;
-    }
-
-    return parsed;
   }
 
   private mapJobOptions(options?: QueueJobOptions) {
