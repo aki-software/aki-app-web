@@ -5,9 +5,10 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
+import { PdfGenerator } from '../adapters/pdf-generator.adapter.js';
 
 @Injectable()
-export class PdfService implements OnModuleDestroy {
+export class PdfService implements PdfGenerator, OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
   private readonly idlePages: puppeteer.Page[] = [];
   private readonly maxIdlePages = 4;
@@ -15,11 +16,24 @@ export class PdfService implements OnModuleDestroy {
   private browser: puppeteer.Browser | undefined;
   private browserLaunching: Promise<puppeteer.Browser> | undefined;
 
-  async generateFromHtml(html: string): Promise<Buffer> {
+  async generateFromHtml(html: string, signal?: AbortSignal): Promise<Buffer> {
+    if (signal?.aborted) {
+      throw new Error('PDF generation aborted');
+    }
+
     let page: puppeteer.Page | undefined;
     try {
       page = await this.acquirePage();
+
+      if (signal?.aborted) {
+        throw new Error('PDF generation aborted');
+      }
+
       await page.setContent(html, { waitUntil: 'domcontentloaded' });
+
+      if (signal?.aborted) {
+        throw new Error('PDF generation aborted');
+      }
 
       const pdfBuffer = await page.pdf({
         format: 'A4',
@@ -36,6 +50,17 @@ export class PdfService implements OnModuleDestroy {
     } catch (error) {
       const message = (error as Error)?.message ?? 'unknown error';
       this.logger.error(`PDF generation failed: ${message}`);
+
+      if (
+        message.includes('Connection closed') ||
+        message.includes('Target closed') ||
+        message.includes('Protocol error')
+      ) {
+        this.logger.warn(
+          'Destruyendo instancia corrupta de Puppeteer para forzar reinicio.',
+        );
+        await this.closeBrowser().catch(() => {});
+      }
 
       if (message.includes('Could not find Chrome')) {
         this.logger.error(
@@ -76,8 +101,6 @@ export class PdfService implements OnModuleDestroy {
       this.logger.warn(
         `PDF page reset failed: ${(error as Error)?.message ?? 'unknown'}`,
       );
-      // Si falla el reset (ej. 'detached Frame'), la página quedó corrupta.
-      // La cerramos y evitamos devolverla al pool.
       try {
         await page.close();
       } catch {
@@ -117,8 +140,6 @@ export class PdfService implements OnModuleDestroy {
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
-          '--single-process',
-          '--no-zygote',
           '--memory-pressure-off',
           '--js-flags=--max-old-space-size=256',
         ],

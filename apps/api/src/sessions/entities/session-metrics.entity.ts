@@ -11,34 +11,34 @@ import { Session } from './session.entity.js';
 @Entity('session_metrics')
 export class SessionMetrics {
   @PrimaryColumn({ name: 'session_id', type: 'uuid' })
-  sessionId: string;
+  sessionId!: string;
 
   @OneToOne(() => Session, (session) => session.metrics, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'session_id' })
-  session: Session;
+  session!: Session;
 
   @Column({ name: 'total_duration_ms', type: 'bigint' })
-  totalDurationMs: number;
+  totalDurationMs!: number;
 
   @Column({ name: 'total_swipes', type: 'int' })
-  totalSwipes: number;
+  totalSwipes!: number;
 
   @Column({ name: 'unique_cards', type: 'int' })
-  uniqueCards: number;
+  uniqueCards!: number;
 
   @Column({ name: 'reverted_matches', type: 'int' })
-  revertedMatches: number;
+  revertedMatches!: number;
 
   @Column({ name: 'avg_time_between_swipes_ms', type: 'int' })
-  avgTimeBetweenSwipesMs: number;
+  avgTimeBetweenSwipesMs!: number;
 
   @Column({ name: 'min_time_between_swipes_ms', type: 'int' })
-  minTimeBetweenSwipesMs: number;
+  minTimeBetweenSwipesMs!: number;
 
   @Column({ name: 'max_time_between_swipes_ms', type: 'int' })
-  maxTimeBetweenSwipesMs: number;
+  maxTimeBetweenSwipesMs!: number;
 
   @Column({
     name: 'reliability_score',
@@ -46,11 +46,11 @@ export class SessionMetrics {
     precision: 5,
     scale: 2,
   })
-  reliabilityScore: number;
+  reliabilityScore!: number;
 
   @Column({ name: 'reliability_level', type: 'varchar', length: 20 })
-  reliabilityLevel: string;
+  reliabilityLevel!: string;
 
-  @CreateDateColumn({ name: 'calculated_at' })
-  calculatedAt: Date;
+  @CreateDateColumn({ name: 'calculated_at', type: 'timestamptz' })
+  calculatedAt!: Date;
 }

@@ -1,0 +1,24 @@
+extends base-email.pug
+
+block bodyContent
+  tr
+    td(style="padding:26px 40px 8px;")
+      h1.text-primary(style=`margin:0 0 4px 0;font-size:26px;line-height:1.2;color:${colors.text.primary};letter-spacing:0.02em;`) ¡Vouchers acreditados!
+      p.text-secondary(style=`margin:0 0 8px 0;font-size:14px;color:${colors.outline.light};`)
+        | Hola 
+        strong.text-primary(style=`color:${colors.text.primary}`) #{institutionName}
+        | ,
+      p.text-secondary(style=`margin:0 0 12px 0;font-size:14px;line-height:1.7;color:${colors.outline.light};`) Se han acreditado #[strong(style=`color:${colors.text.primary}`) #{quantity}] nuevos vouchers a tu cuenta. Ya podés empezar a enviarlos a tus pacientes o alumnos desde tu panel de control.
+      
+      if expiresAt
+        p.text-secondary(style=`margin:0 0 12px 0;font-size:14px;line-height:1.7;color:${colors.outline.light};`) #[em Tené en cuenta que este lote de vouchers vence el #{expiresAt}.]
+
+  tr
+    td(style="padding:6px 40px 26px;")
+      table.bg-body.border-surface(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`border:1px solid ${colors.surface.variantLight};background:${colors.background.light};border-radius:16px;box-shadow:0 8px 16px rgba(15,107,104,0.05);`)
+        tr
+          td(style="padding:20px;")
+            a(href=dashboardUrl style=`display:inline-block;padding:14px 24px;background:${colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(15,107,104,0.15);`) Ir a mi Panel
+            p.text-secondary(style=`margin:16px 0 0 0;font-size:12px;color:${colors.outline.light};`) Si el botón no funciona, copiá y pegá este enlace:
+            p.text-secondary.border-surface(style=`margin:8px 0 0 0;padding:12px;background:${colors.surface.light};border:1px dashed ${colors.surface.variantLight};border-radius:10px;font-size:11px;font-family:'Courier New',Courier,monospace;color:${colors.outline.light};word-break:break-all;`) #{dashboardUrl}
+            p.text-secondary(style=`margin:12px 0 0 0;font-size:12px;color:${colors.outline.light};`) Si no esperabas recibir este correo o tenés dudas sobre tu saldo, por favor contactanos respondiendo a este email.

@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,13 +14,9 @@ import { AccountActivationNotifierService } from '../common/notifications/accoun
 import { CryptoService } from '../common/services/crypto.service.js';
 import { normalizeUserRole } from '../common/utils/role.utils.js';
 import { USER_ERROR_MESSAGES } from './users.constants.js';
+import { RegisterUserDto } from './dto/register-user.dto.js';
 
-export interface RegisterUserDto {
-  name: string;
-  email?: string;
-  role?: UserRole | string;
-  institutionId?: string | null;
-}
+export type { RegisterUserDto };
 
 @Injectable()
 export class UserRegistrationService {
@@ -117,7 +118,7 @@ export class UserRegistrationService {
         : userOrId;
 
     if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.institutionOwnerMissing);
+      throw new NotFoundException(USER_ERROR_MESSAGES.institutionOwnerMissing);
     }
 
     if (user.institutionId) {
@@ -142,11 +143,11 @@ export class UserRegistrationService {
   async refreshPasswordSetupToken(userId: string): Promise<User> {
     const user = await this.usersService.findOneWithInstitution(userId);
     if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.notFound);
+      throw new NotFoundException(USER_ERROR_MESSAGES.notFound);
     }
 
     if (this.usersService.hasPasswordConfigured(user)) {
-      throw new Error(USER_ERROR_MESSAGES.accountAlreadyActive);
+      throw new ConflictException(USER_ERROR_MESSAGES.accountAlreadyActive);
     }
 
     const passwordSetupToken = this.cryptoService.generateToken(24);

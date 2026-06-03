@@ -1,76 +1,50 @@
-doctype html
-html(lang="es")
-  head
-    meta(charset="utf-8")
-    meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title Tu informe vocacional ya esta disponible
-  body(style="margin:0;padding:0;background-color:#F5EFE7;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;color:#1d1914;")
-    table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:28px 0;background-color:#F5EFE7;")
-      tr
-        td(align="center")
-          table(role="presentation" width="620" cellpadding="0" cellspacing="0" style="width:620px;max-width:620px;background-color:#ffffff;border:1px solid #DCD3C5;border-radius:12px;overflow:hidden;")
-            tr
-              td(style="padding:30px;background-color:#0F6B68;")
-                table(role="presentation" width="100%" cellpadding="0" cellspacing="0")
-                  tr
-                    td(align="center")
-                      if logoDataUri
-                        img(src=logoDataUri alt="A.kit" style="width:110px;height:auto;display:block;")
-                      else
-                        span(style="font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;") A.kit
-                  tr
-                    td(align="center" style="padding-top:10px;font-size:12px;color:#B7ECE7;text-transform:uppercase;letter-spacing:0.16em;font-weight:700;") Informe Vocacional listo para descargar
+extends ./base-email.pug
 
-            tr
-              td(style="padding:26px 30px 6px;")
-                h1(style="margin:0 0 4px 0;font-size:26px;line-height:1.2;color:#1d1914;letter-spacing:0.08em;text-transform:uppercase;") #{patientName}
-                if patientEmail
-                  p(style="margin:0 0 8px 0;font-size:12px;color:#7A8783;") #{patientEmail}
-                p(style="margin:0 0 12px 0;font-size:14px;line-height:1.7;color:#44403c;") Tu informe vocacional completo ya fue generado. En este correo te dejamos un resumen ejecutivo y el acceso al PDF.
+block bodyContent
+  tr
+    td(style="padding:26px 40px 6px;")
+      h1.text-primary(style=`margin:0 0 4px 0;font-size:26px;line-height:1.2;color:${colors.text.primary};letter-spacing:0.02em;text-transform:uppercase;`) #{patientName}
+      if patientEmail
+        p.text-secondary(style=`margin:0 0 8px 0;font-size:12px;color:${colors.outline.light};`) #{patientEmail}
+      p(style=`margin:0 0 12px 0;font-size:14px;line-height:1.6;color:${colors.text.secondary};`) Tu informe vocacional completo ya fue generado. En este correo te dejamos un resumen rápido y el acceso al PDF.
 
-            if summary
+  if summary
+    tr
+      td(style="padding:12px 40px 20px;")
+        table.bg-body.border-surface(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`border:1px solid ${colors.surface.variantLight};border-radius:16px;background-color:${colors.background.light};`)
+          tr
+            td(style="padding:24px 24px 12px;")
+              p.text-secondary(style=`margin:0 0 8px 0;font-size:11px;font-weight:700;color:${colors.outline.light};text-transform:uppercase;letter-spacing:0.18em;`) Resumen rápido
+              p.text-primary(style=`margin:0 0 12px 0;font-size:16px;font-weight:700;color:${colors.text.primary};`) Afinidad principal: #{summary.primaryTitle} (#{summary.primaryPercentage}%)
+              p(style=`margin:0 0 12px 0;font-size:14px;line-height:1.6;color:${colors.text.secondary};`) #{summary.profileStrength}
+              p(style=`margin:0;font-size:14px;line-height:1.6;color:${colors.text.secondary};`) #[strong Sugerencia:] #{summary.recommendation}
+            if summary.rankedAreas && summary.rankedAreas.length > 0
               tr
-                td(style="padding:12px 30px 20px;")
-                  table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #DCD3C5;border-radius:12px;background-color:#FCF9F4;")
-                    tr
-                      td(style="padding:18px 18px 6px;")
-                        p(style="margin:0 0 6px 0;font-size:11px;font-weight:700;color:#7A8783;text-transform:uppercase;letter-spacing:0.18em;") Resumen rapido
-                        p(style="margin:0 0 10px 0;font-size:16px;font-weight:700;color:#1d1914;") Afinidad principal: #{summary.primaryTitle} (#{summary.primaryPercentage}%)
-                        p(style="margin:0 0 10px 0;font-size:14px;line-height:1.7;color:#44403c;") #{summary.profileStrength}
-                        p(style="margin:0;font-size:14px;line-height:1.7;color:#44403c;") #[strong Sugerencia:] #{summary.recommendation}
-                      if summary.rankedAreas && summary.rankedAreas.length > 0
-                        tr
-                          td(style="padding:0 18px 18px;")
-                            p(style="margin:12px 0 10px 0;font-size:11px;font-weight:700;color:#7A8783;text-transform:uppercase;letter-spacing:0.18em;") Ranking de afinidad
-                            table(role="presentation" width="100%" cellpadding="0" cellspacing="0")
-                              each area, index in summary.rankedAreas
-                                tr
-                                  td(style="padding:6px 0;")
-                                    table(role="presentation" width="100%" cellpadding="0" cellspacing="0")
-                                      tr
-                                        td(style="width:28px;font-size:12px;font-weight:700;color:#7A8783;") #{index + 1}.
-                                        td(style="font-size:13px;color:#1d1914;font-weight:700;") #{area.title}
-                                        td(style="width:56px;font-size:12px;color:#7A8783;text-align:right;") #{area.percentage}%
-                                      tr
-                                        td(colspan="3" style="padding-top:6px;")
-                                          table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style="height:6px;background-color:#DCD3C5;border-radius:999px;overflow:hidden;")
-                                            tr
-                                              td(style=`width:${area.percentage}%;background-color:#0F6B68;height:6px;`)
+                td(style="padding:0 24px 24px;")
+                  p.text-secondary(style=`margin:16px 0 12px 0;font-size:11px;font-weight:700;color:${colors.outline.light};text-transform:uppercase;letter-spacing:0.18em;`) Ranking de afinidad
+                  table(role="presentation" width="100%" cellpadding="0" cellspacing="0")
+                    each area, index in summary.rankedAreas
+                      tr
+                        td(style="padding:8px 0;")
+                          table(role="presentation" width="100%" cellpadding="0" cellspacing="0")
+                            tr
+                              td.text-secondary(style=`width:28px;font-size:12px;font-weight:700;color:${colors.outline.light};`) #{index + 1}.
+                              td.text-primary(style=`font-size:13px;color:${colors.text.primary};font-weight:700;`) #{area.title}
+                              td.text-secondary(style=`width:56px;font-size:12px;color:${colors.outline.light};text-align:right;`) #{area.percentage}%
+                            tr
+                              td(colspan="3" style="padding-top:8px;")
+                                table.border-surface(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`height:6px;background-color:${colors.surface.variantLight};border-radius:999px;overflow:hidden;`)
+                                  tr
+                                    td(style=`width:${area.percentage}%;background-color:${colors.primary.DEFAULT};height:6px;`)
 
-            tr
-              td(style="padding:6px 30px 26px;")
-                table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #f1d7c1;background-color:#fde7d4;border-radius:12px;")
-                  tr
-                    td(style="padding:18px;")
-                      p(style="margin:0 0 12px 0;font-size:14px;font-weight:700;color:#1d1914;") Descargar informe completo en PDF
-                      if reportUrl
-                        a(href=reportUrl style="display:inline-block;padding:12px 18px;background-color:#0F6B68;color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;") Descargar PDF
-                        p(style="margin:10px 0 0 0;font-size:12px;color:#7A8783;word-break:break-all;") #{reportUrl}
-                      else
-                        p(style="margin:0;font-size:13px;line-height:1.6;color:#7A8783;") El informe se adjunta en este mismo correo para que puedas abrirlo directamente.
-
-            tr
-              td(style="padding:18px 30px 24px;background-color:#F5EFE7;border-top:1px solid #DCD3C5;")
-                p(style="margin:0 0 6px 0;font-size:11px;color:#7A8783;letter-spacing:0.08em;text-transform:uppercase;") Orient A.ki - Orientacion vocacional
-                p(style="margin:0;font-size:12px;color:#7A8783;") #{brandDomain} · #{supportEmail}
-                p(style="margin:6px 0 0;font-size:11px;color:#7A8783;") Documento reservado para fines orientativos.
+  tr
+    td(style="padding:6px 40px 26px;")
+      table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`border:1px solid ${colors.secondary.light};background-color:${colors.secondary.light}30;border-radius:16px;`)
+        tr
+          td(style="padding:24px;")
+            p.text-primary(style=`margin:0 0 16px 0;font-size:15px;font-weight:700;color:${colors.text.primary};`) Descargar informe completo en PDF
+            if reportUrl
+              a(href=reportUrl style=`display:inline-block;padding:14px 24px;background-color:${colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 6px 16px rgba(15,107,104,0.15);`) Descargar PDF
+              p.text-secondary(style=`margin:12px 0 0 0;font-size:12px;color:${colors.outline.light};word-break:break-all;`) #{reportUrl}
+            else
+              p.text-secondary(style=`margin:0;font-size:13px;line-height:1.6;color:${colors.outline.light};`) El informe se adjunta en este mismo correo en formato PDF. Podés descargarlo desde los archivos adjuntos al final de este mensaje.

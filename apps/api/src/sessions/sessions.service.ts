@@ -10,22 +10,32 @@ import {
   type FindOptionsWhere,
   Repository,
   In,
-  DataSource,
   Not,
   IsNull,
+  SelectQueryBuilder,
+  QueryFailedError,
+  DataSource,
 } from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { Session } from './entities/session.entity.js';
-
+import { SessionResult } from './entities/session-result.entity.js';
+import { SessionSwipe } from './entities/session-swipe.entity.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
 import { JobNames } from '../common/jobs/job-names.js';
 import { SessionScope } from './types/session-scope.type.js';
 import { VoucherScope } from '../vouchers/types/voucher-query.types.js';
-
+import { CompleteSessionDto } from './dto/complete-session.dto.js';
+import { SessionOwnerResolverService } from './services/session-owner-resolver.service.js';
+import { VouchersService } from '../vouchers/vouchers.service.js';
+import { mapToCreateDto } from './utils/session-payload-mapper.util.js';
+import { buildSyncKey } from './utils/session-sync-key.util.js';
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 import { SessionPaymentStatus } from '@akit/contracts';
+import { UserRole } from '../users/entities/user.entity.js';
+
+const UNAUTHORIZED_FALLBACK_ID = '00000000-0000-0000-0000-000000000000';
 
 @Injectable()
 export class SessionsService {
@@ -34,71 +44,57 @@ export class SessionsService {
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-
+    @InjectRepository(SessionResult)
+    private readonly sessionResultRepository: Repository<SessionResult>,
+    @InjectRepository(SessionSwipe)
+    private readonly sessionSwipeRepository: Repository<SessionSwipe>,
+    private readonly dataSource: DataSource,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
-    private readonly dataSource: DataSource,
+    private readonly ownerResolver: SessionOwnerResolverService,
+    private readonly vouchersService: VouchersService,
   ) {}
-
-  private toIso(...values: Array<Date | string | null | undefined>): string {
-    for (const value of values) {
-      if (!value) continue;
-      const parsed = new Date(value);
-      if (!Number.isNaN(parsed.getTime())) {
-        return parsed.toISOString();
-      }
-    }
-    return new Date(0).toISOString();
-  }
 
   private applyScope(scope?: SessionScope): FindOptionsWhere<Session> {
     const where: FindOptionsWhere<Session> = {};
 
-    if (scope) {
-      // Si el scope no tiene ningún dato de autenticación (petición pública/anónima),
-      // no aplicamos ningún filtro restrictivo. Esto permite que endpoints públicos
-      // como /send-report puedan encontrar sesiones correctamente.
-      const hasAuth = !!(
-        scope.role ||
-        scope.institutionId ||
-        scope.therapistUserId ||
-        scope.patientId
-      );
+    if (!scope) return where;
 
-      if (!hasAuth) {
-        return where;
-      }
+    const hasAuth = !!(
+      scope.role ||
+      scope.institutionId ||
+      scope.therapistUserId ||
+      scope.patientId
+    );
 
-      const role = scope.role?.toUpperCase();
-      const isPatient = role === 'PATIENT';
-      const isAdmin = role === 'ADMIN';
+    if (!hasAuth) return where;
 
-      // Administrador: SOLO puede ver sesiones pagadas con tarjeta (sin voucher)
-      if (isAdmin) {
-        where.voucherId = IsNull();
-        return where;
-      }
+    const role = scope.role as UserRole;
 
-      // Paciente: Puede ver sus propias sesiones (sin importar cómo las pagó)
-      if (isPatient) {
-        where.patientId = scope.patientId;
-        return where;
-      }
-
-      if (scope.institutionId) {
-        where.institutionId = scope.institutionId;
-        where.voucherId = Not(IsNull());
-      } else if (scope.therapistUserId) {
-        where.therapistUserId = scope.therapistUserId;
-        where.voucherId = Not(IsNull());
-      } else {
-        // Fallback de seguridad absoluto si alguien con rol distinto a ADMIN/PATIENT no tiene IDs
-        // Debe ser un UUID válido para que Postgres no tire error de cast
-        where.id = '00000000-0000-0000-0000-000000000000';
-      }
+    if (role === UserRole.ADMIN) {
+      where.voucherId = IsNull();
+      return where;
     }
 
+    if (role === UserRole.PATIENT) {
+      where.patientId = scope.patientId;
+      return where;
+    }
+
+    if (scope.institutionId) {
+      where.institutionId = scope.institutionId;
+      where.voucherId = Not(IsNull());
+      return where;
+    }
+
+    if (scope.therapistUserId) {
+      where.therapistUserId = scope.therapistUserId;
+      where.voucherId = Not(IsNull());
+      return where;
+    }
+
+    where.id = UNAUTHORIZED_FALLBACK_ID;
     return where;
   }
 
@@ -107,38 +103,69 @@ export class SessionsService {
     options?: { idempotencyKey?: string },
   ): Promise<{ session: Session; duplicated: boolean }> {
     const idempotencyKey = options?.idempotencyKey?.trim();
-    if (idempotencyKey) {
-      const existing = await this.sessionRepository.findOne({
-        where: { syncKey: idempotencyKey },
-      });
-      if (existing) {
-        return { session: existing, duplicated: true };
-      }
-    }
 
-    const session = this.sessionRepository.create({
-      ...createSessionDto,
-      syncKey: idempotencyKey ?? null,
-    });
+    const existing = idempotencyKey
+      ? await this.sessionRepository.findOne({
+          where: { syncKey: idempotencyKey },
+        })
+      : null;
+
+    if (existing) return { session: existing, duplicated: true };
+
+    // Excluir el `id` del DTO: si el cliente envía su propio UUID (sync desde Android),
+    // TypeORM lo trataría como un UPDATE en lugar de INSERT.
+    // El id del cliente se conserva como syncKey para idempotencia.
+    const {
+      id: _clientId,
+      results: resultsDto,
+      swipes: swipesDto,
+      ...sessionFields
+    } = createSessionDto;
+    void _clientId; // prevent unused var warning
 
     let savedSession: Session;
     try {
-      savedSession = await this.sessionRepository.save(session);
-    } catch {
-      if (idempotencyKey) {
-        const existing = await this.sessionRepository.findOne({
+      savedSession = await this.dataSource.transaction(async (manager) => {
+        // 1. Insertar la sesión sin relaciones para evitar el bug de cascade
+        const session = manager.create(Session, {
+          ...sessionFields,
+          syncKey: idempotencyKey ?? null,
+        });
+        const inserted = await manager.save(Session, session);
+
+        // 2. Insertar results y swipes manualmente con el sessionId correcto
+        if (resultsDto?.length) {
+          const results = resultsDto.map((r) =>
+            manager.create(SessionResult, { ...r, session: inserted }),
+          );
+          await manager.save(SessionResult, results);
+        }
+
+        if (swipesDto?.length) {
+          const swipes = swipesDto.map((s) =>
+            manager.create(SessionSwipe, { ...s, session: inserted }),
+          );
+          await manager.save(SessionSwipe, swipes);
+        }
+
+        return inserted;
+      });
+    } catch (err) {
+      this.logger.error('Error saving session:', err);
+
+      // Race condition: otra request guardó con el mismo syncKey entre el findOne y el save
+      if (idempotencyKey && err instanceof QueryFailedError) {
+        const recovered = await this.sessionRepository.findOne({
           where: { syncKey: idempotencyKey },
         });
-        if (existing) {
-          return { session: existing, duplicated: true };
-        }
+        if (recovered) return { session: recovered, duplicated: true };
       }
-      throw new ConflictException('No se pudo crear la sesión');
+
+      throw new ConflictException(
+        `No se pudo crear la sesión: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
 
-    // Encolar el cálculo de métricas de forma asíncrona.
-    // La API responde inmediatamente después de guardar la sesión sin bloquear
-    // al cliente Android mientras se calculan las métricas en segundo plano.
     this.queueAdapter
       .enqueue(JobNames.CalculateMetrics, { sessionId: savedSession.id })
       .catch((err: unknown) => {
@@ -149,6 +176,42 @@ export class SessionsService {
       });
 
     return { session: savedSession, duplicated: false };
+  }
+
+  async completeSession(
+    payload: CompleteSessionDto,
+  ): Promise<{ id: string; duplicated: boolean }> {
+    const payloadUserId = payload.userId?.trim() || null;
+    const payloadTherapistUserId = payload.therapistUserId?.trim() || null;
+    const payloadInstitutionId = payload.institutionId?.trim() || null;
+    const payloadVoucherCode = payload.voucherCode?.trim() || null;
+    const payloadId = payload.id?.trim() || null;
+
+    const context = await this.ownerResolver.resolveContext(
+      payloadUserId,
+      payloadVoucherCode,
+      payloadTherapistUserId,
+      payloadInstitutionId,
+      payload.patientName,
+    );
+
+    const createSessionDto = mapToCreateDto(payload, context);
+
+    const syncKey = buildSyncKey(payloadId, payloadUserId, payload.startedAt);
+
+    const { session, duplicated } = await this.create(createSessionDto, {
+      idempotencyKey: syncKey ?? undefined,
+    });
+
+    if (context.voucher?.code) {
+      await this.vouchersService.attachVoucherToSession(
+        context.voucher.code,
+        session.id,
+        context.inferredPatientName,
+      );
+    }
+
+    return { id: session.id, duplicated };
   }
 
   async findAll(
@@ -171,10 +234,7 @@ export class SessionsService {
 
   async findOne(id: string, scope?: SessionScope): Promise<Session> {
     const where = { ...this.applyScope(scope), id };
-
-    // Capability URL pattern: Si es un paciente y conoce el ID (UUIDv4) de la sesión,
-    // le permitimos accederla aunque el patientId no coincida (ej: usuario anónimo vs JWT).
-    if (scope?.role?.toUpperCase() === 'PATIENT') {
+    if (scope?.role === UserRole.PATIENT) {
       delete where.patientId;
     }
 
@@ -235,6 +295,26 @@ export class SessionsService {
     };
   }
 
+  private applyVoucherOwnership(
+    qb: SelectQueryBuilder<Session>,
+    scope: VoucherScope,
+  ): void {
+    if (scope.role === UserRole.ADMIN) return;
+
+    if (scope.ownerInstitutionId) {
+      qb.andWhere('session.institutionId = :institutionId', {
+        institutionId: scope.ownerInstitutionId,
+      });
+      return;
+    }
+
+    if (scope.ownerUserId) {
+      qb.andWhere('session.therapistUserId = :userId', {
+        userId: scope.ownerUserId,
+      });
+    }
+  }
+
   async findVoucherSessions(
     voucherId: string,
     scope: VoucherScope,
@@ -249,17 +329,7 @@ export class SessionsService {
       .createQueryBuilder('session')
       .where('session.voucherId = :voucherId', { voucherId });
 
-    if (scope.role !== 'ADMIN') {
-      if (scope.ownerInstitutionId) {
-        qb.andWhere('session.institutionId = :institutionId', {
-          institutionId: scope.ownerInstitutionId,
-        });
-      } else if (scope.ownerUserId) {
-        qb.andWhere('session.therapistUserId = :userId', {
-          userId: scope.ownerUserId,
-        });
-      }
-    }
+    this.applyVoucherOwnership(qb, scope);
 
     if (filters?.startDate) {
       qb.andWhere('session.createdAt >= :startDate', {
@@ -290,22 +360,24 @@ export class SessionsService {
     status: SessionPaymentStatus,
     reference?: string,
   ): Promise<Session> {
-    const session = await this.findOne(id);
-    session.paymentStatus = status;
+    const now = new Date();
+
+    const updateFields: Record<string, unknown> = { paymentStatus: status };
     if (reference) {
-      session.paymentReference = reference;
+      updateFields.paymentReference = reference;
     }
     if (status === SessionPaymentStatus.PAID) {
-      session.paidAt = new Date();
-      session.reportUnlockedAt = new Date();
+      updateFields.paidAt = now;
+      updateFields.reportUnlockedAt = now;
     }
-    return await this.sessionRepository.save(session);
-  }
 
-  protected _isUuid(value?: string | null): value is string {
-    if (!value) return false;
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value,
-    );
+    await this.sessionRepository
+      .createQueryBuilder()
+      .update(Session)
+      .set(updateFields)
+      .where('id = :id', { id })
+      .execute();
+
+    return this.findOne(id);
   }
 }

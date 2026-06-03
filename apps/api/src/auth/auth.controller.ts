@@ -71,10 +71,12 @@ export class AuthController {
     @Req() req: AuthenticatedRequest,
   ) {
     const userId = req?.user?.userId;
+    const token = req.headers.authorization?.replace('Bearer ', '');
     return await this.authService.changePassword(
       userId,
       body.currentPassword,
       body.newPassword,
+      token,
     );
   }
 

@@ -10,9 +10,12 @@ import {
   ReportTripletInsight,
 } from '../../common/types/report.types.js';
 import { Session } from '../entities/session.entity.js';
-import { CategoryParserService } from './category-parser.service.js';
-import { HollandCalculatorService } from './holland-calculator.service.js';
-import { ReportPdfRendererService } from './report-pdf-renderer.service.js';
+import {
+  normalizeCategoryId,
+  normalizePercentage,
+  parseCategoryDescription,
+} from '../utils/category-parser.util.js';
+import { calculateHollandPercentages } from '../utils/holland-calculator.util.js';
 
 const AREA_BY_CATEGORY_ID: Record<string, string> = {
   ART: 'Artistico',
@@ -29,15 +32,18 @@ const AREA_BY_CATEGORY_ID: Record<string, string> = {
   BUS: 'Negocio',
 };
 
+const TOP_RESULTS_COUNT = 3;
+const HIGH_AFFINITY_THRESHOLD = 75;
+const MODERATE_AFFINITY_THRESHOLD = 55;
+const MIN_SKILL_LENGTH = 5;
+const MAX_SKILL_LENGTH = 50;
+
 @Injectable()
 export class ReportService {
   constructor(
     @InjectRepository(VocationalCategory)
     private readonly categoriesRepository: Repository<VocationalCategory>,
     private readonly tresAreasService: TresAreasService,
-    private readonly categoryParser: CategoryParserService,
-    private readonly hollandCalculator: HollandCalculatorService,
-    private readonly pdfRenderer: ReportPdfRendererService,
   ) {}
 
   async buildReportData(session: Session, email?: string): Promise<ReportData> {
@@ -49,64 +55,66 @@ export class ReportService {
       ]),
     );
 
-    const topResults = (session.results || [])
-      .sort((a, b) => b.percentage - a.percentage)
-      .slice(0, 3);
+    const sortedSessionResults = (session.results || []).sort((a, b) => {
+      if (b.percentage !== a.percentage) return b.percentage - a.percentage;
+      const timeA = a.timeSpentMs || 0;
+      const timeB = b.timeSpentMs || 0;
+      if (timeB !== timeA) return timeB - timeA;
+      return a.categoryId.localeCompare(b.categoryId);
+    });
+
+    const topResults = sortedSessionResults.slice(0, TOP_RESULTS_COUNT);
 
     const strengths: string[] = [];
 
-    const formattedResults: CategoryResult[] = (session.results || [])
-      .sort((a, b) => b.percentage - a.percentage)
-      .slice(0, 3)
-      .map((res) => {
-        const normalizedCategoryId = this.categoryParser.normalizeCategoryId(
-          res.categoryId,
-        );
-        const catInfo = categoriesById.get(normalizedCategoryId);
-        const description = catInfo
-          ? catInfo.description
-          : res.materialSnippet || 'Información no disponible.';
+    const formattedResults: CategoryResult[] = topResults.map((res) => {
+      const normalizedCategoryId = normalizeCategoryId(res.categoryId);
+      const catInfo = categoriesById.get(normalizedCategoryId);
+      const description = catInfo
+        ? catInfo.description
+        : res.materialSnippet || 'Información no disponible.';
 
-        const parsedBlocks =
-          this.categoryParser.parseCategoryDescription(description);
+      const parsedBlocks = parseCategoryDescription(description);
 
-        parsedBlocks.forEach((block) => {
-          if (
+      const blockSkills = parsedBlocks
+        .filter(
+          (block) =>
             block.subtitle?.toLowerCase().includes('competencias') &&
-            block.content
-          ) {
-            const skills = block.content
-              .split(/[.;•-]/)
-              .map((s) => s.trim())
-              .filter((s) => s.length > 5 && s.length < 50);
-            strengths.push(...skills);
-          }
-        });
-
-        const uniqueCareers = Array.from(
-          new Set(
-            (res.suggestedCareers ?? [])
-              .map((career) => String(career).trim())
-              .filter(Boolean),
-          ),
+            block.content,
+        )
+        .flatMap((block) => block.content.split(/[.;•-]/))
+        .map((s) => s.trim())
+        .filter(
+          (s) => s.length > MIN_SKILL_LENGTH && s.length < MAX_SKILL_LENGTH,
         );
 
-        return {
-          title: catInfo ? catInfo.title : normalizedCategoryId,
-          percentage: this.categoryParser.normalizePercentage(res.percentage),
-          description,
-          parsedBlocks,
-          suggestedCareers: uniqueCareers,
-          materialSnippet: res.materialSnippet,
-        };
-      });
+      strengths.push(...blockSkills);
+
+      const uniqueCareers = Array.from(
+        new Set(
+          (res.suggestedCareers ?? [])
+            .map((career) => String(career).trim())
+            .filter(Boolean),
+        ),
+      );
+
+      return {
+        title: catInfo ? catInfo.title : normalizedCategoryId,
+        percentage: normalizePercentage(res.percentage),
+        timeSpentMs: res.timeSpentMs,
+        description,
+        parsedBlocks,
+        suggestedCareers: uniqueCareers,
+        materialSnippet: res.materialSnippet,
+      };
+    });
 
     const summary = this.buildReportSummary(formattedResults);
     const tripletInsight = await this.buildTripletInsight(
       topResults,
       categoriesById,
     );
-    const hollandPercentages = this.hollandCalculator.calculatePercentages(
+    const hollandPercentages = calculateHollandPercentages(
       session.results || [],
     );
 
@@ -126,10 +134,6 @@ export class ReportService {
     };
   }
 
-  renderReportPdfHtml(reportData: ReportData): string {
-    return this.pdfRenderer.renderHtml(reportData);
-  }
-
   private async buildTripletInsight(
     topResults: Array<{ categoryId: string }>,
     categoriesById: Map<
@@ -137,16 +141,14 @@ export class ReportService {
       { categoryId: string; title: string; description: string }
     >,
   ): Promise<ReportTripletInsight | null> {
-    if (topResults.length < 3) {
+    if (topResults.length < TOP_RESULTS_COUNT) {
       return null;
     }
 
     const areaNames = topResults
-      .slice(0, 3)
+      .slice(0, TOP_RESULTS_COUNT)
       .map((result) => {
-        const normalizedId = this.categoryParser.normalizeCategoryId(
-          result.categoryId,
-        );
+        const normalizedId = normalizeCategoryId(result.categoryId);
         return (
           AREA_BY_CATEGORY_ID[normalizedId] ??
           categoriesById.get(normalizedId)?.title ??
@@ -155,7 +157,7 @@ export class ReportService {
       })
       .filter(Boolean);
 
-    if (areaNames.length < 3) {
+    if (areaNames.length < TOP_RESULTS_COUNT) {
       return null;
     }
 
@@ -200,17 +202,12 @@ export class ReportService {
       };
     }
 
-    const profileStrength =
-      primary.percentage >= 75
-        ? `Mostras una inclinacion muy marcada hacia ${primary.title}, con motivacion sostenida y alta consistencia.`
-        : primary.percentage >= 55
-          ? `Presentas una afinidad clara hacia ${primary.title}, con una base solida para seguir explorando esta area.`
-          : `Tu perfil es versatil y muestra interes distribuido, con ${primary.title} como punto de partida inicial.`;
+    const profileStrength = this.getProfileStrength(
+      primary.title,
+      primary.percentage,
+    );
 
-    const recommendation =
-      rankedAreas.length >= 2
-        ? `Priorizá experiencias concretas en ${rankedAreas[0].title} y contrastalas con ${rankedAreas[1].title} para validar ajuste e interes real.`
-        : `Avanzá con actividades de exploracion guiada en ${rankedAreas[0].title} para transformar afinidad en criterio vocacional.`;
+    const recommendation = this.getRecommendation(rankedAreas);
 
     return {
       primaryTitle: primary.title,
@@ -219,5 +216,22 @@ export class ReportService {
       recommendation,
       rankedAreas,
     };
+  }
+
+  private getProfileStrength(primaryTitle: string, percentage: number): string {
+    if (percentage >= HIGH_AFFINITY_THRESHOLD) {
+      return `Mostras una inclinacion muy marcada hacia ${primaryTitle}, con motivacion sostenida y alta consistencia.`;
+    }
+    if (percentage >= MODERATE_AFFINITY_THRESHOLD) {
+      return `Presentas una afinidad clara hacia ${primaryTitle}, con una base solida para seguir explorando esta area.`;
+    }
+    return `Tu perfil es versatil y muestra interes distribuido, con ${primaryTitle} como punto de partida inicial.`;
+  }
+
+  private getRecommendation(rankedAreas: { title: string }[]): string {
+    if (rankedAreas.length >= 2) {
+      return `Priorizá experiencias concretas en ${rankedAreas[0].title} y contrastalas con ${rankedAreas[1].title} para validar ajuste e interes real.`;
+    }
+    return `Avanzá con actividades de exploracion guiada en ${rankedAreas[0].title} para transformar afinidad en criterio vocacional.`;
   }
 }

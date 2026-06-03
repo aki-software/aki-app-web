@@ -7,7 +7,7 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
-  UnauthorizedException,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -27,7 +27,10 @@ import { type VoucherScope } from './types/voucher-query.types.js';
 import { CurrentVoucherScope } from './decorators/voucher-scope.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { VoucherRedemptionService } from '../common/services/voucher-redemption.service.js';
+import { VoucherRedemptionService } from './services/voucher-redemption.service.js';
+import { VoucherAccessGuard } from './guards/voucher-access.guard.js';
+import type { AuthenticatedRequest } from '../auth/auth.types.js';
+import type { Voucher } from './entities/voucher.entity.js';
 
 @Controller('vouchers')
 export class VouchersController {
@@ -143,24 +146,9 @@ export class VouchersController {
     return await this.queryService.findAllFiltered(query ?? {}, scope);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, VoucherAccessGuard)
   @Get(':code')
-  async findOne(
-    @Param('code') code: string,
-    @CurrentVoucherScope() scope: VoucherScope,
-  ) {
-    const voucher = await this.vouchersService.findByCode(code);
-    const isAdmin = scope.role?.toUpperCase() === UserRole.ADMIN;
-    const isOwner =
-      voucher.ownerInstitutionId &&
-      scope.ownerInstitutionId === voucher.ownerInstitutionId;
-
-    if (!isAdmin && !isOwner) {
-      throw new UnauthorizedException(
-        'No tienes permisos para acceder a este voucher',
-      );
-    }
-
-    return voucher;
+  findOne(@Req() req: AuthenticatedRequest & { voucher?: Voucher }) {
+    return req.voucher;
   }
 }

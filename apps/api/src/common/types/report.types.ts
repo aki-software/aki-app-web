@@ -6,6 +6,7 @@ export interface ParsedDescriptionBlock {
 export interface CategoryResult {
   title: string;
   percentage: number;
+  timeSpentMs?: number;
   description: string;
   parsedBlocks?: ParsedDescriptionBlock[];
   materialSnippet?: string;

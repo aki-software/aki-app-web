@@ -11,24 +11,24 @@ import { Session } from './session.entity.js';
 @Entity('session_swipes')
 export class SessionSwipe {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Index()
   @ManyToOne(() => Session, (session) => session.swipes, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'session_id' })
-  session: Session;
+  session: Session = new Session();
 
   @Column({ name: 'card_id', type: 'varchar', length: 50 })
-  cardId: string;
+  cardId!: string;
 
   @Column({ name: 'category_id', type: 'varchar', length: 50 })
-  categoryId: string;
+  categoryId!: string;
 
   @Column({ name: 'is_liked', type: 'boolean' })
-  isLiked: boolean;
+  isLiked: boolean = false;
 
-  @Column({ type: 'timestamp' })
-  timestamp: Date;
+  @Column({ type: 'timestamptz' })
+  timestamp!: Date;
 }

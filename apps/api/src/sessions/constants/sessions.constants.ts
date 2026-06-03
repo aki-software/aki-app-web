@@ -7,4 +7,7 @@ export const SESSION_CONSTANTS = {
     DEFAULT_OVERVIEW_DAYS: 7,
     DEFAULT_ACTIVITY_LIMIT: 50,
   },
+  REPORTS: {
+    DEFAULT_PDF_PREFIX: 'informe',
+  },
 };

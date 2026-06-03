@@ -3,6 +3,8 @@ import { PaymentsService } from './payments.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ConfigService } from '@nestjs/config';
 import { SessionPaymentStatus } from '@akit/contracts';
+import { PaymentLockService } from './payment-lock.service';
+import { GooglePlayAdapter } from './google-play.adapter';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -22,6 +24,20 @@ describe('PaymentsService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn(),
+          },
+        },
+        {
+          provide: PaymentLockService,
+          useValue: {
+            acquireLock: jest.fn(),
+            releaseLock: jest.fn(),
+          },
+        },
+        {
+          provide: GooglePlayAdapter,
+          useValue: {
+            getAndroidPublisher: jest.fn(),
+            getPackageName: jest.fn(),
           },
         },
       ],

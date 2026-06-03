@@ -3,18 +3,21 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
 import { ReportService } from './report.service.js';
-import { ReportCacheService } from './report-cache.service.js';
-import { ReportGeneratorService } from './report-generator.service.js';
+import type { IReportCacheService } from '../interfaces/report-cache.interface.js';
+import { ReportPdfService } from './report-pdf.service.js';
 import { ReportDeliveryService } from './report-delivery.service.js';
 import { SessionScope } from '../types/session-scope.type.js';
 import type { ReportData } from '../../common/types/report.types.js';
 import { SessionPaymentStatus } from '@akit/contracts';
+import { UserRole } from '../../users/entities/user.entity.js';
 
+const DELIVERY_CACHE_TTL_MS = 10 * 60 * 1000;
 @Injectable()
 export class ReportOrchestratorService {
   private readonly logger = new Logger(ReportOrchestratorService.name);
@@ -23,8 +26,9 @@ export class ReportOrchestratorService {
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
     private readonly reportService: ReportService,
-    private readonly reportCacheService: ReportCacheService,
-    private readonly reportGeneratorService: ReportGeneratorService,
+    @Inject('IReportCacheService')
+    private readonly reportCacheService: IReportCacheService,
+    private readonly reportPdfService: ReportPdfService,
     private readonly reportDeliveryService: ReportDeliveryService,
   ) {}
 
@@ -41,7 +45,6 @@ export class ReportOrchestratorService {
     const cached: {
       reportData: ReportData;
       pdfBuffer?: Buffer;
-      reportUrl?: string;
     } = await this.reportCacheService.getOrCreate(cacheKey, async () => {
       this.logger.debug(`Generating report for session: ${sessionId}`);
 
@@ -50,21 +53,16 @@ export class ReportOrchestratorService {
         targetEmail,
       );
 
-      const { pdfBuffer, reportUrl } =
-        await this.reportGeneratorService.generateAndUploadPdf(
-          session,
-          reportData,
-        );
+      const pdfBuffer =
+        await this.reportPdfService.generatePdfBuffer(reportData);
 
-      return { reportData, pdfBuffer, reportUrl };
+      return { reportData, pdfBuffer };
     });
 
     this.logger.debug(`Sending report for session: ${sessionId}`);
 
     const deliveryCacheKey = `delivery:${sessionId}:${targetEmail}`;
     const deliveryLockKey = `lock:${deliveryCacheKey}`;
-
-    // Fast-path: delivery already completed successfully (e.g. second request hits after first finishes)
     const previousResult = this.reportCacheService.get<{
       success: boolean;
       message: string;
@@ -76,9 +74,7 @@ export class ReportOrchestratorService {
       return previousResult;
     }
 
-    // Slow-path: acquire lock so concurrent requests don't double-send
     return await this.reportCacheService.withLock(deliveryLockKey, async () => {
-      // Re-check inside lock (another request may have finished while we waited)
       const cachedDelivery = this.reportCacheService.get<{
         success: boolean;
         message: string;
@@ -96,12 +92,14 @@ export class ReportOrchestratorService {
         voucherIdForLogging,
         cached.reportData,
         cached.pdfBuffer,
-        cached.reportUrl,
       );
 
-      // Only cache on success — failed deliveries should remain retryable
       if (result.success) {
-        this.reportCacheService.set(deliveryCacheKey, result, 10 * 60 * 1000);
+        this.reportCacheService.set(
+          deliveryCacheKey,
+          result,
+          DELIVERY_CACHE_TTL_MS,
+        );
       }
 
       return result;
@@ -125,25 +123,19 @@ export class ReportOrchestratorService {
       throw new NotFoundException('Sesión no encontrada');
     }
 
-    // Validar monetización explícitamente para pacientes (los admin/instituciones no están sujetos a esta validación si llegan aquí)
-    if (scope?.role === 'PATIENT') {
-      if (
-        session.paymentStatus !== SessionPaymentStatus.PAID &&
-        session.paymentStatus !== SessionPaymentStatus.VOUCHER_REDEEMED
-      ) {
-        throw new BadRequestException(
-          'Cannot generate report for a pending payment session',
-        );
-      }
+    if (
+      scope?.role === UserRole.PATIENT &&
+      session.paymentStatus !== SessionPaymentStatus.PAID &&
+      session.paymentStatus !== SessionPaymentStatus.VOUCHER_REDEEMED
+    ) {
+      throw new BadRequestException(
+        'Cannot generate report for a pending payment session',
+      );
     }
 
     return session;
   }
 
-  /**
-   * Aplica barreras de seguridad declarativas por rol, usando early returns.
-   * Cualquier flujo no mapeado o no autenticado resulta en bloqueo absoluto (1 = 0).
-   */
   private applySecurityBoundaries(
     query: SelectQueryBuilder<Session>,
     scope?: SessionScope,
@@ -153,36 +145,26 @@ export class ReportOrchestratorService {
       return;
     }
 
-    const role = scope.role.toUpperCase();
+    const role = scope.role as UserRole;
 
-    // Administradores: acceso total, sin restricciones adicionales
-    if (role === 'ADMIN') {
+    if (role === UserRole.ADMIN) {
       return;
     }
-
-    // Pacientes: el UUIDv4 actúa como capability token.
-    // Conocer el ID de la sesión es suficiente autorización para generar/enviar el reporte.
-    if (role === 'PATIENT') {
+    if (role === UserRole.PATIENT) {
       return;
     }
-
-    // Instituciones: sesiones que pertenezcan a su institución
     if (scope.institutionId) {
       query.andWhere('session.institutionId = :institutionId', {
         institutionId: scope.institutionId,
       });
       return;
     }
-
-    // Terapeutas: sesiones que hayan sido creadas por ellos
     if (scope.therapistUserId) {
       query.andWhere('session.therapistUserId = :therapistUserId', {
         therapistUserId: scope.therapistUserId,
       });
       return;
     }
-
-    // Fallback de seguridad absoluto para cualquier caso no contemplado
     query.andWhere('1 = 0');
   }
 }

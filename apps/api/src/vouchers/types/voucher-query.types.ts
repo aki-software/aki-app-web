@@ -1,10 +1,6 @@
 import { VoucherStatus } from '../entities/voucher.enums.js';
 
-export interface VoucherScope {
-  role?: string;
-  ownerUserId?: string;
-  ownerInstitutionId?: string | null;
-}
+export type { VoucherScope } from '@akit/contracts';
 
 export type VoucherBatchSummary = {
   batchId: string;
