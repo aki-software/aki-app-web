@@ -29,8 +29,14 @@ export class SessionResult {
   @Column({ name: 'total_possible', type: 'int' })
   totalPossible!: number;
 
-  @Column({ name: 'percentage', type: 'int' })
+  @Column({ name: 'percentage', type: 'float', default: 0 })
   percentage!: number;
+
+  @Column({ name: 'weighted_score', type: 'float', default: 0 })
+  weightedScore!: number;
+
+  @Column({ name: 'avg_response_time_ms', type: 'int', default: 0 })
+  avgResponseTimeMs!: number;
 
   @Column({ name: 'suggested_careers', type: 'json', nullable: true })
   suggestedCareers?: string[];
