@@ -1,5 +1,4 @@
 import { VoucherStatus } from '../entities/voucher.enums.js';
-import type { VoucherScope } from '@akit/contracts';
 
 export type { VoucherScope } from '@akit/contracts';
 
