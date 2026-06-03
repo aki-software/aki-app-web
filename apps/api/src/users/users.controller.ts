@@ -86,7 +86,8 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   @Post(':id/resend-activation')
   async resendActivation(@Param('id') id: string) {
-    const user = await this.userRegistrationService.refreshPasswordSetupToken(id);
+    const user =
+      await this.userRegistrationService.refreshPasswordSetupToken(id);
     return {
       id: user.id,
       activationEmailSent: !!user.passwordSetupToken,

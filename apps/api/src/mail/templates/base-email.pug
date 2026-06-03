@@ -3,18 +3,34 @@ html(lang="es")
   head
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title= titleText || 'A.kit'
-  body(style="margin:0;padding:0;background:#{colors.background.light};font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;color:#{colors.text.primary};")
-    table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:28px 0;background:#{colors.background.light};")
+    meta(name="color-scheme" content="light dark")
+    meta(name="supported-color-schemes" content="light dark")
+    title= titleText || 'A.ki'
+    style.
+      @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800&display=swap');
+      
+      body {
+        font-family: 'Lexend', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .bg-body { background-color: #{colors.background.dark} !important; }
+        .bg-surface { background-color: #{colors.surface.dark} !important; }
+        .border-surface { border-color: #{colors.surface.variantDark} !important; }
+        .text-primary { color: #{colors.onBackground.dark} !important; }
+        .text-secondary { color: #{colors.outline.dark} !important; }
+      }
+  body.bg-body(style=`margin:0;padding:0;background:${colors.background.light};font-family:'Lexend',system-ui,-apple-system,sans-serif;color:${colors.text.primary};`)
+    table.bg-body(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`padding:28px 0;background:${colors.background.light};`)
       tr
         td(align="center")
-          table(role="presentation" width="620" cellpadding="0" cellspacing="0" style="width:620px;max-width:620px;background:#{colors.surface.light};border:1px solid #{colors.surface.variantLight};border-radius:22px;overflow:hidden;box-shadow:0 14px 32px rgba(15,107,104,0.10);")
+          table.bg-surface.border-surface(role="presentation" width="620" cellpadding="0" cellspacing="0" style=`width:620px;max-width:620px;background:${colors.surface.light};border:1px solid ${colors.surface.variantLight};border-radius:22px;overflow:hidden;box-shadow:0 14px 32px rgba(15,107,104,0.08);`)
             tr
-              td(style="padding:30px;background:linear-gradient(135deg,#{colors.primary.DEFAULT} 0%,#2d8a87 60%,#4E7F52 100%);")
+              td(style=`padding:40px;background-color:${colors.primary.DEFAULT};background-image:linear-gradient(135deg,${colors.primary.DEFAULT} 0%,#2d8a87 60%,#4E7F52 100%);`)
                 include partials/email-header.pug
 
             block bodyContent
 
             tr
-              td(style="padding:18px 30px 24px;background:#{colors.background.light};border-top:1px solid #{colors.surface.variantLight};")
+              td.bg-body.border-surface(style=`padding:24px 40px;background:${colors.background.light};border-top:1px solid ${colors.surface.variantLight};`)
                 include partials/email-footer.pug

@@ -35,43 +35,14 @@ export class SendEmailHandler implements JobHandler<SendEmailJobPayload> {
     const sessionId = meta.sessionId ?? 'none';
     const voucherId = meta.voucherId ?? 'none';
 
-    if (template === 'voucher-code') {
-      this.logger.log(
-        `job-mail voucher-code jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
-      );
-      return await this.getMailService().sendVoucherCode(
-        meta.to,
-        templatePayload.voucherCode,
-        templatePayload.patientName,
-      );
-    }
+    this.logger.log(
+      `job-mail template=${template} jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
+    );
 
-    if (template === 'account-activation') {
-      this.logger.log(
-        `job-mail account-activation jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
-      );
-      return await this.getMailService().sendAccountActivation(
-        meta.to,
-        templatePayload.name,
-        templatePayload.activationLink,
-        templatePayload.institutionName ?? null,
-      );
-    }
-
-    if (template === 'password-reset') {
-      this.logger.log(
-        `job-mail password-reset jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
-      );
-      return await this.getMailService().sendPasswordReset(
-        meta.to,
-        templatePayload.name,
-        templatePayload.resetLink,
-      );
-    }
-
-    throw new Error(
-      'Unsupported email template: ' +
-        String((payload as { template?: unknown }).template),
+    return await this.getMailService().send(
+      template,
+      templatePayload as any,
+      meta,
     );
   }
 }
