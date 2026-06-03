@@ -148,7 +148,7 @@ export class VouchersController {
 
   @UseGuards(JwtAuthGuard, VoucherAccessGuard)
   @Get(':code')
-  async findOne(@Req() req: AuthenticatedRequest & { voucher?: Voucher }) {
+  findOne(@Req() req: AuthenticatedRequest & { voucher?: Voucher }) {
     return req.voucher;
   }
 }
