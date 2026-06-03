@@ -3,6 +3,7 @@ import { AccountActivationNotifierService } from './account-activation-notifier.
 import { MailService } from '../../mail/mail.service.js';
 import { QUEUE_ADAPTER } from '../constants/adapters.constants.js';
 import { JobNames } from '../jobs/index.js';
+import { ACCOUNT_ACTIVATION_EMAIL_OPTIONS } from '../constants/notifications.constants.js';
 
 describe('AccountActivationNotifierService', () => {
   let service: AccountActivationNotifierService;
@@ -15,7 +16,7 @@ describe('AccountActivationNotifierService', () => {
       enqueue: jest.fn(),
     };
     mailService = {
-      sendAccountActivation: jest.fn(),
+      send: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -51,11 +52,17 @@ describe('AccountActivationNotifierService', () => {
         institutionName,
       );
 
-      expect(mailService.sendAccountActivation).toHaveBeenCalledWith(
-        email,
-        name,
-        activationLink,
-        institutionName,
+      expect(mailService.send).toHaveBeenCalledWith(
+        ACCOUNT_ACTIVATION_EMAIL_OPTIONS.template,
+        expect.objectContaining({
+          name,
+          activationLink,
+          institutionName,
+        }),
+        expect.objectContaining({
+          to: email,
+          subject: ACCOUNT_ACTIVATION_EMAIL_OPTIONS.subject,
+        }),
       );
       expect(queueAdapter.enqueue).not.toHaveBeenCalled();
     });
@@ -73,7 +80,7 @@ describe('AccountActivationNotifierService', () => {
       expect(queueAdapter.enqueue).toHaveBeenCalledWith(
         JobNames.SendEmail,
         expect.objectContaining({
-          template: 'account-activation',
+          template: ACCOUNT_ACTIVATION_EMAIL_OPTIONS.template,
           payload: expect.objectContaining({
             name,
             activationLink,
@@ -82,7 +89,7 @@ describe('AccountActivationNotifierService', () => {
         }),
         expect.any(Object),
       );
-      expect(mailService.sendAccountActivation).not.toHaveBeenCalled();
+      expect(mailService.send).not.toHaveBeenCalled();
     });
 
     it('should handle null institutionName', async () => {
@@ -90,11 +97,16 @@ describe('AccountActivationNotifierService', () => {
 
       await service.notifyAccountActivation(email, name, activationLink, null);
 
-      expect(mailService.sendAccountActivation).toHaveBeenCalledWith(
-        email,
-        name,
-        activationLink,
-        null,
+      expect(mailService.send).toHaveBeenCalledWith(
+        ACCOUNT_ACTIVATION_EMAIL_OPTIONS.template,
+        expect.objectContaining({
+          name,
+          activationLink,
+          institutionName: null,
+        }),
+        expect.objectContaining({
+          to: email,
+        }),
       );
     });
   });

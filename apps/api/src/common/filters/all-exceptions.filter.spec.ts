@@ -7,11 +7,14 @@ describe('AllExceptionsFilter', () => {
     const reply = jest.fn();
     const getRequestUrl = jest.fn().mockReturnValue('/api/v1/vouchers/redeem');
     const httpAdapter = { reply, getRequestUrl };
-    const httpAdapterHost = { httpAdapter } as HttpAdapterHost;
+    const httpAdapterHost = { httpAdapter } as unknown as HttpAdapterHost;
     const request = {};
     const response = {};
     const host = {
-      switchToHttp: () => ({ getRequest: () => request, getResponse: () => response }),
+      switchToHttp: () => ({
+        getRequest: () => request,
+        getResponse: () => response,
+      }),
     } as ArgumentsHost;
 
     return { reply, httpAdapterHost, host };
@@ -23,7 +26,11 @@ describe('AllExceptionsFilter', () => {
 
     filter.catch(
       new HttpException(
-        { code: 'SESSION_NOT_FOUND', message: 'Session missing', statusCode: 404 },
+        {
+          code: 'SESSION_NOT_FOUND',
+          message: 'Session missing',
+          statusCode: 404,
+        },
         HttpStatus.NOT_FOUND,
       ),
       host,

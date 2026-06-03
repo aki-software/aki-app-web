@@ -20,10 +20,6 @@ export class JobDispatcherService {
     this.handlers.set(JobNames.SendReport, this.sendReportHandler);
   }
 
-  /**
-   * Allows domain modules to register their own handlers at startup without
-   * creating circular module dependencies with CommonModule.
-   */
   registerHandler(handler: JobHandler): void {
     this.logger.debug(`Registering handler for job=${handler.name}`);
     this.handlers.set(handler.name, handler);
@@ -43,7 +39,9 @@ export class JobDispatcherService {
 
     return await this.trackJobDuration(jobName, startedAt, context, () => {
       const timeoutMs = handler.getTimeoutMs?.(payload) ?? 60_000;
-      return this.runWithTimeout(timeoutMs, () => handler.handle(payload));
+      return this.runWithTimeout(timeoutMs, (signal) =>
+        handler.handle(payload, signal),
+      );
     });
   }
 

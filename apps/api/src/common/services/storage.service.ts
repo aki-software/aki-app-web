@@ -1,9 +1,15 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
+import { StorageAdapter } from '../adapters/storage.adapter.js';
 
 @Injectable()
-export class StorageService {
+export class StorageService implements StorageAdapter {
+  private readonly logger = new Logger(StorageService.name);
   private s3Client: S3Client | null = null;
   private bucket: string;
   private endpoint: string | undefined;
@@ -38,8 +44,8 @@ export class StorageService {
     mimeType: string = 'application/pdf',
   ): Promise<string | null> {
     if (!this.s3Client) {
-      console.warn(
-        '⚠️ S3 Storage no está configurado. El archivo no se subirá.',
+      this.logger.warn(
+        'S3 Storage no está configurado. El archivo no se subirá.',
       );
       return null;
     }
@@ -56,7 +62,10 @@ export class StorageService {
       await this.s3Client.send(command);
       return `${this.endpoint}/${this.bucket}/${fileName}`;
     } catch (error) {
-      console.error('❌ Error uploading file to S3:', error);
+      this.logger.error(
+        'Error uploading file to S3',
+        error instanceof Error ? error.stack : String(error),
+      );
       throw new InternalServerErrorException(
         'Error al subir el archivo al almacenamiento.',
       );

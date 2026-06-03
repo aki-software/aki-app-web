@@ -89,10 +89,10 @@ export class VoucherBatch {
   })
   status: VoucherBatchStatus;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @Column({ name: 'paid_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'paid_at', type: 'timestamptz', nullable: true })
   paidAt: Date | null;
 
   // Domain Methods for Encapsulation

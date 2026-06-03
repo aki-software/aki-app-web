@@ -73,7 +73,11 @@ export async function fetchVouchersList(): Promise<VoucherData[]> {
       status: normalizeVoucherStatus(voucher.status),
       ownerType: normalizeVoucherOwnerType(voucher.ownerType),
       ownerInstitutionId: voucher.ownerInstitutionId ?? null,
-      ownerInstitutionName: voucher.ownerInstitution?.name ?? "Institución no informada",
+      ownerInstitutionName: voucher.ownerInstitution
+        ? (voucher.ownerInstitution.deletedAt || voucher.ownerInstitution.isActive === false
+            ? `${voucher.ownerInstitution.name} (Eliminada)`
+            : voucher.ownerInstitution.name) ?? "Institución no informada"
+        : "Institución no informada",
       ownerUserId: voucher.ownerUserId ?? null,
       ownerUserName: voucher.ownerUser?.name ?? "Cuenta operativa no informada",
       assignedPatientName: voucher.assignedPatientName ?? null,
@@ -137,7 +141,11 @@ export async function fetchVouchersPage(input: {
         ownerType: normalizeVoucherOwnerType(voucher.ownerType),
         ownerInstitutionId: voucher.ownerInstitutionId ?? null,
         ownerInstitutionName:
-          voucher.ownerInstitution?.name ?? "Institución no informada",
+          voucher.ownerInstitution
+            ? (voucher.ownerInstitution.deletedAt || voucher.ownerInstitution.isActive === false
+                ? `${voucher.ownerInstitution.name} (Eliminada)`
+                : voucher.ownerInstitution.name) ?? "Institución no informada"
+            : "Institución no informada",
         ownerUserId: voucher.ownerUserId ?? null,
         ownerUserName: voucher.ownerUser?.name ?? "Cuenta operativa no informada",
         assignedPatientName: voucher.assignedPatientName ?? null,

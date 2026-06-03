@@ -15,6 +15,7 @@ import type {
   AuthTokenResolutionResponse,
 } from '@akit/contracts';
 import { AuthResponseFactory } from '../factories/auth-response.factory.js';
+import { AuthTokenService } from './auth-token.service.js';
 
 @Injectable()
 export class AuthPasswordFlowService {
@@ -23,6 +24,7 @@ export class AuthPasswordFlowService {
     private readonly cryptoService: CryptoService,
     private readonly passwordResetNotifier: PasswordResetNotifierService,
     private readonly authResponseFactory: AuthResponseFactory,
+    private readonly authTokenService: AuthTokenService,
   ) {}
 
   async resolveSetupToken(token: string): Promise<AuthTokenResolutionResponse> {
@@ -56,11 +58,14 @@ export class AuthPasswordFlowService {
 
     const updatedUser = await this.usersService.register({
       ...user,
-      passwordHash: this.cryptoService.hash(password),
+      passwordHash: await this.cryptoService.hash(password),
       passwordSetAt: new Date(),
       passwordSetupToken: null,
       passwordSetupExpiresAt: null,
     });
+
+    // Invalidate any existing tokens for this user
+    this.authTokenService.invalidateToken(token);
 
     return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
@@ -125,11 +130,14 @@ export class AuthPasswordFlowService {
 
     const updatedUser = await this.usersService.register({
       ...user,
-      passwordHash: this.cryptoService.hash(password),
+      passwordHash: await this.cryptoService.hash(password),
       passwordSetAt: new Date(),
       passwordResetToken: null,
       passwordResetExpiresAt: null,
     });
+
+    // Invalidate any existing tokens for this user
+    this.authTokenService.invalidateToken(token);
 
     return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
@@ -138,6 +146,7 @@ export class AuthPasswordFlowService {
     userId: string | null | undefined,
     currentPassword: string,
     newPassword: string,
+    token?: string,
   ): Promise<AuthOkResponse> {
     if (!userId) {
       throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidSession);
@@ -158,7 +167,14 @@ export class AuthPasswordFlowService {
       throw new BadRequestException(AUTH_ERROR_MESSAGES.samePassword);
     }
 
-    const valid = this.cryptoService.verify(currentPassword, user.passwordHash);
+    if (!user.passwordHash) {
+      throw new UnauthorizedException('Contraseña incorrecta');
+    }
+
+    const valid = await this.cryptoService.verify(
+      currentPassword,
+      user.passwordHash,
+    );
     if (!valid) {
       throw new UnauthorizedException(
         AUTH_ERROR_MESSAGES.incorrectCurrentPassword,
@@ -167,9 +183,14 @@ export class AuthPasswordFlowService {
 
     await this.usersService.register({
       ...user,
-      passwordHash: this.cryptoService.hash(newPassword),
+      passwordHash: await this.cryptoService.hash(newPassword),
       passwordSetAt: new Date(),
     });
+
+    // Invalidate any existing tokens for this user.
+    // Prefer the real JWT when the controller passed it through; fall back to
+    // userId for backward compatibility (legacy callers / tests).
+    this.authTokenService.invalidateToken(token ?? userId ?? '');
 
     return { ok: true };
   }

@@ -10,13 +10,9 @@ import {
   Index,
 } from 'typeorm';
 import { Institution } from '../../institutions/entities/institution.entity.js';
+import { UserRole } from '@akit/contracts';
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  THERAPIST = 'THERAPIST',
-  INSTITUTION_ADMIN = 'INSTITUTION_ADMIN',
-  PATIENT = 'PATIENT',
-}
+export { UserRole } from '@akit/contracts';
 
 @Entity('users')
 @Index('IDX_users_institution_id', ['institutionId'])
@@ -44,12 +40,12 @@ export class User {
 
   @Column({
     name: 'password_setup_expires_at',
-    type: 'timestamp',
+    type: 'timestamptz',
     nullable: true,
   })
   passwordSetupExpiresAt: Date | null;
 
-  @Column({ name: 'password_set_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'password_set_at', type: 'timestamptz', nullable: true })
   passwordSetAt: Date | null;
 
   @Column({
@@ -62,7 +58,7 @@ export class User {
 
   @Column({
     name: 'password_reset_expires_at',
-    type: 'timestamp',
+    type: 'timestamptz',
     nullable: true,
   })
   passwordResetExpiresAt: Date | null;
@@ -81,10 +77,10 @@ export class User {
   @JoinColumn({ name: 'institution_id' })
   institution?: Institution | null;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true, select: false })
