@@ -22,11 +22,11 @@ export class CalculateMetricsHandler implements JobHandler<CalculateMetricsJobPa
     };
   }
 
-  async handle(payload: CalculateMetricsJobPayload): Promise<void> {
-    this.logger.debug(`Calculating metrics for sessionId=${payload.sessionId}`);
-    await this.sessionMetricsService.calculateAndSaveMetrics(payload.sessionId);
-    this.logger.debug(
-      `Metrics calculated successfully for sessionId=${payload.sessionId}`,
-    );
+  async handle(payload: CalculateMetricsJobPayload): Promise<unknown> {
+    const { sessionId } = payload;
+
+    this.logger.log(`job-metrics dispatch sessionId=${sessionId}`);
+
+    return await this.sessionMetricsService.calculateAndSaveMetrics(sessionId);
   }
 }

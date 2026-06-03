@@ -1,10 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as pug from 'pug';
 import { colors } from '@akit/design-tokens';
-import { PdfService } from '../../common/services/pdf.service.js';
+import { PDF_GENERATOR } from '../../common/constants/adapters.constants.js';
+import type { PdfGenerator } from '../../common/adapters/pdf-generator.adapter.js';
 import type { ReportData } from '../../common/types/report.types.js';
+
+function getAppRoot(): string {
+  const cwd = process.cwd().replace(/\\/g, '/');
+  if (!cwd.endsWith('apps/api') && !cwd.includes('apps/api/')) {
+    return path.join(process.cwd(), 'apps', 'api');
+  }
+  return process.cwd();
+}
 
 @Injectable()
 export class ReportPdfService {
@@ -13,7 +22,7 @@ export class ReportPdfService {
   private readonly brandDomain = 'akituespacio.com.ar';
   private readonly supportEmail = 'akituvocacion@gmail.com';
   private readonly logoAssetPath = path.join(
-    process.cwd(),
+    getAppRoot(),
     '..',
     'web',
     'src',
@@ -21,7 +30,7 @@ export class ReportPdfService {
     'logo.png',
   );
   private readonly templatePath = path.join(
-    process.cwd(),
+    getAppRoot(),
     'src',
     'mail',
     'templates',
@@ -29,7 +38,9 @@ export class ReportPdfService {
   );
   private cachedLogoDataUri: string | null = null;
 
-  constructor(private readonly pdfService: PdfService) {}
+  constructor(
+    @Inject(PDF_GENERATOR) private readonly pdfGenerator: PdfGenerator,
+  ) {}
 
   renderHtml(reportData: ReportData): string {
     return pug.renderFile(this.templatePath, {
@@ -52,7 +63,7 @@ export class ReportPdfService {
     const htmlContent = this.renderHtml(reportData);
 
     try {
-      return await this.pdfService.generateFromHtml(htmlContent);
+      return await this.pdfGenerator.generateFromHtml(htmlContent);
     } catch (err) {
       this.logger.error(
         `PDF generation failed: ${(err as Error)?.message ?? 'unknown'}`,

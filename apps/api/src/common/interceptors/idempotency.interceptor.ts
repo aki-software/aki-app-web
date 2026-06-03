@@ -4,20 +4,24 @@ import {
   ExecutionContext,
   CallHandler,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { Observable, of, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
+import { Request } from 'express';
 import { IdempotencyService } from '../services/idempotency.service.js';
 
 @Injectable()
 export class IdempotencyInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(IdempotencyInterceptor.name);
+
   constructor(private readonly idempotencyService: IdempotencyService) {}
 
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const key = request.headers['x-idempotency-key'];
 
     if (!key || typeof key !== 'string' || !key.trim()) {
@@ -29,8 +33,6 @@ export class IdempotencyInterceptor implements NestInterceptor {
     let state = await this.idempotencyService.get(trimmedKey);
 
     if (state === 'processing') {
-      // Poll every 500ms for up to 10 seconds to handle race conditions
-      // (e.g. Android's foreground UI and background SyncSessionWorker hitting the endpoint simultaneously)
       for (let i = 0; i < 20; i++) {
         await new Promise((resolve) => setTimeout(resolve, 500));
         state = await this.idempotencyService.get(trimmedKey);
@@ -47,32 +49,39 @@ export class IdempotencyInterceptor implements NestInterceptor {
     if (state) {
       try {
         return of(JSON.parse(state));
-      } catch {
-        // Fallback to calling the handler if JSON parse fails
+      } catch (err) {
+        this.logger.error(
+          `Failed to parse cached response for idempotency key ${trimmedKey}`,
+          err,
+        );
+        await this.idempotencyService.delete(trimmedKey);
       }
     }
 
-    // Set lock to prevent concurrent duplicates (TTL 2 minutes)
-    await this.idempotencyService.set(trimmedKey, 'processing', 120);
+    const acquiredLock = await this.idempotencyService.tryLock(trimmedKey, 120);
+
+    if (!acquiredLock) {
+      throw new ConflictException(
+        'A concurrent request with the same idempotency key is being processed',
+      );
+    }
 
     return next.handle().pipe(
       tap((response) => {
-        // Cache successful response for 24h
         this.idempotencyService
           .set(trimmedKey, JSON.stringify(response), 86400)
           .catch((setErr) => {
-            console.error(
-              `[Idempotency] Failed to cache response for key ${trimmedKey}:`,
-              setErr,
+            this.logger.error(
+              `Failed to cache response for key ${trimmedKey}`,
+              setErr instanceof Error ? setErr.stack : String(setErr),
             );
           });
       }),
       catchError((err) => {
-        // Release the lock immediately on error so the client can retry
         this.idempotencyService.delete(trimmedKey).catch((deleteErr) => {
-          console.error(
-            `[Idempotency] Failed to clear key ${trimmedKey} on request error:`,
-            deleteErr,
+          this.logger.error(
+            `Failed to clear key ${trimmedKey} on request error`,
+            deleteErr instanceof Error ? deleteErr.stack : String(deleteErr),
           );
         });
         return throwError(() => err);

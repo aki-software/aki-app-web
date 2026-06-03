@@ -8,12 +8,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager, DataSource } from 'typeorm';
-import { Voucher } from '../../vouchers/entities/voucher.entity.js';
+import { Voucher } from '../entities/voucher.entity.js';
 import {
   Session,
   SessionPaymentStatus,
 } from '../../sessions/entities/session.entity.js';
-import { VoucherStatus } from '../../vouchers/entities/voucher.enums.js';
+import { VoucherStatus } from '../entities/voucher.enums.js';
 
 const voucherErrorResponse = (
   code:

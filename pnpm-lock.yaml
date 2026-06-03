@@ -93,6 +93,9 @@ importers:
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
+      gaxios:
+        specifier: ^7.1.4
+        version: 7.1.4
       googleapis:
         specifier: ^172.0.0
         version: 172.0.0

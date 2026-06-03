@@ -22,7 +22,6 @@ import { SessionOwnerResolverService } from './services/session-owner-resolver.s
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { AdminDashboardRepository } from './repositories/admin-dashboard.repository.js';
 import { TresAreasModule } from '../tres-areas/tres-areas.module.js';
-import { VoucherRedemptionModule } from '../common/modules/voucher-redemption.module.js';
 
 import { CalculateMetricsHandler } from './services/calculate-metrics.handler.js';
 import { JobDispatcherService } from '../common/services/job-dispatcher.service.js';
@@ -40,7 +39,6 @@ import { JobDispatcherService } from '../common/services/job-dispatcher.service.
     MailModule,
     UsersModule,
     TresAreasModule,
-    VoucherRedemptionModule,
     VouchersModule,
   ],
   controllers: [SessionsController],

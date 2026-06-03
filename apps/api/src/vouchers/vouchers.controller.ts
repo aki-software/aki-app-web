@@ -27,7 +27,7 @@ import { type VoucherScope } from './types/voucher-query.types.js';
 import { CurrentVoucherScope } from './decorators/voucher-scope.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { VoucherRedemptionService } from '../common/services/voucher-redemption.service.js';
+import { VoucherRedemptionService } from './services/voucher-redemption.service.js';
 
 @Controller('vouchers')
 export class VouchersController {

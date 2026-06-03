@@ -56,7 +56,7 @@ export class AuthPasswordFlowService {
 
     const updatedUser = await this.usersService.register({
       ...user,
-      passwordHash: this.cryptoService.hash(password),
+      passwordHash: await this.cryptoService.hash(password),
       passwordSetAt: new Date(),
       passwordSetupToken: null,
       passwordSetupExpiresAt: null,
@@ -125,7 +125,7 @@ export class AuthPasswordFlowService {
 
     const updatedUser = await this.usersService.register({
       ...user,
-      passwordHash: this.cryptoService.hash(password),
+      passwordHash: await this.cryptoService.hash(password),
       passwordSetAt: new Date(),
       passwordResetToken: null,
       passwordResetExpiresAt: null,
@@ -158,7 +158,14 @@ export class AuthPasswordFlowService {
       throw new BadRequestException(AUTH_ERROR_MESSAGES.samePassword);
     }
 
-    const valid = this.cryptoService.verify(currentPassword, user.passwordHash);
+    if (!user.passwordHash) {
+      throw new UnauthorizedException('Contraseña incorrecta');
+    }
+
+    const valid = await this.cryptoService.verify(
+      currentPassword,
+      user.passwordHash,
+    );
     if (!valid) {
       throw new UnauthorizedException(
         AUTH_ERROR_MESSAGES.incorrectCurrentPassword,
@@ -167,7 +174,7 @@ export class AuthPasswordFlowService {
 
     await this.usersService.register({
       ...user,
-      passwordHash: this.cryptoService.hash(newPassword),
+      passwordHash: await this.cryptoService.hash(newPassword),
       passwordSetAt: new Date(),
     });
 

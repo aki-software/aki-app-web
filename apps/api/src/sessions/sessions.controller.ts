@@ -9,6 +9,7 @@ import {
   Req,
   Res,
   UseGuards,
+  Inject,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator.js';
@@ -21,7 +22,8 @@ import { CompleteSessionDto } from './dto/complete-session.dto.js';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { SendReportDto } from './dto/send-report.dto.js';
 import { ReportService } from './services/report.service.js';
-import { PdfService } from '../common/services/pdf.service.js';
+import { PDF_GENERATOR } from '../common/constants/adapters.constants.js';
+import type { PdfGenerator } from '../common/adapters/pdf-generator.adapter.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { SessionsService } from './sessions.service.js';
@@ -49,7 +51,7 @@ export class SessionsController {
     private readonly sessionsService: SessionsService,
     private readonly sessionMetricsService: SessionMetricsService,
     private readonly reportService: ReportService,
-    private readonly pdfService: PdfService,
+    @Inject(PDF_GENERATOR) private readonly pdfGenerator: PdfGenerator,
     private readonly adminDashboardService: AdminDashboardService,
     private readonly reportPdfService: ReportPdfService,
   ) {}
@@ -196,7 +198,7 @@ export class SessionsController {
 
     const reportData = await this.reportService.buildReportData(session);
     const html = this.reportPdfService.renderHtml(reportData);
-    const pdfBuffer = await this.pdfService.generateFromHtml(html);
+    const pdfBuffer = await this.pdfGenerator.generateFromHtml(html);
 
     const safeName = (
       session.patientName ?? SESSION_CONSTANTS.REPORTS.DEFAULT_PDF_PREFIX

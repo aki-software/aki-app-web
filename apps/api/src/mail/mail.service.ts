@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { colors } from '@akit/design-tokens';
 import * as path from 'path';
 import * as nodemailer from 'nodemailer';
@@ -8,18 +8,32 @@ import {
   ReportSummary,
   ReportTripletInsight,
 } from '../common/types/report.types.js';
+import {
+  MailAdapter,
+  MailMeta,
+  MailPayload,
+} from '../common/adapters/mail.adapter.js';
 
 import { Resend } from 'resend';
 
+function getAppRoot(): string {
+  const cwd = process.cwd().replace(/\\/g, '/');
+  if (!cwd.endsWith('apps/api') && !cwd.includes('apps/api/')) {
+    return path.join(process.cwd(), 'apps', 'api');
+  }
+  return process.cwd();
+}
+
 @Injectable()
-export class MailService {
+export class MailService implements MailAdapter {
+  private readonly logger = new Logger(MailService.name);
   private transporter: nodemailer.Transporter | null = null;
   private resend: Resend | null = null;
   private transportType: string = 'smtp';
   private readonly brandDomain = 'akituespacio.com.ar';
   private readonly supportEmail = 'akituvocacion@gmail.com';
   private readonly logoAssetPath = path.join(
-    process.cwd(),
+    getAppRoot(),
     '..',
     'web',
     'src',
@@ -75,13 +89,16 @@ export class MailService {
       } else if (this.resend) {
         const { error } = await this.resend.emails.send(options);
         if (error) {
-          console.error(`❌ Resend HTTP API Error:`, error);
+          this.logger.error(`Resend HTTP API Error: ${JSON.stringify(error)}`);
           return false;
         }
       }
       return true;
     } catch (error) {
-      console.error(`❌ Error dispatching email:`, error);
+      this.logger.error(
+        `Error dispatching email to ${options.to}:`,
+        error instanceof Error ? error.stack : String(error),
+      );
       return false;
     }
   }
@@ -90,7 +107,13 @@ export class MailService {
     templateName: string,
     payload: Record<string, unknown>,
   ): string {
-    const templatePath = process.cwd() + `/src/mail/templates/${templateName}`;
+    const templatePath = path.join(
+      getAppRoot(),
+      'src',
+      'mail',
+      'templates',
+      templateName,
+    );
     return pug.renderFile(templatePath, {
       ...payload,
       colors,
@@ -101,9 +124,6 @@ export class MailService {
   }
 
   private getLogoDataUri(): string | null {
-    // Use an absolute static URL instead of Base64 Data URI
-    // Base64 Data URIs for images are aggressively blocked by Gmail and Resend
-    // causing the HTML layout to be stripped out completely.
     return `https://${this.brandDomain}/logo.png`;
   }
 
@@ -123,59 +143,29 @@ export class MailService {
     });
   }
 
-  async sendVocationalReport(
-    targetEmail: string,
-    patientName: string,
-    hollandCode?: string,
-    pdfAttachment?: Buffer,
-    reportUrl?: string,
-    summary?: ReportSummary,
-    tripletInsight?: ReportTripletInsight,
+  async send(
+    template: string,
+    payload: MailPayload,
+    meta: MailMeta,
   ): Promise<boolean> {
-    const rawName = patientName.replace(/\s*\(.*?\)\s*/g, '').trim();
-    const cleanPatientName = rawName.replace(
-      /\w\S*/g,
-      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
-    );
-    const htmlContent = this.renderReportEmailTemplate(
-      cleanPatientName,
-      targetEmail,
-      hollandCode,
-      reportUrl,
-      summary,
-    );
-    const textContent = this.renderReportText(
-      cleanPatientName,
-      hollandCode,
-      reportUrl,
-      summary,
-      tripletInsight,
-    );
     try {
       const from = this.configService.get<string>(
         'SMTP_FROM',
         'reportes@akit.app',
       );
-      const mailOptions = {
+      return await this.dispatchEmail({
         from: `Orient A.ki <${from}>`,
-        to: targetEmail,
-        subject: `📊 Tu Informe Vocacional`,
-        html: htmlContent,
-        text: textContent,
-        attachments: pdfAttachment
-          ? [
-              {
-                filename: `Informe_Vocacional_${cleanPatientName.replace(/\s+/g, '_')}.pdf`,
-                content: pdfAttachment,
-                contentType: 'application/pdf',
-              },
-            ]
-          : undefined,
-      };
-      const success = await this.dispatchEmail(mailOptions);
-      return success;
+        to: meta.to,
+        subject: meta.subject,
+        html: this.renderTemplate(template, payload),
+        text: meta.text,
+        attachments: meta.attachments,
+      });
     } catch (error) {
-      console.error(`❌ Error dispatching vocational report:`, error);
+      this.logger.error(
+        `Error in send method for template ${template} to ${meta.to}:`,
+        error instanceof Error ? error.stack : String(error),
+      );
       return false;
     }
   }
@@ -239,37 +229,70 @@ export class MailService {
     return lines.join('\n');
   }
 
+  async sendVocationalReport(
+    targetEmail: string,
+    patientName: string,
+    hollandCode?: string,
+    pdfAttachment?: Buffer,
+    reportUrl?: string,
+    summary?: ReportSummary,
+    tripletInsight?: ReportTripletInsight,
+  ): Promise<boolean> {
+    const rawName = patientName.replace(/\s*\(.*?\)\s*/g, '').trim();
+    const cleanPatientName = rawName.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+    );
+    const htmlContentPayload = {
+      patientName: cleanPatientName,
+      patientEmail: targetEmail || null,
+      hollandCode: hollandCode || null,
+      reportUrl: reportUrl || null,
+      summary: summary || null,
+    };
+    const textContent = this.renderReportText(
+      cleanPatientName,
+      hollandCode,
+      reportUrl,
+      summary,
+      tripletInsight,
+    );
+    const attachments = pdfAttachment
+      ? [
+          {
+            filename: `Informe_Vocacional_${cleanPatientName.replace(/\s+/g, '_')}.pdf`,
+            content: pdfAttachment,
+            contentType: 'application/pdf',
+          },
+        ]
+      : undefined;
+
+    return await this.send('report-email.pug', htmlContentPayload, {
+      to: targetEmail,
+      subject: `📊 Tu Informe Vocacional`,
+      text: textContent,
+      attachments,
+    });
+  }
+
   async sendVoucherCode(
     targetEmail: string,
     voucherCode: string,
     patientName?: string,
   ): Promise<boolean> {
-    try {
-      const from = this.configService.get<string>(
-        'SMTP_FROM',
-        'reportes@akit.app',
-      );
-      const testUrl = `https://${this.brandDomain}/v/${voucherCode}`;
-      const html = this.renderTemplate('voucher-code.pug', {
-        titleText: 'Tu código de acceso al test',
-        headerLabel: 'Código de acceso',
-        voucherCode,
-        patientName: patientName || null,
-        testUrl,
-      });
+    const testUrl = `https://${this.brandDomain}/v/${voucherCode}`;
+    const payload = {
+      titleText: 'Tu código de acceso al test',
+      headerLabel: 'Código de acceso',
+      voucherCode,
+      patientName: patientName || null,
+      testUrl,
+    };
 
-      const success = await this.dispatchEmail({
-        from: `Orient A.ki <${from}>`,
-        to: targetEmail,
-        subject: `🔑 Tu código de acceso para Orient A.ki`,
-        html,
-      });
-
-      return success;
-    } catch (error) {
-      console.error(`❌ Error dispatching voucher email:`, error);
-      return false;
-    }
+    return await this.send('voucher-code.pug', payload, {
+      to: targetEmail,
+      subject: `🔑 Tu código de acceso para Orient A.ki`,
+    });
   }
 
   async sendAccountActivation(
@@ -278,30 +301,19 @@ export class MailService {
     activationLink: string,
     institutionName?: string | null,
   ): Promise<boolean> {
-    try {
-      const from = this.configService.get<string>(
-        'SMTP_FROM',
-        'reportes@akit.app',
-      );
-      const html = this.renderTemplate('account-activation.pug', {
-        titleText: 'Activá tu cuenta de Orient A.ki',
-        headerLabel: 'Activación de cuenta',
-        name,
-        greetingName: this.buildGreetingName(name, targetEmail),
-        activationLink,
-        institutionName: institutionName || null,
-      });
-      const success = await this.dispatchEmail({
-        from: `Orient A.ki <${from}>`,
-        to: targetEmail,
-        subject: 'Activá tu cuenta de Orient A.ki',
-        html,
-      });
-      return success;
-    } catch (error) {
-      console.error(`❌ Error dispatching activation email:`, error);
-      return false;
-    }
+    const payload = {
+      titleText: 'Activá tu cuenta de Orient A.ki',
+      headerLabel: 'Activación de cuenta',
+      name,
+      greetingName: this.buildGreetingName(name, targetEmail),
+      activationLink,
+      institutionName: institutionName || null,
+    };
+
+    return await this.send('account-activation.pug', payload, {
+      to: targetEmail,
+      subject: 'Activá tu cuenta de Orient A.ki',
+    });
   }
 
   async sendPasswordReset(
@@ -309,29 +321,18 @@ export class MailService {
     name: string,
     resetLink: string,
   ): Promise<boolean> {
-    try {
-      const from = this.configService.get<string>(
-        'SMTP_FROM',
-        'reportes@akit.app',
-      );
-      const html = this.renderTemplate('password-reset.pug', {
-        titleText: 'Recuperar contraseña',
-        headerLabel: 'Seguridad de cuenta',
-        name,
-        greetingName: this.buildGreetingName(name, targetEmail),
-        resetLink,
-      });
-      const success = await this.dispatchEmail({
-        from: `Orient A.ki <${from}>`,
-        to: targetEmail,
-        subject: 'Restablecé tu contraseña de Orient A.ki',
-        html,
-      });
-      return success;
-    } catch (error) {
-      console.error(`❌ Error dispatching password reset email:`, error);
-      return false;
-    }
+    const payload = {
+      titleText: 'Recuperar contraseña',
+      headerLabel: 'Seguridad de cuenta',
+      name,
+      greetingName: this.buildGreetingName(name, targetEmail),
+      resetLink,
+    };
+
+    return await this.send('password-reset.pug', payload, {
+      to: targetEmail,
+      subject: 'Restablecé tu contraseña de Orient A.ki',
+    });
   }
 
   private buildGreetingName(name: string, email?: string): string | null {

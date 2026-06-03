@@ -41,12 +41,8 @@ export class SendEmailHandler implements JobHandler<SendEmailJobPayload> {
       );
       return await this.getMailService().sendVoucherCode(
         meta.to,
-        typeof templatePayload.voucherCode === 'string'
-          ? templatePayload.voucherCode
-          : '',
-        typeof templatePayload.patientName === 'string'
-          ? templatePayload.patientName
-          : undefined,
+        templatePayload.voucherCode,
+        templatePayload.patientName,
       );
     }
 
@@ -56,13 +52,9 @@ export class SendEmailHandler implements JobHandler<SendEmailJobPayload> {
       );
       return await this.getMailService().sendAccountActivation(
         meta.to,
-        typeof templatePayload.name === 'string' ? templatePayload.name : '',
-        typeof templatePayload.activationLink === 'string'
-          ? templatePayload.activationLink
-          : '',
-        typeof templatePayload.institutionName === 'string'
-          ? templatePayload.institutionName
-          : null,
+        templatePayload.name,
+        templatePayload.activationLink,
+        templatePayload.institutionName ?? null,
       );
     }
 
@@ -72,13 +64,14 @@ export class SendEmailHandler implements JobHandler<SendEmailJobPayload> {
       );
       return await this.getMailService().sendPasswordReset(
         meta.to,
-        typeof templatePayload.name === 'string' ? templatePayload.name : '',
-        typeof templatePayload.resetLink === 'string'
-          ? templatePayload.resetLink
-          : '',
+        templatePayload.name,
+        templatePayload.resetLink,
       );
     }
 
-    throw new Error('Unsupported email template: ' + String(template));
+    throw new Error(
+      'Unsupported email template: ' +
+        String((payload as { template?: unknown }).template),
+    );
   }
 }
