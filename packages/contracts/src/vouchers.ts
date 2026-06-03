@@ -50,7 +50,11 @@ export const voucherBaseSchema = z.object({
   createdAt: z.union([z.string(), z.instanceof(Date)]),
   redeemedAt: z.union([z.string(), z.instanceof(Date)]).nullable().optional(),
   expiresAt: z.union([z.string(), z.instanceof(Date)]).nullable().optional(),
-  ownerInstitution: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
+  ownerInstitution: z.object({ 
+    name: z.string().nullable().optional(),
+    deletedAt: z.union([z.string(), z.instanceof(Date)]).nullable().optional(),
+    isActive: z.boolean().nullable().optional()
+  }).nullable().optional(),
   ownerUser: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
 });
 
@@ -122,7 +126,11 @@ export const voucherApiSchema = z.object({
   status: z.string(),
   ownerType: z.string(),
   ownerInstitutionId: z.string().uuid().nullable().optional(),
-  ownerInstitution: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
+  ownerInstitution: z.object({ 
+    name: z.string().nullable().optional(),
+    deletedAt: z.union([z.string(), z.instanceof(Date)]).nullable().optional(),
+    isActive: z.boolean().nullable().optional()
+  }).nullable().optional(),
   ownerUserId: z.string().uuid().nullable().optional(),
   ownerUser: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
   assignedPatientName: z.string().nullable().optional(),

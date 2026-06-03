@@ -1,4 +1,8 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, androidpublisher_v3 } from 'googleapis';
 
@@ -30,6 +34,7 @@ export class GooglePlayAdapter {
     return google.androidpublisher({ version: 'v3', auth });
   }
 
+  // Comentario para forzar recarga de .env
   getPackageName(): string {
     const packageName = this.configService.get<string>('ANDROID_PACKAGE_NAME');
 

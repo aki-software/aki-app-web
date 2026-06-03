@@ -1,11 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { ReportDeliveryService } from './report-delivery.service.js';
 import { MailService } from '../../mail/mail.service.js';
 
 describe('ReportDeliveryService', () => {
   let service: ReportDeliveryService;
   const mailService = {
-    sendVocationalReport: jest.fn(),
+    send: jest.fn(),
+  };
+
+  const mockConfigService = {
+    get: jest.fn().mockImplementation((key, defaultValue) => defaultValue),
   };
 
   beforeEach(async () => {
@@ -13,6 +18,7 @@ describe('ReportDeliveryService', () => {
       providers: [
         ReportDeliveryService,
         { provide: MailService, useValue: mailService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -21,7 +27,7 @@ describe('ReportDeliveryService', () => {
   });
 
   it('returns success when email is delivered', async () => {
-    mailService.sendVocationalReport.mockResolvedValue(true);
+    mailService.send.mockResolvedValue(true);
 
     const result = await service.deliverReport(
       'target@akit.test',
@@ -44,14 +50,17 @@ describe('ReportDeliveryService', () => {
       Buffer.from('pdf'),
     );
 
-    expect(mailService.sendVocationalReport).toHaveBeenCalledWith(
-      'target@akit.test',
-      'Test User',
-      'RIA',
-      expect.any(Buffer),
-      undefined,
-      expect.any(Object),
-      undefined,
+    expect(mailService.send).toHaveBeenCalledWith(
+      'report-email.pug',
+      expect.objectContaining({
+        patientName: 'Test User',
+        hollandCode: 'RIA',
+      }),
+      expect.objectContaining({
+        to: 'target@akit.test',
+        subject: '📊 Tu Informe Vocacional',
+        attachments: expect.any(Array),
+      }),
     );
     expect(result).toEqual({
       success: true,
@@ -60,7 +69,7 @@ describe('ReportDeliveryService', () => {
   });
 
   it('returns failure when email delivery fails', async () => {
-    mailService.sendVocationalReport.mockResolvedValue(false);
+    mailService.send.mockRejectedValue(new Error('fail'));
 
     const result = await service.deliverReport(
       'target@akit.test',
@@ -82,7 +91,7 @@ describe('ReportDeliveryService', () => {
       },
     );
 
-    expect(mailService.sendVocationalReport).toHaveBeenCalled();
+    expect(mailService.send).toHaveBeenCalled();
     expect(result).toEqual({
       success: false,
       message: 'Hubo un error despachando el correo electrónico.',

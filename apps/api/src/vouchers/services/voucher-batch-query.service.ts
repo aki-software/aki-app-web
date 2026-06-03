@@ -35,6 +35,7 @@ export class VoucherBatchQueryService {
     );
     const baseQb = this.voucherRepository
       .createQueryBuilder('voucher')
+      .withDeleted()
       .leftJoin('voucher.ownerInstitution', 'ownerInstitution')
       .leftJoin('voucher.ownerUser', 'ownerUser');
 
@@ -79,6 +80,7 @@ export class VoucherBatchQueryService {
   private createBaseQueryBuilder() {
     return this.voucherRepository
       .createQueryBuilder('voucher')
+      .withDeleted()
       .leftJoinAndSelect('voucher.ownerUser', 'ownerUser')
       .leftJoinAndSelect('voucher.ownerInstitution', 'ownerInstitution')
       .leftJoinAndSelect('voucher.redeemedSession', 'redeemedSession')
@@ -104,7 +106,7 @@ export class VoucherBatchQueryService {
       .clone()
       .select('voucher.batchId', 'batch_id')
       .addSelect(
-        "COALESCE(MAX(ownerInstitution.name), 'Institución no informada')",
+        "COALESCE(MAX(CASE WHEN ownerInstitution.deletedAt IS NOT NULL OR ownerInstitution.isActive = false THEN CONCAT(ownerInstitution.name, ' (Eliminada)') ELSE ownerInstitution.name END), 'Institución no informada')",
         'ownerInstitutionName',
       )
       .addSelect(
@@ -161,8 +163,11 @@ export class VoucherBatchQueryService {
     const first = vouchers[0];
     return {
       batchId,
-      ownerInstitutionName:
-        first.ownerInstitution?.name ?? 'Institución no informada',
+      ownerInstitutionName: first.ownerInstitution
+        ? (first.ownerInstitution.deletedAt || first.ownerInstitution.isActive === false
+            ? `${first.ownerInstitution.name} (Eliminada)`
+            : first.ownerInstitution.name)
+        : 'Institución no informada',
       ownerUserName: first.ownerUser?.name ?? 'Cuenta operativa no informada',
       createdAt: first.createdAt,
       expiresAt: first.expiresAt,
