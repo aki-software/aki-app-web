@@ -14,13 +14,9 @@ import { AccountActivationNotifierService } from '../common/notifications/accoun
 import { CryptoService } from '../common/services/crypto.service.js';
 import { normalizeUserRole } from '../common/utils/role.utils.js';
 import { USER_ERROR_MESSAGES } from './users.constants.js';
+import { RegisterUserDto } from './dto/register-user.dto.js';
 
-export interface RegisterUserDto {
-  name: string;
-  email?: string;
-  role?: UserRole | string;
-  institutionId?: string | null;
-}
+export type { RegisterUserDto };
 
 @Injectable()
 export class UserRegistrationService {
