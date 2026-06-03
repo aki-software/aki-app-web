@@ -29,6 +29,6 @@ export class SessionSwipe {
   @Column({ name: 'is_liked', type: 'boolean' })
   isLiked: boolean = false;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamptz' })
   timestamp!: Date;
 }

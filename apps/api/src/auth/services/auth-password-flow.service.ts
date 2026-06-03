@@ -146,6 +146,7 @@ export class AuthPasswordFlowService {
     userId: string | null | undefined,
     currentPassword: string,
     newPassword: string,
+    token?: string,
   ): Promise<AuthOkResponse> {
     if (!userId) {
       throw new UnauthorizedException(AUTH_ERROR_MESSAGES.invalidSession);
@@ -186,8 +187,10 @@ export class AuthPasswordFlowService {
       passwordSetAt: new Date(),
     });
 
-    // Invalidate any existing tokens for this user
-    this.authTokenService.invalidateToken(userId);
+    // Invalidate any existing tokens for this user.
+    // Prefer the real JWT when the controller passed it through; fall back to
+    // userId for backward compatibility (legacy callers / tests).
+    this.authTokenService.invalidateToken(token ?? userId ?? '');
 
     return { ok: true };
   }

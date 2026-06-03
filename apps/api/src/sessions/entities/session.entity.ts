@@ -52,7 +52,7 @@ export class Session {
   @Column({ name: 'patient_name', type: 'varchar', length: 255 })
   patientName!: string;
 
-  @Column({ name: 'session_date', type: 'timestamp' })
+  @Column({ name: 'session_date', type: 'timestamptz' })
   sessionDate!: Date;
 
   @Column({
@@ -71,7 +71,7 @@ export class Session {
   @Column({ name: 'total_time_ms', type: 'bigint', nullable: true })
   totalTimeMs!: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
   @Column({ name: 'report_url', type: 'text', nullable: true })
@@ -92,10 +92,10 @@ export class Session {
   @JoinColumn({ name: 'voucher_id' })
   voucher?: Voucher | null;
 
-  @Column({ name: 'report_unlocked_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'report_unlocked_at', type: 'timestamptz', nullable: true })
   reportUnlockedAt!: Date | null;
 
-  @Column({ name: 'paid_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'paid_at', type: 'timestamptz', nullable: true })
   paidAt!: Date | null;
 
   @Column({
@@ -116,7 +116,6 @@ export class Session {
 
   @OneToOne(() => SessionMetrics, (metrics) => metrics.session, {
     cascade: true,
-    eager: true,
   })
   metrics?: SessionMetrics;
 }

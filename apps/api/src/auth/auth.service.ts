@@ -50,11 +50,13 @@ export class AuthService {
     userId: string | null | undefined,
     currentPassword: string,
     newPassword: string,
+    token?: string,
   ): Promise<AuthOkResponse> {
     return this.authPasswordFlowService.changePassword(
       userId,
       currentPassword,
       newPassword,
+      token,
     );
   }
 }

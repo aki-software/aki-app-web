@@ -51,6 +51,6 @@ export class SessionMetrics {
   @Column({ name: 'reliability_level', type: 'varchar', length: 20 })
   reliabilityLevel!: string;
 
-  @CreateDateColumn({ name: 'calculated_at' })
+  @CreateDateColumn({ name: 'calculated_at', type: 'timestamptz' })
   calculatedAt!: Date;
 }
