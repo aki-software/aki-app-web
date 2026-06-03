@@ -45,6 +45,14 @@ export class CreateSessionResultDto {
   timeSpentMs?: number;
 
   @IsOptional()
+  @IsNumber()
+  weightedScore?: number;
+
+  @IsOptional()
+  @IsNumber()
+  avgResponseTimeMs?: number;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   suggestedCareers?: string[];

@@ -2,6 +2,7 @@ import { CompleteSessionDto } from '../dto/complete-session.dto.js';
 import { CreateSessionDto } from '../dto/create-session.dto.js';
 import { SessionPaymentStatus } from '../entities/session.entity.js';
 import { ResolvedOwnerContext } from '../interfaces/resolved-owner-context.interface.js';
+import { calculateHollandProfile } from './psychometrics.util.js';
 
 export function mapToCreateDto(
   payload: CompleteSessionDto,
@@ -17,9 +18,19 @@ export function mapToCreateDto(
   const payloadVoucherId = nullIfBlank(payload.voucherId);
   const payloadId = nullIfBlank(payload.id);
 
-  const enrichedResultsByCategory = indexResultsMetadata(payload.resultPayload);
+  // Server-Authoritative: ignoramos el resultPayload enviado por la App.
+  // El perfil Holland se calcula server-side usando los swipes crudos.
+  const serverProfile = calculateHollandProfile(
+    (payload.swipes || []).map((s) => ({
+      categoryId: s.categoryId,
+      liked: s.liked,
+      timestamp: s.timestamp,
+    })),
+  );
 
-  const timeSpentByCategory = calculateTimePerCategory(payload.swipes);
+  // Conservamos suggestedCareers y materialSnippet del payload del cliente
+  // ya que esos datos los gestiona la App (son contenido, no cálculo).
+  const enrichedResultsByCategory = indexResultsMetadata(payload.resultPayload);
 
   return {
     id: payloadId || undefined,
@@ -44,26 +55,26 @@ export function mapToCreateDto(
       (!isTherapistUser ? (payloadUserId ?? undefined) : undefined),
     patientName: inferredPatientName,
     sessionDate: new Date(payload.startedAt || new Date()),
-    hollandCode: payload.resultPayload?.hollandCode,
+    hollandCode: serverProfile.hollandCode,
     totalTimeMs: calculateDuration(payload.startedAt, payload.finishedAt),
     voucherId: voucher?.id || payloadVoucherId || undefined,
     paymentStatus: voucher
       ? SessionPaymentStatus.VOUCHER_REDEEMED
       : normalizePaymentStatus(payload.paymentStatus),
-    results: (payload.resultPayload?.radar || []).map((item) => {
-      const categoryId = normalizeCategoryId(item.categoryId);
+    results: serverProfile.radar.map((item) => {
+      const catId = item.categoryId;
       return {
-        categoryId,
-        score: item.likes || 0,
-        totalPossible: item.total || 0,
-        percentage: normalizePercentage(item.affinity),
-        timeSpentMs: timeSpentByCategory.get(categoryId) || 0,
+        categoryId: catId,
+        score: item.rawScore,
+        totalPossible: item.totalPossible,
+        percentage: item.percentage,
+        weightedScore: item.weightedScore,
+        avgResponseTimeMs: item.avgResponseTimeMs,
+        timeSpentMs: item.avgResponseTimeMs * item.totalPossible,
         suggestedCareers:
-          enrichedResultsByCategory.get(categoryId)?.suggestedCareers ??
-          undefined,
+          enrichedResultsByCategory.get(catId)?.suggestedCareers ?? undefined,
         materialSnippet:
-          enrichedResultsByCategory.get(categoryId)?.materialSnippet ??
-          undefined,
+          enrichedResultsByCategory.get(catId)?.materialSnippet ?? undefined,
       };
     }),
     swipes: (payload.swipes || []).map((swipe) => ({
@@ -125,32 +136,6 @@ export function indexResultsMetadata(
   return map;
 }
 
-export function calculateTimePerCategory(
-  swipes?: { categoryId?: string; timestamp?: string | Date }[],
-): Map<string, number> {
-  const map = new Map<string, number>();
-  if (!swipes || swipes.length === 0) return map;
-
-  const sorted = [...swipes].sort((a, b) => {
-    const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-    const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-    return timeA - timeB;
-  });
-
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = sorted[i - 1];
-    const curr = sorted[i];
-    const timePrev = prev.timestamp ? new Date(prev.timestamp).getTime() : 0;
-    const timeCurr = curr.timestamp ? new Date(curr.timestamp).getTime() : 0;
-    const diff = timeCurr - timePrev;
-
-    if (diff > 0 && diff < 300000 && curr.categoryId) {
-      const catId = normalizeCategoryId(curr.categoryId);
-      map.set(catId, (map.get(catId) || 0) + diff);
-    }
-  }
-  return map;
-}
 
 export function nullIfBlank(value: unknown): string | null {
   if (typeof value !== 'string') return value == null ? null : String(value);
