@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from '../../mail/mail.service.js';
-import type { ReportData, ReportSummary, ReportTripletInsight } from '../../common/types/report.types.js';
+import type {
+  ReportData,
+  ReportSummary,
+  ReportTripletInsight,
+} from '../../common/types/report.types.js';
 
 @Injectable()
 export class ReportDeliveryService {
@@ -22,13 +26,17 @@ export class ReportDeliveryService {
     const lines: string[] = [];
     lines.push('INFORME DE RESULTADOS VOCACIONALES');
     lines.push('');
-    lines.push(`Hola ${patientName}, aqui tienes los detalles de tu exploracion vocacional.`);
+    lines.push(
+      `Hola ${patientName}, aqui tienes los detalles de tu exploracion vocacional.`,
+    );
 
     if (summary) {
       lines.push('');
       lines.push('RESUMEN EJECUTIVO');
       lines.push('');
-      lines.push(`Afinidad principal: ${summary.primaryTitle} (${summary.primaryPercentage}%)`);
+      lines.push(
+        `Afinidad principal: ${summary.primaryTitle} (${summary.primaryPercentage}%)`,
+      );
       lines.push(`Fortaleza destacada: ${summary.profileStrength}`);
       lines.push(`Recomendacion: ${summary.recommendation}`);
     }
@@ -56,8 +64,14 @@ export class ReportDeliveryService {
       lines.push('');
     }
 
-    const supportEmail = this.configService.get<string>('SUPPORT_EMAIL', 'soporte@orienta.ki');
-    const brandDomain = this.configService.get<string>('BRAND_DOMAIN', 'orienta.ki');
+    const supportEmail = this.configService.get<string>(
+      'SUPPORT_EMAIL',
+      'soporte@orienta.ki',
+    );
+    const brandDomain = this.configService.get<string>(
+      'BRAND_DOMAIN',
+      'orienta.ki',
+    );
     lines.push(`Soporte tecnico: ${supportEmail}`);
     lines.push(`Sitio: ${brandDomain}`);
     return lines.join('\n');
@@ -111,8 +125,12 @@ export class ReportDeliveryService {
 
     let sent = false;
     try {
-      sent = await this.mailService.send('report-email.pug', templatePayload, meta);
-    } catch (e) {
+      sent = await this.mailService.send(
+        'report-email.pug',
+        templatePayload,
+        meta,
+      );
+    } catch {
       sent = false;
     }
 

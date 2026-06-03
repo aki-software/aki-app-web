@@ -57,12 +57,12 @@ describe('InstitutionAnalyticsService', () => {
 
   describe('getStats', () => {
     it('should aggregate counts correctly', async () => {
-      voucherRepository.count.mockImplementation((params) => {
+      voucherRepository.count.mockImplementation((params: any) => {
         if (params?.where?.status === VoucherStatus.USED)
           return Promise.resolve(10);
         return Promise.resolve(50); // Total vouchers
       });
-      sessionRepository.count.mockImplementation((params) => {
+      sessionRepository.count.mockImplementation((params: any) => {
         if (params?.where?.paymentStatus) return Promise.resolve(8);
         return Promise.resolve(12); // Total sessions
       });

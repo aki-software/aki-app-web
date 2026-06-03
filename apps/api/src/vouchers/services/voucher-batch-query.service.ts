@@ -164,9 +164,10 @@ export class VoucherBatchQueryService {
     return {
       batchId,
       ownerInstitutionName: first.ownerInstitution
-        ? (first.ownerInstitution.deletedAt || first.ownerInstitution.isActive === false
-            ? `${first.ownerInstitution.name} (Eliminada)`
-            : first.ownerInstitution.name)
+        ? first.ownerInstitution.deletedAt ||
+          first.ownerInstitution.isActive === false
+          ? `${first.ownerInstitution.name} (Eliminada)`
+          : first.ownerInstitution.name
         : 'Institución no informada',
       ownerUserName: first.ownerUser?.name ?? 'Cuenta operativa no informada',
       createdAt: first.createdAt,

@@ -76,10 +76,12 @@ describe('admin-dashboard-formatter.util', () => {
         voucherId: null,
         paymentStatus: undefined as any,
         resultsCount: '0',
+        hollandCode: '',
+        voucherCode: '',
       },
       {
         id: '2',
-        patientName: null,
+        patientName: '',
         createdAt: '2024-01-02T10:00:00Z',
         sessionDate: '2024-01-02T09:00:00Z',
         reportUnlockedAt: '2024-01-02T11:00:00Z',
@@ -87,6 +89,8 @@ describe('admin-dashboard-formatter.util', () => {
         voucherId: 'voucher-1',
         paymentStatus: SessionPaymentStatus.VOUCHER_REDEEMED,
         resultsCount: '1',
+        hollandCode: '',
+        voucherCode: 'VOUCHER-123',
       },
     ];
 

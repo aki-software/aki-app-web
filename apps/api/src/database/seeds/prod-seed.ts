@@ -39,20 +39,17 @@ async function runBaseSeed() {
     );
     await dataSource.initialize();
 
-    const {
-      admin,
-      categoriesCount,
-      tresAreasCount,
-    } = await dataSource.transaction(async (manager) => {
-      const seededAdmin = await upsertAdminUser(manager);
-      const seededCategories = await upsertVocationalCategories(manager);
-      const seededTresAreas = await upsertTresAreasCombinations(manager);
-      return {
-        admin: seededAdmin,
-        categoriesCount: seededCategories.insertedOrUpdated,
-        tresAreasCount: seededTresAreas.insertedOrUpdated,
-      };
-    });
+    const { admin, categoriesCount, tresAreasCount } =
+      await dataSource.transaction(async (manager) => {
+        const seededAdmin = await upsertAdminUser(manager);
+        const seededCategories = await upsertVocationalCategories(manager);
+        const seededTresAreas = await upsertTresAreasCombinations(manager);
+        return {
+          admin: seededAdmin,
+          categoriesCount: seededCategories.insertedOrUpdated,
+          tresAreasCount: seededTresAreas.insertedOrUpdated,
+        };
+      });
 
     console.log('Prod seed finished successfully.');
     console.log(`Admin: ${admin.email} (${admin.id})`);

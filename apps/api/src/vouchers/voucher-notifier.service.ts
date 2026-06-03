@@ -22,9 +22,12 @@ export class VoucherNotifierService {
     voucher: Voucher,
     targetEmail: string,
   ): Promise<boolean> {
-    const brandDomain = this.configService.get<string>('BRAND_DOMAIN', 'orienta.ki');
+    const brandDomain = this.configService.get<string>(
+      'BRAND_DOMAIN',
+      'orienta.ki',
+    );
     const testUrl = `https://${brandDomain}/v/${voucher.code}`;
-    
+
     const template = 'voucher-code.pug';
     const templatePayload = {
       titleText: 'Tu código de acceso al test',
@@ -52,9 +55,12 @@ export class VoucherNotifierService {
     quantity: number,
     expiresAt: Date | null,
   ): Promise<boolean> {
-    const webAppUrl = this.configService.get<string>('WEB_APP_URL', 'http://localhost:5173');
+    const webAppUrl = this.configService.get<string>(
+      'WEB_APP_URL',
+      'http://localhost:5173',
+    );
     const template = 'voucher-batch-assignment.pug';
-    
+
     let expiresAtStr = null;
     if (expiresAt) {
       const dd = String(expiresAt.getDate()).padStart(2, '0');
@@ -71,7 +77,7 @@ export class VoucherNotifierService {
       expiresAt: expiresAtStr,
       dashboardUrl: webAppUrl,
     };
-    
+
     const meta = {
       to: targetEmail,
       subject: '🎟 Nuevos vouchers asignados a tu cuenta',

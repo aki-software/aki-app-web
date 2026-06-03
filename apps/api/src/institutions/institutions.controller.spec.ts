@@ -132,7 +132,11 @@ describe('InstitutionsController & InstitutionOwnerGuard', () => {
 
   describe('create', () => {
     it('should create and return institution with activation info', async () => {
-      const mockPayload = { name: 'Inst', billingEmail: 'test@test.com' };
+      const mockPayload = {
+        name: 'Inst',
+        billingEmail: 'test@test.com',
+        email: 'test@test.com',
+      };
       operationalService.createInstitutionWithOperationalAccount.mockResolvedValue(
         {
           institution: { id: '1', name: 'Inst' },

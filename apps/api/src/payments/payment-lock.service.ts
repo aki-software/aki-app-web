@@ -28,7 +28,9 @@ export class PaymentLockService {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
 
-    this.logger.warn(`No se pudo adquirir el lock para el token ${token} tras reintentos.`);
+    this.logger.warn(
+      `No se pudo adquirir el lock para el token ${token} tras reintentos.`,
+    );
     throw new ConflictException('Este pago ya está siendo procesado.');
   }
 

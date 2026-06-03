@@ -152,8 +152,11 @@ export class VouchersService {
 
     if (normalizedOwnership.ownerInstitutionId) {
       try {
-        const institution = await this.institutionsService.findOneOrFail(normalizedOwnership.ownerInstitutionId);
-        const targetEmail = institution.billingEmail || institution.responsibleTherapist?.email;
+        const institution = await this.institutionsService.findOneOrFail(
+          normalizedOwnership.ownerInstitutionId,
+        );
+        const targetEmail =
+          institution.billingEmail || institution.responsibleTherapist?.email;
         if (targetEmail) {
           await this.notifierService.notifyBatchAssignment(
             targetEmail,
