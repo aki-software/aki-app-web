@@ -51,6 +51,17 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
       const message = (error as Error)?.message ?? 'unknown error';
       this.logger.error(`PDF generation failed: ${message}`);
 
+      if (
+        message.includes('Connection closed') ||
+        message.includes('Target closed') ||
+        message.includes('Protocol error')
+      ) {
+        this.logger.warn(
+          'Destruyendo instancia corrupta de Puppeteer para forzar reinicio.',
+        );
+        await this.closeBrowser().catch(() => {});
+      }
+
       if (message.includes('Could not find Chrome')) {
         this.logger.error(
           'Chrome for Puppeteer is missing. Run: pnpm exec puppeteer browsers install chrome',
@@ -129,8 +140,6 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
-          '--single-process',
-          '--no-zygote',
           '--memory-pressure-off',
           '--js-flags=--max-old-space-size=256',
         ],

@@ -7,18 +7,29 @@ export class PaymentLockService {
   private readonly LOCK_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   /**
-   * Intenta adquirir un lock para el token especificado.
-   * Si ya está procesándose, lanza una excepción (HTTP 409 Conflict).
+   * Intenta adquirir un lock para el token especificado de forma asíncrona.
+   * Si ya está procesándose, reintenta durante unos segundos antes de lanzar una excepción.
    * @param token El token de compra (purchaseToken)
    */
-  acquireLock(token: string): void {
-    const existing = this.lockedTokens.get(token);
-    if (existing && Date.now() < existing) {
-      this.logger.warn(`El token de pago ${token} ya está siendo procesado.`);
-      throw new ConflictException('Este pago ya está siendo procesado.');
+  async acquireLock(token: string): Promise<void> {
+    const maxRetries = 5;
+    const delayMs = 500;
+
+    for (let i = 0; i < maxRetries; i++) {
+      const existing = this.lockedTokens.get(token);
+      if (!existing || Date.now() >= existing) {
+        this.lockedTokens.set(token, Date.now() + this.LOCK_TTL_MS);
+        this.logger.debug(`Lock adquirido para el token ${token}`);
+        return;
+      }
+      this.logger.warn(
+        `El token de pago ${token} ya está siendo procesado. Reintentando adquirir lock... (Intento ${i + 1}/${maxRetries})`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
-    this.lockedTokens.set(token, Date.now() + this.LOCK_TTL_MS);
-    this.logger.debug(`Lock adquirido para el token ${token}`);
+
+    this.logger.warn(`No se pudo adquirir el lock para el token ${token} tras reintentos.`);
+    throw new ConflictException('Este pago ya está siendo procesado.');
   }
 
   /**
