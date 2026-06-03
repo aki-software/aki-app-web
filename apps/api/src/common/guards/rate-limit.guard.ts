@@ -58,6 +58,6 @@ export class RateLimitGuard implements CanActivate {
     const actor = req.user?.userId || req.ip || 'unknown';
     const routeObj = req.route as { path?: string } | undefined;
     const route = routeObj?.path || req.originalUrl || 'unknown-route';
-    return `${actor}:${route}`;
+    return `ratelimit:${actor}:${route}`;
   }
 }

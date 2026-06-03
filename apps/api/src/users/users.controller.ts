@@ -49,12 +49,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post()
-  async create(@Body() payload: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.userRegistrationService.register({
-      name: payload.name,
-      role: payload.role ?? UserRole.THERAPIST,
-      email: payload.email,
-      institutionId: payload.institutionId,
+      name: createUserDto.name,
+      role: createUserDto.role ?? UserRole.THERAPIST,
+      email: createUserDto.email,
+      institutionId: createUserDto.institutionId,
     });
 
     return {
@@ -68,12 +68,12 @@ export class UsersController {
   }
 
   @Post('register')
-  async register(@Body() payload: RegisterUserDto) {
+  async register(@Body() registerUserDto: RegisterUserDto) {
     const user = await this.userRegistrationService.register({
-      name: payload.name,
-      role: payload.role ?? UserRole.THERAPIST,
-      email: payload.email,
-      institutionId: payload.institutionId,
+      name: registerUserDto.name,
+      role: registerUserDto.role ?? UserRole.THERAPIST,
+      email: registerUserDto.email,
+      institutionId: registerUserDto.institutionId,
     });
     return {
       user_id: user.id,
