@@ -3,7 +3,8 @@ import { Injectable, Logger, ConflictException } from '@nestjs/common';
 @Injectable()
 export class PaymentLockService {
   private readonly logger = new Logger(PaymentLockService.name);
-  private readonly lockedTokens = new Set<string>();
+  private readonly lockedTokens = new Map<string, number>();
+  private readonly LOCK_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   /**
    * Intenta adquirir un lock para el token especificado.
@@ -11,11 +12,12 @@ export class PaymentLockService {
    * @param token El token de compra (purchaseToken)
    */
   acquireLock(token: string): void {
-    if (this.lockedTokens.has(token)) {
+    const existing = this.lockedTokens.get(token);
+    if (existing && Date.now() < existing) {
       this.logger.warn(`El token de pago ${token} ya está siendo procesado.`);
       throw new ConflictException('Este pago ya está siendo procesado.');
     }
-    this.lockedTokens.add(token);
+    this.lockedTokens.set(token, Date.now() + this.LOCK_TTL_MS);
     this.logger.debug(`Lock adquirido para el token ${token}`);
   }
 

@@ -8,9 +8,9 @@ import {
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { SessionsService } from '../sessions/sessions.service';
 import { SessionPaymentStatus } from '@akit/contracts';
-import { google, androidpublisher_v3 } from 'googleapis';
-import { ConfigService } from '@nestjs/config';
+import { androidpublisher_v3 } from 'googleapis';
 import { PaymentLockService } from './payment-lock.service';
+import { GooglePlayAdapter } from './google-play.adapter';
 import { GaxiosError } from 'gaxios';
 
 @Injectable()
@@ -19,8 +19,8 @@ export class PaymentsService {
 
   constructor(
     private readonly sessionsService: SessionsService,
-    private readonly configService: ConfigService,
     private readonly paymentLockService: PaymentLockService,
+    private readonly googlePlayAdapter: GooglePlayAdapter,
   ) {}
 
   async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto) {
@@ -50,9 +50,9 @@ export class PaymentsService {
         return { success: false, valid: false, reason: 'ALREADY_CONSUMED' };
       }
 
-      const { packageName, serviceAccountBase64 } = this.getPlayBillingConfig();
+      const packageName = this.googlePlayAdapter.getPackageName();
+      const androidPublisher = this.googlePlayAdapter.getAndroidPublisher();
 
-      const androidPublisher = this.getAndroidPublisher(serviceAccountBase64);
       return await this.verifyAndProcessPurchase(
         androidPublisher,
         packageName,
@@ -84,38 +84,6 @@ export class PaymentsService {
       session.paymentReference === token &&
       session.paymentStatus === SessionPaymentStatus.PAID
     );
-  }
-
-  private getPlayBillingConfig(): {
-    packageName: string;
-    serviceAccountBase64: string;
-  } {
-    const packageName = this.configService.get<string>('ANDROID_PACKAGE_NAME');
-    const serviceAccountBase64 = this.configService.get<string>(
-      'GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64',
-    );
-
-    if (!packageName || !serviceAccountBase64) {
-      this.logger.error('Google Play Billing configuration is missing');
-      throw new InternalServerErrorException('Payment configuration error');
-    }
-
-    return { packageName, serviceAccountBase64 };
-  }
-
-  private getAndroidPublisher(
-    serviceAccountBase64: string,
-  ): androidpublisher_v3.Androidpublisher {
-    const credentials = JSON.parse(
-      Buffer.from(serviceAccountBase64, 'base64').toString('utf8'),
-    );
-
-    const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-    });
-
-    return google.androidpublisher({ version: 'v3', auth });
   }
 
   private async verifyAndProcessPurchase(
