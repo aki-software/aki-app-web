@@ -13,9 +13,13 @@ import {
   Not,
   IsNull,
   SelectQueryBuilder,
+  QueryFailedError,
+  DataSource,
 } from 'typeorm';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { Session } from './entities/session.entity.js';
+import { SessionResult } from './entities/session-result.entity.js';
+import { SessionSwipe } from './entities/session-swipe.entity.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
@@ -40,6 +44,11 @@ export class SessionsService {
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
+    @InjectRepository(SessionResult)
+    private readonly sessionResultRepository: Repository<SessionResult>,
+    @InjectRepository(SessionSwipe)
+    private readonly sessionSwipeRepository: Repository<SessionSwipe>,
+    private readonly dataSource: DataSource,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
@@ -103,26 +112,52 @@ export class SessionsService {
 
     if (existing) return { session: existing, duplicated: true };
 
-    const session = this.sessionRepository.create({
-      ...createSessionDto,
-      syncKey: idempotencyKey ?? null,
-    });
+    // Excluir el `id` del DTO: si el cliente envía su propio UUID (sync desde Android),
+    // TypeORM lo trataría como un UPDATE en lugar de INSERT.
+    // El id del cliente se conserva como syncKey para idempotencia.
+    const { id: _clientId, results: resultsDto, swipes: swipesDto, ...sessionFields } = createSessionDto;
 
     let savedSession: Session;
     try {
-      savedSession = await this.sessionRepository.save(session);
-    } catch {
-      if (!idempotencyKey) {
-        throw new ConflictException('No se pudo crear la sesión');
+      savedSession = await this.dataSource.transaction(async (manager) => {
+        // 1. Insertar la sesión sin relaciones para evitar el bug de cascade
+        const session = manager.create(Session, {
+          ...sessionFields,
+          syncKey: idempotencyKey ?? null,
+        });
+        const inserted = await manager.save(Session, session);
+
+        // 2. Insertar results y swipes manualmente con el sessionId correcto
+        if (resultsDto?.length) {
+          const results = resultsDto.map((r) =>
+            manager.create(SessionResult, { ...r, session: inserted }),
+          );
+          await manager.save(SessionResult, results);
+        }
+
+        if (swipesDto?.length) {
+          const swipes = swipesDto.map((s) =>
+            manager.create(SessionSwipe, { ...s, session: inserted }),
+          );
+          await manager.save(SessionSwipe, swipes);
+        }
+
+        return inserted;
+      });
+    } catch (err) {
+      this.logger.error('Error saving session:', err);
+
+      // Race condition: otra request guardó con el mismo syncKey entre el findOne y el save
+      if (idempotencyKey && err instanceof QueryFailedError) {
+        const recovered = await this.sessionRepository.findOne({
+          where: { syncKey: idempotencyKey },
+        });
+        if (recovered) return { session: recovered, duplicated: true };
       }
 
-      const existing = await this.sessionRepository.findOne({
-        where: { syncKey: idempotencyKey },
-      });
-
-      if (existing) return { session: existing, duplicated: true };
-
-      throw new ConflictException('No se pudo crear la sesión');
+      throw new ConflictException(
+        `No se pudo crear la sesión: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
 
     this.queueAdapter
@@ -319,15 +354,24 @@ export class SessionsService {
     status: SessionPaymentStatus,
     reference?: string,
   ): Promise<Session> {
-    const session = await this.findOne(id);
-    session.paymentStatus = status;
+    const now = new Date();
+
+    const updateFields: Record<string, unknown> = { paymentStatus: status };
     if (reference) {
-      session.paymentReference = reference;
+      updateFields.paymentReference = reference;
     }
     if (status === SessionPaymentStatus.PAID) {
-      session.paidAt = new Date();
-      session.reportUnlockedAt = new Date();
+      updateFields.paidAt = now;
+      updateFields.reportUnlockedAt = now;
     }
-    return await this.sessionRepository.save(session);
+
+    await this.sessionRepository
+      .createQueryBuilder()
+      .update(Session)
+      .set(updateFields)
+      .where('id = :id', { id })
+      .execute();
+
+    return this.findOne(id);
   }
 }

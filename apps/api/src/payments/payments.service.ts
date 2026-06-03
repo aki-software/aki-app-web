@@ -25,7 +25,7 @@ export class PaymentsService {
   async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto) {
     this.logger.log(`Verifying purchase for session ${dto.sessionId}`);
 
-    this.paymentLockService.acquireLock(dto.purchaseToken);
+    await this.paymentLockService.acquireLock(dto.purchaseToken);
     try {
       const session = await this.sessionsService.findOne(dto.sessionId);
       if (!session) {
