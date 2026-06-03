@@ -14,6 +14,8 @@ import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { UserRole } from './entities/user.entity.js';
 import { UsersService } from './users.service.js';
 import { UserRegistrationService } from './user-registration.service.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
+import { RegisterUserDto } from './dto/register-user.dto.js';
 
 @Controller('users')
 export class UsersController {
@@ -47,16 +49,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post()
-  async create(
-    @Body()
-    payload: {
-      name: string;
-      role?: UserRole;
-      email?: string;
-      institutionId?: string | null;
-    },
-  ) {
-    const user = await this.performRegistration(payload);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const user = await this.performRegistration(createUserDto);
 
     return {
       id: user.id,
@@ -69,16 +63,8 @@ export class UsersController {
   }
 
   @Post('register')
-  async register(
-    @Body()
-    payload: {
-      name: string;
-      role?: UserRole;
-      email?: string;
-      institutionId?: string | null;
-    },
-  ) {
-    const user = await this.performRegistration(payload);
+  async register(@Body() registerUserDto: RegisterUserDto) {
+    const user = await this.performRegistration(registerUserDto);
     return {
       user_id: user.id,
       status: 'registered',
@@ -86,12 +72,7 @@ export class UsersController {
     };
   }
 
-  private async performRegistration(payload: {
-    name: string;
-    role?: UserRole;
-    email?: string;
-    institutionId?: string | null;
-  }) {
+  private async performRegistration(payload: CreateUserDto | RegisterUserDto) {
     return await this.userRegistrationService.register({
       name: payload.name,
       role: payload.role ?? UserRole.THERAPIST,

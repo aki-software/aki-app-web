@@ -15,6 +15,7 @@ import type {
   AuthTokenResolutionResponse,
 } from '@akit/contracts';
 import { AuthResponseFactory } from '../factories/auth-response.factory.js';
+import { AuthTokenService } from './auth-token.service.js';
 
 @Injectable()
 export class AuthPasswordFlowService {
@@ -23,6 +24,7 @@ export class AuthPasswordFlowService {
     private readonly cryptoService: CryptoService,
     private readonly passwordResetNotifier: PasswordResetNotifierService,
     private readonly authResponseFactory: AuthResponseFactory,
+    private readonly authTokenService: AuthTokenService,
   ) {}
 
   async resolveSetupToken(token: string): Promise<AuthTokenResolutionResponse> {
@@ -61,6 +63,9 @@ export class AuthPasswordFlowService {
       passwordSetupToken: null,
       passwordSetupExpiresAt: null,
     });
+
+    // Invalidate any existing tokens for this user
+    this.authTokenService.invalidateToken(token);
 
     return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
@@ -131,6 +136,9 @@ export class AuthPasswordFlowService {
       passwordResetExpiresAt: null,
     });
 
+    // Invalidate any existing tokens for this user
+    this.authTokenService.invalidateToken(token);
+
     return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
 
@@ -177,6 +185,9 @@ export class AuthPasswordFlowService {
       passwordHash: await this.cryptoService.hash(newPassword),
       passwordSetAt: new Date(),
     });
+
+    // Invalidate any existing tokens for this user
+    this.authTokenService.invalidateToken(userId);
 
     return { ok: true };
   }

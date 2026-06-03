@@ -1,0 +1,34 @@
+schema: spec-driven
+
+context: |
+  Stack: NestJS (TypeORM, BullMQ, Puppeteer) + React (Vite, Tailwind v4, Recharts) + Astro (landing)
+  Architecture: Monorepo pnpm workspaces + Turborepo, Hexagonal Architecture (NestJS), Feature Modules, Atomic Design (React)
+  Testing: Jest (api), Vitest + Testing Library (web), Kover (min 70%)
+  Quality: ESLint, Prettier, TypeScript strict
+  Persistence: PostgreSQL (Neon), Redis (Upstash), S3, Firebase Auth
+  Security: JWT + Firebase cert rotation, Helmet, Class-Validator, Rate Limiting, SQLCipher
+
+strict_tdd: false
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Load relevant coding skills for the project stack
+  verify:
+    - Run tests if test infrastructure exists
+    - Compare implementation against every spec scenario
+  archive:
+    - Warn before merging destructive deltas (large removals)
