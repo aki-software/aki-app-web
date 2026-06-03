@@ -158,8 +158,13 @@ export class SessionsController {
 
   @Get(':id/metrics')
   @UseGuards(JwtAuthGuard)
-  async getSessionMetrics(@Param('id') sessionId: string) {
-    return this.sessionMetricsService.getMetricsBySessionId(sessionId);
+  async getSessionMetrics(
+    @Param('id') sessionId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const scope = this.extractScope(req);
+    const session = await this.sessionsService.findOne(sessionId, scope);
+    return this.sessionMetricsService.getMetricsBySessionId(session.id);
   }
 
   @Get('voucher/:voucherId/sessions')
