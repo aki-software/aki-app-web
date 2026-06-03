@@ -79,10 +79,10 @@ export class Voucher {
   })
   assignedPatientEmail: string | null;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @Column({ name: 'sent_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'sent_at', type: 'timestamptz', nullable: true })
   sentAt: Date | null;
 
   @Column({ name: 'redeemed_session_id', type: 'uuid', nullable: true })
@@ -92,10 +92,10 @@ export class Voucher {
   @JoinColumn({ name: 'redeemed_session_id' })
   redeemedSession?: Session | null;
 
-  @Column({ name: 'redeemed_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'redeemed_at', type: 'timestamptz', nullable: true })
   redeemedAt: Date | null;
 
-  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
   expiresAt: Date | null;
 
   // Domain Methods for Encapsulation

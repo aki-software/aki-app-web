@@ -20,7 +20,7 @@ export class VoucherAccessGuard implements CanActivate {
     const request = context
       .switchToHttp()
       .getRequest<AuthenticatedRequest & { voucher?: Voucher }>();
-    const code = request.params?.code;
+    const code = String(request.params?.code ?? '');
 
     if (!code) {
       throw new ForbiddenException(FORBIDDEN_MESSAGE);
