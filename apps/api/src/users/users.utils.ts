@@ -5,7 +5,7 @@ import { User } from './entities/user.entity.js';
  */
 export function hasPasswordConfigured(user: User): boolean {
   if (!user.passwordSetAt || !user.passwordHash) return false;
-  
+
   return (
     user.passwordHash.startsWith('$2b$') ||
     user.passwordHash.startsWith('$2a$') ||

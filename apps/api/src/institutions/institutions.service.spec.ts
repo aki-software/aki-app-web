@@ -70,6 +70,7 @@ describe('InstitutionsService', () => {
       const inputDto = {
         name: ' New Inst ',
         billingEmail: 'billing@test.com ',
+        email: 'billing@test.com ',
       };
       const mockInst = {
         name: 'New Inst',

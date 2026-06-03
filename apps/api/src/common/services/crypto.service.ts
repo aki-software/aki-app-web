@@ -26,7 +26,7 @@ export class CryptoService {
         const storedHashBuffer = Buffer.from(hashHex, 'hex');
         if (derivedBuffer.length !== storedHashBuffer.length) return false;
         return timingSafeEqual(derivedBuffer, storedHashBuffer);
-      } catch (err) {
+      } catch {
         return false;
       }
     }
@@ -38,7 +38,12 @@ export class CryptoService {
   isValidHash(hash: string | null | undefined): boolean {
     if (!hash) return false;
     // Consider both bcrypt ($2a$, $2b$, $2y$) and legacy (scrypt$) as valid formats
-    return hash.startsWith('$2b$') || hash.startsWith('$2a$') || hash.startsWith('$2y$') || hash.startsWith('scrypt$');
+    return (
+      hash.startsWith('$2b$') ||
+      hash.startsWith('$2a$') ||
+      hash.startsWith('$2y$') ||
+      hash.startsWith('scrypt$')
+    );
   }
 
   generateToken(bytes = 32): string {

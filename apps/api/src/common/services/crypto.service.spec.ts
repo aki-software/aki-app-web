@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CryptoService } from './crypto.service.js';
 import { scryptSync } from 'node:crypto';
-import * as bcrypt from 'bcrypt';
 
 describe('CryptoService', () => {
   let service: CryptoService;
@@ -40,7 +39,7 @@ describe('CryptoService', () => {
 
       expect(await service.verify(password, fullHash)).toBe(true);
     });
-    
+
     it('should reject invalid legacy scrypt hashes', async () => {
       const password = 'test-legacy';
       const salt = 'abcd';
@@ -66,4 +65,3 @@ describe('CryptoService', () => {
     });
   });
 });
-

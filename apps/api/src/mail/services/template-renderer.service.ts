@@ -20,7 +20,9 @@ export class TemplateRendererService {
     templateName: string,
     payload: Record<string, unknown>,
   ): string {
-    const templateFileName = templateName.endsWith('.pug') ? templateName : `${templateName}.pug`;
+    const templateFileName = templateName.endsWith('.pug')
+      ? templateName
+      : `${templateName}.pug`;
     const templatePath = path.join(
       getAppRoot(),
       'src',

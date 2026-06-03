@@ -115,7 +115,13 @@ export class SessionsService {
     // Excluir el `id` del DTO: si el cliente envía su propio UUID (sync desde Android),
     // TypeORM lo trataría como un UPDATE en lugar de INSERT.
     // El id del cliente se conserva como syncKey para idempotencia.
-    const { id: _clientId, results: resultsDto, swipes: swipesDto, ...sessionFields } = createSessionDto;
+    const {
+      id: _clientId,
+      results: resultsDto,
+      swipes: swipesDto,
+      ...sessionFields
+    } = createSessionDto;
+    void _clientId; // prevent unused var warning
 
     let savedSession: Session;
     try {

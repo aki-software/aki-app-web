@@ -1,9 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  ReportSummary,
-  ReportTripletInsight,
-} from '../common/types/report.types.js';
+import { ReportSummary } from '../common/types/report.types.js';
 import {
   MailAdapter,
   MailMeta,
