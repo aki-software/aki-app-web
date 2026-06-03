@@ -10,13 +10,9 @@ import {
   Index,
 } from 'typeorm';
 import { Institution } from '../../institutions/entities/institution.entity.js';
+import { UserRole } from '@akit/contracts';
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  THERAPIST = 'THERAPIST',
-  INSTITUTION_ADMIN = 'INSTITUTION_ADMIN',
-  PATIENT = 'PATIENT',
-}
+export { UserRole } from '@akit/contracts';
 
 @Entity('users')
 @Index('IDX_users_institution_id', ['institutionId'])
