@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  NotFoundException,
   Param,
   Post,
   Query,
@@ -47,6 +46,12 @@ export class SessionsController {
       ownerInstitutionId: req?.user?.institutionId,
     };
   }
+
+  private parseIntOrDefault(value: string | undefined, fallback: number): number {
+    if (!value) return fallback;
+    const parsed = parseInt(value, 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  }
   constructor(
     private readonly sessionsService: SessionsService,
     private readonly sessionMetricsService: SessionMetricsService,
@@ -74,12 +79,14 @@ export class SessionsController {
     @Query('limit') limit?: string,
     @Req() req?: AuthenticatedRequest,
   ) {
-    const parsedPage = page
-      ? parseInt(page, 10)
-      : SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE;
-    const parsedLimit = limit
-      ? parseInt(limit, 10)
-      : SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT;
+    const parsedPage = this.parseIntOrDefault(
+      page,
+      SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE,
+    );
+    const parsedLimit = this.parseIntOrDefault(
+      limit,
+      SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
+    );
     return this.sessionsService.findAll(
       parsedPage,
       parsedLimit,
@@ -91,9 +98,10 @@ export class SessionsController {
   @Roles(UserRole.ADMIN)
   @Get('admin/overview')
   async getAdminOverview(@Query('days') days?: string) {
-    const parsedDays = days
-      ? parseInt(days, 10)
-      : SESSION_CONSTANTS.ADMIN.DEFAULT_OVERVIEW_DAYS;
+    const parsedDays = this.parseIntOrDefault(
+      days,
+      SESSION_CONSTANTS.ADMIN.DEFAULT_OVERVIEW_DAYS,
+    );
     return await this.adminDashboardService.getAdminOverview(parsedDays);
   }
 
@@ -101,44 +109,33 @@ export class SessionsController {
   @Roles(UserRole.ADMIN)
   @Get('admin/activity')
   async getAdminActivity(@Query('limit') limit?: string) {
-    const parsedLimit = limit
-      ? parseInt(limit, 10)
-      : SESSION_CONSTANTS.ADMIN.DEFAULT_ACTIVITY_LIMIT;
+    const parsedLimit = this.parseIntOrDefault(
+      limit,
+      SESSION_CONSTANTS.ADMIN.DEFAULT_ACTIVITY_LIMIT,
+    );
     return await this.adminDashboardService.getAdminActivity(parsedLimit);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
-    try {
-      return await this.sessionsService.findOne(id, this.extractScope(req));
-    } catch (e: unknown) {
-      throw new NotFoundException(
-        e instanceof Error ? e.message : 'Session not found',
-      );
-    }
+    return await this.sessionsService.findOne(id, this.extractScope(req));
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id/result')
   async findResult(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
-    try {
-      const session = await this.sessionsService.findOne(
-        id,
-        this.extractScope(req),
-      );
-      return {
-        sessionId: session.id,
-        results: session.results || [],
-        hollandCode: session.hollandCode,
-        totalTimeMs: session.totalTimeMs,
-        startedAt: session.createdAt,
-      };
-    } catch (e: unknown) {
-      throw new NotFoundException(
-        e instanceof Error ? e.message : 'Session not found',
-      );
-    }
+    const session = await this.sessionsService.findOne(
+      id,
+      this.extractScope(req),
+    );
+    return {
+      sessionId: session.id,
+      results: session.results || [],
+      hollandCode: session.hollandCode,
+      totalTimeMs: session.totalTimeMs,
+      startedAt: session.createdAt,
+    };
   }
 
   @UseGuards(JwtAuthGuard)

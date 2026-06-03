@@ -15,6 +15,7 @@ import { VoucherCodeGenerator } from './services/voucher-code-generator.service.
 import { VoucherOwnerResolver } from './services/voucher-owner-resolver.service.js';
 import { VoucherBatchQueryService } from './services/voucher-batch-query.service.js';
 import { VoucherRedemptionService } from './services/voucher-redemption.service.js';
+import { VoucherAccessGuard } from './guards/voucher-access.guard.js';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { VoucherRedemptionService } from './services/voucher-redemption.service.
     VoucherOwnerResolver,
     VoucherBatchQueryService,
     VoucherRedemptionService,
+    VoucherAccessGuard,
   ],
   exports: [VouchersService, TypeOrmModule],
 })

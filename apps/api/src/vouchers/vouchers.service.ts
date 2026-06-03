@@ -347,9 +347,13 @@ export class VouchersService {
     return await this.voucherRepository.save(voucher);
   }
 
-  async findByCode(code: string): Promise<Voucher> {
+  async findByCode(code: string, scope?: VoucherScope): Promise<Voucher> {
+    const scopedWhere = this.queryService.buildScopedWhere(scope) ?? {};
     const voucher = await this.voucherRepository.findOne({
-      where: { code: this.codeGenerator.normalize(code) },
+      where: {
+        ...scopedWhere,
+        code: this.codeGenerator.normalize(code),
+      },
       relations: ['ownerUser', 'ownerInstitution'],
     });
     if (!voucher) throw new NotFoundException('Voucher no encontrado');
