@@ -19,31 +19,31 @@ import { VoucherBatchStatus, VoucherOwnerType } from './voucher.enums.js';
 @Index('IDX_voucher_batches_owner_institution_id', ['ownerInstitutionId'])
 export class VoucherBatch {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({
     name: 'owner_type',
     type: 'enum',
     enum: VoucherOwnerType,
   })
-  ownerType: VoucherOwnerType;
+  ownerType!: VoucherOwnerType;
 
   @Column({ name: 'owner_user_id', type: 'uuid', nullable: true })
-  ownerUserId: string | null;
+  ownerUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'owner_user_id' })
   ownerUser?: User | null;
 
   @Column({ name: 'owner_institution_id', type: 'uuid', nullable: true })
-  ownerInstitutionId: string | null;
+  ownerInstitutionId!: string | null;
 
   @ManyToOne(() => Institution, { nullable: true })
   @JoinColumn({ name: 'owner_institution_id' })
   ownerInstitution?: Institution | null;
 
   @Column({ type: 'int' })
-  quantity: number;
+  quantity!: number;
 
   @Column({
     name: 'unit_price',
@@ -52,7 +52,7 @@ export class VoucherBatch {
     scale: 2,
     default: 0,
   })
-  unitPrice: string;
+  unitPrice!: string;
 
   @Column({
     name: 'total_price',
@@ -61,10 +61,10 @@ export class VoucherBatch {
     scale: 2,
     default: 0,
   })
-  totalPrice: string;
+  totalPrice!: string;
 
   @Column({ type: 'varchar', length: 3, default: 'ARS' })
-  currency: string;
+  currency!: string;
 
   @Column({
     name: 'payment_provider',
@@ -72,7 +72,7 @@ export class VoucherBatch {
     length: 50,
     nullable: true,
   })
-  paymentProvider: string | null;
+  paymentProvider!: string | null;
 
   @Column({
     name: 'payment_reference',
@@ -80,20 +80,20 @@ export class VoucherBatch {
     length: 255,
     nullable: true,
   })
-  paymentReference: string | null;
+  paymentReference!: string | null;
 
   @Column({
     type: 'enum',
     enum: VoucherBatchStatus,
     default: VoucherBatchStatus.PENDING,
   })
-  status: VoucherBatchStatus;
+  status!: VoucherBatchStatus;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Column({ name: 'paid_at', type: 'timestamptz', nullable: true })
-  paidAt: Date | null;
+  paidAt!: Date | null;
 
   // Domain Methods for Encapsulation
   markAsPaid(paymentProvider: string, paymentReference: string) {

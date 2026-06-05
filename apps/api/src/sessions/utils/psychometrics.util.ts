@@ -1,6 +1,16 @@
 /**
  * Psychometrics Utility — RIASEC Weighted Scoring Engine
  *
+ * ⚠️ ATENCION DEVS - CODIGO DUPLICADO POR DISEÑO ⚠️
+ * Este algoritmo existe de manera identica en la App Android:
+ * CotejoApp/app/src/main/java/com/akit/app/domain/usecase/CalculatePsychometricProfileUseCase.kt
+ *
+ * La App lo necesita para mostrar resultados inmediatos sin conexión (offline-first).
+ * El Backend lo usa en modo Server-Authoritative (ignora lo que envía la app y re-calcula desde los swipes).
+ * 
+ * Si modificas pesos, reglas de desempate, o lógicas de tiempo, DEBES modificar
+ * también la contraparte en la app Android para no generar discrepancias.
+ * 
  * Responsabilidad única: calcular el perfil Holland a partir de los swipes
  * crudos de la App. La lógica es pura (sin side-effects) para garantizar
  * idempotencia: mismos swipes = mismo resultado, siempre.
@@ -14,6 +24,7 @@
 // ─── Tipos Públicos ────────────────────────────────────────────────────────────
 
 export interface SwipeInput {
+  cardId?: string;
   categoryId: string;
   liked: boolean;
   timestamp: string | Date;
@@ -87,9 +98,14 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
   }
 
   // 1. Ordenar por timestamp para inferir tiempos de respuesta
-  const sorted = [...swipes].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-  );
+  // Desempate por cardId para garantizar orden totalmente determinista
+  // cuando dos swipes tienen el mismo timestamp (ej. tests, misma batería).
+  const sorted = [...swipes].sort((a, b) => {
+    const timeDiff = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+    if (timeDiff !== 0) return timeDiff;
+    if (a.cardId && b.cardId) return a.cardId.localeCompare(b.cardId);
+    return 0;
+  });
 
   // 2. Calcular tiempo de respuesta por swipe
   const responseTimes: number[] = sorted.map((_, i) => {
@@ -175,6 +191,7 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
   const top3 = results.slice(0, 3);
   const bottom3 = results.slice(-3).reverse();
   const hollandCode = top3.map((r) => r.categoryId.charAt(0)).join('');
+  const radar = [...results].sort((a, b) => a.categoryId.localeCompare(b.categoryId));
 
-  return { hollandCode, top3, bottom3, radar: results };
+  return { hollandCode, top3, bottom3, radar };
 }

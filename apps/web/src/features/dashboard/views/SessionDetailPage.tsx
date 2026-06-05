@@ -1,4 +1,4 @@
-import { Activity, CreditCard, KeyRound } from "lucide-react";
+import { Activity, CreditCard } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { StatCard } from "../../../components/molecules/StatCard";
@@ -126,7 +126,7 @@ export function SessionDetailPage() {
             />
 
             {/* Bloque de Origen usando StatCard */}
-            <div className={`grid grid-cols-1 ${!isInstitutionView ? 'sm:grid-cols-2' : ''} gap-8`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <StatCard 
                 label="ORIGEN DEL TEST"
                 value={
@@ -137,14 +137,6 @@ export function SessionDetailPage() {
                 icon={<CreditCard className="h-5 w-5 text-app-primary" />}
                 className="app-card !p-8 shadow-xl hover:shadow-2xl transition-all group"
               />
-              {!isInstitutionView && (
-                <StatCard 
-                  label="ORIGEN DE ASIGNACION"
-                  value={session.institutionName || "PARTICULAR"}
-                  icon={<KeyRound className="h-5 w-5 text-app-primary" />}
-                  className="app-card !p-8 shadow-xl hover:shadow-2xl transition-all group uppercase"
-                />
-              )}
             </div>
 
             {/* Componente Extraído: Acordeón Técnico */}

@@ -47,6 +47,7 @@ export class ReportPdfService {
       patientName: reportData.patientName,
       patientEmail: reportData.patientEmail || null,
       topResults: reportData.topResults,
+      bottomAreas: reportData.bottomAreas || [],
       hollandCode: reportData.hollandCode || null,
       summary: reportData.summary || null,
       tripletInsight: reportData.tripletInsight || null,

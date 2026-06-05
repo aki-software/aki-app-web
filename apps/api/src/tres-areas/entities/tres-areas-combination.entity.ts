@@ -13,38 +13,38 @@ import {
 })
 export class TresAreasCombination {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'combination_key', type: 'varchar', length: 255 })
-  combinationKey: string;
+  combinationKey!: string;
 
   @Column({ name: 'title', type: 'varchar', length: 255 })
-  title: string;
+  title!: string;
 
   @Column({ name: 'area_1', type: 'varchar', length: 120 })
-  area1: string;
+  area1!: string;
 
   @Column({ name: 'area_2', type: 'varchar', length: 120 })
-  area2: string;
+  area2!: string;
 
   @Column({ name: 'area_3', type: 'varchar', length: 120 })
-  area3: string;
+  area3!: string;
 
   @Column({ name: 'narrative', type: 'text' })
-  narrative: string;
+  narrative!: string;
 
   @Column({ name: 'tendencies', type: 'text', array: true, default: '{}' })
-  tendencies: string[];
+  tendencies!: string[];
 
   @Column({ name: 'possible_jobs', type: 'text' })
-  possibleJobs: string;
+  possibleJobs!: string;
 
   @Column({ name: 'related_professions', type: 'text' })
-  relatedProfessions: string;
+  relatedProfessions!: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

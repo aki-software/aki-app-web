@@ -33,34 +33,40 @@ describe('calculateHollandProfile', () => {
   // ─── Spec REQ-01: Weighted Category Scoring ────────────────────────────────
 
   describe('Spec: Weighted Category Scoring', () => {
-    it('ranks faster responses higher when raw scores are tied', () => {
-      // ART: 8 likes, avg ~800ms (rápido → peso 1.0)
-      // SCI: 8 likes, avg ~1800ms (lento → peso 0.85)
-      // Ambas con 8 likes — el desempate debe ser por weightedScore
-      const base = new Date('2024-01-01T10:00:00.000Z').getTime();
+    it('uses rawScore as the primary metric', () => {
       const swipes = [
-        // ART: 8 likes en ~800ms c/u
-        ...Array.from({ length: 10 }, (_, i) =>
-          makeSwipe('ART', i < 8, i * 800, base),
-        ),
-        // SCI: 8 likes en ~1800ms c/u (empieza después de ART)
-        ...Array.from({ length: 10 }, (_, i) =>
-          makeSwipe('SCI', i < 8, 10 * 800 + i * 1800, base),
-        ),
+        makeSwipe('ART', true, 1000),
+        makeSwipe('ART', true, 2000),
+        makeSwipe('SCI', true, 1000),
+        makeSwipe('SCI', false, 2000),
       ];
 
       const result = calculateHollandProfile(swipes);
-      const artIdx = result.radar.findIndex((r) => r.categoryId === 'ART');
-      const sciIdx = result.radar.findIndex((r) => r.categoryId === 'SCI');
+      // ART tiene 2 likes, SCI tiene 1
+      expect(result.top3[0].categoryId).toBe('ART');
+      expect(result.top3[1].categoryId).toBe('SCI');
+    });
+
+    it('breaks ties using weightedScore (faster average response wins)', () => {
+      const swipes = [
+        // ART: 2 likes, total time = 1000 + 500 = 1500 (avg 750ms) -> más rápido
+        makeSwipe('ART', true, 1000), // First swipe gets default 1500ms
+        makeSwipe('ART', true, 1500), // Diff: 500ms
+        // SCI: 2 likes, total time = 3000 + 4000 = 7000 (avg 3500ms) -> más lento
+        makeSwipe('SCI', true, 4500), // Diff: 3000ms
+        makeSwipe('SCI', true, 8500), // Diff: 4000ms
+      ];
+
+      const result = calculateHollandProfile(swipes);
 
       // ART debe estar rankeado más alto que SCI
-      expect(artIdx).toBeLessThan(sciIdx);
+      expect(result.top3[0].categoryId).toBe('ART');
+      expect(result.top3[1].categoryId).toBe('SCI');
+
       // Ambas tienen el mismo rawScore
-      expect(result.radar[artIdx].rawScore).toBe(result.radar[sciIdx].rawScore);
+      expect(result.top3[0].rawScore).toBe(result.top3[1].rawScore);
       // Pero ART tiene mayor weightedScore
-      expect(result.radar[artIdx].weightedScore).toBeGreaterThan(
-        result.radar[sciIdx].weightedScore,
-      );
+      expect(result.top3[0].weightedScore).toBeGreaterThan(result.top3[1].weightedScore);
     });
   });
 
