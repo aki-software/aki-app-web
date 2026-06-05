@@ -137,7 +137,6 @@ export function indexResultsMetadata(
   return map;
 }
 
-
 export function nullIfBlank(value: unknown): string | null {
   if (typeof value !== 'string') return value == null ? null : String(value);
   const trimmed = value.trim();

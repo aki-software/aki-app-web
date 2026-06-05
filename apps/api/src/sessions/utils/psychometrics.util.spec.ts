@@ -25,7 +25,10 @@ describe('calculateHollandProfile', () => {
   });
 
   it('normalizes categoryId to uppercase', () => {
-    const swipes = [makeSwipe('art', true, 1000), makeSwipe('art', false, 2000)];
+    const swipes = [
+      makeSwipe('art', true, 1000),
+      makeSwipe('art', false, 2000),
+    ];
     const result = calculateHollandProfile(swipes);
     expect(result.radar[0].categoryId).toBe('ART');
   });
@@ -66,7 +69,9 @@ describe('calculateHollandProfile', () => {
       // Ambas tienen el mismo rawScore
       expect(result.top3[0].rawScore).toBe(result.top3[1].rawScore);
       // Pero ART tiene mayor weightedScore
-      expect(result.top3[0].weightedScore).toBeGreaterThan(result.top3[1].weightedScore);
+      expect(result.top3[0].weightedScore).toBeGreaterThan(
+        result.top3[1].weightedScore,
+      );
     });
   });
 

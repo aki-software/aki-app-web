@@ -1,6 +1,5 @@
 import { Activity, CreditCard } from "lucide-react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useAuth } from "../../auth/hooks/useAuth";
+import { useNavigate, useParams } from "react-router-dom";
 import { StatCard } from "../../../components/molecules/StatCard";
 import { useSessionDetailManager } from "../hooks/useSessionDetailManager";
 import { HollandRadarChart } from "../components/session-detail/HollandRadarChart";
@@ -15,9 +14,9 @@ import { Spinner } from "../../../components/atoms/Spinner";
 export function SessionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
-  const isInstitutionView = location.pathname.includes('/institutions') || user?.role === 'INSTITUTION';
+  // const location = useLocation();
+  // const { user } = useAuth();
+  // const isInstitutionView = location.pathname.includes('/institutions') || user?.role === 'INSTITUTION';
 
   const {
     session, 
