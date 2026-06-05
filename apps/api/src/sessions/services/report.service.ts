@@ -55,15 +55,9 @@ export class ReportService {
       ]),
     );
 
-    // Los resultados vienen en orden de inserción (que respeta el orden del motor
-    // psicométrico: percentage DESC → weightedScore DESC → categoryId ASC).
-    // Ordenar explícitamente para garantizar consistencia en caso de variaciones de la DB.
-    const sessionResults = (session.results || []).sort(
-      (a, b) =>
-        b.percentage - a.percentage ||
-        (b.weightedScore ?? 0) - (a.weightedScore ?? 0) ||
-        a.categoryId.localeCompare(b.categoryId),
-    );
+    // Los resultados ya vienen ordenados por el motor psicométrico
+    // (rawScore → weightedScore → categoryId). No re-ordenar aquí.
+    const sessionResults = session.results || [];
     const topResults = sessionResults.slice(0, TOP_RESULTS_COUNT);
 
     const strengths: string[] = [];
