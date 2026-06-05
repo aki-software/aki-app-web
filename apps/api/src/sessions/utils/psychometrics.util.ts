@@ -88,7 +88,7 @@ function normalizeCategoryId(value: string): string {
  * Calcula el perfil Holland completo a partir de los swipes crudos.
  *
  * Orden de desempate garantizado:
- *   1. rawScore DESC
+ *   1. percentage DESC
  *   2. weightedScore DESC
  *   3. categoryId ASC (alfabético — garantía de idempotencia)
  */
@@ -97,25 +97,33 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
     return { hollandCode: '', top3: [], bottom3: [], radar: [] };
   }
 
-  // 1. Ordenar por timestamp para inferir tiempos de respuesta
-  // Desempate por cardId para garantizar orden totalmente determinista
-  // cuando dos swipes tienen el mismo timestamp (ej. tests, misma batería).
-  const sorted = [...swipes].sort((a, b) => {
-    const timeDiff =
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
-    if (timeDiff !== 0) return timeDiff;
-    if (a.cardId && b.cardId) return a.cardId.localeCompare(b.cardId);
-    return 0;
-  });
+  // 1. Deduplicar por cardId (manteniendo el último swipe para cada tarjeta)
+  const latestSwipesMap = new Map<string, SwipeInput>();
+  const chronologicalSwipes = [...swipes].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
 
-  // 2. Calcular tiempo de respuesta por swipe
-  const responseTimes: number[] = sorted.map((_, i) => {
+  for (const swipe of chronologicalSwipes) {
+    if (swipe.cardId) {
+      latestSwipesMap.set(swipe.cardId, swipe);
+    }
+  }
+
+  // Si no hay cardIds (versiones muy antiguas), fallamos con gracia a chronologicalSwipes
+  const uniqueSwipes = latestSwipesMap.size > 0 
+    ? Array.from(latestSwipesMap.values())
+    : chronologicalSwipes;
+
+  // 2. Extraer tiempos de respuesta
+  const responseTimes: number[] = uniqueSwipes.map((swipe, i) => {
     if (i === 0) return FIRST_SWIPE_DEFAULT_MS;
-    const prev = new Date(sorted[i - 1].timestamp).getTime();
-    const curr = new Date(sorted[i].timestamp).getTime();
-    const diff = curr - prev;
-    // Descartar tiempos imposibles (negativos o > 5 min, ej. pausa de pantalla)
-    return diff > 0 && diff < 300_000 ? diff : FIRST_SWIPE_DEFAULT_MS;
+    const diff =
+      new Date(swipe.timestamp).getTime() -
+      new Date(uniqueSwipes[i - 1].timestamp).getTime();
+
+    // Descartar tiempos irreales (>15s o <200ms)
+    if (diff >= 200 && diff <= 15000) return diff;
+    return FIRST_SWIPE_DEFAULT_MS;
   });
 
   // 3. Acumular por categoría
@@ -124,22 +132,21 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
     totalPossible: number;
     weightedScore: number;
     totalResponseTimeMs: number;
-    likeCount: number; // para calcular el promedio sólo sobre los likes
     swipeCount: number; // total de swipes en esta categoría
   }
 
   const byCategory = new Map<string, CategoryAccumulator>();
 
-  sorted.forEach((swipe, i) => {
+  for (let i = 0; i < uniqueSwipes.length; i++) {
+    const swipe = uniqueSwipes[i];
     const catId = normalizeCategoryId(swipe.categoryId);
-    if (!catId) return;
+    if (!catId) continue;
 
     const acc = byCategory.get(catId) ?? {
       rawScore: 0,
       totalPossible: 0,
       weightedScore: 0,
       totalResponseTimeMs: 0,
-      likeCount: 0,
       swipeCount: 0,
     };
 
@@ -153,11 +160,10 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
     if (swipe.liked) {
       acc.rawScore += 1;
       acc.weightedScore += weight;
-      acc.likeCount += 1;
     }
 
     byCategory.set(catId, acc);
-  });
+  }
 
   // 4. Construir los resultados finales
   const results: CategoryResult[] = Array.from(byCategory.entries()).map(
@@ -177,11 +183,11 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
     }),
   );
 
-  // 5. Ordenar con desempate determinista
+  // 5. Ordenar con el mismo desempate que Android
   results.sort((a, b) => {
-    // 1° mayor rawScore
-    if (b.rawScore !== a.rawScore) return b.rawScore - a.rawScore;
-    // 2° mayor weightedScore (más instintivo)
+    // 1. Percentage (DESC)
+    if (b.percentage !== a.percentage) return b.percentage - a.percentage;
+    // 2. Weighted score (DESC)
     if (b.weightedScore !== a.weightedScore)
       return b.weightedScore - a.weightedScore;
     // 3° alfabético (idempotencia absoluta)

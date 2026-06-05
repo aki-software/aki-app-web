@@ -21,11 +21,13 @@
     "test:stress:puppeteer": "node scripts/stress-puppeteer.mjs",
     "test:stress:queue": "node scripts/stress-queue.mjs",
     "test:stress:cleanup": "node scripts/cleanup-stress-data.mjs",
-    "test:flow": "node scripts/test-report-flow.mjs"
+    "test:flow": "node scripts/test-report-flow.mjs",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.20.0",
+    "husky": "^9.1.7",
     "pg": "^8.19.0",
     "turbo": "^2.8.12"
   },
