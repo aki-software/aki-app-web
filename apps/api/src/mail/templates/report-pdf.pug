@@ -484,13 +484,12 @@ html(lang="es")
                   polyline(points="20 6 9 17 4 12")
                 span #{strength}
 
-      if summary && summary.rankedAreas && summary.rankedAreas.length > 0
+      if bottomAreas && bottomAreas.length > 0
         .section.avoid-break
           p.section-title Áreas menos seleccionadas
           .card.avoid-break
-            - const leastSelected = summary.rankedAreas.slice().sort((a, b) => a.percentage - b.percentage).slice(0, 3)
             ul.ranking-list
-              each area in leastSelected
+              each area in bottomAreas
                 li.ranking-item
                   span.ranking-label #{area.title}
                   span.ranking-bar

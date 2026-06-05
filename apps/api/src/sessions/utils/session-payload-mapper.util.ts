@@ -25,6 +25,7 @@ export function mapToCreateDto(
       categoryId: s.categoryId,
       liked: s.liked,
       timestamp: s.timestamp,
+      cardId: s.cardId,
     })),
   );
 

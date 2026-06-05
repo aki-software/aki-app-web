@@ -22,35 +22,35 @@ import { VoucherOwnerType, VoucherStatus } from './voucher.enums.js';
 @Index('IDX_vouchers_status', ['status'])
 export class Voucher {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index({ unique: true })
   @Column({ length: 8, unique: true })
-  code: string;
+  code!: string;
 
   @Column({ name: 'batch_id', type: 'uuid' })
-  batchId: string;
+  batchId!: string;
 
   @ManyToOne(() => VoucherBatch)
   @JoinColumn({ name: 'batch_id' })
-  batch: VoucherBatch;
+  batch!: VoucherBatch;
 
   @Column({
     name: 'owner_type',
     type: 'enum',
     enum: VoucherOwnerType,
   })
-  ownerType: VoucherOwnerType;
+  ownerType!: VoucherOwnerType;
 
   @Column({ name: 'owner_user_id', type: 'uuid', nullable: true })
-  ownerUserId: string | null;
+  ownerUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'owner_user_id' })
   ownerUser?: User | null;
 
   @Column({ name: 'owner_institution_id', type: 'uuid', nullable: true })
-  ownerInstitutionId: string | null;
+  ownerInstitutionId!: string | null;
 
   @ManyToOne(() => Institution, { nullable: true })
   @JoinColumn({ name: 'owner_institution_id' })
@@ -69,7 +69,7 @@ export class Voucher {
     length: 255,
     nullable: true,
   })
-  assignedPatientName: string | null;
+  assignedPatientName!: string | null;
 
   @Column({
     name: 'assigned_patient_email',
@@ -77,26 +77,26 @@ export class Voucher {
     length: 255,
     nullable: true,
   })
-  assignedPatientEmail: string | null;
+  assignedPatientEmail!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Column({ name: 'sent_at', type: 'timestamptz', nullable: true })
-  sentAt: Date | null;
+  sentAt!: Date | null;
 
   @Column({ name: 'redeemed_session_id', type: 'uuid', nullable: true })
-  redeemedSessionId: string | null;
+  redeemedSessionId!: string | null;
 
   @ManyToOne(() => Session, { nullable: true })
   @JoinColumn({ name: 'redeemed_session_id' })
   redeemedSession?: Session | null;
 
   @Column({ name: 'redeemed_at', type: 'timestamptz', nullable: true })
-  redeemedAt: Date | null;
+  redeemedAt!: Date | null;
 
   @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
-  expiresAt: Date | null;
+  expiresAt!: Date | null;
 
   // Domain Methods for Encapsulation
   assignToPatient(patientName: string, patientEmail: string) {

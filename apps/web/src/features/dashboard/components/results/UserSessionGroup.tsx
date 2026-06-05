@@ -7,8 +7,9 @@ import { Button } from "../../../../components/atoms/Button";
 
 const paymentLabel = (status: string) => {
   switch (status) {
-    case SessionPaymentStatus.PAID: return "Directo";
+    case SessionPaymentStatus.PAID: return "Pago";
     case SessionPaymentStatus.VOUCHER_REDEEMED: return "Voucher";
+    case SessionPaymentStatus.PENDING: return "Pendiente";
     default: return status;
   }
 };

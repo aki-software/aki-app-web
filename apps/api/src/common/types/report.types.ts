@@ -35,6 +35,7 @@ export interface ReportData {
   hollandCode?: string;
   hollandPercentages?: Record<string, number>;
   topResults: CategoryResult[];
+  bottomAreas?: Array<{ title: string; percentage: number }>;
   summary: ReportSummary;
   tripletInsight: ReportTripletInsight | null;
   strengths: string[];

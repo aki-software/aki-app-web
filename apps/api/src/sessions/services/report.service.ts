@@ -55,15 +55,10 @@ export class ReportService {
       ]),
     );
 
-    const sortedSessionResults = (session.results || []).sort((a, b) => {
-      if (b.percentage !== a.percentage) return b.percentage - a.percentage;
-      const timeA = a.timeSpentMs || 0;
-      const timeB = b.timeSpentMs || 0;
-      if (timeB !== timeA) return timeB - timeA;
-      return a.categoryId.localeCompare(b.categoryId);
-    });
-
-    const topResults = sortedSessionResults.slice(0, TOP_RESULTS_COUNT);
+    // Los resultados ya vienen ordenados por el motor psicométrico
+    // (rawScore → weightedScore → categoryId). No re-ordenar aquí.
+    const sessionResults = session.results || [];
+    const topResults = sessionResults.slice(0, TOP_RESULTS_COUNT);
 
     const strengths: string[] = [];
 
@@ -122,12 +117,22 @@ export class ReportService {
       .replace(/\s*\(.*?\)\s*/g, '')
       .trim();
 
+    const bottomAreas = (session.results || []).slice(-2).map((res) => {
+      const normalizedCategoryId = normalizeCategoryId(res.categoryId);
+      const catInfo = categoriesById.get(normalizedCategoryId);
+      return {
+        title: catInfo ? catInfo.title : normalizedCategoryId,
+        percentage: normalizePercentage(res.percentage),
+      };
+    });
+
     return {
       patientName: cleanPatientName,
       patientEmail: email,
       hollandCode: session.hollandCode ?? undefined,
       hollandPercentages,
       topResults: formattedResults,
+      bottomAreas,
       summary,
       tripletInsight,
       strengths: Array.from(new Set(strengths)).slice(0, 6),
