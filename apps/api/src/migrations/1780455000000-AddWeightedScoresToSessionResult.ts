@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddWeightedScoresToSessionResult1780455000000
-  implements MigrationInterface
-{
+export class AddWeightedScoresToSessionResult1780455000000 implements MigrationInterface {
   name = 'AddWeightedScoresToSessionResult1780455000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

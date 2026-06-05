@@ -7,10 +7,10 @@
  *
  * La App lo necesita para mostrar resultados inmediatos sin conexión (offline-first).
  * El Backend lo usa en modo Server-Authoritative (ignora lo que envía la app y re-calcula desde los swipes).
- * 
+ *
  * Si modificas pesos, reglas de desempate, o lógicas de tiempo, DEBES modificar
  * también la contraparte en la app Android para no generar discrepancias.
- * 
+ *
  * Responsabilidad única: calcular el perfil Holland a partir de los swipes
  * crudos de la App. La lógica es pura (sin side-effects) para garantizar
  * idempotencia: mismos swipes = mismo resultado, siempre.
@@ -101,7 +101,8 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
   // Desempate por cardId para garantizar orden totalmente determinista
   // cuando dos swipes tienen el mismo timestamp (ej. tests, misma batería).
   const sorted = [...swipes].sort((a, b) => {
-    const timeDiff = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+    const timeDiff =
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
     if (timeDiff !== 0) return timeDiff;
     if (a.cardId && b.cardId) return a.cardId.localeCompare(b.cardId);
     return 0;
@@ -191,7 +192,9 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
   const top3 = results.slice(0, 3);
   const bottom3 = results.slice(-3).reverse();
   const hollandCode = top3.map((r) => r.categoryId.charAt(0)).join('');
-  const radar = [...results].sort((a, b) => a.categoryId.localeCompare(b.categoryId));
+  const radar = [...results].sort((a, b) =>
+    a.categoryId.localeCompare(b.categoryId),
+  );
 
   return { hollandCode, top3, bottom3, radar };
 }
