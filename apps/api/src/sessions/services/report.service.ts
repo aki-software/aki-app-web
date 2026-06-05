@@ -55,9 +55,15 @@ export class ReportService {
       ]),
     );
 
-    // Los resultados ya vienen ordenados por el motor psicométrico
-    // (rawScore → weightedScore → categoryId). No re-ordenar aquí.
-    const sessionResults = session.results || [];
+    // Los resultados vienen en orden de inserción (que respeta el orden del motor
+    // psicométrico: percentage DESC → weightedScore DESC → categoryId ASC).
+    // Ordenar explícitamente para garantizar consistencia en caso de variaciones de la DB.
+    const sessionResults = (session.results || []).sort(
+      (a, b) =>
+        b.percentage - a.percentage ||
+        (b.weightedScore ?? 0) - (a.weightedScore ?? 0) ||
+        a.categoryId.localeCompare(b.categoryId),
+    );
     const topResults = sessionResults.slice(0, TOP_RESULTS_COUNT);
 
     const strengths: string[] = [];
@@ -117,7 +123,8 @@ export class ReportService {
       .replace(/\s*\(.*?\)\s*/g, '')
       .trim();
 
-    const bottomAreas = (session.results || []).slice(-2).map((res) => {
+    // sessionResults ya está ordenado DESC — tomamos los últimos 2 (menores puntajes)
+    const bottomAreas = sessionResults.slice(-2).map((res) => {
       const normalizedCategoryId = normalizeCategoryId(res.categoryId);
       const catInfo = categoriesById.get(normalizedCategoryId);
       return {
