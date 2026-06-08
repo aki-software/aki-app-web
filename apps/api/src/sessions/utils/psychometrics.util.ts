@@ -110,9 +110,10 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
   }
 
   // Si no hay cardIds (versiones muy antiguas), fallamos con gracia a chronologicalSwipes
-  const uniqueSwipes = latestSwipesMap.size > 0 
-    ? Array.from(latestSwipesMap.values())
-    : chronologicalSwipes;
+  const uniqueSwipes =
+    latestSwipesMap.size > 0
+      ? Array.from(latestSwipesMap.values())
+      : chronologicalSwipes;
 
   // 2. Extraer tiempos de respuesta
   const responseTimes: number[] = uniqueSwipes.map((swipe, i) => {
