@@ -1,4 +1,5 @@
 import { apiClient } from "../../../api/client";
+import { getStoredToken } from "../../../utils/storage";
 import type { 
   SessionApi, 
   SessionData, 
@@ -77,9 +78,10 @@ function normalizeSessionDetail(
 import { API_URL } from "../../../api/client";
 
 export async function downloadSessionPdf(sessionId: string): Promise<Blob> {
+  const token = getStoredToken();
   const response = await fetch(
     `${API_URL}/sessions/${sessionId}/report/pdf`,
-    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } } 
+    { headers: { Authorization: `Bearer ${token}` } } 
   );
 
   if (!response.ok) throw new Error('Failed to download PDF');

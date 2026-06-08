@@ -327,6 +327,7 @@ export class SessionsService {
     email: string,
     customTitle: string | null,
     scope: SessionScope,
+    force?: boolean,
   ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(id, scope);
     const result = await this.reportOrchestratorService.sendReport(
@@ -334,6 +335,7 @@ export class SessionsService {
       email,
       null,
       scope,
+      force,
     );
     return {
       success: result.success,

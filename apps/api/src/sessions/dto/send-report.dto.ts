@@ -8,4 +8,7 @@ export class SendReportDto {
   @IsOptional()
   @IsString({ message: 'El voucherId debe ser un texto válido.' })
   voucherId?: string;
+
+  @IsOptional()
+  force?: boolean;
 }

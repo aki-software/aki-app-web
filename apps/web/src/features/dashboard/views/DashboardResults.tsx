@@ -70,6 +70,37 @@ export function DashboardResults() {
     () => groupedSessions.reduce((acc, [, list]) => acc + list.length, 0),
     [groupedSessions]
   );
+
+  const handleExportCSV = () => {
+    const csvRows = [];
+    csvRows.push(['Paciente', 'Fecha', 'Codigo Vocacional', 'Voucher', 'Estado', 'Institucion', 'Terapeuta'].join(','));
+
+    groupedSessions.forEach(([, userSessions]) => {
+      userSessions.forEach((session) => {
+        const date = new Date(session.sessionDate).toLocaleDateString('es-AR');
+        const status = session.reportUnlockedAt ? 'Reporte Desbloqueado' : (session.results?.length ? 'Completado' : 'Iniciado');
+        csvRows.push([
+          `"${session.patientName}"`,
+          `"${date}"`,
+          `"${session.hollandCode}"`,
+          `"${session.voucherCode || '-'}"`,
+          `"${status}"`,
+          `"${session.institutionName || '-'}"`,
+          `"${session.therapistName || '-'}"`
+        ].join(','));
+      });
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `exportacion-tests-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   return (
     <div className="space-y-10">
@@ -83,7 +114,7 @@ export function DashboardResults() {
             {isInstitution ? uiTexts.header.subtitleInstitution : uiTexts.header.subtitleAdmin}
           </p>
         </div>
-        <Button variant="outline" className="px-6 shadow-sm">
+        <Button variant="outline" className="px-6 shadow-sm" onClick={handleExportCSV}>
           <FileSpreadsheet className="mr-3 h-4 w-4 text-emerald-500" />
           Exportar Reporte
         </Button>
