@@ -26,7 +26,7 @@ export function SessionReportButton({ sessionId }: Props) {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ email: reportEmail }),
+        body: JSON.stringify({ email: reportEmail, force: true }),
       });
 
       if (!res.ok) throw new Error();

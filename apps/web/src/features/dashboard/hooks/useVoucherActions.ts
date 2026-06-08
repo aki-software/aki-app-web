@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { resendVoucherEmail, revokeVoucher } from "../api/dashboard";
-import { WHATSAPP_BASE_URL, PUBLIC_TEST_URL } from "../../../config/app-config";
+import { WHATSAPP_BASE_URL } from "../../../config/app-config";
 import type { VoucherData } from "../api/dashboard";
 
 export const useVoucherActions = (onActionSuccess?: (message: string) => void, onActionError?: (message: string) => void) => {
@@ -8,10 +8,7 @@ export const useVoucherActions = (onActionSuccess?: (message: string) => void, o
   const [copiedType, setCopiedType] = useState<"CODE" | "MAIL" | null>(null);
 
   const handleWhatsApp = (voucher: VoucherData) => {
-    const testUrl = `${PUBLIC_TEST_URL}/v/${voucher.code}`;
-    const message = encodeURIComponent(
-      `Hola! Este es tu código para realizar el test vocacional en A.kit: ${voucher.code}\n\nPodés ingresar directamente aquí: ${testUrl}`,
-    );
+    const message = encodeURIComponent(voucher.code);
     window.open(`${WHATSAPP_BASE_URL}?text=${message}`, "_blank");
   };
 

@@ -37,6 +37,7 @@ export class ReportOrchestratorService {
     targetEmail: string,
     voucherId?: string | null,
     scope?: SessionScope,
+    force?: boolean,
   ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(sessionId, scope);
     const voucherIdForLogging = voucherId ?? session.voucherId ?? undefined;
@@ -67,7 +68,7 @@ export class ReportOrchestratorService {
       success: boolean;
       message: string;
     }>(deliveryCacheKey);
-    if (previousResult) {
+    if (previousResult && !force) {
       this.logger.debug(
         `Delivery already completed for session: ${sessionId}, returning cached result`,
       );
@@ -79,7 +80,7 @@ export class ReportOrchestratorService {
         success: boolean;
         message: string;
       }>(deliveryCacheKey);
-      if (cachedDelivery) {
+      if (cachedDelivery && !force) {
         this.logger.debug(
           `Delivery already completed (post-lock check) for session: ${sessionId}`,
         );

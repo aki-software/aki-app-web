@@ -9,6 +9,7 @@ import {
   Res,
   UseGuards,
   Inject,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator.js';
@@ -148,12 +149,19 @@ export class SessionsController {
     @Body() sendReportDto: SendReportDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    return await this.sessionsService.sendReport(
+    const result = await this.sessionsService.sendReport(
       id,
       sendReportDto.email,
       null,
       this.extractScope(req),
+      sendReportDto.force,
     );
+    
+    if (!result.success) {
+      throw new InternalServerErrorException(result.message);
+    }
+    
+    return result;
   }
 
   @Get(':id/metrics')
