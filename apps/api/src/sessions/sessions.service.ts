@@ -253,6 +253,48 @@ export class SessionsService {
     return session;
   }
 
+  /**
+   * Carga una sesión con results ordenados por el criterio del motor psicométrico.
+   * Usar EXCLUSIVAMENTE para generar reportes (PDF / email).
+   * Los joins sin ORDER BY en SQL no garantizan orden.
+   */
+  async findOneForReport(id: string, scope?: SessionScope): Promise<Session> {
+    const where = this.applyScope(scope);
+    if (scope?.role === UserRole.PATIENT) {
+      delete where.patientId;
+    }
+
+    const query = this.sessionRepository
+      .createQueryBuilder('session')
+      .leftJoinAndSelect('session.results', 'results')
+      .leftJoinAndSelect('session.swipes', 'swipes')
+      .leftJoinAndSelect('session.voucher', 'voucher')
+      .where('session.id = :id', { id })
+      // Garantizar el orden del motor psicométrico: SQL no garantiza orden en JOINs.
+      // percentage DESC → weighted_score DESC → category_id ASC
+      .addOrderBy('results.percentage', 'DESC')
+      .addOrderBy('results.weightedScore', 'DESC')
+      .addOrderBy('results.categoryId', 'ASC');
+
+    if (where.institutionId) {
+      query.andWhere('session.institutionId = :institutionId', {
+        institutionId: where.institutionId,
+      });
+    }
+    if (where.therapistUserId) {
+      query.andWhere('session.therapistUserId = :therapistUserId', {
+        therapistUserId: where.therapistUserId,
+      });
+    }
+
+    const session = await query.getOne();
+    if (!session) {
+      throw new NotFoundException('Sesión no encontrada');
+    }
+
+    return session;
+  }
+
   async findByPaymentToken(token: string): Promise<Session | null> {
     return await this.sessionRepository.findOne({
       where: { paymentReference: token },

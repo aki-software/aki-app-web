@@ -114,7 +114,12 @@ export class ReportOrchestratorService {
       .leftJoinAndSelect('session.institution', 'institution')
       .leftJoinAndSelect('session.therapist', 'therapist')
       .leftJoinAndSelect('session.voucher', 'voucher')
-      .where('session.id = :id', { id });
+      .where('session.id = :id', { id })
+      // Garantizar el orden del motor psicométrico: los joins no garantizan orden en SQL.
+      // percentage DESC → weighted_score DESC → category_id ASC
+      .addOrderBy('results.percentage', 'DESC')
+      .addOrderBy('results.weightedScore', 'DESC')
+      .addOrderBy('results.categoryId', 'ASC');
 
     this.applySecurityBoundaries(query, scope);
 

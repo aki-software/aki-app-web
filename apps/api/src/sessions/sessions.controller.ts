@@ -196,7 +196,7 @@ export class SessionsController {
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
   ) {
-    const session = await this.sessionsService.findOne(
+    const session = await this.sessionsService.findOneForReport(
       sessionId,
       this.extractScope(req),
     );
