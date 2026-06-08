@@ -40,6 +40,7 @@ describe('ReportOrchestratorService', () => {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
       getOne: jest.fn().mockResolvedValue(mockSession),
     };
 
