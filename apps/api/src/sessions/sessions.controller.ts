@@ -156,11 +156,11 @@ export class SessionsController {
       this.extractScope(req),
       sendReportDto.force,
     );
-    
+
     if (!result.success) {
       throw new InternalServerErrorException(result.message);
     }
-    
+
     return result;
   }
 
