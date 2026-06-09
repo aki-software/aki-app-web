@@ -131,8 +131,8 @@ export function InstitutionCard({
               onClick={() => onToggleStatus(institution)}
               className={`p-1.5 rounded-lg transition-colors ${
                 isInstitutionActive
-                  ? "text-app-text-muted hover:text-amber-400 hover:bg-amber-400/10"
-                  : "text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10"
+                  ? "text-app-text-muted hover:text-status-warning hover:bg-status-warning/10"
+                  : "text-status-success hover:text-status-success hover:bg-status-success/10"
               }`}
               title={isInstitutionActive ? "Suspender institución" : "Reactivar institución"}
             >
@@ -142,7 +142,7 @@ export function InstitutionCard({
             {onDelete ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="p-1.5 rounded-lg text-app-text-muted hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                className="p-1.5 rounded-lg text-app-text-muted hover:text-status-error hover:bg-status-error/10 transition-colors"
                 title="Eliminar institución"
               >
                 <Trash2 className="h-4 w-4" />
@@ -166,7 +166,7 @@ export function InstitutionCard({
         </div>
 
         {canResendActivation ? (
-          <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+          <div className="mt-3 rounded-lg border border-status-warning/20 bg-status-warning/5 p-3">
             <p className="text-xs text-app-text-muted">
               La cuenta operativa todavia no activo su acceso. Si el link vencio o
               no lo encontro, podes reenviar la activacion.
@@ -202,7 +202,7 @@ export function InstitutionCard({
                   required
                 />
                 {createAccountError ? (
-                  <p className="text-xs font-medium text-rose-300">
+                  <p className="text-xs font-medium text-status-error">
                     {createAccountError}
                   </p>
                 ) : null}
@@ -266,7 +266,7 @@ export function InstitutionCard({
                 setShowDeleteConfirm(false);
                 onDelete?.(institution);
               }}
-              className="rounded-xl bg-red-500/10 border border-red-500/30 px-5 py-2.5 text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/20"
+              className="rounded-xl bg-status-error/10 border border-status-error/30 px-5 py-2.5 text-sm font-semibold text-status-error transition-colors hover:bg-status-error/20"
             >
               Sí, eliminar
             </button>
@@ -279,8 +279,8 @@ export function InstitutionCard({
             <span className="font-semibold text-app-text-main">{institution.name}</span>.
             Esta acción no se puede deshacer.
           </p>
-          <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
-            <p className="text-xs text-rose-300/80 leading-relaxed">
+          <div className="rounded-xl border border-status-error/20 bg-status-error/5 p-4">
+            <p className="text-xs text-status-error/80 leading-relaxed">
               Los vouchers y sesiones asociadas no se van a borrar, pero la institución
               dejará de aparecer en el sistema.
             </p>

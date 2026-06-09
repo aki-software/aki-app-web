@@ -35,6 +35,16 @@
   --color-app-warning: #F59E0B;
   --color-app-error: #B9414A;
 
+  /* ── Semantic status tokens ── */
+  --color-status-success: var(--color-status-success);
+  --color-status-error: var(--color-status-error);
+  --color-status-warning: var(--color-status-warning);
+
+  /* ── LowStockAlert custom palette ── */
+  --color-warning-bg: #FEF3C7;
+  --color-warning-border: #F59E0B;
+  --color-warning-text: #92400E;
+
   --color-sidebar-bg: rgba(240, 236, 228, 0.96);
   --color-sidebar-text: rgba(29, 25, 20, 0.9);
   --color-sidebar-border: rgba(122, 135, 131, 0.22);
@@ -228,4 +238,20 @@
 
 .animate-in {
   animation: app-fade-in-up 550ms ease-out both;
+}
+
+/* Respect user motion preferences — disable animations when reduced motion is preferred */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-in,
+  .animate-pulse {
+    animation: none;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -9,13 +9,13 @@ interface ActivityFeedProps {
 function getIcon(type: AdminActivityEvent["type"]) {
   switch (type) {
     case "VOUCHER_REDEEMED":
-      return <Ticket className="h-4 w-4 text-emerald-500" />;
+      return <Ticket className="h-4 w-4 text-status-success" />;
     case "VOUCHER_ISSUED":
       return <Ticket className="h-4 w-4 text-app-primary" />;
     case "SESSION_COMPLETED":
-      return <ClipboardList className="h-4 w-4 text-emerald-500" />;
+      return <ClipboardList className="h-4 w-4 text-status-success" />;
     case "SESSION_STARTED":
-      return <Activity className="h-4 w-4 text-amber-500" />;
+      return <Activity className="h-4 w-4 text-status-warning" />;
     default:
       return <MessageSquare className="h-4 w-4 text-app-text-muted" />;
   }
@@ -26,7 +26,7 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
     <div className="app-card !p-0 overflow-hidden shadow-2xl flex flex-col h-full border-app-border bg-app-surface">
       <div className="px-8 py-6 border-b border-app-border flex items-center justify-between bg-app-bg/10">
         <div className="flex items-center gap-3">
-          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="h-2 w-2 rounded-full bg-status-success animate-pulse" />
           <h3 className="app-label !text-xs opacity-60">Actividad reciente</h3>
         </div>
         <Link

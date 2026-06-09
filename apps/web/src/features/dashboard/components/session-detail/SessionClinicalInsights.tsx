@@ -34,9 +34,9 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
         title: "Perfil Explorador",
         desc: `El paciente dio 'Me gusta' al ${Math.round(likeRatio * 100)}% de los estímulos visuales presentados (${likes} de ${totalSwipes}). Sugiere dificultad para acotar intereses o fuerte deseo de complacer.`,
         info: `Métrica: Se aceptaron ${likes} tarjetas de un total de ${totalSwipes}. Se considera "Explorador" cuando la aceptación supera el 75%.`,
-        icon: <HeartCrack className="h-5 w-5 text-rose-500" />,
-        color: "text-rose-500",
-        bg: "bg-rose-500/10",
+        icon: <HeartCrack className="h-5 w-5 text-status-error" />,
+        color: "text-status-error",
+        bg: "bg-status-error/10",
       });
     } else if (likeRatio < 0.25) {
       items.push({
@@ -52,9 +52,9 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
         title: "Selectividad Saludable",
         desc: `La proporción de aceptación (${Math.round(likeRatio * 100)}%) y rechazo muestra una capacidad equilibrada para discriminar intereses.`,
         info: `Métrica: Aceptó ${likes} tarjetas y rechazó ${totalSwipes - likes}. El balance se encuentra dentro del parámetro saludable (25% al 75%).`,
-        icon: <BrainCircuit className="h-5 w-5 text-emerald-500" />,
-        color: "text-emerald-500",
-        bg: "bg-emerald-500/10",
+        icon: <BrainCircuit className="h-5 w-5 text-status-success" />,
+        color: "text-status-success",
+        bg: "bg-status-success/10",
       });
     }
 
@@ -246,14 +246,14 @@ export function SessionClinicalInsights({ swipes, categoriesMap }: SessionClinic
 
           {/* Descarte Positivo: indicadores dentro del rango normal */}
           {normalIndicators.length > 0 && (
-            <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 px-5 py-4">
-              <p className="text-xs font-black uppercase tracking-widest text-emerald-500/60 mb-3">
+            <div className="rounded-2xl border border-status-success/15 bg-status-success/5 px-5 py-4">
+              <p className="text-xs font-black uppercase tracking-widest text-status-success/60 mb-3">
                 ✓ Dentro de parámetros normales
               </p>
               <ul className="space-y-1.5">
                 {normalIndicators.map((label, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs font-medium text-app-text-muted/70">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/40 flex-shrink-0" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-status-success/40 flex-shrink-0" />
                     {label}
                   </li>
                 ))}

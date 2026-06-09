@@ -1,6 +1,6 @@
 import { Activity, CreditCard } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { StatCard } from "../../../components/molecules/StatCard";
+import { StatCard } from "../../../components/atoms/StatCard";
 import { useSessionDetailManager } from "../hooks/useSessionDetailManager";
 import { HollandRadarChart } from "../components/session-detail/HollandRadarChart";
 import { SessionTopAreas } from "../components/session-detail/SessionTopAreas";
