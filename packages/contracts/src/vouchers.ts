@@ -92,7 +92,10 @@ export const voucherBatchDetailResponseSchema = z.object({
   available: z.number().int(),
   used: z.number().int(),
   pending: z.number().int(),
-  vouchers: z.array(voucherBatchDetailItemSchema),
+  data: z.array(voucherBatchDetailItemSchema),
+  count: z.number().int(),
+  page: z.number().int(),
+  limit: z.number().int(),
 });
 
 export const voucherBatchListResponseSchema = z.object({

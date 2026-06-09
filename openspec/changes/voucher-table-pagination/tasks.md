@@ -9,11 +9,11 @@
 | Chained PRs recommended | Yes |
 | Suggested split | PR 1: Contracts + API (~200) → PR 2: Web (~200) |
 | Delivery strategy | ask-on-risk |
-| Chain strategy | pending |
+| Chain strategy | feature-branch-chain |
 
 Decision needed before apply: Yes
 Chained PRs recommended: Yes
-Chain strategy: pending
+Chain strategy: feature-branch-chain
 400-line budget risk: Medium
 
 ### Suggested Work Units
@@ -25,16 +25,16 @@ Chain strategy: pending
 
 ## Phase 1: Contracts
 
-- [ ] 1.1 RED: Write contract test asserting `data`/`count`/`page`/`limit` in response
-- [ ] 1.2 GREEN: Replace `voucherBatchDetailResponseSchema` — rename `vouchers`→`data`, add `count`/`page`/`limit`
-- [ ] 1.3 GREEN: Update `VoucherBatchDetail` type and `export-json-schemas.ts` reference
+- [x] 1.1 RED: Write contract test asserting `data`/`count`/`page`/`limit` in response
+- [x] 1.2 GREEN: Replace `voucherBatchDetailResponseSchema` — rename `vouchers`→`data`, add `count`/`page`/`limit`
+- [x] 1.3 GREEN: Update `VoucherBatchDetail` type and `export-json-schemas.ts` reference
 
 ## Phase 2: API Pagination
 
-- [ ] 2.1 RED: Write unit test for `findBatchDetail()` — default params, slice, limit clamp, empty page
-- [ ] 2.2 GREEN: Add `BATCH_DETAIL_DEFAULT_LIMIT: 20` to `vouchers.constants.ts`
-- [ ] 2.3 GREEN: Paginate `findBatchDetail()` — accept `page`/`limit`, run `getManyAndCount()`
-- [ ] 2.4 GREEN: Add `@Query('page')`/`@Query('limit')` to controller `findBatchDetail()`
+- [x] 2.1 RED: Write unit test for `findBatchDetail()` — default params, slice, limit clamp, empty page
+- [x] 2.2 GREEN: Add `BATCH_DETAIL_DEFAULT_LIMIT: 20` to `vouchers.constants.ts`
+- [x] 2.3 GREEN: Paginate `findBatchDetail()` — accept `page`/`limit`, run `getManyAndCount()`
+- [x] 2.4 GREEN: Add `@Query('page')`/`@Query('limit')` to controller `findBatchDetail()`
 
 ## Phase 3: Pagination Component
 
