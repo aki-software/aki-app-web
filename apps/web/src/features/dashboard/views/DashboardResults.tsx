@@ -8,7 +8,7 @@ import { Button } from "../../../components/atoms/Button";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { Select } from "../../../components/atoms/Select";
 import { SearchInput } from "../../../components/molecules/SearchInput";
-import { StatCard } from "../../../components/molecules/StatCard";
+import { StatCard } from "../../../components/atoms/StatCard";
 import { UserSessionGroup } from "../components/results/UserSessionGroup";
 
 const hasSessionResult = (s: SessionData) => (s.results?.length ?? 0) > 0;
@@ -115,7 +115,7 @@ export function DashboardResults() {
           </p>
         </div>
         <Button variant="outline" className="px-6 shadow-sm" onClick={handleExportCSV}>
-          <FileSpreadsheet className="mr-3 h-4 w-4 text-emerald-500" />
+          <FileSpreadsheet className="mr-3 h-4 w-4 text-status-success" />
           Exportar Reporte
         </Button>
       </div>

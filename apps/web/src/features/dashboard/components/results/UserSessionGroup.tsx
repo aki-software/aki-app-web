@@ -115,7 +115,7 @@ export function UserSessionGroup({
                     <span
                       className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
                         session.paymentStatus === "PAID"
-                          ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5"
+                          ? "text-status-success border-status-success/20 bg-status-success/5"
                           : "text-app-primary border-app-primary/20 bg-app-primary/5"
                       }`}
                     >

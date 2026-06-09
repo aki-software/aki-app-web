@@ -4,7 +4,7 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import { getFormattedCurrentDate } from "../../../utils/date";
 import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashboard.constants";
 import { Spinner } from "../../../components/atoms/Spinner";
-import { StatCard } from "../../../components/molecules/StatCard";
+import { StatCard } from "../../../components/atoms/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
 import { PeriodSelector } from "../../../components/molecules/PeriodSelector";
 import { EmptyState } from "../../../components/molecules/EmptyState";
@@ -133,7 +133,7 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             title={uiTexts.widgets.results.title}
             description={uiTexts.widgets.results.description}
             icon={TrendingUp}
-            iconColorClass="text-emerald-500"
+            iconColorClass="text-status-success"
           >
             <div className="h-[220px] sm:h-[260px]">
               <ResultsDistributionChart data={adminStats.resultsDistribution} />

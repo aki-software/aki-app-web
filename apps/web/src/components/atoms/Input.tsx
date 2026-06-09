@@ -29,7 +29,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             type={currentType}
             className={`w-full rounded-xl border border-app-border bg-app-bg px-4 py-3 text-sm text-app-text-main placeholder:text-app-text-muted/80 outline-none transition-all duration-200 focus:border-app-primary focus:ring-2 focus:ring-app-primary/25 disabled:opacity-50 ${
               isPassword ? "pr-12" : ""
-            } ${className} ${error ? "border-red-500 focus:ring-red-500/25" : ""}`}
+            } ${className} ${error ? "border-status-error focus:ring-status-error/25" : ""}`}
             {...props}
           />
           {isPassword && (
@@ -39,11 +39,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-app-text-muted transition-colors hover:text-app-text-main"
               aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
             </button>
           )}
         </div>
-        {error && <span className="text-xs text-red-500">{error}</span>}
+        {error && <span className="text-xs text-status-error">{error}</span>}
       </div>
     );
   }

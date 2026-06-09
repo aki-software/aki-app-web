@@ -38,21 +38,21 @@ Chain strategy: feature-branch-chain
 
 ## Phase 3: Pagination Component
 
-- [ ] 3.1 RED: Write test — page number buttons, active highlight, prev/next disabled at bounds
-- [ ] 3.2 GREEN: Add page number buttons between prev/next in `Pagination.tsx`
+- [x] 3.1 RED: Write test — page number buttons, active highlight, prev/next disabled at bounds
+- [x] 3.2 GREEN: Add page number buttons between prev/next in `Pagination.tsx`
 
 ## Phase 4: Batch Detail (Server Consumer)
 
-- [ ] 4.1 RED: Write test for `fetchVoucherBatchDetail()` with `page`/`limit` params
-- [ ] 4.2 GREEN: Update `vouchers.api.ts` — accept `page`/`limit`, return paginated type
-- [ ] 4.3 GREEN: Export pagination helpers from `useVoucherList.ts`
-- [ ] 4.4 GREEN: Add `batchDetailPage` state to `DashboardVouchers.tsx`, wire into fetch deps
-- [ ] 4.5 GREEN: Replace local slicing with server refetch in `BatchDetailDrawer.tsx`
+- [x] 4.1 RED: Write test for `fetchVoucherBatchDetail()` with `page`/`limit` params
+- [x] 4.2 GREEN: Update `vouchers.api.ts` — accept `page`/`limit`, return paginated type
+- [x] 4.3 GREEN: Export pagination helpers from `useVoucherList.ts`
+- [x] 4.4 GREEN: Add `batchDetailPage` state to `DashboardVouchers.tsx`, wire into fetch deps
+- [x] 4.5 GREEN: Replace local slicing with server refetch in `BatchDetailDrawer.tsx`
 
 ## Phase 5: Voucher Sessions (Client Pagination)
 
-- [ ] 5.1 RED: Write test — 25 sessions, only 10 visible, navigate to page 2, fewer-than-page-size
-- [ ] 5.2 GREEN: Add client pagination state, slice sessions, render `<Pagination>` below table
+- [x] 5.1 RED: Write test — 25 sessions, only 10 visible, navigate to page 2, fewer-than-page-size
+- [x] 5.2 GREEN: Add client pagination state, slice sessions, render `<Pagination>` below table
 
 ## Phase 6: Integration
 

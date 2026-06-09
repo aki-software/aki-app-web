@@ -23,8 +23,8 @@ interface Section {
 const SECTIONS: Section[] = [
   {
     id: "selectividad",
-    icon: <HeartCrack className="h-5 w-5 text-rose-400" />,
-    iconBg: "bg-rose-500/10",
+    icon: <HeartCrack className="h-5 w-5 text-status-error" />,
+    iconBg: "bg-status-error/10",
     title: "Selectividad",
     subtitle: "Explorador · Selectivo · Hiper-Selectivo",
     body: (
@@ -39,7 +39,7 @@ const SECTIONS: Section[] = [
             Cómo se interpreta
           </p>
           <p>
-            <span className="font-bold text-rose-400">Perfil Explorador</span>{" "}
+            <span className="font-bold text-status-error">Perfil Explorador</span>{" "}
             — Acepta más del 75% de las tarjetas. Puede indicar dificultad para
             acotar intereses, o un fuerte deseo de complacer (aceptar todo para
             "quedar bien"). Vale la pena explorarlo en sesión.
@@ -53,7 +53,7 @@ const SECTIONS: Section[] = [
             considera "aceptable".
           </p>
           <p>
-            <span className="font-bold text-emerald-400">
+            <span className="font-bold text-status-success">
               Selectividad Saludable
             </span>{" "}
             — Acepta entre el 25% y el 75%. La persona discrimina con criterio:
@@ -133,13 +133,13 @@ const SECTIONS: Section[] = [
             aleatorio y no es confiable.
           </p>
           <p>
-            <span className="font-bold text-emerald-400">
+            <span className="font-bold text-status-success">
               100% de aceptación
             </span>{" "}
             → Afinidad muy sólida y consistente con esa área.
           </p>
           <p>
-            <span className="font-bold text-rose-400">0% de aceptación</span>{" "}
+            <span className="font-bold text-status-error">0% de aceptación</span>{" "}
             → Rechazo claro y consistente. Tampoco es necesariamente malo — puede
             simplificar el mapa vocacional.
           </p>
@@ -222,16 +222,16 @@ const SECTIONS: Section[] = [
           </p>
           <p>
             Tomarse tiempo en cada tarjeta es{" "}
-            <span className="font-bold text-emerald-400">completamente sano</span>{" "}
+            <span className="font-bold text-status-success">completamente sano</span>{" "}
             y no baja la fiabilidad. La reflexión es deseable.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 mt-1">
           {[
-            { level: "Muy Alta", range: "85–100", color: "text-emerald-400" },
+            { level: "Muy Alta", range: "85–100", color: "text-status-success" },
             { level: "Alta", range: "70–84", color: "text-sky-400" },
             { level: "Variable", range: "50–69", color: "text-yellow-400" },
-            { level: "Baja", range: "0–49", color: "text-rose-400" },
+            { level: "Baja", range: "0–49", color: "text-status-error" },
           ].map(({ level, range, color }) => (
             <div
               key={level}
