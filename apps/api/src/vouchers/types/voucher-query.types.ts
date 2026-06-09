@@ -36,7 +36,10 @@ export type VoucherBatchDetail = {
   available: number;
   used: number;
   pending: number;
-  vouchers: VoucherBatchDetailItem[];
+  data: VoucherBatchDetailItem[];
+  count: number;
+  page: number;
+  limit: number;
 };
 
 export type RawVoucherBatchCountRow = { count: string };
