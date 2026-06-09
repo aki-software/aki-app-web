@@ -1,14 +1,47 @@
 schema: spec-driven
 
 context: |
-  Stack: NestJS (TypeORM, BullMQ, Puppeteer) + React (Vite, Tailwind v4, Recharts) + Astro (landing)
-  Architecture: Monorepo pnpm workspaces + Turborepo, Hexagonal Architecture (NestJS), Feature Modules, Atomic Design (React)
-  Testing: Jest (api), Vitest + Testing Library (web), Kover (min 70%)
-  Quality: ESLint, Prettier, TypeScript strict
-  Persistence: PostgreSQL (Neon), Redis (Upstash), S3, Firebase Auth
-  Security: JWT + Firebase cert rotation, Helmet, Class-Validator, Rate Limiting, SQLCipher
+  Stack: Node.js 22 + TypeScript strict | pnpm + Turborepo monorepo
+  Frontend: React 18 + Vite 6 + Tailwind v4 + shadcn (feature-first, atomic design)
+  Backend: NestJS 11 + TypeORM + BullMQ | PostgreSQL + Redis
+  Landing: Astro 6
+  Shared: @akit/contracts (Zod), @akit/design-tokens
+  Testing: Jest (api), Vitest + Testing Library React + jsdom (web), Vitest @vitest/ui coverage
+  Quality: ESLint 9 + typescript-eslint, Prettier (api), TypeScript strict (both apps)
+  Architecture: Hexagonal (NestJS), CQRS where needed, Repository pattern
 
-strict_tdd: false
+strict_tdd: true
+
+testing:
+  layers:
+    unit:
+      available: true
+      tools:
+        - command: pnpm --filter api run test
+          framework: Jest
+        - command: pnpm --filter web run test
+          framework: Vitest
+    integration:
+      available: true
+      tools:
+        - Testing Library React + jsdom (web)
+        - SQLite3 (api)
+    e2e:
+      available: false
+      tools: []
+  coverage:
+    available: true
+    command: jest --coverage (api) | vitest --coverage (web with @vitest/ui)
+  quality:
+    linter:
+      available: true
+      command: eslint
+    type_checker:
+      available: true
+      command: tsc --noEmit
+    formatter:
+      available: true
+      command: prettier --check (api)
 
 rules:
   proposal:
