@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { google, androidpublisher_v3 } from 'googleapis';
+import type { androidpublisher_v3 } from 'googleapis';
 
 @Injectable()
 export class GooglePlayAdapter {
@@ -12,7 +12,9 @@ export class GooglePlayAdapter {
 
   constructor(private readonly configService: ConfigService) {}
 
-  getAndroidPublisher(): androidpublisher_v3.Androidpublisher {
+  async getAndroidPublisher(): Promise<androidpublisher_v3.Androidpublisher> {
+    const { google } = await import('googleapis');
+
     const serviceAccountBase64 = this.configService.get<string>(
       'GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64',
     );

@@ -95,7 +95,9 @@ describe('calculateHollandProfile', () => {
       expect(result.radar[1].categoryId).toBe('SCI');
       expect(result.radar[0].percentage).toBe(50);
       expect(result.radar[1].percentage).toBe(50);
-      expect(result.radar[0].rawScore).toBeGreaterThan(result.radar[1].rawScore);
+      expect(result.radar[0].rawScore).toBeGreaterThan(
+        result.radar[1].rawScore,
+      );
     });
   });
 

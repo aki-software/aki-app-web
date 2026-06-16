@@ -60,6 +60,9 @@ describe('Decorative icons — aria-hidden', () => {
       const { container } = render(<Alert type="error" message="Test error" />);
       const svgs = container.querySelectorAll('svg');
       expect(svgs.length).toBeGreaterThan(0);
+      svgs.forEach((svg) => {
+        expect(svg.getAttribute('aria-hidden')).toBe('true');
+      });
     });
 
     it('should have accessible label on close button', () => {
@@ -74,6 +77,9 @@ describe('Decorative icons — aria-hidden', () => {
       const { container } = render(<EventIcon type="VOUCHER_REDEEMED" />);
       const svgs = container.querySelectorAll('svg');
       expect(svgs.length).toBeGreaterThan(0);
+      svgs.forEach((svg) => {
+        expect(svg.getAttribute('aria-hidden')).toBe('true');
+      });
     });
   });
 

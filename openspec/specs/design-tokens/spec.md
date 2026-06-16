@@ -100,3 +100,12 @@ The system MUST preserve ALL existing `--color-*` token names and values from th
 - GIVEN the old and new theme.css token sets
 - WHEN comparing them
 - THEN the new output MUST be a superset of the old, with zero removals
+
+### Requirement: Warning Color Tokens
+
+The system MUST define `--color-warning-soft`, `--color-warning-medium`, and `--color-warning-strong` for the warning palette (e.g., LowStockAlert).
+
+#### Scenario: Warning palette generated
+- GIVEN theme.css is loaded
+- WHEN a consumer checks for warning palette tokens
+- THEN `--color-warning-soft`, `--color-warning-medium`, and `--color-warning-strong` MUST be available with valid hex values
