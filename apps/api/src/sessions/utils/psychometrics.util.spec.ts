@@ -75,7 +75,31 @@ describe('calculateHollandProfile', () => {
     });
   });
 
-  // ─── Spec REQ-02: Deterministic Absolute Tie-Breaking ──────────────────────
+  // ─── Spec REQ-02: Percentage Tie broken by rawScore ─────────────────────────
+
+  describe('Spec: Percentage Tie broken by rawScore', () => {
+    it('breaks tie by rawScore when percentages are equal', () => {
+      // ART: 2/4 likes = 50%, SCI: 1/2 likes = 50%
+      // Mismo percentage pero distinto rawScore → ART ranks higher
+      const swipes = [
+        makeSwipe('ART', true, 1000),
+        makeSwipe('ART', false, 2000),
+        makeSwipe('ART', true, 3000),
+        makeSwipe('ART', false, 4000),
+        makeSwipe('SCI', true, 5000),
+        makeSwipe('SCI', false, 6000),
+      ];
+      const result = calculateHollandProfile(swipes);
+
+      expect(result.radar[0].categoryId).toBe('ART');
+      expect(result.radar[1].categoryId).toBe('SCI');
+      expect(result.radar[0].percentage).toBe(50);
+      expect(result.radar[1].percentage).toBe(50);
+      expect(result.radar[0].rawScore).toBeGreaterThan(result.radar[1].rawScore);
+    });
+  });
+
+  // ─── Spec REQ-03: Deterministic Absolute Tie-Breaking ──────────────────────
 
   describe('Spec: Deterministic Absolute Tie-Breaking', () => {
     it('breaks identical raw and weighted scores alphabetically', () => {
@@ -109,7 +133,7 @@ describe('calculateHollandProfile', () => {
     });
   });
 
-  // ─── Spec REQ-03: Server-Authoritative Profile Calculation ─────────────────
+  // ─── Spec REQ-04: Server-Authoritative Profile Calculation ─────────────────
 
   describe('Spec: Server-Authoritative output shape', () => {
     it('returns top3, bottom3, radar and hollandCode', () => {
