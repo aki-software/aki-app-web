@@ -4,24 +4,24 @@ import {
   Logger,
   OnModuleDestroy,
 } from '@nestjs/common';
-import * as puppeteer from 'puppeteer';
+import type { Browser, Page } from 'puppeteer';
 import { PdfGenerator } from '../adapters/pdf-generator.adapter.js';
 
 @Injectable()
 export class PdfService implements PdfGenerator, OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
-  private readonly idlePages: puppeteer.Page[] = [];
+  private readonly idlePages: Page[] = [];
   private readonly maxIdlePages = 4;
   private readonly pageTimeoutMs = 30_000;
-  private browser: puppeteer.Browser | undefined;
-  private browserLaunching: Promise<puppeteer.Browser> | undefined;
+  private browser: Browser | undefined;
+  private browserLaunching: Promise<Browser> | undefined;
 
   async generateFromHtml(html: string, signal?: AbortSignal): Promise<Buffer> {
     if (signal?.aborted) {
       throw new Error('PDF generation aborted');
     }
 
-    let page: puppeteer.Page | undefined;
+    let page: Page | undefined;
     try {
       page = await this.acquirePage();
 
@@ -82,7 +82,7 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
     await this.closeBrowser();
   }
 
-  private async acquirePage(): Promise<puppeteer.Page> {
+  private async acquirePage(): Promise<Page> {
     const browser = await this.getBrowser();
     const page = this.idlePages.pop() ?? (await browser.newPage());
     page.setDefaultNavigationTimeout(this.pageTimeoutMs);
@@ -90,7 +90,7 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
     return page;
   }
 
-  private async releasePage(page: puppeteer.Page): Promise<void> {
+  private async releasePage(page: Page): Promise<void> {
     if (page.isClosed()) {
       return;
     }
@@ -123,7 +123,7 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
     }
   }
 
-  private async getBrowser(): Promise<puppeteer.Browser> {
+  private async getBrowser(): Promise<Browser> {
     if (this.browser && this.browser.isConnected()) {
       return this.browser;
     }
@@ -131,6 +131,8 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
     if (this.browserLaunching) {
       return this.browserLaunching;
     }
+
+    const puppeteer = await import('puppeteer');
 
     this.browserLaunching = puppeteer
       .launch({

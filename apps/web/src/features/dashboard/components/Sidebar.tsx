@@ -59,6 +59,7 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
                 }`}
               >
                 <item.icon
+                  aria-hidden="true"
                   className={`flex-shrink-0 w-5 h-5 mr-4 transition-all ${
                     isActive ? "text-app-primary scale-110" : "text-app-text-muted/40 group-hover:text-app-primary group-hover:scale-110"
                   }`}
@@ -75,9 +76,9 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
       <div className="p-6 border-t border-sidebar-border">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center px-5 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-app-text-muted rounded-2xl hover:bg-rose-500/10 hover:text-rose-400 transition-all group"
+          className="flex w-full items-center px-5 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-app-text-muted rounded-2xl hover:bg-status-error/10 hover:text-status-error transition-all group"
         >
-          <LogOut className="flex-shrink-0 w-5 h-5 mr-4 text-app-text-muted/40 group-hover:text-rose-500 group-hover:scale-110 transition-all" />
+          <LogOut aria-hidden="true" className="flex-shrink-0 w-5 h-5 mr-4 text-app-text-muted/40 group-hover:text-status-error group-hover:scale-110 transition-all" />
           Cerrar sesión
         </button>
       </div>

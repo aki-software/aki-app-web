@@ -5,7 +5,7 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Worker, Job } from 'bullmq';
+import type { Job, Worker as BullMQWorker } from 'bullmq';
 import { JobDispatcherService } from './job-dispatcher.service.js';
 import { JobNames } from '../jobs/job-names.js';
 import { getRedisConnection } from '../utils/redis.utils.js';
@@ -13,7 +13,7 @@ import { getRedisConnection } from '../utils/redis.utils.js';
 @Injectable()
 export class BullMQWorkerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(BullMQWorkerService.name);
-  private worker: Worker | null = null;
+  private worker: BullMQWorker | null = null;
 
   constructor(
     private readonly configService: ConfigService,
@@ -21,7 +21,6 @@ export class BullMQWorkerService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    await Promise.resolve();
     const enableBullMQ =
       this.configService.get<string>('ENABLE_BULLMQ') === 'true';
     if (!enableBullMQ) {
@@ -38,6 +37,8 @@ export class BullMQWorkerService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.logger.log('Initializing BullMQ worker for queue akit-jobs');
+    const { Worker } = await import('bullmq');
+
     this.worker = new Worker(
       'akit-jobs',
       async (job: Job) => {
@@ -71,7 +72,7 @@ export class BullMQWorkerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  getWorker(): Worker | null {
+  getWorker(): BullMQWorker | null {
     return this.worker;
   }
 }

@@ -12,20 +12,20 @@ interface AdminAlertsProps {
 function getSeverityIcon(severity: AdminAlert["severity"]) {
   switch (severity) {
     case "critical":
-      return <AlertOctagon className="h-5 w-5 text-red-400" />;
+      return <AlertOctagon className="h-5 w-5 text-status-error" aria-hidden="true" />;
     case "warning":
-      return <AlertTriangle className="h-5 w-5 text-amber-400" />;
+      return <AlertTriangle className="h-5 w-5 text-status-warning" aria-hidden="true" />;
     default:
-      return <Info className="h-5 w-5 text-app-primary" />;
+      return <Info className="h-5 w-5 text-app-primary" aria-hidden="true" />;
   }
 }
 
 function getSeverityStyles(severity: AdminAlert["severity"]) {
   switch (severity) {
     case "critical":
-      return "border-red-400/30 bg-red-500/5";
+      return "border-status-error/30 bg-status-error/5";
     case "warning":
-      return "border-amber-400/30 bg-amber-500/5";
+      return "border-status-warning/30 bg-status-warning/5";
     default:
       return "border-app-primary/30 bg-app-primary/5";
   }
@@ -50,10 +50,10 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
       {/* Contenido */}
       <div className="flex-1 overflow-y-auto max-h-[320px] pr-2">
         {visibleAlerts.length === 0 ? (
-          <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/5 px-5 py-6">
+          <div className="rounded-2xl border border-status-success/25 bg-status-success/5 px-5 py-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-sm font-bold tracking-wide text-emerald-300 uppercase">
+              <div className="h-2 w-2 rounded-full bg-status-success animate-pulse" />
+              <p className="text-sm font-bold tracking-wide text-status-success uppercase">
                 Operación estable
               </p>
             </div>
@@ -63,13 +63,13 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
             </p>
             <ul className="mt-4 space-y-2 text-xs font-medium text-app-text-muted/70">
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500/50">✓</span> Sin vouchers con vencimiento cercano
+                <span className="text-status-success/50">✓</span> Sin vouchers con vencimiento cercano
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500/50">✓</span> Sin sesiones demoradas para cierre
+                <span className="text-status-success/50">✓</span> Sin sesiones demoradas para cierre
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500/50">✓</span> Sin desvío crítico en la tasa de canje
+                <span className="text-status-success/50">✓</span> Sin desvío crítico en la tasa de canje
               </li>
             </ul>
           </div>
@@ -86,10 +86,11 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
                     next.add(alert.id);
                     setDismissedIds(next);
                   }}
+                  aria-label="Descartar alerta"
                   className="absolute top-2 right-2 p-1.5 rounded-full text-app-text-muted/50 opacity-0 group-hover/alert:opacity-100 hover:bg-app-text-main/5 hover:text-app-text-main transition-all"
                   title="Descartar alerta"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="shrink-0 p-2 bg-app-bg/50 rounded-xl border border-app-border/50">
@@ -112,7 +113,7 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
                     onClick={() => navigate(alert.actionPath)}
                   >
                     {alert.actionLabel}
-                    <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                    <ArrowRight className="ml-2 h-3.5 w-3.5" aria-hidden="true" />
                   </Button>
                 </div>
               </div>
