@@ -5,7 +5,7 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { Alert } from "../../../components/atoms/Alert";
 import { Button } from "../../../components/atoms/Button";
-import { StatCard } from "../../../components/molecules/StatCard";
+import { StatCard } from "../../../components/atoms/StatCard";
 import { useInstitutionDetailManager } from "../hooks/useInstitutionDetailManager";
 
 type LocationState = {
@@ -89,7 +89,7 @@ export function InstitutionDetailOverview() {
           label="Vouchers disponibles"
           value={data?.vouchers.available ?? 0}
           description={`Total emitidos: ${data?.vouchers.total ?? 0}`}
-          valueColor="text-emerald-200"
+          valueColor="text-status-success"
         />
         <StatCard
           label="Vouchers canjeados"

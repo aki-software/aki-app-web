@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Download, ChevronDown } from 'lucide-react';
 import { API_URL } from '../../../../config/app-config';
 import { getStoredToken } from '../../../../utils/storage';
+import { Pagination } from '../../../../components/molecules/Pagination';
+import { DETAIL_ITEMS_PER_PAGE } from '../../constants/vouchers.constants';
 
 
 interface SessionMetrics {
@@ -50,6 +52,12 @@ export function VoucherSessionsTable({
   const [minDuration, setMinDuration] = useState<number | ''>('');
   const [maxDuration, setMaxDuration] = useState<number | ''>('');
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [sessionsPage, setSessionsPage] = useState(1);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setSessionsPage(1);
+  }, [startDate, endDate, minDuration, maxDuration]);
 
   // Filtrar sesiones
   const filteredSessions = useMemo(() => {
@@ -65,6 +73,13 @@ export function VoucherSessionsTable({
       return true;
     });
   }, [sessions, startDate, endDate, minDuration, maxDuration]);
+
+  const sessionsTotalPages = Math.ceil(filteredSessions.length / DETAIL_ITEMS_PER_PAGE);
+
+  const paginatedSessions = useMemo(() => {
+    const start = (sessionsPage - 1) * DETAIL_ITEMS_PER_PAGE;
+    return filteredSessions.slice(start, start + DETAIL_ITEMS_PER_PAGE);
+  }, [filteredSessions, sessionsPage]);
 
   const formatDuration = (ms: number) => {
     const seconds = Math.floor(ms / 1000);
@@ -158,7 +173,7 @@ export function VoucherSessionsTable({
             </tr>
           </thead>
           <tbody>
-            {filteredSessions.map((session) => (
+            {paginatedSessions.map((session) => (
               <React.Fragment key={session.id}>
                   <tr className="border-b border-app-border hover:bg-app-surface/70">
                   <td className="px-4 py-3 text-sm text-app-text-main">{session.patientName}</td>
@@ -170,12 +185,12 @@ export function VoucherSessionsTable({
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${
                         session.metrics?.reliabilityLevel === 'Muy Alta'
-                          ? 'bg-emerald-200/80 text-emerald-900'
+                          ? 'bg-status-success/20 text-status-success'
                           : session.metrics?.reliabilityLevel === 'Alta'
-                            ? 'bg-emerald-100/70 text-emerald-800'
+                            ? 'bg-status-success/10 text-status-success'
                             : session.metrics?.reliabilityLevel === 'Variable'
-                              ? 'bg-amber-200/80 text-amber-900'
-                              : 'bg-rose-200/80 text-rose-900'
+                              ? 'bg-status-warning/20 text-status-warning'
+                              : 'bg-status-error/20 text-status-error'
                       }`}
                     >
                       {session.metrics?.reliabilityLevel || 'N/A'}
@@ -191,7 +206,7 @@ export function VoucherSessionsTable({
                     </button>
                     <button
                       onClick={() => handleDownloadPdf(session.id)}
-                      className="text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center"
+                      className="text-status-success hover:text-status-success font-medium inline-flex items-center"
                       title="Descargar reporte"
                     >
                       <Download size={18} />
@@ -231,9 +246,12 @@ export function VoucherSessionsTable({
         <div className="text-center py-8 text-app-text-muted">No hay sesiones que coincidan con los filtros</div>
       )}
 
-      <p className="text-sm text-app-text-soft">
-        Mostrando {filteredSessions.length} de {sessions.length} sesiones
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-app-text-soft">
+          Mostrando {paginatedSessions.length} de {filteredSessions.length} sesiones
+        </p>
+        <Pagination currentPage={sessionsPage} totalPages={sessionsTotalPages} onPageChange={setSessionsPage} />
+      </div>
     </div>
   );
 }

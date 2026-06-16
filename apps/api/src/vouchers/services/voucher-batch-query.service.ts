@@ -60,7 +60,12 @@ export class VoucherBatchQueryService {
   async findBatchDetail(
     batchId: string,
     scope?: VoucherScope,
+    page: number = VOUCHER_CONFIG.PAGINATION.DEFAULT_PAGE,
+    limit: number = VOUCHER_CONFIG.PAGINATION.BATCH_DETAIL_DEFAULT_LIMIT,
   ): Promise<VoucherBatchDetail> {
+    const safeLimit = Math.min(limit, VOUCHER_CONFIG.PAGINATION.MAX_LIMIT);
+    const safePage = Math.max(VOUCHER_CONFIG.PAGINATION.DEFAULT_PAGE, page);
+
     const qb = this.createBaseQueryBuilder().where(
       'voucher.batchId = :batchId',
       { batchId },
@@ -70,11 +75,64 @@ export class VoucherBatchQueryService {
       throw new NotFoundException('Lote no encontrado');
     }
 
-    const vouchers = await qb.getMany();
-    if (vouchers.length === 0)
-      throw new NotFoundException('Lote no encontrado');
+    // Metadata: LIMIT 1 with joins to extract batch info
+    const meta = await qb.clone().limit(1).getOne();
+    if (!meta) throw new NotFoundException('Lote no encontrado');
 
-    return this.mapVouchersToBatchDetail(batchId, vouchers);
+    // Paginated data + total count
+    const [vouchers, total] = await qb
+      .clone()
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit)
+      .getManyAndCount();
+
+    // Status aggregation across the entire batch
+    const rawCounts = await qb
+      .clone()
+      .select('voucher.status', 'status')
+      .addSelect('COUNT(*)', 'cnt')
+      .groupBy('voucher.status')
+      .getRawMany<{ status: string; cnt: string }>();
+
+    let available = 0;
+    let used = 0;
+    let expired = 0;
+    for (const r of rawCounts) {
+      if (r.status === VoucherStatus.AVAILABLE) available = Number(r.cnt);
+      else if (r.status === VoucherStatus.USED) used = Number(r.cnt);
+      else if (r.status === VoucherStatus.EXPIRED) expired = Number(r.cnt);
+    }
+
+    return {
+      batchId,
+      ownerInstitutionName: meta.ownerInstitution
+        ? meta.ownerInstitution.deletedAt ||
+          meta.ownerInstitution.isActive === false
+          ? `${meta.ownerInstitution.name} (Eliminada)`
+          : meta.ownerInstitution.name
+        : 'Institución no informada',
+      ownerUserName: meta.ownerUser?.name ?? 'Cuenta operativa no informada',
+      createdAt: meta.createdAt,
+      expiresAt: meta.expiresAt,
+      total,
+      available,
+      used,
+      pending: total - used - expired,
+      data: vouchers.map((v) => ({
+        id: v.id,
+        code: v.code,
+        status: v.status,
+        assignedPatientName: v.assignedPatientName,
+        assignedPatientEmail: v.assignedPatientEmail,
+        redeemedSessionId: v.redeemedSessionId,
+        createdAt: v.createdAt,
+        redeemedAt: v.redeemedAt,
+        expiresAt: v.expiresAt,
+      })),
+      count: total,
+      page: safePage,
+      limit: safeLimit,
+    };
   }
 
   private createBaseQueryBuilder() {
@@ -156,43 +214,7 @@ export class VoucherBatchQueryService {
     }));
   }
 
-  private mapVouchersToBatchDetail(
-    batchId: string,
-    vouchers: Voucher[],
-  ): VoucherBatchDetail {
-    const first = vouchers[0];
-    return {
-      batchId,
-      ownerInstitutionName: first.ownerInstitution
-        ? first.ownerInstitution.deletedAt ||
-          first.ownerInstitution.isActive === false
-          ? `${first.ownerInstitution.name} (Eliminada)`
-          : first.ownerInstitution.name
-        : 'Institución no informada',
-      ownerUserName: first.ownerUser?.name ?? 'Cuenta operativa no informada',
-      createdAt: first.createdAt,
-      expiresAt: first.expiresAt,
-      total: vouchers.length,
-      available: vouchers.filter((v) => v.status === VoucherStatus.AVAILABLE)
-        .length,
-      used: vouchers.filter((v) => v.status === VoucherStatus.USED).length,
-      pending: vouchers.filter(
-        (v) =>
-          v.status !== VoucherStatus.USED && v.status !== VoucherStatus.EXPIRED,
-      ).length,
-      vouchers: vouchers.map((v) => ({
-        id: v.id,
-        code: v.code,
-        status: v.status,
-        assignedPatientName: v.assignedPatientName,
-        assignedPatientEmail: v.assignedPatientEmail,
-        redeemedSessionId: v.redeemedSessionId,
-        createdAt: v.createdAt,
-        redeemedAt: v.redeemedAt,
-        expiresAt: v.expiresAt,
-      })),
-    };
-  }
+  // mapVouchersToBatchDetail removed — replaced by inlined paginated logic in findBatchDetail()
 
   private normalizePagination(page?: number, limit?: number) {
     const { DEFAULT_PAGE, DEFAULT_LIMIT, MAX_LIMIT } =

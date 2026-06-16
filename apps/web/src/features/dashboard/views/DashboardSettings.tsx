@@ -60,7 +60,7 @@ export function DashboardSettings() {
             {categories.length} dimensiones
           </p>
         </div>
-        <div className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-300">
+        <div className="inline-flex items-center rounded-full border border-status-success/30 bg-status-success/10 px-3 py-1 text-sm text-status-success">
           <Check className="w-4 h-4 mr-1" /> Sincronizado con Android
         </div>
       </div>

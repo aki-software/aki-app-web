@@ -47,7 +47,7 @@ export function SessionReportButton({ sessionId }: Props) {
             onClick={() => setShowEmailInput(true)}
             className="group"
           >
-            <Mail className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <Mail className="h-4 w-4 group-hover:scale-110 transition-transform" aria-hidden="true" />
             Enviar informe
           </Button>
       ) : (
@@ -92,13 +92,13 @@ export function SessionReportButton({ sessionId }: Props) {
       {/* Mensajes de Feedback */}
       <div className="min-h-[20px]">
         {status === "success" && (
-          <p className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-500 uppercase tracking-wider animate-in zoom-in-95">
-            <CheckCircle className="h-3.5 w-3.5" /> Informe enviado con éxito
+          <p className="flex items-center gap-1.5 text-[11px] font-bold text-status-success uppercase tracking-wider animate-in zoom-in-95">
+            <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" /> Informe enviado con éxito
           </p>
         )}
         {status === "error" && (
-          <p className="flex items-center gap-1.5 text-[11px] font-bold text-rose-500 uppercase tracking-wider animate-in shake">
-            <AlertTriangle className="h-3.5 w-3.5" /> Error en el envío
+          <p className="flex items-center gap-1.5 text-[11px] font-bold text-status-error uppercase tracking-wider animate-in shake">
+            <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> Error en el envío
           </p>
         )}
       </div>

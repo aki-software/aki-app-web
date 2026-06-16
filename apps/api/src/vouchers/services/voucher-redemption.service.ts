@@ -142,10 +142,10 @@ export class VoucherRedemptionService {
     session.reportUnlockedAt =
       session.reportUnlockedAt ?? voucher.redeemedAt ?? new Date();
 
-    if (!session.institutionId && voucher.ownerInstitutionId) {
+    if (voucher.ownerInstitutionId) {
       session.institutionId = voucher.ownerInstitutionId;
     }
-    if (!session.therapistUserId && voucher.ownerUserId) {
+    if (voucher.ownerUserId) {
       session.therapistUserId = voucher.ownerUserId;
     }
   }

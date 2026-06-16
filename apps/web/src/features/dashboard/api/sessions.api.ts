@@ -44,7 +44,14 @@ export async function fetchVoucherSessions(
 
 function normalizeSession(session: SessionApi): SessionData {
   const results = Array.isArray(session.results) ? session.results : [];
-  const topResults = [...results].sort((a, b) => b.percentage - a.percentage);
+  const topResults = [...results].sort((a, b) => {
+    const a2 = a as { rawScore?: number; weightedScore?: number };
+    const b2 = b as { rawScore?: number; weightedScore?: number };
+    if (b.percentage !== a.percentage) return b.percentage - a.percentage;
+    if ((b2.rawScore ?? -1) !== (a2.rawScore ?? -1)) return (b2.rawScore ?? -1) - (a2.rawScore ?? -1);
+    if ((b2.weightedScore ?? 0) !== (a2.weightedScore ?? 0)) return (b2.weightedScore ?? 0) - (a2.weightedScore ?? 0);
+    return a.categoryId.localeCompare(b.categoryId);
+  });
   const hollandCode = topResults
     .slice(0, 3)
     .map((r) => r.categoryId.charAt(0).toUpperCase())

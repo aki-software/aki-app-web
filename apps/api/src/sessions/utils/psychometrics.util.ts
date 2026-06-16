@@ -16,9 +16,10 @@
  * idempotencia: mismos swipes = mismo resultado, siempre.
  *
  * Reglas de desempate (estrictas, en orden):
- *   1. rawScore       → mayor likes gana
- *   2. weightedScore  → menor tiempo promedio (más instintivo) gana
- *   3. categoryId     → orden alfabético (garantía de determinismo absoluto)
+ *   1. percentage DESC    → mayor afinidad general gana
+ *   2. rawScore DESC      → más likes gana
+ *   3. weightedScore DESC → respuesta más instintiva (rápida) gana
+ *   4. categoryId ASC     → orden alfabético (garantía de determinismo absoluto)
  */
 
 // ─── Tipos Públicos ────────────────────────────────────────────────────────────
@@ -87,10 +88,11 @@ function normalizeCategoryId(value: string): string {
 /**
  * Calcula el perfil Holland completo a partir de los swipes crudos.
  *
- * Orden de desempate garantizado:
+ * Orden de desempate garantizado (4 niveles):
  *   1. percentage DESC
- *   2. weightedScore DESC
- *   3. categoryId ASC (alfabético — garantía de idempotencia)
+ *   2. rawScore DESC
+ *   3. weightedScore DESC
+ *   4. categoryId ASC (alfabético — garantía de idempotencia)
  */
 export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
   if (!swipes || swipes.length === 0) {
@@ -188,10 +190,12 @@ export function calculateHollandProfile(swipes: SwipeInput[]): HollandProfile {
   results.sort((a, b) => {
     // 1. Percentage (DESC)
     if (b.percentage !== a.percentage) return b.percentage - a.percentage;
-    // 2. Weighted score (DESC)
+    // 2. Raw score (DESC) — desempate de likes crudos
+    if (b.rawScore !== a.rawScore) return b.rawScore - a.rawScore;
+    // 3. Weighted score (DESC)
     if (b.weightedScore !== a.weightedScore)
       return b.weightedScore - a.weightedScore;
-    // 3° alfabético (idempotencia absoluta)
+    // 4. categoryId ASC (alfabético — idempotencia absoluta)
     return a.categoryId.localeCompare(b.categoryId);
   });
 

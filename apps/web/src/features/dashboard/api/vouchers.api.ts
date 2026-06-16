@@ -212,9 +212,16 @@ export async function fetchVoucherBatches(input: {
 
 export async function fetchVoucherBatchDetail(
   batchId: string,
+  options?: { page?: number; limit?: number },
 ): Promise<VoucherBatchDetailResponse | null> {
   try {
-    return await apiClient.get<VoucherBatchDetailResponse>(`/vouchers/batches/${batchId}`);
+    const params: Record<string, string> = {};
+    if (options?.page) params.page = String(options.page);
+    if (options?.limit) params.limit = String(options.limit);
+    return await apiClient.get<VoucherBatchDetailResponse>(
+      `/vouchers/batches/${batchId}`,
+      { params },
+    );
   } catch (error) {
     console.error("Error fetching voucher batch detail:", error);
     return null;

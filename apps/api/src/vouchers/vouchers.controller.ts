@@ -133,8 +133,15 @@ export class VouchersController {
   async findBatchDetail(
     @Param('batchId', new ParseUUIDPipe()) batchId: string,
     @CurrentVoucherScope() scope: VoucherScope,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
   ) {
-    return await this.batchQueryService.findBatchDetail(batchId, scope);
+    return await this.batchQueryService.findBatchDetail(
+      batchId,
+      scope,
+      page,
+      limit,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
