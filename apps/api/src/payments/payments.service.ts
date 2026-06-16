@@ -7,10 +7,9 @@ import {
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { SessionsService } from '../sessions/sessions.service';
 import { SessionPaymentStatus } from '@akit/contracts';
-import { androidpublisher_v3 } from 'googleapis';
+import type { androidpublisher_v3 } from 'googleapis';
 import { PaymentLockService } from './payment-lock.service';
 import { GooglePlayAdapter } from './google-play.adapter';
-import { GaxiosError } from 'gaxios';
 
 @Injectable()
 export class PaymentsService {
@@ -50,7 +49,8 @@ export class PaymentsService {
       }
 
       const packageName = this.googlePlayAdapter.getPackageName();
-      const androidPublisher = this.googlePlayAdapter.getAndroidPublisher();
+      const androidPublisher =
+        await this.googlePlayAdapter.getAndroidPublisher();
 
       return await this.verifyAndProcessPurchase(
         androidPublisher,
@@ -105,8 +105,11 @@ export class PaymentsService {
       });
       purchase = response.data;
     } catch (error) {
-      const isGaxiosError = error instanceof GaxiosError;
-      const status = isGaxiosError ? error.response?.status : null;
+      const status =
+        error && typeof error === 'object' && 'response' in error
+          ? ((error as { response?: { status?: number } }).response?.status ??
+            null)
+          : null;
 
       // 400 Bad Request from Google Play might mean the token is no longer owned or valid
       if (

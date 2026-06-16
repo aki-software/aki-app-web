@@ -28,13 +28,13 @@ Chain strategy: feature-branch-chain
 
 - [x] 1.1 RED: Write test asserting `--color-status-*` tokens defined in `@theme` (index.css)
 - [x] 1.2 GREEN: Add `--color-status-*` and `--color-warning-*` tokens to `@theme` in `index.css`
-- [ ] 1.3 RED: Write test for Spinner using `border-t-app-primary` + reduced-motion support
+- [x] 1.3 RED: Write test for Spinner using `border-t-app-primary` + reduced-motion support
 - [x] 1.4 GREEN: Spinner `border-t-blue-600` → `border-t-app-primary`; add `prefers-reduced-motion`
-- [ ] 1.5 RED: Write test for Alert status tokens per type + `role="alert"`
+- [x] 1.5 RED: Write test for Alert status tokens per type + `role="alert"`
 - [x] 1.6 GREEN: Alert hardcoded colors → status tokens; add `role="alert"`; add `aria-hidden` to icons
-- [ ] 1.7 RED: Write test for StatusBadge using status tokens per state (active/pending/expired)
+- [x] 1.7 RED: Write test for StatusBadge using status tokens per state (active/pending/expired)
 - [x] 1.8 GREEN: StatusBadge emerald/amber/rose → status tokens
-- [ ] 1.9 RED: Write test for EventIcon using status tokens + `aria-hidden`
+- [x] 1.9 RED: Write test for EventIcon using status tokens + `aria-hidden`
 - [x] 1.10 GREEN: EventIcon emerald/amber → status tokens; add `aria-hidden`
 - [x] 1.11 VERIFY: Run test suite — all atoms tests pass with new tokens
 
@@ -52,10 +52,10 @@ Chain strategy: feature-branch-chain
 
 ## Phase 3: PR 3 — Accessibility
 
-- [ ] 3.1 RED: Write test asserting `aria-hidden="true"` on all decorative Lucide icons
-- [ ] 3.2 GREEN: Add `aria-hidden="true"` to decorative icons in Alert, EventIcon, StatCard, Sidebar
-- [ ] 3.3 RED: Write test asserting `prefers-reduced-motion` disables animations
-- [ ] 3.4 GREEN: Add `prefers-reduced-motion` to Spinner + animate-in/entrance components
-- [ ] 3.5 GREEN: Ensure close button icon has `aria-hidden` + `aria-label` on close button
-- [ ] 3.6 VERIFY: Full `rg` scan — zero hardcoded color classes in `apps/web/src/`
-- [ ] 3.7 VERIFY: Run full test suite — all unit + integration tests pass
+- [x] 3.1 RED: Write test asserting `aria-hidden="true"` on all decorative Lucide icons
+- [x] 3.2 GREEN: Add `aria-hidden="true"` to decorative icons in Alert, EventIcon, StatCard, Sidebar
+- [x] 3.3 RED: Write test asserting `prefers-reduced-motion` disables animations
+- [x] 3.4 GREEN: Add `prefers-reduced-motion` to Spinner + animate-in/entrance components
+- [x] 3.5 GREEN: Ensure close button icon has `aria-hidden` + `aria-label` on close button
+- [x] 3.6 VERIFY: Full `rg` scan — zero hardcoded color classes in `apps/web/src/`
+- [x] 3.7 VERIFY: Run full test suite — all unit + integration tests pass

@@ -23,7 +23,7 @@ describe('Feature Color Approval Tests', () => {
   // ── Task 2.5: LowStockAlert ──
   describe('LowStockAlert', () => {
     it('should render alert with stock count and message', () => {
-      withRouter(
+      const { container } = withRouter(
         <LowStockAlert
           available={3}
           threshold={10}
@@ -34,6 +34,10 @@ describe('Feature Color Approval Tests', () => {
       expect(screen.getByText('Alerta de consumo')).toBeDefined();
       expect(screen.getByText(/Quedan 3 voucher/)).toBeDefined();
       expect(screen.getByText(/Mínimo recomendado: 10/)).toBeDefined();
+      
+      const firstDiv = container.firstElementChild as HTMLElement;
+      expect(firstDiv.className).toContain('bg-warning-bg');
+      expect(firstDiv.className).toContain('border-warning-border');
     });
 
     it('should render dismiss button with aria-label', () => {

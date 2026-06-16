@@ -9,12 +9,13 @@ Define the semantic token consumption contract — which CSS custom property tok
 ### Requirement: Token-Driven Colors
 
 All components MUST use `--color-*` / `--space-*` / `--radius-*` / `--shadow-*` tokens instead of hardcoded Tailwind utility color classes.
+(Previously: Components used hardcoded Tailwind color utilities)
 
 #### Scenario: No hardcoded color classes
-- GIVEN any component in `apps/web/src/components/`
+- GIVEN any component in `apps/web/src/components/` and `apps/web/src/features/`
 - WHEN scanning for Tailwind color utilities (`text-{color}-*`, `bg-{color}-*`, `border-{color}-*`)
-- THEN no hardcoded color shade SHALL be present
-- AND all color references MUST use `--color-*` tokens
+- THEN no hardcoded color shade SHALL be present for emerald, amber, rose, or red
+- AND all color references MUST use semantic `--color-*` tokens
 
 ### Requirement: Semantic Status Tokens
 
@@ -48,6 +49,7 @@ The Spinner component MUST use `--color-app-primary` for its animated accent.
 ### Requirement: StatusBadge Uses Tokens
 
 StatusBadge MUST use `--color-status-*` tokens instead of hardcoded emerald/amber/rose colors.
+(Previously: StatusBadge used emerald/amber/rose colors based on status)
 
 #### Scenario: Active institution
 - GIVEN StatusBadge with `isActive={true}`
@@ -67,6 +69,7 @@ StatusBadge MUST use `--color-status-*` tokens instead of hardcoded emerald/ambe
 ### Requirement: EventIcon Uses Tokens
 
 EventIcon MUST use `--color-status-*` tokens instead of `text-emerald-500` and `text-amber-500`.
+(Previously: EventIcon used hardcoded emerald and amber colors)
 
 #### Scenario: Session completed
 - GIVEN EventIcon with `type="SESSION_COMPLETED"`
@@ -96,3 +99,13 @@ All token references MUST follow `--color-status-*` for semantic states and `--c
 - WHEN reviewing the token name
 - THEN it MUST match `--color-status-*` for status or `--color-app-*` for app chrome
 - AND it MUST NOT introduce ad-hoc naming like `--color-warning-indicator`
+
+### Requirement: StatCard Consolidation
+
+The system MUST use a single canonical `StatCard` from `atoms/` and MUST NOT use duplicate implementations like `molecules/StatCard`.
+
+#### Scenario: VoucherStatsCards uses canonical StatCard
+- GIVEN VoucherStatsCards is rendered
+- WHEN inspecting its children
+- THEN it MUST use `atoms/StatCard`
+- AND `atoms/StatCard` MUST accept `--color-status-*` tokens for its `colorClass` or `valueColor` props
