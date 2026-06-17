@@ -1,4 +1,4 @@
-import { Activity, CreditCard } from "lucide-react";
+import { Activity, CreditCard, ThumbsDown, ThumbsUp, ArrowUpDown } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { StatCard } from "../../../components/atoms/StatCard";
 import { useSessionDetailManager } from "../hooks/useSessionDetailManager";
@@ -8,6 +8,7 @@ import { SessionClinicalInsights } from "../components/session-detail/SessionCli
 import { Clock, MousePointer2, Zap } from "lucide-react";
 import { SessionDetailHeader } from "../components/session-detail/SessionDetailHeader";
 import { TechnicalDataAccordion } from "../components/session-detail/TechnicalDataAccordion";
+import { ResponseTimeHistogram } from "../components/session-detail/ResponseTimeHistogram";
 import { formatDate, formatDuration } from "../../../utils/date";
 import { Spinner } from "../../../components/atoms/Spinner";
 
@@ -22,6 +23,7 @@ export function SessionDetailPage() {
     session, 
     loading, 
     categoriesMap, 
+    metrics,
     behaviorStats, 
     resultsRecord, 
     sortedResults, 
@@ -45,7 +47,16 @@ export function SessionDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl pb-24 animate-in">
-      
+
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 mb-6 text-[11px] font-semibold text-app-text-muted/50 uppercase tracking-[0.15em]">
+        <button onClick={() => navigate('/dashboard/results')} className="hover:text-app-primary transition-colors">Dashboard</button>
+        <span className="opacity-30">/</span>
+        <button onClick={() => navigate('/dashboard/results')} className="hover:text-app-primary transition-colors">Resultados</button>
+        <span className="opacity-30">/</span>
+        <span className="text-app-text-muted/80 truncate max-w-[200px]">{session.patientName}</span>
+      </div>
+
       {/* Componente Extraído: Header */}
       <SessionDetailHeader 
         patientName={session.patientName}
@@ -112,10 +123,52 @@ export function SessionDetailPage() {
             </div>
 
             <SessionClinicalInsights 
-              swipes={session.swipes}
-              categoriesMap={categoriesMap}
+              metrics={metrics}
             />
           </div>
+
+          {/* Histograma de tiempo de respuesta */}
+          {metrics?.responseTimeHistogram && metrics.responseTimeHistogram.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <ResponseTimeHistogram data={metrics.responseTimeHistogram} />
+
+              {/* Reverted Direction */}
+              {metrics.revertedDirection && (
+                <div className="app-card shadow-2xl h-full flex flex-col">
+                  <div className="flex items-center gap-6 mb-8">
+                    <div className="rounded-2xl bg-app-bg p-4 border border-app-border shadow-md">
+                      <ArrowUpDown className="h-8 w-8 text-app-primary" />
+                    </div>
+                    <div>
+                      <h4 className="app-value !text-2xl mt-0">Dirección de Cambios</h4>
+                      <p className="app-label mt-2">Retrocesos por tipo</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 flex-1">
+                    <div className="rounded-2xl bg-status-success/5 border border-status-success/20 p-6 flex flex-col items-center justify-center text-center">
+                      <ThumbsUp className="h-8 w-8 text-status-success mb-3" />
+                      <span className="text-3xl font-black text-status-success">
+                        {metrics.revertedDirection.dislikedToLiked}
+                      </span>
+                      <span className="text-xs font-medium text-app-text-muted mt-2">
+                        Rechazo → Aceptación
+                      </span>
+                    </div>
+                    <div className="rounded-2xl bg-status-error/5 border border-status-error/20 p-6 flex flex-col items-center justify-center text-center">
+                      <ThumbsDown className="h-8 w-8 text-status-error mb-3" />
+                      <span className="text-3xl font-black text-status-error">
+                        {metrics.revertedDirection.likedToDisliked}
+                      </span>
+                      <span className="text-xs font-medium text-app-text-muted mt-2">
+                        Aceptación → Rechazo
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-12">
             <SessionTopAreas 

@@ -121,7 +121,7 @@ export function DashboardResults() {
     <div className="space-y-10">
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-[11px] font-semibold text-app-text-muted/50 uppercase tracking-[0.15em]">
+      <div className="flex items-center gap-2 text-[11px] font-semibold text-app-text-muted/70 uppercase tracking-[0.15em]">
         <span>Dashboard</span>
         <span className="opacity-30">/</span>
         <span className="text-app-text-muted/80">Resultados</span>
