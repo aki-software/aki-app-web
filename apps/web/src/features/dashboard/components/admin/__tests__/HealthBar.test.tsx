@@ -36,7 +36,7 @@ describe("HealthBar — indicator color mapping", () => {
     renderWithRouter(<HealthBar />);
     expect(screen.getByText("Tasa de finalización")).toBeDefined();
     expect(screen.getByText("Instituciones con alertas")).toBeDefined();
-    expect(screen.getByText("Sesiones en triage")).toBeDefined();
+    expect(screen.getByText("Sesiones pendientes de revisión")).toBeDefined();
   });
 
   describe("completionRate thresholds", () => {

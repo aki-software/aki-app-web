@@ -145,7 +145,7 @@ describe("DashboardOverview", () => {
       renderWithRouter(<DashboardOverview />);
       expect(screen.getByText("Tasa de finalización")).toBeDefined();
       expect(screen.getByText("Instituciones con alertas")).toBeDefined();
-      expect(screen.getByText("Sesiones en triage")).toBeDefined();
+      expect(screen.getByText("Sesiones pendientes de revisión")).toBeDefined();
     });
 
     it("renders SessionsChart section with period summary", async () => {
