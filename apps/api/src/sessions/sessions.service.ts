@@ -32,7 +32,7 @@ import { VouchersService } from '../vouchers/vouchers.service.js';
 import { mapToCreateDto } from './utils/session-payload-mapper.util.js';
 import { buildSyncKey } from './utils/session-sync-key.util.js';
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
-import { SessionPaymentStatus } from '@akit/contracts';
+import { SessionPaymentStatus, TriageResponse } from '@akit/contracts';
 import { UserRole } from '../users/entities/user.entity.js';
 
 const UNAUTHORIZED_FALLBACK_ID = '00000000-0000-0000-0000-000000000000';
@@ -244,7 +244,7 @@ export class SessionsService {
 
     const session = await this.sessionRepository.findOne({
       where,
-      relations: ['results', 'voucher', 'swipes'],
+      relations: ['results', 'voucher', 'swipes', 'metrics'],
     });
     if (!session) {
       throw new NotFoundException('Sesión no encontrada');
@@ -293,6 +293,98 @@ export class SessionsService {
     }
 
     return session;
+  }
+
+  async findTriage(
+    page: number = SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE,
+    limit: number = SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
+    scope?: SessionScope,
+  ): Promise<TriageResponse> {
+    const qb = this.sessionRepository
+      .createQueryBuilder('session')
+      .innerJoinAndSelect('session.metrics', 'metrics')
+      .select([
+        'session.id',
+        'session.patientName',
+        'session.sessionDate',
+        'session.hollandCode',
+        'session.totalTimeMs',
+        'metrics.reliabilityLevel',
+        'metrics.fatigueDetected',
+        'metrics.rushDetected',
+        'metrics.likeRatio',
+        'metrics.selectivityLevel',
+      ]);
+
+    // Apply scope for QueryBuilder
+    if (scope) {
+      const role = scope.role as UserRole;
+      if (role === UserRole.ADMIN) {
+        // Admin sees all sessions — no filter
+      } else if (role === UserRole.PATIENT && scope.patientId) {
+        qb.andWhere('session.patientId = :patientId', {
+          patientId: scope.patientId,
+        });
+      } else if (scope.therapistUserId) {
+        qb.andWhere('session.therapistUserId = :therapistUserId', {
+          therapistUserId: scope.therapistUserId,
+        });
+      } else if (scope.institutionId) {
+        qb.andWhere('session.institutionId = :institutionId', {
+          institutionId: scope.institutionId,
+        });
+      }
+    }
+
+    // Severity ordering: LOW_RELIABILITY > FATIGUE > RUSH > none
+    qb.addOrderBy(
+      `CASE
+        WHEN metrics.reliability_level = 'Baja' THEN 0
+        WHEN metrics.fatigue_detected = true THEN 1
+        WHEN metrics.rush_detected = true THEN 2
+        ELSE 3
+      END`,
+      'ASC',
+    );
+    qb.addOrderBy('session.session_date', 'DESC');
+
+    const skip = (page - 1) * limit;
+    qb.skip(skip).take(limit);
+
+    const [sessions, total] = await qb.getManyAndCount();
+
+    let flaggedCount = 0;
+    const data = sessions.map((session) => {
+      const flags: Array<'LOW_RELIABILITY' | 'FATIGUE' | 'RUSH'> = [];
+      if (session.metrics?.reliabilityLevel === 'Baja') {
+        flags.push('LOW_RELIABILITY');
+      }
+      if (session.metrics?.fatigueDetected) {
+        flags.push('FATIGUE');
+      }
+      if (session.metrics?.rushDetected) {
+        flags.push('RUSH');
+      }
+      if (flags.length > 0) flaggedCount++;
+
+      return {
+        sessionId: session.id,
+        patientName: session.patientName,
+        sessionDate: session.sessionDate.toISOString(),
+        hollandCode: session.hollandCode,
+        reliabilityLevel: session.metrics?.reliabilityLevel ?? null,
+        flags,
+        topFlag: flags[0] ?? null,
+        likeRatio: session.metrics?.likeRatio ?? null,
+        selectivityLevel: session.metrics?.selectivityLevel ?? null,
+        totalTimeMs: Number(session.totalTimeMs),
+      };
+    });
+
+    return {
+      data,
+      meta: { total, page, limit, flaggedCount },
+    };
   }
 
   async findByPaymentToken(token: string): Promise<Session | null> {

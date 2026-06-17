@@ -10,6 +10,19 @@ const RELIABILITY_WEIGHT_SPEED = 0.3;
 const SPEED_MAX_AVG_TIME_MS = 1000;
 const SPEED_PENALTY_DIVISOR = 10;
 
+// Behavioral metrics constants
+const HISTOGRAM_BUCKET_COUNT = 10;
+const HISTOGRAM_BUCKET_WIDTH_MS = 1000; // 1s per bucket
+const FATIGUE_RT_RATIO_THRESHOLD = 1.5; // 2nd half > 1.5× 1st half
+const RUSH_RT_RATIO_THRESHOLD = 0.5; // last 5 avg < 0.5× session avg
+const RUSH_WINDOW_COUNT = 5;
+const MIN_SWIPES_FOR_FATIGUE_RUSH = 10;
+const MIN_SWIPES_FOR_HISTOGRAM = 5;
+const SELECTIVITY_SELECTIVE_THRESHOLD = 0.25;
+const SELECTIVITY_EXPLORATORY_THRESHOLD = 0.75;
+const CONSISTENCY_VARIABLE_THRESHOLD = 0.1;
+const CONSISTENCY_ERRATIC_THRESHOLD = 0.25;
+
 @Injectable()
 export class SessionMetricsService {
   constructor(
@@ -30,6 +43,7 @@ export class SessionMetricsService {
     const swipesWithTime = session.swipes
       .map((s) => ({
         cardId: s.cardId,
+        isLiked: s.isLiked,
         timeMs: new Date(s.timestamp).getTime(),
       }))
       .sort((a, b) => a.timeMs - b.timeMs);
@@ -64,6 +78,26 @@ export class SessionMetricsService {
 
     const reliabilityLevel = this.getReliabilityLevel(reliabilityScore);
 
+    // Behavioral metrics computation
+    const likeRatio = this.computeLikeRatio(swipesWithTime, totalSwipes);
+    const selectivityLevel = this.computeSelectivityLevel(likeRatio);
+    const firstHalfLikeRate = this.computeFirstHalfLikeRate(
+      swipesWithTime,
+      totalSwipes,
+    );
+    const lastHalfLikeRate = this.computeLastHalfLikeRate(
+      swipesWithTime,
+      totalSwipes,
+    );
+    const consistencyLevel = this.computeConsistencyLevel(
+      firstHalfLikeRate,
+      lastHalfLikeRate,
+    );
+    const fatigueDetected = this.computeFatigueDetected(durations, totalSwipes);
+    const rushDetected = this.computeRushDetected(durations);
+    const responseTimeHistogram = this.computeResponseTimeHistogram(durations);
+    const revertedDirection = this.computeRevertedDirection(swipesWithTime);
+
     const metrics = this.metricsRepository.create({
       session,
       totalDurationMs: session.totalTimeMs,
@@ -75,6 +109,15 @@ export class SessionMetricsService {
       maxTimeBetweenSwipesMs: Math.round(maxTime),
       reliabilityScore: parseFloat(reliabilityScore.toFixed(2)),
       reliabilityLevel,
+      likeRatio,
+      selectivityLevel,
+      firstHalfLikeRate,
+      lastHalfLikeRate,
+      consistencyLevel,
+      fatigueDetected,
+      rushDetected,
+      responseTimeHistogram,
+      revertedDirection,
     });
 
     return this.metricsRepository.save(metrics);
@@ -93,6 +136,140 @@ export class SessionMetricsService {
     if (score >= 70) return 'Alta';
     if (score >= 50) return 'Variable';
     return 'Baja';
+  }
+
+  // ── Behavioral metrics computation ──────────────────────────────────────
+
+  private computeLikeRatio(
+    swipes: Array<{ isLiked: boolean }>,
+    totalSwipes: number,
+  ): number | null {
+    if (totalSwipes === 0) return null;
+    const likes = swipes.filter((s) => s.isLiked).length;
+    return parseFloat((likes / totalSwipes).toFixed(4));
+  }
+
+  private computeSelectivityLevel(likeRatio: number | null): string | null {
+    if (likeRatio === null) return null;
+    if (likeRatio < SELECTIVITY_SELECTIVE_THRESHOLD) return 'SELECTIVE';
+    if (likeRatio > SELECTIVITY_EXPLORATORY_THRESHOLD) return 'EXPLORATORY';
+    return 'BALANCED';
+  }
+
+  private computeFirstHalfLikeRate(
+    swipes: Array<{ isLiked: boolean }>,
+    totalSwipes: number,
+  ): number | null {
+    if (totalSwipes === 0) return null;
+    const half = Math.ceil(totalSwipes / 2);
+    const firstHalf = swipes.slice(0, half);
+    const likes = firstHalf.filter((s) => s.isLiked).length;
+    return parseFloat((likes / firstHalf.length).toFixed(4));
+  }
+
+  private computeLastHalfLikeRate(
+    swipes: Array<{ isLiked: boolean }>,
+    totalSwipes: number,
+  ): number | null {
+    if (totalSwipes <= 1) return null;
+    const half = Math.ceil(totalSwipes / 2);
+    const lastHalf = swipes.slice(half);
+    const likes = lastHalf.filter((s) => s.isLiked).length;
+    return parseFloat((likes / lastHalf.length).toFixed(4));
+  }
+
+  private computeConsistencyLevel(
+    firstHalfRate: number | null,
+    lastHalfRate: number | null,
+  ): string | null {
+    if (firstHalfRate === null || lastHalfRate === null) return null;
+    const diff = Math.abs(firstHalfRate - lastHalfRate);
+    if (diff < CONSISTENCY_VARIABLE_THRESHOLD) return 'CONSISTENT';
+    if (diff < CONSISTENCY_ERRATIC_THRESHOLD) return 'VARIABLE';
+    return 'ERRATIC';
+  }
+
+  private computeFatigueDetected(
+    durations: number[],
+    totalSwipes: number,
+  ): boolean | null {
+    if (totalSwipes < MIN_SWIPES_FOR_FATIGUE_RUSH) return null;
+    if (durations.length < 2) return null;
+
+    const half = Math.floor(durations.length / 2);
+    const firstHalf = durations.slice(0, half);
+    const secondHalf = durations.slice(half);
+
+    if (firstHalf.length === 0 || secondHalf.length === 0) return null;
+
+    const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+
+    if (firstAvg === 0) return null;
+    return secondAvg / firstAvg > FATIGUE_RT_RATIO_THRESHOLD;
+  }
+
+  private computeRushDetected(durations: number[]): boolean | null {
+    if (durations.length < MIN_SWIPES_FOR_FATIGUE_RUSH) return null;
+
+    const lastWindow = durations.slice(-RUSH_WINDOW_COUNT);
+    const sessionAvg = durations.reduce((a, b) => a + b, 0) / durations.length;
+
+    if (sessionAvg === 0) return null;
+    const lastAvg = lastWindow.reduce((a, b) => a + b, 0) / lastWindow.length;
+
+    return lastAvg / sessionAvg < RUSH_RT_RATIO_THRESHOLD;
+  }
+
+  private computeResponseTimeHistogram(
+    durations: number[],
+  ): Array<{ bucket: number; count: number }> | null {
+    if (durations.length < MIN_SWIPES_FOR_HISTOGRAM) return null;
+
+    const buckets = new Array(HISTOGRAM_BUCKET_COUNT).fill(0);
+
+    for (const dur of durations) {
+      const bucketIndex = Math.min(
+        Math.floor(dur / HISTOGRAM_BUCKET_WIDTH_MS),
+        HISTOGRAM_BUCKET_COUNT - 1,
+      );
+      buckets[bucketIndex]++;
+    }
+
+    return buckets.map((count, i) => ({
+      bucket: i,
+      count,
+    }));
+  }
+
+  private computeRevertedDirection(
+    swipes: Array<{ cardId: string; isLiked: boolean }>,
+  ): { likedToDisliked: number; dislikedToLiked: number } {
+    const grouped = new Map<string, Array<boolean>>();
+
+    for (const swipe of swipes) {
+      const existing = grouped.get(swipe.cardId);
+      if (existing) {
+        existing.push(swipe.isLiked);
+      } else {
+        grouped.set(swipe.cardId, [swipe.isLiked]);
+      }
+    }
+
+    let likedToDisliked = 0;
+    let dislikedToLiked = 0;
+
+    for (const values of grouped.values()) {
+      for (let i = 1; i < values.length; i++) {
+        if (values[i - 1] === true && values[i] === false) {
+          likedToDisliked++;
+        } else if (values[i - 1] === false && values[i] === true) {
+          dislikedToLiked++;
+        }
+      }
+    }
+
+    return { likedToDisliked, dislikedToLiked };
   }
 
   async getMetricsBySessionId(sessionId: string): Promise<SessionMetrics> {
