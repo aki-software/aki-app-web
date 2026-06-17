@@ -16,7 +16,7 @@ export function RushGauge({ rushRate, totalSessions }: RushGaugeProps) {
       <div className="app-card !p-6 flex flex-col">
         <div className="flex items-center gap-3 mb-6">
           <div className="rounded-xl bg-app-bg p-2.5 border border-app-border">
-            <Zap className="h-5 w-5 text-yellow-500" />
+            <Zap className="h-5 w-5 text-status-warning" />
           </div>
           <p className="text-sm font-bold text-app-text-main">Respuesta Acelerada</p>
         </div>
@@ -29,10 +29,10 @@ export function RushGauge({ rushRate, totalSessions }: RushGaugeProps) {
   const clampedPct = Math.min(pct, 100);
 
   const barColor =
-    pct > 20 ? "#ef4444" : pct > 10 ? "#eab308" : "#22c55e";
+    pct > 20 ? "var(--color-status-error)" : pct > 10 ? "var(--color-status-warning)" : "var(--color-status-success)";
 
   const textColor =
-    pct > 20 ? "text-status-error" : pct > 10 ? "text-yellow-500" : "text-status-success";
+    pct > 20 ? "text-status-error" : pct > 10 ? "text-status-warning" : "text-status-success";
 
   const chartData = [
     {

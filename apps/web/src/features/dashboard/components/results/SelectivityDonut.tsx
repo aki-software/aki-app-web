@@ -60,9 +60,9 @@ export function SelectivityDonut({
   }
 
   const chartData = [
-    { name: "Selectivo", value: selective, color: "#ef4444" },
-    { name: "Balanceado", value: balanced, color: "#22c55e" },
-    { name: "Explorador", value: exploratory, color: "#f59e0b" },
+    { name: "Selectivo", value: selective, color: "var(--color-status-error)" },
+    { name: "Balanceado", value: balanced, color: "var(--color-status-success)" },
+    { name: "Explorador", value: exploratory, color: "var(--color-status-warning)" },
   ];
 
   return (
