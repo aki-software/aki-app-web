@@ -16,7 +16,11 @@ export const useSessionDetailManager = (id?: string) => {
     });
   }, [id]);
 
-  // Comportamiento: se toman las métricas pre-calculadas por el backend
+  // Métricas del backend: el endpoint GET /sessions/:id ya incluye session.metrics
+  // con todos los campos conductuales calculados por SessionMetricsService.
+  const metrics = session?.metrics ?? null;
+
+  // Campos de comportamiento ya computados por el backend — se leen directamente de metrics
   const behaviorStats = useMemo(() => {
     const m = session?.metrics;
     if (!m) return null;
@@ -24,6 +28,14 @@ export const useSessionDetailManager = (id?: string) => {
       undosCount: m.revertedMatches ?? 0,
       avgTime: m.avgTimeBetweenSwipesMs > 0 ? m.avgTimeBetweenSwipesMs : null,
       reliabilityLevel: m.reliabilityLevel ?? "N/A",
+      // Nuevos campos conductuales
+      likeRatio: m.likeRatio,
+      selectivityLevel: m.selectivityLevel,
+      fatigueDetected: m.fatigueDetected,
+      rushDetected: m.rushDetected,
+      responseTimeHistogram: m.responseTimeHistogram,
+      revertedDirection: m.revertedDirection,
+      consistencyLevel: m.consistencyLevel,
     };
   }, [session]);
 
@@ -86,6 +98,7 @@ export const useSessionDetailManager = (id?: string) => {
     session,
     loading,
     categoriesMap,
+    metrics,
     behaviorStats,
     resultsRecord,
     sortedResults,
