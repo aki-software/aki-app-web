@@ -114,7 +114,7 @@ export function HealthBar({
       />
       <IndicatorCard
         icon={<Flag className="h-5 w-5" />}
-        label="Sesiones en triage"
+        label="Sesiones pendientes de revisión"
         value={triageCount}
         color={triageColor(triageCount)}
         linkTo="/dashboard"
