@@ -116,7 +116,7 @@ export function UserSessionGroup({
                               key={`${letter}-${i}`}
                               className="inline-flex items-center justify-center h-6 w-6 rounded-lg text-[10px] font-black uppercase tracking-wider"
                               style={{
-                                backgroundColor: color ? `${color.color}20` : "var(--color-app-bg)",
+                                backgroundColor: color ? `color-mix(in srgb, ${color.color} 12%, transparent)` : "var(--color-app-bg)",
                                 color: color?.color ?? "var(--color-app-text-muted)",
                               }}
                               title={catKey ?? letter}
