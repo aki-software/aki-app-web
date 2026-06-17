@@ -24,8 +24,8 @@ export const CATEGORY_COLORS: Record<
   },
   PHYS: {
     color: "#e11d48",
-    bg: "bg-rose-600",
-    textColor: "text-rose-700",
+    bg: "bg-app-destructive",
+    textColor: "text-app-destructive",
   },
   IND: {
     color: "#52525b",
@@ -39,8 +39,8 @@ export const CATEGORY_COLORS: Record<
   },
   NAT: {
     color: "#059669",
-    bg: "bg-emerald-600",
-    textColor: "text-emerald-700",
+    bg: "bg-app-confirm",
+    textColor: "text-app-confirm",
   },
   LEAD: {
     color: "#4f46e5",
@@ -54,8 +54,8 @@ export const CATEGORY_COLORS: Record<
   },
   SAL: {
     color: "#f43f5e",
-    bg: "bg-rose-500",
-    textColor: "text-rose-700",
+    bg: "bg-app-destructive",
+    textColor: "text-app-destructive",
   },
   BUS: {
     color: "#1e1b4b", /* Negro Indigo (Premium) */
