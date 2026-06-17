@@ -74,7 +74,7 @@ function IndicatorCard({
     <button
       type="button"
       onClick={() => navigate(linkTo)}
-      className={`app-card !p-5 border-l-4 ${styles.border} text-left w-full hover:shadow-lg transition-all group`}
+      className={`app-card !p-5 border-l-4 ${styles.border} text-left w-full cursor-pointer hover:shadow-lg transition-all group`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className={`rounded-xl p-2.5 border ${styles.badge}`}>
@@ -117,7 +117,7 @@ export function HealthBar({
         label="Sesiones en triage"
         value={triageCount}
         color={triageColor(triageCount)}
-        linkTo="/dashboard/results"
+        linkTo="/dashboard"
       />
     </div>
   );
