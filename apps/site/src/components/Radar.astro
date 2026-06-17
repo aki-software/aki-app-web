@@ -12,7 +12,7 @@ const { locale } = Astro.props;
 <section class="py-24 md:py-32 relative bg-dark-bg text-white overflow-hidden" id="metodologia">
   <!-- Soft Ambient Glow behind content -->
   <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
-  <div class="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+  <div class="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-confirm/5 rounded-full blur-[120px] pointer-events-none"></div>
 
   <div class="container relative z-10">
     <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
@@ -20,23 +20,23 @@ const { locale } = Astro.props;
       <!-- Premium Radar Visualization Card (Fixed SVG boundaries and label clipping) -->
       <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0 reveal">
         <!-- Floating Outer Glow -->
-        <div class="absolute -inset-1 bg-gradient-to-br from-primary via-emerald-500 to-primary rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+        <div class="absolute -inset-1 bg-gradient-to-br from-primary via-confirm to-primary rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
         
         <div class="relative bg-white/5 backdrop-blur-2xl border border-white/10 p-8 md:p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden group">
           <!-- Animated Top Glow Inside Card -->
           <div class="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-24 bg-primary/10 blur-[40px] pointer-events-none"></div>
           
-          <svg viewBox="0 0 100 100" class="w-full h-auto drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.15)] overflow-visible">
+          <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.15)] overflow-visible">
             <defs>
               <!-- Primary Radar Fills -->
               <linearGradient id="radarFill" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--primary, #8b5cf6)" stop-opacity="0.35" />
-                <stop offset="100%" stop-color="#10b981" stop-opacity="0.35" />
+                <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="var(--color-tertiary)" stop-opacity="0.35" />
               </linearGradient>
               <!-- Primary Radar Border -->
               <linearGradient id="radarStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--primary, #8b5cf6)" />
-                <stop offset="100%" stop-color="#34d399" />
+                <stop offset="0%" stop-color="var(--color-primary)" />
+                <stop offset="100%" stop-color="var(--color-actions-confirm)" />
               </linearGradient>
               <!-- Grid Ring Glow Filter -->
               <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -101,7 +101,7 @@ const { locale } = Astro.props;
       <!-- Holland Information and Descriptions -->
       <div class="flex-1 text-center lg:text-left">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 reveal reveal-delay-1 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-          <p class="text-[11px] font-medium text-emerald-400 tracking-widest uppercase">
+          <p class="text-[11px] font-medium text-confirm tracking-widest uppercase">
             CIENCIA Y ORIENTACIÓN
           </p>
         </div>
@@ -119,9 +119,9 @@ const { locale } = Astro.props;
           {[
             { letter: 'R', label: locale === 'es' ? 'Realista' : 'Realistic', desc: locale === 'es' ? 'Hacer y construir' : 'Do & Build', color: 'border-violet-500/20 text-violet-400 bg-violet-500/10 hover:border-violet-500/50' },
             { letter: 'I', label: locale === 'es' ? 'Investigativo' : 'Investigative', desc: locale === 'es' ? 'Pensar y analizar' : 'Think & Analyze', color: 'border-blue-500/20 text-blue-400 bg-blue-500/10 hover:border-blue-500/50' },
-            { letter: 'A', label: locale === 'es' ? 'Artístico' : 'Artistic', desc: locale === 'es' ? 'Crear y diseñar' : 'Create & Design', color: 'border-emerald-500/20 text-emerald-400 bg-emerald-500/10 hover:border-emerald-500/50' },
-            { letter: 'S', label: locale === 'es' ? 'Social' : 'Social', desc: locale === 'es' ? 'Ayudar y enseñar' : 'Help & Teach', color: 'border-rose-500/20 text-rose-400 bg-rose-500/10 hover:border-rose-500/50' },
-            { letter: 'E', label: locale === 'es' ? 'Emprendedor' : 'Enterprising', desc: locale === 'es' ? 'Liderar e influir' : 'Lead & Influence', color: 'border-amber-500/20 text-amber-400 bg-amber-500/10 hover:border-amber-500/50' },
+            { letter: 'A', label: locale === 'es' ? 'Artístico' : 'Artistic', desc: locale === 'es' ? 'Crear y diseñar' : 'Create & Design', color: 'border-confirm/20 text-confirm bg-confirm/10 hover:border-confirm/50' },
+            { letter: 'S', label: locale === 'es' ? 'Social' : 'Social', desc: locale === 'es' ? 'Ayudar y enseñar' : 'Help & Teach', color: 'border-destructive/20 text-destructive bg-destructive/10 hover:border-destructive/50' },
+            { letter: 'E', label: locale === 'es' ? 'Emprendedor' : 'Enterprising', desc: locale === 'es' ? 'Liderar e influir' : 'Lead & Influence', color: 'border-warning/20 text-warning bg-warning/10 hover:border-warning/50' },
             { letter: 'C', label: locale === 'es' ? 'Convencional' : 'Conventional', desc: locale === 'es' ? 'Organizar y estructurar' : 'Organize & Structure', color: 'border-slate-400/20 text-slate-300 bg-slate-400/10 hover:border-slate-400/50' },
           ].map((type) => (
             <div class={`group flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/5 border backdrop-blur-md transition-all duration-300 hover:-translate-y-1 ${type.color} shadow-[0_4px_12px_rgba(0,0,0,0.15)]`}>
