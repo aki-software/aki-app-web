@@ -65,17 +65,13 @@ function IndicatorCard({
   label: string;
   value: number;
   color: "green" | "yellow" | "red";
-  linkTo: string;
+  linkTo?: string;
 }) {
   const navigate = useNavigate();
   const styles = STATUS_STYLES[color];
-
-  return (
-    <button
-      type="button"
-      onClick={() => navigate(linkTo)}
-      className={`app-card !p-5 border-l-4 ${styles.border} text-left w-full cursor-pointer hover:shadow-lg transition-all group`}
-    >
+  const baseClass = `app-card !p-5 border-l-4 ${styles.border} text-left w-full`;
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-3">
         <div className={`rounded-xl p-2.5 border ${styles.badge}`}>
           {icon}
@@ -87,8 +83,22 @@ function IndicatorCard({
       <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-app-text-muted/70">
         {label}
       </p>
-    </button>
+    </>
   );
+
+  if (linkTo) {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(linkTo)}
+        className={`${baseClass} cursor-pointer hover:shadow-lg transition-all group`}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={baseClass}>{content}</div>;
 }
 
 export function HealthBar({
@@ -117,7 +127,6 @@ export function HealthBar({
         label="Sesiones pendientes de revisión"
         value={triageCount}
         color={triageColor(triageCount)}
-        linkTo="/dashboard"
       />
     </div>
   );
