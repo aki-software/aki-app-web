@@ -80,7 +80,7 @@ function IndicatorCard({
           {formatCount(value)}
         </span>
       </div>
-      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-app-text-muted/70">
+      <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-app-text-muted/80">
         {label}
       </p>
     </>

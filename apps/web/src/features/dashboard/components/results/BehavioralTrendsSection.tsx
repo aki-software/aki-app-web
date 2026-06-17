@@ -37,8 +37,8 @@ export function BehavioralTrendsSection({
           Comportamiento en sesiones
         </span>
         <div className="group relative flex items-center">
-          <Info className="h-4 w-4 text-app-text-muted/40 hover:text-app-primary cursor-help transition-colors" />
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-72 p-4 rounded-2xl bg-app-text-main text-app-bg text-xs font-semibold leading-relaxed shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-20">
+          <Info className="h-4 w-4 text-app-text-muted/60 hover:text-app-primary cursor-help transition-colors" />
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-72 p-4 rounded-2xl bg-app-surface border border-app-border text-app-text-main text-xs font-semibold leading-relaxed shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-20">
             <p className="mb-2">
               <strong>Selectividad:</strong> Cómo acepta o rechaza opciones.
               Explorador (acepta mucho) ↔ Selectivo (rechaza mucho).
@@ -51,7 +51,7 @@ export function BehavioralTrendsSection({
               <strong>Rush:</strong> % de sesiones donde el paciente respondió
               muy rápido en ciertos tramos, posible descuido.
             </p>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-app-text-main" />
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-app-border" />
           </div>
         </div>
         <div className="h-px flex-1 bg-app-border" />

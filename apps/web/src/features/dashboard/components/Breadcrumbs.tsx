@@ -42,7 +42,7 @@ export function Breadcrumbs({ labels = {} }: BreadcrumbsProps) {
   });
 
   return (
-    <div className="flex items-center gap-2 text-[11px] font-semibold text-app-text-muted/50 uppercase tracking-[0.15em]">
+    <div className="flex items-center gap-2 text-[11px] font-semibold text-app-text-muted/70 uppercase tracking-[0.15em]">
       {crumbs.map((crumb, index) => (
         <span key={crumb.path} className="flex items-center gap-2">
           {index > 0 && <span className="opacity-30">/</span>}
