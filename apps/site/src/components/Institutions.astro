@@ -1,4 +1,5 @@
 ---
+import ContactForm from './ContactForm.astro';
 import type { Locale, Translation } from '../i18n/translations';
 
 interface Props {
@@ -6,34 +7,32 @@ interface Props {
   t: Translation;
 }
 
-const { t } = Astro.props;
+const { locale, t } = Astro.props;
 ---
 
-<section class="py-24 md:py-32 bg-surface" id="instituciones">
+<section class="py-24 md:py-32 bg-[#F5EFE7]" id="instituciones">
   <div class="container">
     <div class="max-w-2xl mx-auto text-center mb-12">
-      <span class="text-xs font-medium text-primary tracking-wider uppercase reveal">{t.institutions.badge}</span>
-      <h2 class="font-display font-bold text-2xl md:text-3xl text-text mt-3 mb-4 reveal reveal-delay-1 whitespace-pre-line">
+      <span class="text-xs font-medium text-[#8E5A12] tracking-wider uppercase reveal">{t.institutions.badge}</span>
+      <h2 class="font-display font-bold text-2xl md:text-3xl text-[#1F2523] mt-3 mb-4 reveal reveal-delay-1 whitespace-pre-line">
         {t.institutions.title}
       </h2>
-      <p class="text-sm text-text-muted leading-relaxed reveal reveal-delay-2">{t.institutions.desc}</p>
+      <p class="text-sm text-[#44403C] leading-relaxed reveal reveal-delay-2">{t.institutions.desc}</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
       {t.institutions.features.map((feature, i) => (
-        <div class="bg-bg rounded-lg border border-border/60 p-5 text-center reveal" style={`transition-delay: ${i * 0.1}s;`}>
-          <svg aria-hidden="true" class="w-5 h-5 text-primary mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg border border-[#DCD3C5]/40 p-5 text-center reveal shadow-sm" style={`transition-delay: ${i * 0.1}s;`}>
+          <svg aria-hidden="true" class="w-5 h-5 text-[#8E5A12] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
-          <p class="text-sm text-text">{feature}</p>
+          <p class="text-sm text-[#1F2523]">{feature}</p>
         </div>
       ))}
     </div>
 
-    <div class="text-center mt-8 reveal reveal-delay-3">
-      <a href="mailto:contacto@orientaki.com" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-surface bg-primary rounded-lg hover:bg-primary-dark transition-colors">
-        {t.institutions.cta}
-      </a>
+    <div class="mt-12 reveal reveal-delay-3">
+      <ContactForm locale={locale} t={t} />
     </div>
   </div>
 </section>
