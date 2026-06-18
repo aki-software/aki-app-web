@@ -10,89 +10,104 @@ const { locale, t } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 
 const isEn = locale === 'en';
-const freeMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'A.ki Pilot Access Request' : 'Solicitud Acceso A.ki Piloto')}`;
-const premiumMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'A.ki Campus Plan Consultation' : 'Consulta Plan A.ki Campus')}`;
+const demoMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'Demo Request - A.ki Platform' : 'Solicitud de Demo - Plataforma A.ki')}`;
+const basicMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'I want 25 vouchers - A.ki' : 'Quiero 25 vouchers - A.ki')}`;
+const proMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'I want 50 vouchers - A.ki' : 'Quiero 50 vouchers - A.ki')}`;
 ---
 
-<section class="py-24 md:py-32 relative bg-dark-bg overflow-hidden" id="precios">
-  <!-- Background Glows -->
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+<section class="py-24 md:py-32 relative bg-[#F5EFE7]" id="precios">
 
-  <div class="container relative z-10">
+  <div class="container">
     <div class="text-center mb-16">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 reveal shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-        <p class="text-[11px] font-medium text-confirm tracking-widest uppercase">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#8E5A12]/20 mb-6 reveal shadow-sm">
+        <p class="text-[11px] font-medium text-[#8E5A12] tracking-widest uppercase">
           PLANES CLAROS
         </p>
       </div>
-      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-6 reveal reveal-delay-1 tracking-tight">{t.pricing.title}</h2>
-      <p class="text-lg text-dark-muted max-w-2xl mx-auto reveal reveal-delay-2">{t.pricing.subtitle}</p>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-[#1F2523] mb-6 reveal reveal-delay-1 tracking-tight">{t.pricing.title}</h2>
+      <p class="text-lg text-[#44403C] max-w-2xl mx-auto reveal reveal-delay-2">{t.pricing.subtitle}</p>
     </div>
 
     <div class="flex flex-col md:flex-row items-stretch justify-center gap-6 lg:gap-8 max-w-5xl mx-auto">
-      <!-- Free Tier -->
-      <div class="w-full md:w-[340px] flex flex-col bg-white/5 backdrop-blur-xl rounded-[2rem] border border-white/10 p-8 reveal hover:-translate-y-2 transition-transform duration-500 shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
+      <!-- Demo Tier (3 vouchers, $0) — prominent -->
+      <div class="w-full md:w-[340px] flex flex-col bg-white border-2 border-primary/20 rounded-[2rem] p-8 reveal hover:-translate-y-1 transition-transform duration-500 shadow-sm">
         <div class="mb-8">
-          <p class="text-sm font-semibold text-white/60 uppercase tracking-widest mb-4">{t.pricing.free.label}</p>
-          <div class="flex items-baseline gap-1">
-            <span class="font-display font-bold text-5xl text-white">$0</span>
+          <div class="flex justify-between items-center mb-4">
+            <p class="text-sm font-semibold text-[#44403C] uppercase tracking-widest">{t.pricing.demo.label}</p>
+            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-primary rounded-full">{t.pricing.demo.badge}</span>
           </div>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-5xl text-[#1F2523]">$0</span>
+          </div>
+          <p class="text-xs text-[#44403C] font-medium mt-1">{t.pricing.demo.desc}</p>
         </div>
         
         <div class="flex-1 flex flex-col gap-4 mb-8">
-          {t.pricing.free.features.map((f) => (
+          {t.pricing.demo.features.map((f) => (
             <div class="flex items-start gap-3">
-              <div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
-                <svg class="w-3 h-3 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+              <div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
               </div>
-              <span class="text-sm text-white/80 leading-relaxed">{f}</span>
+              <span class="text-sm text-[#1F2523]/80 leading-relaxed">{f}</span>
             </div>
           ))}
         </div>
 
-          <a href={freeMailto} class="mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition-colors">
-            {t.pricing.free.cta}
-          </a>
+        <a href={demoMailto} onclick="event.preventDefault();window.location.href=this.href" class="mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary-dark transition-colors">{t.pricing.demo.cta}</a>
+      </div>
+
+      <!-- Basic Tier (25 vouchers) -->
+      <div class="w-full md:w-[280px] flex flex-col bg-white border border-[#DCD3C5]/40 rounded-[2rem] p-8 reveal reveal-delay-1 hover:-translate-y-1 transition-transform duration-500 shadow-sm">
+        <div class="mb-8">
+          <div class="flex justify-between items-center mb-4">
+            <p class="text-sm font-semibold text-[#1F2523] uppercase tracking-widest">{t.pricing.basic.label}</p>
+            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#1F2523] bg-[#8E5A12] rounded-full">{t.pricing.basic.badge}</span>
+          </div>
+          <div class="flex items-baseline gap-1 mb-2">
+            <span class="font-display font-bold text-5xl text-[#1F2523]">{t.pricing.basic.price}</span>
+          </div>
+          <p class="text-xs text-[#44403C] font-medium">{t.pricing.basic.desc}</p>
+        </div>
+        
+        <div class="flex-1 flex flex-col gap-4 mb-8">
+          {t.pricing.basic.features.map((f) => (
+            <div class="flex items-start gap-3">
+              <div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <span class="text-sm text-[#1F2523] leading-relaxed">{f}</span>
+            </div>
+          ))}
         </div>
 
-        <!-- Premium Tier (Highlighted) -->
-        <div class="relative w-full md:w-[380px] flex flex-col bg-gradient-to-b from-dark-surface to-dark-bg rounded-[2rem] p-1 reveal reveal-delay-1 hover:-translate-y-2 transition-transform duration-500 shadow-[0_20px_40px_rgba(var(--primary-rgb),0.15)] group">
-          <!-- Animated Gradient Border -->
-          <div class="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-primary via-confirm to-primary opacity-50 group-hover:opacity-100 transition-opacity duration-500" style="mask-image: linear-gradient(black, black); mask-composite: exclude;"></div>
-          
-          <div class="relative h-full flex flex-col bg-dark-bg/90 backdrop-blur-2xl rounded-[1.9rem] p-8 overflow-hidden">
-            <!-- Top Glow -->
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-primary/20 blur-[50px] pointer-events-none"></div>
+        <a href={basicMailto} onclick="event.preventDefault();window.location.href=this.href" class="mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-[#1F2523] rounded-xl hover:bg-[#1F2523]/90 transition-colors">{t.pricing.basic.cta}</a>
+      </div>
 
-            <div class="relative mb-8">
-              <div class="flex justify-between items-center mb-4">
-                <p class="text-sm font-semibold text-primary-light uppercase tracking-widest">{t.pricing.premium.label}</p>
-                <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-dark-bg bg-gradient-to-r from-primary to-confirm rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]">
-                  {t.pricing.premium.badge}
-                </span>
-              </div>
-              <div class="flex items-baseline gap-1 mb-2">
-                <span class="font-display font-bold text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">{t.pricing.premium.price}</span>
-              </div>
-              <p class="text-xs text-white/50 font-medium">{t.pricing.premium.desc}</p>
-            </div>
-            
-            <div class="flex-1 flex flex-col gap-4 mb-8 relative">
-              {t.pricing.premium.features.map((f) => (
-                <div class="flex items-start gap-3">
-                  <div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-                    <svg class="w-3 h-3 text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  </div>
-                  <span class="text-sm text-white leading-relaxed">{f}</span>
-                </div>
-              ))}
-            </div>
-
-            <a href={premiumMailto} class="relative mt-auto block w-full py-4 text-center text-sm font-bold text-dark-bg bg-white rounded-xl hover:scale-[1.02] transition-transform shadow-[0_0_20px_rgba(255,255,255,0.2)] overflow-hidden">
-              <div class="absolute inset-0 bg-gradient-to-r from-primary to-primary-light opacity-0 hover:opacity-10 transition-opacity"></div>
-              {t.pricing.premium.cta}
-            </a>
+      <!-- Pro Tier (50 vouchers) -->
+      <div class="w-full md:w-[280px] flex flex-col bg-white border border-[#DCD3C5]/40 rounded-[2rem] p-8 reveal reveal-delay-2 hover:-translate-y-1 transition-transform duration-500 shadow-sm">
+        <div class="mb-8">
+          <div class="flex justify-between items-center mb-4">
+            <p class="text-sm font-semibold text-[#1F2523] uppercase tracking-widest">{t.pricing.pro.label}</p>
+            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-[#0F6B68] rounded-full">{t.pricing.pro.badge}</span>
+          </div>
+          <div class="flex items-baseline gap-1 mb-2">
+            <span class="font-display font-bold text-5xl text-[#1F2523]">{t.pricing.pro.price}</span>
+          </div>
+          <p class="text-xs text-[#44403C] font-medium">{t.pricing.pro.desc}</p>
         </div>
+        
+        <div class="flex-1 flex flex-col gap-4 mb-8">
+          {t.pricing.pro.features.map((f) => (
+            <div class="flex items-start gap-3">
+              <div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <span class="text-sm text-[#1F2523] leading-relaxed">{f}</span>
+            </div>
+          ))}
+        </div>
+
+        <a href={proMailto} onclick="event.preventDefault();window.location.href=this.href" class="mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-[#0F6B68] rounded-xl hover:bg-[#0F6B68]/90 transition-colors">{t.pricing.pro.cta}</a>
       </div>
     </div>
   </div>

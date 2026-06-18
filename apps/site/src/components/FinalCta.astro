@@ -11,13 +11,13 @@ const webUrl = import.meta.env.PUBLIC_WEB_URL || 'http://localhost:5173';
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
 ---
 
-<section class="py-24 md:py-32 bg-dark-bg text-dark-text text-center" id="cta-final">
+<section class="py-24 md:py-32 bg-[#F5EFE7] text-center" id="cta-final">
   <div class="container">
-    <h2 class="font-display font-bold text-3xl md:text-4xl lg:text-5xl mb-4 reveal">{t.finalCta.title}</h2>
-    <p class="text-dark-muted mb-8 max-w-md mx-auto reveal reveal-delay-1">{t.finalCta.subtitle}</p>
+    <h2 class="font-display font-bold text-3xl md:text-4xl lg:text-5xl mb-4 text-[#1F2523] reveal">{t.finalCta.title}</h2>
+    <p class="text-[#44403C] mb-8 max-w-md mx-auto reveal reveal-delay-1">{t.finalCta.subtitle}</p>
 
     <div class="flex flex-col sm:flex-row items-center justify-center gap-3 reveal reveal-delay-2">
-      <a href={playStoreUrl} class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-dark-bg bg-primary rounded-lg hover:bg-primary-light transition-colors shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:scale-105 duration-300">
+      <a href={playStoreUrl} class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors hover:scale-105 duration-300">
         <svg aria-hidden="true" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
           <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
         </svg>
@@ -26,21 +26,21 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
     </div>
 
     <div class="flex items-center justify-center gap-3 mt-8 reveal reveal-delay-3">
-      <div class="w-14 h-14 rounded-lg bg-dark-surface border border-dark-border flex items-center justify-center p-2">
+      <div class="w-14 h-14 rounded-lg bg-white border border-[#DCD3C5]/40 flex items-center justify-center p-2">
         <img src="/qr-playstore.svg" alt={t.finalCta.qrLabel} class="w-full h-full object-contain rounded" loading="lazy" />
       </div>
       <div class="text-left">
         <p class="text-sm font-medium">{t.finalCta.qrLabel}</p>
-        <p class="text-xs text-dark-muted">{t.finalCta.qrSublabel}</p>
+        <p class="text-xs text-[#44403C]">{t.finalCta.qrSublabel}</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- Sticky mobile CTA -->
-<div class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-dark-surface/95 backdrop-blur-sm border-t border-dark-border p-3">
-  <a href={playStoreUrl} class="flex items-center justify-center gap-2 w-full py-3 text-sm font-semibold text-dark-bg bg-primary rounded-lg">
-    {t.finalCta.googlePlay} — {t.pricing.free.label}
+<div class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#F5EFE7]/95 backdrop-blur-sm border-t border-[#DCD3C5]/40 p-3">
+  <a href={playStoreUrl} class="flex items-center justify-center gap-2 w-full py-3 text-sm font-semibold text-white bg-primary rounded-lg">
+    {t.finalCta.googlePlay} — {t.pricing.demo.label}
   </a>
 </div>
 
