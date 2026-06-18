@@ -6,165 +6,243 @@ interface Props {
   t: Translation;
 }
 
-const { locale } = Astro.props;
+const { locale, t } = Astro.props;
+const categories = t.methodology.categories;
+
+interface BadgeStyle {
+  code: string;
+  border: string;
+  text: string;
+  bg: string;
+  dot: string;
+}
+
+const badgeStyles: BadgeStyle[] = [
+  { code: 'ART', border: 'border-violet-200', text: 'text-violet-700', bg: 'bg-violet-50', dot: '#a78bfa' },
+  { code: 'HUM', border: 'border-fuchsia-200', text: 'text-fuchsia-700', bg: 'bg-fuchsia-50', dot: '#d946ef' },
+  { code: 'SERV', border: 'border-teal-200', text: 'text-teal-700', bg: 'bg-teal-50', dot: '#0d9488' },
+  { code: 'PROT', border: 'border-slate-200', text: 'text-slate-700', bg: 'bg-slate-50', dot: '#64748b' },
+  { code: 'FÍS', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50', dot: '#f43f5e' },
+  { code: 'IND', border: 'border-zinc-200', text: 'text-zinc-700', bg: 'bg-zinc-50', dot: '#52525b' },
+  { code: 'MEC', border: 'border-orange-200', text: 'text-orange-700', bg: 'bg-orange-50', dot: '#ea580c' },
+  { code: 'NAT', border: 'border-green-200', text: 'text-green-700', bg: 'bg-green-50', dot: '#22c55e' },
+  { code: 'LÍD', border: 'border-indigo-200', text: 'text-indigo-700', bg: 'bg-indigo-50', dot: '#6366f1' },
+  { code: 'SCI', border: 'border-indigo-300', text: 'text-indigo-800', bg: 'bg-indigo-100', dot: '#4338ca' },
+  { code: 'VENT', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50', dot: '#f43f5e' },
+  { code: 'BUS', border: 'border-indigo-200', text: 'text-indigo-800', bg: 'bg-indigo-50', dot: '#312e81' },
+];
 ---
 
-<section class="py-24 md:py-32 relative bg-dark-bg text-white overflow-hidden" id="metodologia">
-  <!-- Soft Ambient Glow behind content -->
-  <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
-  <div class="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-confirm/5 rounded-full blur-[120px] pointer-events-none"></div>
-
+<section class="py-24 md:py-32 relative bg-[#F5EFE7] overflow-hidden" id="metodologia">
   <div class="container relative z-10">
     <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-      
-      <!-- Premium Radar Visualization Card (Fixed SVG boundaries and label clipping) -->
-      <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0 reveal">
-        <!-- Floating Outer Glow -->
-        <div class="absolute -inset-1 bg-gradient-to-br from-primary via-confirm to-primary rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-        
-        <div class="relative bg-white/5 backdrop-blur-2xl border border-white/10 p-8 md:p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden group">
-          <!-- Animated Top Glow Inside Card -->
-          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-24 bg-primary/10 blur-[40px] pointer-events-none"></div>
-          
-          <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.15)] overflow-visible">
-            <defs>
-              <!-- Primary Radar Fills -->
-              <linearGradient id="radarFill" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.35" />
-                <stop offset="100%" stop-color="var(--color-tertiary)" stop-opacity="0.35" />
-              </linearGradient>
-              <!-- Primary Radar Border -->
-              <linearGradient id="radarStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--color-primary)" />
-                <stop offset="100%" stop-color="var(--color-actions-confirm)" />
-              </linearGradient>
-              <!-- Grid Ring Glow Filter -->
-              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="1.5" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-              </filter>
-            </defs>
+      <!-- Radar Visualization Card -->
+      <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0">
+        <div id="radar-card" class="bg-white border border-[#DCD3C5]/40 p-8 md:p-10 rounded-[3rem] shadow-md overflow-hidden">
+          <div class="radar-svg-wrapper" style="transform: scale(0.8); opacity: 0; transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;">
+            <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto overflow-visible">
+              <defs>
+                <linearGradient id="radarFillRecharts" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="5%" stop-color="var(--color-primary)" stop-opacity="0.55" />
+                  <stop offset="95%" stop-color="var(--color-primary)" stop-opacity="0.08" />
+                </linearGradient>
+                <filter id="dot-glow-recharts">
+                  <feGaussianBlur stdDeviation="1" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
 
-            <!-- Background Polygons (12 vertices — matching platform categories) -->
-            <!-- 100% Ring (R=36) -->
-            <polygon points="50,14 68,18.8 81.2,32 86,50 81.2,68 68,81.2 50,86 32,81.2 18.8,68 14,50 18.8,32 32,18.8" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.6" />
-            <!-- 75% Ring (R=27) -->
-            <polygon points="50,23 63.5,26.6 73.4,36.5 77,50 73.4,63.5 63.5,73.4 50,77 36.5,73.4 26.6,63.5 23,50 26.6,36.5 36.5,26.6" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.4" />
-            <!-- 50% Ring (R=18) -->
-            <polygon points="50,32 59,34.4 65.6,41 68,50 65.6,59 59,65.6 50,68 41,65.6 34.4,59 32,50 34.4,41 41,34.4" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.4" />
-            <!-- 25% Ring (R=9) -->
-            <polygon points="50,41 54.5,42.2 57.8,45.5 59,50 57.8,54.5 54.5,57.8 50,59 45.5,57.8 42.2,54.5 41,50 42.2,45.5 45.5,42.2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.4" />
+              <!-- Polar grid: concentric circles at 25%, 50%, 75%, 100% -->
+              <circle cx="50" cy="50" r="36" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="0.4" />
+              <circle cx="50" cy="50" r="27" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="0.3" stroke-dasharray="2 2" />
+              <circle cx="50" cy="50" r="18" fill="none" stroke="rgba(0,0,0,0.05)" stroke-width="0.3" stroke-dasharray="2 2" />
+              <circle cx="50" cy="50" r="9" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="0.3" stroke-dasharray="1.5 1.5" />
 
-            <!-- Axis lines from center to outer ring -->
-            <line x1="50" y1="50" x2="50" y2="14" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="68" y2="18.8" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="81.2" y2="32" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="86" y2="50" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="81.2" y2="68" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="68" y2="81.2" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="50" y2="86" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="32" y2="81.2" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="18.8" y2="68" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="14" y2="50" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="18.8" y2="32" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="32" y2="18.8" stroke="rgba(255,255,255,0.08)" stroke-width="0.4" stroke-dasharray="1 1" />
+              <!-- Radius axis lines (dashed) -->
+              {[
+                [50,14,50,50],[68,18.8,50,50],[81.2,32,50,50],[86,50,50,50],
+                [81.2,68,50,50],[68,81.2,50,50],[50,86,50,50],[32,81.2,50,50],
+                [18.8,68,50,50],[14,50,50,50],[18.8,32,50,50],[32,18.8,50,50]
+              ].map(([x1,y1]) => (
+                <line x1={x1} y1={y1} x2="50" y2="50" stroke="rgba(0,0,0,0.07)" stroke-width="0.3" stroke-dasharray="2 3" />
+              ))}
 
-            <!-- The "Result" Shape (12-point profile matching platform) -->
-            <polygon 
-              points="50,20 63,25 72,35 78,50 72,60 62,72 50,78 38,72 28,60 24,50 28,38 38,25" 
-              fill="url(#radarFill)" 
-              stroke="url(#radarStroke)" 
-              stroke-width="1.2"
-              class="animate-pulse origin-center"
-              style="animation-duration: 4s;"
-            />
+              <!-- Radius axis labels (0, 25, 50, 75, 100) on the right axis -->
+              {[[50,91,'0'],[41,83,'25'],[32,74,'50'],[23,65,'75'],[14,56,'100']].map(([x,y,val]) => (
+                <text x={x} y={y} text-anchor="end" fill="rgba(0,0,0,0.15)" font-size="2.2" font-weight="500" font-family="monospace">{val}</text>
+              ))}
 
-            <!-- Bright glowing vertices points (matching platform category colors) -->
-            <circle cx="50" cy="20" r="1.5" fill="#a78bfa" filter="url(#glow)" />
-            <circle cx="63" cy="25" r="1.5" fill="#d946ef" filter="url(#glow)" />
-            <circle cx="72" cy="35" r="1.5" fill="#0d9488" filter="url(#glow)" />
-            <circle cx="78" cy="50" r="1.5" fill="#64748b" filter="url(#glow)" />
-            <circle cx="72" cy="60" r="1.5" fill="#f43f5e" filter="url(#glow)" />
-            <circle cx="62" cy="72" r="1.5" fill="#52525b" filter="url(#glow)" />
-            <circle cx="50" cy="78" r="1.5" fill="#ea580c" filter="url(#glow)" />
-            <circle cx="38" cy="72" r="1.5" fill="#22c55e" filter="url(#glow)" />
-            <circle cx="28" cy="60" r="1.5" fill="#6366f1" filter="url(#glow)" />
-            <circle cx="24" cy="50" r="1.5" fill="#4338ca" filter="url(#glow)" />
-            <circle cx="28" cy="38" r="1.5" fill="#f43f5e" filter="url(#glow)" />
-            <circle cx="38" cy="25" r="1.5" fill="#312e81" filter="url(#glow)" />
+              <!-- Result polygon (animated draw) -->
+              <polygon id="radar-result"
+                points="50,20 63,25 72,35 78,50 72,60 62,72 50,78 38,72 28,60 24,50 28,38 38,25"
+                fill="url(#radarFillRecharts)"
+                stroke="var(--color-primary)"
+                stroke-width="1.8"
+                stroke-linejoin="round"
+                stroke-dasharray="400"
+                stroke-dashoffset="400"
+                filter="url(#dot-glow-recharts)"
+              />
 
-            <!-- Category labels (12 codes matching platform) -->
-            <text x="50" y="9" text-anchor="middle" fill="#a78bfa" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">ART</text>
-            <text x="69" y="17" text-anchor="start" fill="#d946ef" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">HUM</text>
-            <text x="83" y="31" text-anchor="start" fill="#0d9488" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">SERV</text>
-            <text x="89" y="52" text-anchor="start" fill="#64748b" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">PROT</text>
-            <text x="82" y="72" text-anchor="end" fill="#f43f5e" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">FÍS</text>
-            <text x="69" y="84" text-anchor="end" fill="#52525b" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">IND</text>
-            <text x="50" y="93" text-anchor="middle" fill="#ea580c" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">MEC</text>
-            <text x="31" y="84" text-anchor="end" fill="#22c55e" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">NAT</text>
-            <text x="17" y="72" text-anchor="end" fill="#6366f1" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">LÍD</text>
-            <text x="11" y="52" text-anchor="end" fill="#4338ca" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">SCI</text>
-            <text x="17" y="31" text-anchor="start" fill="#f43f5e" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">VENT</text>
-            <text x="31" y="17" text-anchor="start" fill="#312e81" font-size="4.5" font-weight="800" font-family="Sora, sans-serif">BUS</text>
-          </svg>
+              <!-- Vertex dots on result polygon -->
+              {[
+                [50,20,'#a78bfa'],[63,25,'#d946ef'],[72,35,'#0d9488'],[78,50,'#64748b'],
+                [72,60,'#f43f5e'],[62,72,'#52525b'],[50,78,'#ea580c'],[38,72,'#22c55e'],
+                [28,60,'#6366f1'],[24,50,'#4338ca'],[28,38,'#f43f5e'],[38,25,'#312e81']
+              ].map(([x,y,color]) => (
+                <circle id={`v-${['ART','HUM','SERV','PROT','FÍS','IND','MEC','NAT','LÍD','SCI','VENT','BUS'][['50,20','63,25','72,35','78,50','72,60','62,72','50,78','38,72','28,60','24,50','28,38','38,25'].indexOf(`${x},${y}`)]}`}
+                  cx={x} cy={y} r="3" fill={color} stroke="white" stroke-width="1" filter="url(#dot-glow-recharts)"
+                  class="radar-dot-recharts" />
+              ))}
+
+              <!-- Category labels (codes with full names below) -->
+              {[
+                [50,6,'ART','Artística','#7c3aed'],
+                [70,16,'HUM','Humanidades','#c026d3'],
+                [86,30,'SERV','Servicio Social','#0f766e'],
+                [91,50,'PROT','Protección','#475569'],
+                [86,70,'FÍS','Deportes','#dc2626'],
+                [70,84,'IND','Industria','#525252'],
+                [50,92,'MEC','Mecánica','#c2410c'],
+                [30,84,'NAT','Naturaleza','#16a34a'],
+                [14,70,'LÍD','Liderazgo','#4f46e5'],
+                [9,50,'SCI','Ciencia','#3730a3'],
+                [14,30,'VENT','Ventas','#dc2626'],
+                [30,16,'BUS','Negocios','#1e1b4b']
+              ].map(([x,y,code,fullName,color]) => {
+                const isLeft = x < 50;
+                const isRight = x > 50;
+                const anchor = x === 50 ? 'middle' : isLeft ? 'end' : 'start';
+                const labelX = x === 50 ? x : isLeft ? x - 3 : x + 3;
+                return (
+                  <g>
+                    <text x={labelX} y={y} text-anchor={anchor} fill={color} font-size="4.2" font-weight="800" font-family="Sora, sans-serif" letter-spacing="1.5">{code}</text>
+                    <text x={labelX} y={y + 4.5} text-anchor={anchor} fill="rgba(0,0,0,0.35)" font-size="2.5" font-weight="500" font-family="Sora, sans-serif">{fullName}</text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
         </div>
       </div>
 
-      <!-- Holland Information and Descriptions -->
+      <!-- Right: Description + Interactive Badge Grid -->
       <div class="flex-1 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 reveal reveal-delay-1 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-          <p class="text-[11px] font-medium text-confirm tracking-widest uppercase">
-            CIENCIA Y ORIENTACIÓN
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#8E5A12]/20 mb-6 reveal reveal-delay-1 shadow-sm">
+          <p class="text-[11px] font-medium text-[#8E5A12] tracking-widest uppercase">
+            METODOLOGÍA CIENTÍFICA
           </p>
         </div>
-        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-6 reveal reveal-delay-1 tracking-tight">
-          {locale === 'es' ? 'Tu perfil en 12 categorías' : 'Your profile in 12 categories'}
+        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-[#1F2523] mb-6 reveal reveal-delay-1 tracking-tight">
+          {locale === 'es' ? '12 categorías ocupacionales' : '12 occupational categories'}
         </h2>
-        <p class="text-lg text-dark-muted leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
-          {locale === 'es' 
+        <p class="text-lg text-[#44403C] leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
+          {locale === 'es'
             ? 'A.ki mapea tus intereses mediante un enfoque científico de orientación vocacional validado globalmente. Identificamos tu afinidad en doce categorías ocupacionales para trazar el mapa de tu futuro.'
             : 'A.ki maps your interests using a globally validated scientific approach in vocational guidance. We identify your affinity across twelve occupational categories to chart your future.'}
         </p>
 
-        <!-- Legend Grid with Modern Micro-Interactions (12 categories matching platform) -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 reveal reveal-delay-3">
-          {[
-            { code: 'ART', label: locale === 'es' ? 'Artístico' : 'Artistic', color: 'border-violet-500/20 text-violet-400 bg-violet-500/10 hover:border-violet-500/50' },
-            { code: 'HUM', label: locale === 'es' ? 'Humano' : 'Human', color: 'border-fuchsia-500/20 text-fuchsia-400 bg-fuchsia-500/10 hover:border-fuchsia-500/50' },
-            { code: 'SERV', label: locale === 'es' ? 'Servicios' : 'Services', color: 'border-teal-600/20 text-teal-400 bg-teal-600/10 hover:border-teal-600/50' },
-            { code: 'PROT', label: locale === 'es' ? 'Prot' : 'Prot', color: 'border-slate-600/20 text-slate-400 bg-slate-600/10 hover:border-slate-600/50' },
-            { code: 'FÍS', label: locale === 'es' ? 'Físico' : 'Physical', color: 'border-destructive/20 text-destructive bg-destructive/10 hover:border-destructive/50' },
-            { code: 'IND', label: locale === 'es' ? 'Industrial' : 'Industrial', color: 'border-zinc-600/20 text-zinc-400 bg-zinc-600/10 hover:border-zinc-600/50' },
-            { code: 'MEC', label: locale === 'es' ? 'Mecánica' : 'Mechanics', color: 'border-orange-600/20 text-orange-400 bg-orange-600/10 hover:border-orange-600/50' },
-            { code: 'NAT', label: locale === 'es' ? 'Natural' : 'Natural', color: 'border-confirm/20 text-confirm bg-confirm/10 hover:border-confirm/50' },
-            { code: 'LÍD', label: locale === 'es' ? 'Líder' : 'Leadership', color: 'border-indigo-500/20 text-indigo-400 bg-indigo-500/10 hover:border-indigo-500/50' },
-            { code: 'SCI', label: locale === 'es' ? 'Ciencia' : 'Science', color: 'border-indigo-700/20 text-indigo-300 bg-indigo-700/10 hover:border-indigo-700/50' },
-            { code: 'VENT', label: locale === 'es' ? 'Ventas' : 'Sales', color: 'border-destructive/20 text-destructive bg-destructive/10 hover:border-destructive/50' },
-            { code: 'BUS', label: locale === 'es' ? 'Negocios' : 'Business', color: 'border-indigo-950/20 text-indigo-200 bg-indigo-950/10 hover:border-indigo-950/50' },
-          ].map((type) => (
-            <div class={`group flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 border backdrop-blur-md transition-all duration-300 hover:-translate-y-1 ${type.color} shadow-[0_4px_12px_rgba(0,0,0,0.15)]`}>
-              <div class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-display font-bold text-[10px] group-hover:scale-110 transition-transform duration-300 shadow-sm shrink-0">
-                <span>{type.code}</span>
-              </div>
-              <div class="text-left min-w-0">
-                <p class="text-xs font-bold text-white leading-tight truncate">{type.label}</p>
-              </div>
-            </div>
-          ))}
+        <!-- Interactive badge grid -->
+        <div id="badge-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 reveal reveal-delay-3">
+          {badgeStyles.map((type) => {
+            const cat = categories.find((c) => c.code === type.code);
+            return (
+              <button
+                data-code={type.code}
+                class="badge-chip flex items-center gap-2 p-2 rounded-xl bg-white border shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md {type.border}"
+              >
+                <span class={`w-2 h-2 rounded-full flex-shrink-0 ${type.bg} border ${type.border}`} style={`background: ${type.dot}`}></span>
+                <span class={`font-display font-bold text-xs tracking-wider ${type.text}`}>{type.code}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <!-- Active category tooltip -->
+        <div id="cat-tooltip" class="mt-6 text-center text-sm text-[#44403C] min-h-[1.5rem] transition-opacity duration-300 opacity-0">
+          {locale === 'es' ? 'Pasá el cursor sobre una categoría' : 'Hover over a category'}
         </div>
       </div>
     </div>
   </div>
 </section>
 
+<style>
+  .radar-dot-recharts {
+    transition: r 0.25s ease, filter 0.25s ease;
+    cursor: default;
+  }
+  .radar-dot-recharts.active {
+    r: 5;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+  .radar-result-animate {
+    animation: radar-draw 1s ease-out forwards;
+  }
+  @keyframes radar-draw {
+    to { stroke-dashoffset: 0; }
+  }
+</style>
+
 <script>
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => { 
+  const radarCard = document.getElementById('radar-card');
+  const svgWrapper = document.querySelector('.radar-svg-wrapper');
+  const tooltip = document.getElementById('cat-tooltip');
+  const chips = document.querySelectorAll('.badge-chip');
+
+  // Scroll-triggered radar animation
+  const radarObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('visible'); 
+        svgWrapper.style.transform = 'scale(1)';
+        svgWrapper.style.opacity = '1';
+        const poly = document.getElementById('radar-result');
+        if (poly) poly.classList.add('radar-result-animate');
+        radarObserver.unobserve(entry.target);
       }
     });
+  }, { threshold: 0.3 });
+  if (radarCard) radarObserver.observe(radarCard);
+
+  // Badge hover → highlight dot
+  chips.forEach((chip) => {
+    chip.addEventListener('mouseenter', () => {
+      const code = chip.dataset.code;
+      const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
+      if (dot) dot.classList.add('active');
+      tooltip.textContent = chip.dataset.fullname || code;
+      tooltip.style.opacity = '1';
+    });
+    chip.addEventListener('mouseleave', () => {
+      document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
+      tooltip.style.opacity = '0';
+    });
+  });
+
+  // Standard reveal observer for other elements
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
   }, { threshold: 0.1 });
-  
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
+</script>
+
+<script type="application/json" id="radar-categories-data">{JSON.stringify(categories)}</script>
+
+<script>
+  // Hydrate tooltip with full category names from data
+  (function () {
+    const dataEl = document.getElementById('radar-categories-data');
+    const catMap = {};
+    if (dataEl) {
+      const cats = JSON.parse(dataEl.textContent);
+      cats.forEach((c) => { catMap[c.code] = c.name; });
+    }
+    const chips = document.querySelectorAll('.badge-chip');
+    chips.forEach((chip) => {
+      const code = chip.dataset.code;
+      chip.dataset.fullname = catMap[code] || code;
+    });
+  })();
 </script>
