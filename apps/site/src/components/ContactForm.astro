@@ -57,7 +57,7 @@ const mailtoHref = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(i
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 
-  const form = document.getElementById('contact-form');
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
   const success = document.getElementById('form-success');
   if (form && success) {
     form.addEventListener('submit', async (e) => {
