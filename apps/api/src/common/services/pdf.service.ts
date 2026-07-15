@@ -4,7 +4,7 @@ import {
   Logger,
   OnModuleDestroy,
 } from '@nestjs/common';
-import type { Browser, Page } from 'puppeteer';
+import type { Browser, Page } from 'puppeteer-core';
 import { PdfGenerator } from '../adapters/pdf-generator.adapter.js';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
         throw new Error('PDF generation aborted');
       }
 
-      await page.setContent(html, { waitUntil: 'domcontentloaded' });
+      await page.setContent(html, { waitUntil: 'networkidle0' });
 
       if (signal?.aborted) {
         throw new Error('PDF generation aborted');
@@ -132,10 +132,33 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
       return this.browserLaunching;
     }
 
-    const puppeteer = await import('puppeteer');
+    if (process.env.SERVERLESS === 'true') {
+      const chromium = await import('@sparticuz/chromium');
+      const puppeteerCore = await import('puppeteer-core');
+
+      this.browserLaunching = puppeteerCore
+        .launch({
+          args: chromium.default.args,
+          executablePath: await chromium.default.executablePath(),
+          headless: chromium.default.headless,
+        })
+        .then((browser) => {
+          this.browser = browser as unknown as Browser;
+          return this.browser;
+        })
+        .catch((error) => {
+          this.browserLaunching = undefined;
+          throw error;
+        });
+
+      return this.browserLaunching;
+    }
+
+    const puppeteer = await import('puppeteer-core');
 
     this.browserLaunching = puppeteer
       .launch({
+        channel: 'chrome',
         headless: true,
         args: [
           '--no-sandbox',
@@ -146,11 +169,11 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
           '--js-flags=--max-old-space-size=256',
         ],
       })
-      .then((browser) => {
+      .then((browser: Browser) => {
         this.browser = browser;
         return browser;
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         this.browserLaunching = undefined;
         throw error;
       });
