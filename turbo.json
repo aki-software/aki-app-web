@@ -3,6 +3,15 @@
   "globalDependencies": [
     "**/.env.*local"
   ],
+  "globalEnv": [
+    "ADMIN_NAME", "ADMIN_PASS", "ADMIN_USER", 
+    "ANDROID_PACKAGE_NAME", "CORS_ORIGIN", 
+    "DATABASE_HOST", "DATABASE_NAME", "DATABASE_PASSWORD", "DATABASE_PORT", "DATABASE_USER", 
+    "ENABLE_BULLMQ", "GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64", 
+    "JWT_EXPIRATION", "JWT_SECRET", 
+    "MAIL_PRO_HOST", "MAIL_PRO_PASS", "MAIL_PRO_PORT", "MAIL_PRO_USER", "MAIL_TRANSPORT_TYPE", 
+    "NODE_ENV", "PUPPETEER_CACHE_DIR", "SERVERLESS", "PDF_LOGO_DATA_URI"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
