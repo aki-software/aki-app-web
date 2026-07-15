@@ -78,9 +78,12 @@ export class TresAreasService {
 
     if (dto.narrative !== undefined) combination.narrative = dto.narrative;
     if (dto.tendencies !== undefined) combination.tendencies = dto.tendencies;
-    if (dto.possibleJobs !== undefined) combination.possibleJobs = dto.possibleJobs;
-    if (dto.relatedProfessions !== undefined) combination.relatedProfessions = dto.relatedProfessions;
-    if (dto.customSections !== undefined) combination.customSections = dto.customSections;
+    if (dto.possibleJobs !== undefined)
+      combination.possibleJobs = dto.possibleJobs;
+    if (dto.relatedProfessions !== undefined)
+      combination.relatedProfessions = dto.relatedProfessions;
+    if (dto.customSections !== undefined)
+      combination.customSections = dto.customSections;
 
     return this.tresAreasRepo.save(combination);
   }
