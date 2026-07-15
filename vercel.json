@@ -1,18 +1,14 @@
 {
   "version": 2,
   "installCommand": "pnpm install --frozen-lockfile",
-  "builds": [
-    {
-      "src": "apps/api/api/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 300,
-        "includeFiles": ["apps/api/src/**", "apps/api/package.json"]
-      }
+  "buildCommand": "pnpm turbo run build --filter=api...",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 300
     }
-  ],
-  "routes": [
-    { "src": "/health", "dest": "/apps/api/api/index.ts" },
-    { "src": "/api/(.*)", "dest": "/apps/api/api/index.ts" }
+  },
+  "rewrites": [
+    { "source": "/health", "destination": "/api/index" },
+    { "source": "/api/:path*", "destination": "/api/index" }
   ]
 }
