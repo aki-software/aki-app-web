@@ -35,10 +35,80 @@ export const sessionMetricsSchema = z.object({
   maxTimeBetweenSwipesMs: z.number(),
   reliabilityScore: z.number(),
   reliabilityLevel: z.enum(['Muy Alta', 'Alta', 'Variable', 'Baja']),
+  // Behavioral metrics
+  likeRatio: z.number().nullable(),
+  selectivityLevel: z.enum(['SELECTIVE', 'BALANCED', 'EXPLORATORY']).nullable(),
+  firstHalfLikeRate: z.number().nullable(),
+  lastHalfLikeRate: z.number().nullable(),
+  consistencyLevel: z.enum(['CONSISTENT', 'VARIABLE', 'ERRATIC']).nullable(),
+  fatigueDetected: z.boolean().nullable(),
+  rushDetected: z.boolean().nullable(),
+  responseTimeHistogram: z
+    .array(z.object({ bucket: z.number(), count: z.number() }))
+    .nullable(),
+  revertedDirection: z
+    .object({
+      likedToDisliked: z.number(),
+      dislikedToLiked: z.number(),
+    })
+    .nullable(),
   calculatedAt: z.union([z.string(), z.instanceof(Date)]),
 });
 
 export interface SessionMetrics extends z.infer<typeof sessionMetricsSchema> {}
+
+// Triage types
+export const triageSessionSchema = z.object({
+  sessionId: z.string().uuid(),
+  patientName: z.string(),
+  sessionDate: z.string(),
+  hollandCode: z.string(),
+  reliabilityLevel: z.string().nullable(),
+  flags: z.array(z.enum(['LOW_RELIABILITY', 'FATIGUE', 'RUSH'])),
+  topFlag: z.enum(['LOW_RELIABILITY', 'FATIGUE', 'RUSH']).nullable(),
+  likeRatio: z.number().nullable(),
+  selectivityLevel: z.string().nullable(),
+  totalTimeMs: z.number(),
+});
+
+export const triageResponseSchema = z.object({
+  data: z.array(triageSessionSchema),
+  meta: z.object({
+    total: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    flaggedCount: z.number(),
+  }),
+});
+
+export interface TriageSession extends z.infer<typeof triageSessionSchema> {}
+export interface TriageResponse extends z.infer<typeof triageResponseSchema> {}
+
+// Behavioral trends types
+export const behavioralTrendsSchema = z.object({
+  selectivityDistribution: z.object({
+    selective: z.number(),
+    balanced: z.number(),
+    exploratory: z.number(),
+  }),
+  fatigueRate: z.number().nullable(),
+  rushRate: z.number().nullable(),
+  avgReliabilityScore: z.number(),
+  totalSessions: z.number(),
+  eligibleSessions: z.number(),
+  trends: z.object({
+    daily: z.array(
+      z.object({
+        date: z.string(),
+        sessions: z.number(),
+        fatigueRate: z.number(),
+        rushRate: z.number(),
+      }),
+    ),
+  }),
+});
+
+export interface BehavioralTrends extends z.infer<typeof behavioralTrendsSchema> {}
 
 export const sessionApiSchema = z.object({
   id: z.string().uuid(),

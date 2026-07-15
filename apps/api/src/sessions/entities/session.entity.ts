@@ -13,7 +13,7 @@ import { SessionPaymentStatus } from '@akit/contracts';
 export { SessionPaymentStatus };
 import { SessionResult } from './session-result.entity.js';
 import { SessionSwipe } from './session-swipe.entity.js';
-import { SessionMetrics } from './session-metrics.entity.js';
+import type { SessionMetrics } from './session-metrics.entity.js';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
 import { User } from '../../users/entities/user.entity.js';
 import { Institution } from '../../institutions/entities/institution.entity.js';
@@ -114,7 +114,7 @@ export class Session {
   @OneToMany('SessionSwipe', (swipe: any) => swipe.session, { cascade: true })
   swipes!: SessionSwipe[];
 
-  @OneToOne(() => SessionMetrics, (metrics) => metrics.session, {
+  @OneToOne('SessionMetrics', 'session', {
     cascade: true,
   })
   metrics?: SessionMetrics;

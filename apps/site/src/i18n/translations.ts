@@ -10,21 +10,43 @@ export const translations = {
     hero: {
       badge: 'Orientación Vocacional',
       title: 'Descubrí tu vocación',
-      titleAccent: 'en 10 minutos',
-      subtitle: 'Clasificá actividades de forma ágil y proyectiva. Nuestra IA analiza tus afinidades espontáneas en tiempo real para revelar tu perfil vocacional y las carreras recomendadas.',
+      titleAccent: 'en minutos',
+      subtitle: 'Deslizá imágenes de actividades y descubrí tus afinidades vocacionales al instante. Un test visual y dinámico que revela tu perfil y las carreras que mejor van con vos.',
       ctaPrimary: 'Soy Estudiante (Descargar App)',
       ctaSecondary: 'Soy una Institución',
       qrLabel: 'Escaneá para descargar',
       qrSublabel: 'Disponible en Google Play',
       phoneTitle: '¿Qué te interesa?',
-      phoneCardTitle: 'Diseñar y crear\nobjetos visuales',
-      phoneCardSub: 'Usar colores, formas y materiales para expresar ideas',
-      phoneTag: 'CREATIVIDAD / ARTE',
-      phoneProgress: 'Cotejo 12 de 60',
+      phoneTag: 'CREATIVIDAD',
+      phoneProgress: '12 de 120',
+      cards: [
+        { code: 'ART', image: '/images/cards/art_1.webp', title: 'Diseñar y crear\nobjetos visuales', sub: 'Usar colores, formas y materiales para expresar ideas' },
+        { code: 'SCI', image: '/images/cards/sci_1.webp', title: 'Investigar y\ndescubrir', sub: 'Explorar fenómenos, hacer experimentos y buscar respuestas' },
+        { code: 'SERV', image: '/images/cards/serv_1.webp', title: 'Ayudar y\ncuidar', sub: 'Trabajar con personas para mejorar su bienestar y calidad de vida' },
+        { code: 'MEC', image: '/images/cards/mech_1.webp', title: 'Construir y\nreparar', sub: 'Operar máquinas, herramientas y sistemas técnicos' },
+        { code: 'BUS', image: '/images/cards/bus_1.webp', title: 'Gestionar y\nliderar', sub: 'Organizar recursos, tomar decisiones y dirigir equipos' },
+        { code: 'NAT', image: '/images/cards/nat_10.webp', title: 'Explorar la\nnaturaleza', sub: 'Trabajar al aire libre y proteger el medio ambiente' },
+      ],
       phoneActions: {
-        discard: 'Descartar',
-        select: 'Me Interesa'
+        discard: 'No me gusta',
+        select: 'Me gusta'
       }
+    },
+    methodology: {
+      categories: [
+        { code: 'ART', name: 'Artística' },
+        { code: 'HUM', name: 'Humanidades' },
+        { code: 'SERV', name: 'Servicio Social' },
+        { code: 'PROT', name: 'Protección y Seguridad' },
+        { code: 'FÍS', name: 'Deportes y Actividad Física' },
+        { code: 'IND', name: 'Industria' },
+        { code: 'MEC', name: 'Mecánica' },
+        { code: 'NAT', name: 'Naturaleza' },
+        { code: 'LÍD', name: 'Liderazgo' },
+        { code: 'SCI', name: 'Ciencia' },
+        { code: 'VENT', name: 'Ventas' },
+        { code: 'BUS', name: 'Negocios' },
+      ],
     },
     problem: {
       title: '¿No sabés qué estudiar?',
@@ -39,9 +61,9 @@ export const translations = {
       subtitle: 'Descubrí cómo A.ki transforma la orientación vocacional.',
       tabs: { student: 'Para Estudiantes', institution: 'Para Instituciones' },
       studentSteps: [
-        { title: 'Clasificación Proyectiva', desc: 'Respondé de forma espontánea a un mazo dinámico de actividades. Lanzá cada tarjeta hacia tus áreas de atracción o descartala en segundos para capturar tus impulsos vocacionales.' },
-        { title: 'Descubrí tu perfil', desc: 'Nuestra IA analiza tus afinidades y calcula tu perfil vocacional al instante.' },
-        { title: 'Recibí tu reporte', desc: 'Obtené un PDF ultra detallado con recomendaciones de carreras directamente en tu email.' },
+        { title: 'Clasificá imágenes', desc: 'Pasá las imágenes de actividades hacia la derecha si te interesan o hacia la izquierda para descartarlas. Cada swipe refleja tus gustos espontáneos sin filtros.' },
+        { title: 'Descubrí tu perfil', desc: 'El sistema analiza tus elecciones y calcula tu perfil vocacional con las áreas que más se alinean a tus intereses.' },
+        { title: 'Recibí tu reporte', desc: 'Obtené un PDF detallado con recomendaciones de carreras directamente en tu email, basado en tus afinidades reales.' },
       ],
       institutionSteps: [
         { title: 'Solicitá acceso', desc: 'Obtené tu cuenta para el Dashboard Institucional de A.ki.' },
@@ -65,16 +87,18 @@ export const translations = {
       title: '¿Trabajás en una escuela\no sos orientador?',
       desc: 'Gestioná grupos de estudiantes, generá vouchers y accedé a analytics en tiempo real. Todo desde un dashboard intuitivo.',
       features: ['Gestión de grupos y sesiones masivas', 'Dashboard con analytics por institución', 'Vouchers y reportes personalizados'],
-      cta: 'Contactanos',
+      cta: 'Solicitar una demo',
+      form: { name: 'Nombre', email: 'Email', institution: 'Institución', message: 'Contanos qué necesitás', submit: 'Enviar solicitud', success: 'Gracias por tu interés. Te vamos a contactar a la brevedad.' },
       dashboard: 'Dashboard',
       stats: { tests: 'Tests completados', completion: 'Completitud', reports: 'Reportes' },
       chart: '📊 Distribución de Perfiles Vocacionales',
     },
     pricing: {
       title: 'Planes Institucionales',
-      subtitle: 'Llevá la orientación vocacional con IA a tu colegio o consultorio.',
-      free: { label: 'A.ki Piloto', features: ['Acceso al Dashboard Web', 'Hasta 10 estudiantes', 'Analíticas básicas', 'Soporte por email'], cta: 'Solicitar Piloto' },
-      premium: { badge: 'Pro', label: 'A.ki Campus', price: 'A medida', desc: 'Para colegios grandes y profesionales', features: ['Vouchers ilimitados', 'Múltiples orientadores', 'Analíticas de cohortes', 'Integración y soporte prioritario'], cta: 'Contactar a Ventas' },
+      subtitle: 'Llevá la orientación vocacional a tu colegio o consultorio.',
+      demo: { badge: 'Demo', label: 'A.ki Demo', desc: 'Para probar la plataforma', features: ['Acceso al Dashboard Web', '3 vouchers gratis', 'Analíticas básicas', 'Soporte por email'], cta: 'Solicitar Demo' },
+      basic: { badge: '25', label: 'A.ki 25', price: 'A convenir', desc: 'Para colegios y orientadores', features: ['25 vouchers', 'Dashboard completo', 'Analíticas detalladas', 'Soporte prioritario'], cta: 'Quiero 25 vouchers' },
+      pro: { badge: '50', label: 'A.ki 50', price: 'A convenir', desc: 'Para instituciones y distritos', features: ['50 vouchers', 'Dashboard completo', 'Analíticas de cohortes', 'Soporte dedicado + onboarding'], cta: 'Quiero 50 vouchers' },
     },
     faq: {
       title: 'Preguntas frecuentes',
@@ -106,6 +130,22 @@ export const translations = {
       ctaContact: 'Consultas o Instituciones',
       footer: '© 2026 A.ki. Todos los derechos reservados.',
     },
+    statsBar: {
+      items: [
+        { value: '12', label: 'categorías vocacionales' },
+        { value: '10 min', label: 'de test dinámico' },
+        { value: '100%', label: 'gratis, siempre' },
+      ]
+    },
+    socialProof: {
+      title: 'Confían en A.KI',
+      testimonials: [
+        { quote: 'Me ayudó a descubrir qué quería estudiar cuando estaba completamente perdido. El test es súper ágil y divertido.', author: 'Martina G.', role: 'Estudiante, Buenos Aires' },
+        { quote: 'Usamos A.KI con nuestros alumnos de 5to año. La orientación vocacional les dio claridad y a nosotros datos valiosos.', author: 'Lic. Fernando R.', role: 'Orientador, Colegio San Martín' },
+      ],
+      badge: 'TEST VOCACIONAL',
+      userCount: '+5,000 estudiantes',
+    },
     langSwitch: 'EN',
   },
   en: {
@@ -119,21 +159,43 @@ export const translations = {
     hero: {
       badge: 'Vocational Guidance',
       title: 'Discover your vocation',
-      titleAccent: 'in 10 minutes',
-      subtitle: 'Sort activities dynamically and projectively. Our AI analyzes your spontaneous affinities in real time to reveal your vocational profile and recommended careers.',
+      titleAccent: 'in minutes',
+      subtitle: 'Swipe through activity images and discover your vocational affinities instantly. A visual, dynamic test that reveals your profile and the careers that match you best.',
       ctaPrimary: 'Download the App',
       ctaSecondary: 'Access for Institutions',
       qrLabel: 'Scan to download',
       qrSublabel: 'Available on Google Play',
       phoneTitle: 'What interests you?',
-      phoneCardTitle: 'Design and create\nvisual objects',
-      phoneCardSub: 'Use colors, shapes and materials to express ideas',
-      phoneTag: 'CREATIVITY / ART',
-      phoneProgress: 'Card 12 of 60',
+      phoneTag: 'CREATIVITY',
+      phoneProgress: '12 of 120',
+      cards: [
+        { code: 'ART', image: '/images/cards/art_1.webp', title: 'Design and create\nvisual objects', sub: 'Use colors, shapes and materials to express ideas' },
+        { code: 'SCI', image: '/images/cards/sci_1.webp', title: 'Research and\ndiscover', sub: 'Explore phenomena, run experiments, and find answers' },
+        { code: 'SERV', image: '/images/cards/serv_1.webp', title: 'Help and\ncare', sub: 'Work with people to improve their well-being and quality of life' },
+        { code: 'MEC', image: '/images/cards/mech_1.webp', title: 'Build and\nrepair', sub: 'Operate machines, tools, and technical systems' },
+        { code: 'BUS', image: '/images/cards/bus_1.webp', title: 'Manage and\nlead', sub: 'Organize resources, make decisions, and lead teams' },
+        { code: 'NAT', image: '/images/cards/nat_10.webp', title: 'Explore\nnature', sub: 'Work outdoors and protect the environment' },
+      ],
       phoneActions: {
-        discard: 'Discard',
-        select: 'Interests Me'
+        discard: "Don't Like",
+        select: 'Like'
       }
+    },
+    methodology: {
+      categories: [
+        { code: 'ART', name: 'Arts' },
+        { code: 'HUM', name: 'Humanities' },
+        { code: 'SERV', name: 'Social Service' },
+        { code: 'PROT', name: 'Protection & Safety' },
+        { code: 'FÍS', name: 'Sports & Physical Activity' },
+        { code: 'IND', name: 'Industry' },
+        { code: 'MEC', name: 'Mechanics' },
+        { code: 'NAT', name: 'Nature' },
+        { code: 'LÍD', name: 'Leadership' },
+        { code: 'SCI', name: 'Science' },
+        { code: 'VENT', name: 'Sales' },
+        { code: 'BUS', name: 'Business' },
+      ],
     },
     problem: {
       title: "Don't know what to study?",
@@ -148,9 +210,9 @@ export const translations = {
       subtitle: 'Discover how A.ki transforms vocational guidance.',
       tabs: { student: 'For Students', institution: 'For Institutions' },
       studentSteps: [
-        { title: 'Projective Sorting', desc: 'Respond instinctively to a dynamic deck of activities. Flick each card toward your attraction zones or discard it in seconds to capture your raw vocational impulses.' },
-        { title: 'Discover your profile', desc: 'Our AI analyzes your affinities and calculates your vocational profile instantly.' },
-        { title: 'Receive your report', desc: 'Get a highly detailed PDF report with career recommendations sent straight to your email.' },
+        { title: 'Swipe through images', desc: 'Swipe activity images right if you like them or left to skip. Each swipe captures your spontaneous interests without overthinking.' },
+        { title: 'Discover your profile', desc: 'The system analyzes your choices and calculates your vocational profile based on the areas that align with your interests.' },
+        { title: 'Receive your report', desc: 'Get a detailed PDF report with career recommendations sent to your email, based on your real affinities.' },
       ],
       institutionSteps: [
         { title: 'Request access', desc: 'Get your account for the custom A.ki Institutional Dashboard.' },
@@ -174,16 +236,18 @@ export const translations = {
       title: 'Do you work at a school\nor are you a therapist?',
       desc: 'Manage student groups, generate vouchers and access real-time analytics. All from an intuitive dashboard.',
       features: ['Group and mass session management', 'Per-institution analytics dashboard', 'Custom vouchers and reports'],
-      cta: 'Contact us',
+      cta: 'Request a demo',
+      form: { name: 'Name', email: 'Email', institution: 'Institution', message: 'Tell us what you need', submit: 'Send request', success: 'Thanks for your interest. We will contact you shortly.' },
       dashboard: 'Dashboard',
       stats: { tests: 'Tests completed', completion: 'Completion rate', reports: 'Reports' },
       chart: '📊 Vocational Profile Distribution',
     },
     pricing: {
       title: 'Institutional Plans',
-      subtitle: 'Bring AI-powered vocational guidance to your school or private practice.',
-      free: { label: 'A.ki Pilot', features: ['Web Dashboard Access', 'Up to 10 students', 'Basic analytics', 'Email support'], cta: 'Request Pilot Access' },
-      premium: { badge: 'Pro', label: 'A.ki Campus', price: 'Custom', desc: 'For large schools and professionals', features: ['Unlimited vouchers', 'Multiple counselors', 'Cohort analytics', 'Priority integration & support'], cta: 'Contact Sales' },
+      subtitle: 'Bring vocational guidance to your school or private practice.',
+      demo: { badge: 'Demo', label: 'A.ki Demo', desc: 'Try the platform', features: ['Web Dashboard Access', '3 free vouchers', 'Basic analytics', 'Email support'], cta: 'Request Demo' },
+      basic: { badge: '25', label: 'A.ki 25', price: 'Custom', desc: 'For schools and counselors', features: ['25 vouchers', 'Full dashboard', 'Detailed analytics', 'Priority support'], cta: 'I want 25 vouchers' },
+      pro: { badge: '50', label: 'A.ki 50', price: 'Custom', desc: 'For institutions and districts', features: ['50 vouchers', 'Full dashboard', 'Cohort analytics', 'Dedicated support + onboarding'], cta: 'I want 50 vouchers' },
     },
     faq: {
       title: 'Frequently asked questions',
@@ -214,6 +278,22 @@ export const translations = {
       subtitle: 'We are preparing a revolutionary experience to help you find your career path with artificial intelligence. Very soon you will be able to download the app and access the dashboard.',
       ctaContact: 'Inquiries & Institutions',
       footer: '© 2026 A.ki. All rights reserved.',
+    },
+    statsBar: {
+      items: [
+        { value: '12', label: 'vocational categories' },
+        { value: '10 min', label: 'dynamic test' },
+        { value: '100%', label: 'free, always' },
+      ]
+    },
+    socialProof: {
+      title: 'Trusted by students & educators',
+      testimonials: [
+        { quote: 'It helped me discover what I wanted to study when I was completely lost. The test is super agile and fun.', author: 'Martina G.', role: 'Student, Buenos Aires' },
+        { quote: "We use A.KI with our 5th-year students. Vocational guidance gave them clarity and us valuable data.", author: 'Lic. Fernando R.', role: 'Counselor, San Martín School' },
+      ],
+      badge: 'VOCATIONAL TEST',
+      userCount: '+5,000 students',
     },
     langSwitch: 'ES',
   },

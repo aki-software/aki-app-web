@@ -80,6 +80,7 @@ export function buildOverviewPayload(input: {
   const sessionsActivity = formatDailyActivity(
     input.dailyActivityRows,
     input.now,
+    input.periodDays,
   );
   const alerts = calculateAlerts({
     expiringSoonVouchers: input.expiringSoonCount,
@@ -240,11 +241,15 @@ function calculateAlerts(context: {
   return alerts;
 }
 
-function formatDailyActivity(rows: RawSessionsActivityRow[], now: Date) {
+function formatDailyActivity(
+  rows: RawSessionsActivityRow[],
+  now: Date,
+  periodDays: number,
+) {
   const dayBuckets = new Map<string, number>();
   const dayKeys: string[] = [];
 
-  for (let i = 6; i >= 0; i--) {
+  for (let i = periodDays - 1; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(now.getDate() - i);
     const key = date.toISOString().slice(0, 10);

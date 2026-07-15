@@ -94,6 +94,7 @@ export class ReportService {
       );
 
       return {
+        categoryId: normalizedCategoryId,
         title: catInfo ? catInfo.title : normalizedCategoryId,
         percentage: normalizePercentage(res.percentage),
         timeSpentMs: res.timeSpentMs,

@@ -1,5 +1,5 @@
 import { LogIn, Moon, Sun } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Input } from "../../../components/atoms/Input";
@@ -12,7 +12,7 @@ import { useTheme } from "../../../hooks/useTheme";
 import { APP_ROUTES } from "../../../router/routes.constants";
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,7 +32,7 @@ export function LoginPage() {
     return null;
   });
   const [darkMode] = useState(true); 
-  const [redirectTo] = useState(() => {
+  const redirectToRef = useRef(() => {
     try {
       const voluntary = sessionStorage.getItem('voluntary_logout');
       if (voluntary === 'true') {
@@ -45,6 +45,14 @@ export function LoginPage() {
     return (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/dashboard";
   });
 
+  // Navegar solo cuando isAuthenticated realmente se actualizó, evitando race condition
+  useEffect(() => {
+    const target = redirectToRef.current();
+    if (isAuthenticated && target) {
+      navigate(target, { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email.trim() || !password) return;
@@ -54,7 +62,7 @@ export function LoginPage() {
 
     try {
       await login({ email: email.trim(), password });
-      navigate(redirectTo, { replace: true });
+      // navigate() se dispara via useEffect cuando isAuthenticated cambie a true
     } catch (err) {
       const msg = err instanceof Error && err.message === 'UNAUTHORIZED' 
         ? "Credenciales incorrectas. Verificá tu email y contraseña." 

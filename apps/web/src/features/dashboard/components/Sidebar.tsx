@@ -8,12 +8,19 @@ interface SidebarProps {
   onCloseMobile?: () => void;
 }
 
+const KNOWN_ROLES = ['ADMIN', 'THERAPIST'] as const;
+
 export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
   const { logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
-  const visibleNavItems = DASHBOARD_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+  const userRole = user?.role?.toUpperCase() ?? '';
+  const effectiveRole = (KNOWN_ROLES as readonly string[]).includes(userRole)
+    ? userRole
+    : 'THERAPIST';
+  const visibleNavItems = DASHBOARD_NAV_ITEMS.filter((item) =>
+    item.roles.includes(effectiveRole as 'ADMIN' | 'THERAPIST')
+  );
 
   const handleLogout = async () => {
     await logout();
@@ -45,7 +52,7 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
         <nav className="space-y-2">
           {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== APP_ROUTES.DASHBOARD.ROOT && location.pathname.startsWith(item.path));
-            const displayName = item.name === "Ajustes" ? (isAdmin ? "Material teórico (CMS)" : "Cambio de contraseña") : item.name;
+            const displayName = item.name === "Ajustes" ? (userRole === "ADMIN" ? "Material teórico (CMS)" : "Cambio de contraseña") : item.name;
 
             return (
               <Link

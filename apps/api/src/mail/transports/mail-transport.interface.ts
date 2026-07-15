@@ -14,10 +14,5 @@ export interface DispatchEmailOptions {
 }
 
 export interface MailTransport {
-  /**
-   * Dispatches an email using the underlying strategy.
-   * Throws an error if the dispatch fails, so that queues (e.g., BullMQ)
-   * can handle retries appropriately.
-   */
   dispatchEmail(options: DispatchEmailOptions): Promise<void>;
 }
