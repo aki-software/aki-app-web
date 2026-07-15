@@ -185,6 +185,7 @@ export class ReportService {
       tendencies: match.tendencies,
       possibleJobs: splitList(match.possibleJobs),
       relatedProfessions: splitList(match.relatedProfessions),
+      customSections: match.customSections,
     };
   }
 
