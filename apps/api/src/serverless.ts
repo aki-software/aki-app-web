@@ -66,10 +66,12 @@ export default async function (req: unknown, res: any): Promise<void> {
     console.error('Fatal bootstrap error:', error);
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({
-      error: 'Bootstrap failed',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
-    }));
+    res.end(
+      JSON.stringify({
+        error: 'Bootstrap failed',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      }),
+    );
   }
 }

@@ -7,7 +7,6 @@ import { PDF_GENERATOR } from '../../common/constants/adapters.constants.js';
 import type { PdfGenerator } from '../../common/adapters/pdf-generator.adapter.js';
 import type { ReportData } from '../../common/types/report.types.js';
 
-
 @Injectable()
 export class ReportPdfService {
   private readonly logger = new Logger(ReportPdfService.name);
