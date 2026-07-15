@@ -28,6 +28,7 @@ export interface ReportTripletInsight {
   tendencies: string[];
   possibleJobs: string[];
   relatedProfessions: string[];
+  customSections?: { title: string; items: string[] }[];
 }
 
 export interface ReportData {
