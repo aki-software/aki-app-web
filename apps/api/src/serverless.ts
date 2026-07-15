@@ -58,7 +58,20 @@ async function bootstrap(): Promise<ReturnType<typeof serverlessHttp>> {
   return handler;
 }
 
-export default async function (req: unknown, res: unknown): Promise<void> {
-  const h = await bootstrap();
-  await h(req as Parameters<typeof h>[0], res as Parameters<typeof h>[1]);
+export default async function (req: unknown, res: any): Promise<void> {
+  try {
+    const h = await bootstrap();
+    await h(req as Parameters<typeof h>[0], res as Parameters<typeof h>[1]);
+  } catch (error) {
+    console.error('Fatal bootstrap error:', error);
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(
+      JSON.stringify({
+        error: 'Bootstrap failed',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      }),
+    );
+  }
 }
