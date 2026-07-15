@@ -2,20 +2,20 @@
   "name": "@akit/contracts",
   "version": "1.1.0",
   "description": "Shared TypeScript interfaces and contracts between Frontend and Backend",
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./dist/esm/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/cjs/index.js"
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc -p tsconfig.cjs.json && tsc -p tsconfig.esm.json",
+    "dev": "tsc -p tsconfig.esm.json --watch",
     "export:json": "tsx src/export-json-schemas.ts",
     "generate:android": "pnpm run export:json && tsx src/generate-android-models.ts"
   },
