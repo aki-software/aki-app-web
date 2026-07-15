@@ -1,11 +1,31 @@
 doctype html
+mixin categoryIcon(categoryId)
+  -
+    var ICONS = {
+      ART: '<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>',
+      SCI: '<path d="M16 3v5m-4-5v5M8 3v5m-4 13h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2z"/>',
+      MECH: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+      LEAD: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+      HUM: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+      SERV: '<path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/>',
+      PROT: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+      PHYS: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+      IND: '<rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>',
+      NAT: '<path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+      SAL: '<polyline points="23 6 13.5 14.5 8 9.5 1 16"/><polyline points="17 6 23 6 23 12"/>',
+      BUS: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+    };
+    var DEFAULT = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y2="8" x2="12.01" y1="8"/>';
+  svg.category-icon(viewBox="0 0 24 24")
+    != ICONS[categoryId] || DEFAULT
+
 html(lang="es")
   head
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title Informe Vocacional - Orient A.ki
     style.
-      @page { margin: 15mm; }
+      @page { margin: 0; }
       * { box-sizing: border-box; }
       body {
         margin: 0;
@@ -160,7 +180,7 @@ html(lang="es")
         width: 30px;
         text-align: right;
         font-weight: 700;
-        color: #{colors.primary.DEFAULT};
+        color: white;
       }
       .strengths-row {
         display: flex;
@@ -366,6 +386,29 @@ html(lang="es")
         line-height: 1.6;
         color: #{colors.text.secondary};
       }
+      .custom-html-content p {
+        margin: 0 0 10px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #{colors.text.secondary};
+      }
+      .custom-html-content ul {
+        margin: 0 0 10px;
+        padding-left: 18px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #{colors.text.secondary};
+      }
+      .custom-html-content li {
+        margin: 0 0 4px;
+      }
+      .custom-html-content ol {
+        margin: 0 0 10px;
+        padding-left: 18px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #{colors.text.secondary};
+      }
       .careers-card {
         margin-top: 8px;
         border: 1px solid #{colors.surface.variantLight};
@@ -465,7 +508,7 @@ html(lang="es")
               .holland-bar-item
                 span.holland-label(style="width:120px;") #{index + 1}. #{area.title}
                 .holland-bar-track
-                  .holland-bar-fill(style=`width:${area.percentage}%; background:#{colors.primary.DEFAULT};`)
+                  .holland-bar-fill(style=`width:${area.percentage}%; background:#ffffff;`)
                 span.holland-pct #{area.percentage}%
 
         .meta-row(style="margin-top: 20px;")
@@ -484,13 +527,12 @@ html(lang="es")
                   polyline(points="20 6 9 17 4 12")
                 span #{strength}
 
-      if summary && summary.rankedAreas && summary.rankedAreas.length > 0
+      if bottomAreas && bottomAreas.length > 0
         .section.avoid-break
           p.section-title Áreas menos seleccionadas
           .card.avoid-break
-            - const leastSelected = summary.rankedAreas.slice().sort((a, b) => a.percentage - b.percentage).slice(0, 3)
             ul.ranking-list
-              each area in leastSelected
+              each area in bottomAreas
                 li.ranking-item
                   span.ranking-label #{area.title}
                   span.ranking-bar
@@ -504,23 +546,7 @@ html(lang="es")
           .area-card.avoid-break
             .area-head
               div(style="display: flex; align-items: center; gap: 10px;")
-                - const areaName = (res.title || '').toLowerCase();
-                case areaName
-                  when 'artístico'
-                    svg.category-icon(viewBox="0 0 24 24")
-                      path(d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z")
-                  when 'científico'
-                    svg.category-icon(viewBox="0 0 24 24")
-                      path(d="M16 3v5m-4-5v5M8 3v5m-4 13h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2z")
-                  when 'mecánica'
-                    svg.category-icon(viewBox="0 0 24 24")
-                      circle(cx="12" cy="12" r="3")
-                      path(d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z")
-                  default
-                    svg.category-icon(viewBox="0 0 24 24")
-                      circle(cx="12" cy="12" r="10")
-                      line(x1="12" y1="16" x2="12" y2="12")
-                      line(x1="12" y2="8" x2="12.01" y1="8")
+                +categoryIcon(res.categoryId)
                 h3 #{res.title || 'Área sin identificar'}
               if res.percentage
                 .badge #{res.percentage}%
@@ -551,7 +577,7 @@ html(lang="es")
           p.block-text(style="margin-bottom: 16px;") Lo más importante no es cada área por separado, sino cómo se combinan entre sí. En tu caso, la combinación:
           .triplet
             h3 #{tripletInsight.title || 'Combinación de intereses'}
-            p #{tripletInsight.narrative || 'Tus áreas de interés se complementan en roles que requieren la integración de habilidades técnicas, comerciales y de organización.'}
+            .custom-html-content !{tripletInsight.narrative || '<p>Tus áreas de interés se complementan en roles que requieren la integración de habilidades técnicas, comerciales y de organización.</p>'}
             if tripletInsight.tendencies && tripletInsight.tendencies.length > 0
               p.block-title Tendencias observadas
               ul
@@ -567,6 +593,14 @@ html(lang="es")
               ul
                 each profession in tripletInsight.relatedProfessions
                   li #{profession}
+            if tripletInsight.customSections && tripletInsight.customSections.length > 0
+              each section in tripletInsight.customSections
+                if section.title
+                  p.block-title #{section.title}
+                if section.items && section.items.length > 0
+                  ul
+                    each item in section.items
+                      li #{item}
 
 
 

@@ -11,9 +11,9 @@ export const VOUCHER_STATUS_LABELS: Record<string, string> = {
 };
 
 export const VOUCHER_STATUS_CLASSES: Record<string, string> = {
-  AVAILABLE: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-  USED: "border-rose-500/30 bg-rose-500/10 text-rose-300",
-  EXPIRED: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+  AVAILABLE: "border-status-success/30 bg-status-success/10 text-status-success",
+  USED: "border-status-warning/30 bg-status-warning/10 text-status-warning",
+  EXPIRED: "border-status-error/30 bg-status-error/10 text-status-error",
   REVOKED: "border-zinc-500/30 bg-zinc-500/10 text-zinc-300",
   SENT: "border-sky-500/30 bg-sky-500/10 text-sky-300",
 };

@@ -1,26 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { CategoriesService } from '../../categories/categories.service.js';
-import { AdminDashboardQueriesService } from './admin-dashboard-queries.service.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
-import { DashboardStatsPayload, AdminActivityItem } from '@akit/contracts';
-import { AdminDashboardStatsService } from './admin-dashboard-stats.service.js';
-import { AdminDashboardFormatterService } from './admin-dashboard-formatter.service.js';
+import { AdminDashboardRepository } from '../repositories/admin-dashboard.repository.js';
+import {
+  getPeriodStart,
+  buildOverviewPayload,
+  formatResultsDistribution,
+  formatSessionActivity,
+  mergeActivity,
+} from '../utils/admin-dashboard-formatter.util.js';
+import {
+  DashboardStatsPayload,
+  AdminActivityItem,
+  BehavioralTrends,
+} from '@akit/contracts';
+
+const DEFAULT_ACTIVITY_LIMIT = 50;
 
 @Injectable()
 export class AdminDashboardService {
   constructor(
     private readonly categoriesService: CategoriesService,
-    private readonly queriesService: AdminDashboardQueriesService,
     private readonly vouchersService: VouchersService,
-    private readonly statsService: AdminDashboardStatsService,
-    private readonly formatter: AdminDashboardFormatterService,
+    private readonly dashboardRepository: AdminDashboardRepository,
   ) {}
 
-  async getAdminOverview(
-    periodDays: number = 7,
-  ): Promise<DashboardStatsPayload> {
+  async getAdminOverview(periodDays = 7): Promise<DashboardStatsPayload> {
     const now = new Date();
-    const periodStart = this.formatter.getPeriodStart(periodDays, now);
+    const periodStart = getPeriodStart(periodDays, now);
 
     const [
       voucherTotals,
@@ -34,24 +41,24 @@ export class AdminDashboardService {
       categories,
       activity,
     ] = await Promise.all([
-      this.statsService.getVoucherTotals(),
-      this.statsService.getPeriodVoucherStats(periodStart),
+      this.dashboardRepository.getVoucherTotals(),
+      this.dashboardRepository.getPeriodVoucherStats(periodStart),
       this.vouchersService.getExpiringSoonCount(),
-      this.queriesService.getStalledSessionsCount(),
-      this.statsService.getSessionTotals(),
-      this.statsService.getPeriodSessionStats(periodStart),
-      this.statsService.getDailyActivity(periodStart),
-      this.statsService.getTopResultsDistribution(),
+      this.dashboardRepository.getStalledSessionsCount(now),
+      this.dashboardRepository.getSessionTotals(),
+      this.dashboardRepository.getPeriodSessionStats(periodStart),
+      this.dashboardRepository.getDailyActivity(periodStart),
+      this.dashboardRepository.getTopResultsDistribution(),
       this.categoriesService.findAll(),
       this.getAdminActivity(10),
     ]);
 
-    const resultsDistribution = this.formatter.formatResultsDistribution(
+    const resultsDistribution = formatResultsDistribution(
       categories,
       distributionRows,
     );
 
-    return this.formatter.buildOverviewPayload({
+    return buildOverviewPayload({
       periodDays,
       now,
       periodStart,
@@ -67,17 +74,59 @@ export class AdminDashboardService {
     });
   }
 
-  async getAdminActivity(limit: number = 50): Promise<AdminActivityItem[]> {
+  async getBehavioralTrends(params: {
+    scope: string;
+    id?: string;
+    period: number;
+    from?: string;
+    to?: string;
+  }): Promise<BehavioralTrends> {
+    const now = new Date();
+    let periodStart: Date | undefined;
+    let periodEnd: Date | undefined;
+
+    if (params.from) {
+      periodStart = new Date(params.from);
+    } else {
+      periodStart = getPeriodStart(params.period, now);
+    }
+
+    if (params.to) {
+      periodEnd = new Date(params.to);
+    }
+
+    const result = await this.dashboardRepository.getBehavioralTrends(
+      params.scope === 'institution' ? params.id : undefined,
+      periodStart,
+      periodEnd,
+    );
+
+    return {
+      selectivityDistribution: result.selectivityDistribution,
+      fatigueRate:
+        result.eligibleSessions > 0
+          ? result.fatiguedCount / result.eligibleSessions
+          : null,
+      rushRate:
+        result.eligibleSessions > 0
+          ? result.rushCount / result.eligibleSessions
+          : null,
+      avgReliabilityScore: result.avgReliabilityScore,
+      totalSessions: result.totalSessions,
+      eligibleSessions: result.eligibleSessions,
+      trends: { daily: result.dailyTrends },
+    };
+  }
+
+  async getAdminActivity(
+    limit = DEFAULT_ACTIVITY_LIMIT,
+  ): Promise<AdminActivityItem[]> {
     const [sessionRows, voucherActivity] = await Promise.all([
-      this.queriesService.getRecentSessionRows(limit),
+      this.dashboardRepository.getRecentSessionRows(limit),
       this.vouchersService.getRecentActivity(limit),
     ]);
 
-    const sessionActivity = this.formatter.formatSessionActivity(sessionRows);
-    return this.formatter.mergeActivity(
-      sessionActivity,
-      voucherActivity,
-      limit,
-    );
+    const sessionActivity = formatSessionActivity(sessionRows);
+    return mergeActivity(sessionActivity, voucherActivity, limit);
   }
 }

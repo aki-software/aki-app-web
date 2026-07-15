@@ -123,10 +123,20 @@ export async function updateInstitutionStatus(
   isActive: boolean
 ): Promise<boolean> {
   try {
-    await apiClient.patch(`/institutions/${id}`, { isActive });
+    await apiClient.patch(`/institutions/${id}/status`, { isActive });
     return true;
   } catch (error) {
     console.error("Error updating institution status:", error);
+    return false;
+  }
+}
+
+export async function deleteInstitution(id: string): Promise<boolean> {
+  try {
+    await apiClient.delete(`/institutions/${id}`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting institution:", error);
     return false;
   }
 }

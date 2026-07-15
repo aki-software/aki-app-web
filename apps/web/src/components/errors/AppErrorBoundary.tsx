@@ -5,7 +5,7 @@ export const AppErrorBoundary = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-      <h1 className="text-2xl font-bold text-red-600 mb-4">¡Ups! Algo salió mal.</h1>
+      <h1 className="text-2xl font-bold text-status-error mb-4">¡Ups! Algo salió mal.</h1>
       <p className="text-gray-600 mb-4">
         Ha ocurrido un error inesperado en la aplicación.
       </p>

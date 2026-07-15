@@ -4,31 +4,31 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Institution } from '../../institutions/entities/institution.entity.js';
+import { UserRole } from '@akit/contracts';
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  THERAPIST = 'THERAPIST',
-  INSTITUTION_ADMIN = 'INSTITUTION_ADMIN',
-  PATIENT = 'PATIENT',
-}
+export { UserRole } from '@akit/contracts';
 
 @Entity('users')
+@Index('IDX_users_institution_id', ['institutionId'])
+@Index('IDX_users_role', ['role'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column({ name: 'password_hash' })
-  passwordHash: string;
+  passwordHash!: string;
 
   @Column({
     name: 'password_setup_token',
@@ -36,17 +36,17 @@ export class User {
     length: 255,
     nullable: true,
   })
-  passwordSetupToken: string | null;
+  passwordSetupToken!: string | null;
 
   @Column({
     name: 'password_setup_expires_at',
-    type: 'timestamp',
+    type: 'timestamptz',
     nullable: true,
   })
-  passwordSetupExpiresAt: Date | null;
+  passwordSetupExpiresAt!: Date | null;
 
-  @Column({ name: 'password_set_at', type: 'timestamp', nullable: true })
-  passwordSetAt: Date | null;
+  @Column({ name: 'password_set_at', type: 'timestamptz', nullable: true })
+  passwordSetAt!: Date | null;
 
   @Column({
     name: 'password_reset_token',
@@ -54,32 +54,35 @@ export class User {
     length: 255,
     nullable: true,
   })
-  passwordResetToken: string | null;
+  passwordResetToken!: string | null;
 
   @Column({
     name: 'password_reset_expires_at',
-    type: 'timestamp',
+    type: 'timestamptz',
     nullable: true,
   })
-  passwordResetExpiresAt: Date | null;
+  passwordResetExpiresAt!: Date | null;
 
   @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.THERAPIST,
   })
-  role: UserRole;
+  role!: UserRole;
 
   @Column({ name: 'institution_id', type: 'uuid', nullable: true })
-  institutionId: string | null;
+  institutionId!: string | null;
 
   @ManyToOne(() => Institution, { nullable: true })
   @JoinColumn({ name: 'institution_id' })
   institution?: Institution | null;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt!: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true, select: false })
+  deletedAt!: Date | null;
 }

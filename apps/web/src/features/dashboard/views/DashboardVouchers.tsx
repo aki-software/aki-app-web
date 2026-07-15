@@ -1,8 +1,8 @@
 import { AlertTriangle, Layers3 } from "lucide-react";
 import { useState, useEffect, useMemo, FormEvent } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
-import { PERIOD_DAYS } from "../constants/vouchers.constants";
-import { useVoucherList } from "../hooks/useVoucherList";
+import { PERIOD_DAYS, DETAIL_ITEMS_PER_PAGE } from "../constants/vouchers.constants";
+import { useVoucherList, calculateTotalPages } from "../hooks/useVoucherList";
 import { useVoucherStats } from "../hooks/useVoucherStats";
 import { useVoucherForm } from "../hooks/useVoucherForm";
 import { useVoucherActions } from "../hooks/useVoucherActions";
@@ -26,6 +26,7 @@ export function DashboardVouchers() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   // 1. Stats & Metadata Hook
   const statsManager = useVoucherStats(user, isAdmin);
@@ -69,9 +70,14 @@ export function DashboardVouchers() {
   const [selectedBatchDetail, setSelectedBatchDetail] = useState<VoucherBatchDetailResponse | null>(null);
   const [batchDetailLoading, setBatchDetailLoading] = useState(false);
   const [batchDetailError, setBatchDetailError] = useState<string | null>(null);
+  const [batchDetailPage, setBatchDetailPage] = useState(1);
   const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(null);
   const [voucherSessions, setVoucherSessions] = useState<SessionData[]>([]);
   const [loadingVoucherSessions, setLoadingVoucherSessions] = useState(false);
+
+  const batchDetailTotalPages = selectedBatchDetail
+    ? calculateTotalPages(selectedBatchDetail.count, DETAIL_ITEMS_PER_PAGE)
+    : 0;
 
   // Detail Loading Logic (Extracted from component)
   useEffect(() => {
@@ -81,7 +87,10 @@ export function DashboardVouchers() {
       setBatchDetailLoading(true);
       setBatchDetailError(null);
       try {
-        const detail = await fetchVoucherBatchDetail(selectedBatchId);
+        const detail = await fetchVoucherBatchDetail(selectedBatchId, {
+          page: batchDetailPage,
+          limit: DETAIL_ITEMS_PER_PAGE,
+        });
         if (isActive) {
           if (!detail) setBatchDetailError("No se pudo cargar el detalle del lote.");
           else setSelectedBatchDetail(detail);
@@ -94,7 +103,7 @@ export function DashboardVouchers() {
     };
     load();
     return () => { isActive = false; };
-  }, [selectedBatchId]);
+  }, [selectedBatchId, batchDetailPage]);
 
   const handleLoadVoucherSessions = async (voucherId: string) => {
     setLoadingVoucherSessions(true);
@@ -130,16 +139,23 @@ export function DashboardVouchers() {
     );
   }
 
+  const visibleAlerts = statsManager.alerts.filter(a => !dismissedAlerts.has(a.message));
+
   return (
     <div className="space-y-10 animate-in">
-      {statsManager.alerts.length > 0 && (
+      {visibleAlerts.length > 0 && (
         <div className="space-y-3">
-          {statsManager.alerts.map((alert, idx) => (
+          {visibleAlerts.map((alert, idx) => (
             <Alert 
               key={idx} 
               type={alert.severity === 'critical' ? "error" : "warning"} 
               message={alert.message} 
               icon={<AlertTriangle />}
+              onClose={() => {
+                const next = new Set(dismissedAlerts);
+                next.add(alert.message);
+                setDismissedAlerts(next);
+              }}
             />
           ))}
         </div>
@@ -215,7 +231,10 @@ export function DashboardVouchers() {
           loading={batchDetailLoading}
           error={batchDetailError}
           isAdmin={isAdmin}
-          onClose={() => { setSelectedBatchId(null); setSelectedBatchDetail(null); }}
+          currentPage={batchDetailPage}
+          totalPages={batchDetailTotalPages}
+          onPageChange={setBatchDetailPage}
+          onClose={() => { setSelectedBatchId(null); setSelectedBatchDetail(null); setBatchDetailPage(1); }}
         />
       )}
 

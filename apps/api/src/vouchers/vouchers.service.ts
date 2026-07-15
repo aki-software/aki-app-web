@@ -24,6 +24,7 @@ import { VoucherNotifierService } from './voucher-notifier.service.js';
 import { VoucherQueryService } from './voucher-query.service.js';
 import { VoucherCodeGenerator } from './services/voucher-code-generator.service.js';
 import { VoucherOwnerResolver } from './services/voucher-owner-resolver.service.js';
+import { InstitutionsService } from '../institutions/institutions.service.js';
 import {
   AdminActivityItem,
   RawRecentVoucherRow,
@@ -41,6 +42,7 @@ export class VouchersService {
     private readonly queryService: VoucherQueryService,
     private readonly codeGenerator: VoucherCodeGenerator,
     private readonly ownerResolver: VoucherOwnerResolver,
+    private readonly institutionsService: InstitutionsService,
   ) {}
 
   async getRecentActivity(limit: number = 50): Promise<AdminActivityItem[]> {
@@ -147,6 +149,27 @@ export class VouchersService {
     );
 
     const savedVouchers = await this.voucherRepository.save(vouchersToCreate);
+
+    if (normalizedOwnership.ownerInstitutionId) {
+      try {
+        const institution = await this.institutionsService.findOneOrFail(
+          normalizedOwnership.ownerInstitutionId,
+        );
+        const targetEmail =
+          institution.billingEmail || institution.responsibleTherapist?.email;
+        if (targetEmail) {
+          await this.notifierService.notifyBatchAssignment(
+            targetEmail,
+            institution.name,
+            quantity,
+            expiresAt,
+          );
+        }
+      } catch (e) {
+        // Log gracefully so the batch is still created even if the email fails
+        console.error('Error enviando notificación de lote asignado:', e);
+      }
+    }
 
     return {
       batchId: batch.id,
@@ -347,9 +370,13 @@ export class VouchersService {
     return await this.voucherRepository.save(voucher);
   }
 
-  async findByCode(code: string): Promise<Voucher> {
+  async findByCode(code: string, scope?: VoucherScope): Promise<Voucher> {
+    const scopedWhere = this.queryService.buildScopedWhere(scope) ?? {};
     const voucher = await this.voucherRepository.findOne({
-      where: { code: this.codeGenerator.normalize(code) },
+      where: {
+        ...scopedWhere,
+        code: this.codeGenerator.normalize(code),
+      },
       relations: ['ownerUser', 'ownerInstitution'],
     });
     if (!voucher) throw new NotFoundException('Voucher no encontrado');

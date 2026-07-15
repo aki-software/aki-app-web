@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -20,7 +20,7 @@ export class UsersService {
       : this.userRepository.create(userData);
 
     if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.notFound);
+      throw new NotFoundException(USER_ERROR_MESSAGES.notFound);
     }
 
     return await this.userRepository.save(user);

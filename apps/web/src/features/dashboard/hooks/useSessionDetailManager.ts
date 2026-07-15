@@ -16,7 +16,11 @@ export const useSessionDetailManager = (id?: string) => {
     });
   }, [id]);
 
-  // Comportamiento: se toman las métricas pre-calculadas por el backend
+  // Métricas del backend: el endpoint GET /sessions/:id ya incluye session.metrics
+  // con todos los campos conductuales calculados por SessionMetricsService.
+  const metrics = session?.metrics ?? null;
+
+  // Campos de comportamiento ya computados por el backend — se leen directamente de metrics
   const behaviorStats = useMemo(() => {
     const m = session?.metrics;
     if (!m) return null;
@@ -24,29 +28,50 @@ export const useSessionDetailManager = (id?: string) => {
       undosCount: m.revertedMatches ?? 0,
       avgTime: m.avgTimeBetweenSwipesMs > 0 ? m.avgTimeBetweenSwipesMs : null,
       reliabilityLevel: m.reliabilityLevel ?? "N/A",
+      // Nuevos campos conductuales
+      likeRatio: m.likeRatio,
+      selectivityLevel: m.selectivityLevel,
+      fatigueDetected: m.fatigueDetected,
+      rushDetected: m.rushDetected,
+      responseTimeHistogram: m.responseTimeHistogram,
+      revertedDirection: m.revertedDirection,
+      consistencyLevel: m.consistencyLevel,
     };
   }, [session]);
 
-  // Cálculos de resultados
+  // Cálculos de resultados — índice en session.results = orden del motor psicométrico
   const resultsRecord = useMemo(() => {
     const record: Record<string, number> = {};
     session?.results?.forEach((r) => { record[r.categoryId.toUpperCase()] = r.percentage; });
     return record;
   }, [session]);
 
-  // Sorting de resultados
+  // Orden que viene del backend: el motor psicométrico ya ordenó (percentage DESC → score DESC → categoryId ASC).
+  // Usamos el índice original como desempate para empates de porcentaje.
+  const backendOrder = useMemo(() => {
+    const order: Record<string, number> = {};
+    session?.results?.forEach((r, i) => { order[r.categoryId.toUpperCase()] = i; });
+    return order;
+  }, [session]);
+
+  // Sorting de resultados — respeta el orden del motor psicométrico del backend:
+  // percentage DESC, con índice original como desempate (= weightedScore implícito)
   const { sortedResults, top3, bottom3 } = useMemo(() => {
     const allCategories = Object.keys(categoriesMap).filter((k) => k !== "...");
     const sorted = [...allCategories]
-      .map((cat) => ({ cat, pct: resultsRecord[cat] ?? 0 }))
-      .sort((a, b) => b.pct - a.pct);
-      
+      .map((cat) => ({
+        cat,
+        pct: resultsRecord[cat] ?? 0,
+        order: backendOrder[cat] ?? 999,
+      }))
+      .sort((a, b) => b.pct - a.pct || a.order - b.order);
+
     return {
       sortedResults: sorted,
       top3: sorted.slice(0, 3),
       bottom3: sorted.slice(-3).reverse()
     };
-  }, [categoriesMap, resultsRecord]);
+  }, [categoriesMap, resultsRecord, backendOrder]);
 
   // Descarga del PDF
   const handleDownloadPdf = useCallback(async () => {
@@ -73,6 +98,7 @@ export const useSessionDetailManager = (id?: string) => {
     session,
     loading,
     categoriesMap,
+    metrics,
     behaviorStats,
     resultsRecord,
     sortedResults,

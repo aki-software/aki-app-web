@@ -4,22 +4,36 @@ import {
   Logger,
   OnModuleDestroy,
 } from '@nestjs/common';
-import * as puppeteer from 'puppeteer';
+import type { Browser, Page } from 'puppeteer-core';
+import { PdfGenerator } from '../adapters/pdf-generator.adapter.js';
 
 @Injectable()
-export class PdfService implements OnModuleDestroy {
+export class PdfService implements PdfGenerator, OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
-  private readonly idlePages: puppeteer.Page[] = [];
+  private readonly idlePages: Page[] = [];
   private readonly maxIdlePages = 4;
   private readonly pageTimeoutMs = 30_000;
-  private browser: puppeteer.Browser | undefined;
-  private browserLaunching: Promise<puppeteer.Browser> | undefined;
+  private browser: Browser | undefined;
+  private browserLaunching: Promise<Browser> | undefined;
 
-  async generateFromHtml(html: string): Promise<Buffer> {
-    let page: puppeteer.Page | undefined;
+  async generateFromHtml(html: string, signal?: AbortSignal): Promise<Buffer> {
+    if (signal?.aborted) {
+      throw new Error('PDF generation aborted');
+    }
+
+    let page: Page | undefined;
     try {
       page = await this.acquirePage();
-      await page.setContent(html, { waitUntil: 'domcontentloaded' });
+
+      if (signal?.aborted) {
+        throw new Error('PDF generation aborted');
+      }
+
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+
+      if (signal?.aborted) {
+        throw new Error('PDF generation aborted');
+      }
 
       const pdfBuffer = await page.pdf({
         format: 'A4',
@@ -36,6 +50,17 @@ export class PdfService implements OnModuleDestroy {
     } catch (error) {
       const message = (error as Error)?.message ?? 'unknown error';
       this.logger.error(`PDF generation failed: ${message}`);
+
+      if (
+        message.includes('Connection closed') ||
+        message.includes('Target closed') ||
+        message.includes('Protocol error')
+      ) {
+        this.logger.warn(
+          'Destruyendo instancia corrupta de Puppeteer para forzar reinicio.',
+        );
+        await this.closeBrowser().catch(() => {});
+      }
 
       if (message.includes('Could not find Chrome')) {
         this.logger.error(
@@ -57,7 +82,7 @@ export class PdfService implements OnModuleDestroy {
     await this.closeBrowser();
   }
 
-  private async acquirePage(): Promise<puppeteer.Page> {
+  private async acquirePage(): Promise<Page> {
     const browser = await this.getBrowser();
     const page = this.idlePages.pop() ?? (await browser.newPage());
     page.setDefaultNavigationTimeout(this.pageTimeoutMs);
@@ -65,7 +90,7 @@ export class PdfService implements OnModuleDestroy {
     return page;
   }
 
-  private async releasePage(page: puppeteer.Page): Promise<void> {
+  private async releasePage(page: Page): Promise<void> {
     if (page.isClosed()) {
       return;
     }
@@ -76,6 +101,12 @@ export class PdfService implements OnModuleDestroy {
       this.logger.warn(
         `PDF page reset failed: ${(error as Error)?.message ?? 'unknown'}`,
       );
+      try {
+        await page.close();
+      } catch {
+        // Ignoramos errores al forzar el cierre
+      }
+      return;
     }
 
     if (this.idlePages.length < this.maxIdlePages) {
@@ -92,7 +123,7 @@ export class PdfService implements OnModuleDestroy {
     }
   }
 
-  private async getBrowser(): Promise<puppeteer.Browser> {
+  private async getBrowser(): Promise<Browser> {
     if (this.browser && this.browser.isConnected()) {
       return this.browser;
     }
@@ -101,25 +132,48 @@ export class PdfService implements OnModuleDestroy {
       return this.browserLaunching;
     }
 
+    if (process.env.SERVERLESS === 'true') {
+      const chromium = await import('@sparticuz/chromium');
+      const puppeteerCore = await import('puppeteer-core');
+
+      this.browserLaunching = puppeteerCore
+        .launch({
+          args: chromium.default.args,
+          executablePath: await chromium.default.executablePath(),
+          headless: chromium.default.headless,
+        })
+        .then((browser) => {
+          this.browser = browser as unknown as Browser;
+          return this.browser;
+        })
+        .catch((error) => {
+          this.browserLaunching = undefined;
+          throw error;
+        });
+
+      return this.browserLaunching;
+    }
+
+    const puppeteer = await import('puppeteer-core');
+
     this.browserLaunching = puppeteer
       .launch({
+        channel: 'chrome',
         headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
-          '--single-process',
-          '--no-zygote',
           '--memory-pressure-off',
           '--js-flags=--max-old-space-size=256',
         ],
       })
-      .then((browser) => {
+      .then((browser: Browser) => {
         this.browser = browser;
         return browser;
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         this.browserLaunching = undefined;
         throw error;
       });

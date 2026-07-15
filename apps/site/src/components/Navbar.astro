@@ -8,64 +8,191 @@ interface Props {
 
 const { locale, t } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
-const dashboardUrl = import.meta.env.PUBLIC_DASHBOARD_URL || 'https://app-qa.akituespacio.com.ar';
+const dashboardUrl = import.meta.env.PUBLIC_DASHBOARD_URL || 'http://localhost:5173/';
 
 const langPath = locale === 'es' ? '/en' : '/';
 ---
 
-<nav class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4" role="navigation">
-  <div class="w-full max-w-5xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 hover:bg-white/10 hover:border-white/20">
+<nav class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4" role="navigation" aria-label="Main navigation">
+  <div id="nav-container" class="w-full max-w-5xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 hover:bg-white/10 hover:border-white/20">
     <div class="px-6 h-16 flex items-center justify-between">
       <a href="/" class="flex items-center gap-3 group">
-        <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-emerald-400 p-[1px] group-hover:shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] transition-all duration-300">
+        <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-confirm p-[1px] group-hover:shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)] transition-all duration-300">
           <div class="absolute inset-0 bg-dark-bg rounded-xl m-[1px] flex items-center justify-center overflow-hidden">
-             <img src="/logo.png" alt="A.kit Logo" class="h-6 w-auto group-hover:scale-110 transition-transform duration-300" />
+             <img src="/logo.png" alt="A.ki Logo" class="h-6 w-auto group-hover:scale-110 transition-transform duration-300" />
           </div>
         </div>
-        <span class="font-display font-bold text-base text-white hidden sm:block tracking-wide">ORIENT A.KI</span>
+        <span id="nav-logo-text" class="font-display font-bold text-base text-white hidden sm:block tracking-wide">ORIENT A.KI</span>
       </a>
 
+      <!-- Desktop Links -->
       <div class="hidden md:flex items-center gap-8">
-        <a href="#como-funciona" class="text-sm font-medium text-white/70 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{t.nav.howItWorks}</a>
-        <a href="#instituciones" class="text-sm font-medium text-white/70 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{t.nav.forInstitutions}</a>
+        <a href="#como-funciona" class="nav-link text-sm font-medium text-white/70 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{t.nav.howItWorks}</a>
+        <a href="#instituciones" class="nav-link text-sm font-medium text-white/70 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{t.nav.forInstitutions}</a>
         
         <div class="h-4 w-px bg-white/20"></div>
         
-        <a href={langPath} class="text-sm font-bold text-white/50 hover:text-white transition-colors">{t.langSwitch}</a>
+        <a id="nav-lang-switch" href={langPath} class="text-sm font-bold text-white/50 hover:text-white transition-colors">{t.langSwitch}</a>
         
-        <a href={dashboardUrl} class="px-5 py-2 text-sm font-bold text-dark-bg bg-white rounded-full hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300">
+        <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" class="px-5 py-2 text-sm font-bold text-dark-bg bg-white rounded-full hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300">
           {t.nav.startFree}
         </a>
       </div>
 
+      <!-- Mobile Header -->
       <div class="flex items-center gap-3 md:hidden">
-        <a href={langPath} class="text-xs font-bold text-white/70 px-2">{t.langSwitch}</a>
-        <button id="mobile-menu-btn" class="p-2 text-white/90 bg-white/10 rounded-full hover:bg-white/20 transition-colors" aria-label="Menu">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a id="nav-lang-switch-mobile" href={langPath} class="text-xs font-bold text-white/70 px-2">{t.langSwitch}</a>
+        <button 
+          id="mobile-menu-btn" 
+          class="relative p-2 text-white/90 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+          aria-label="Menú"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+        >
+          <!-- Hamburger icon -->
+          <svg id="menu-icon-hamburger" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <!-- Close (X) icon -->
+          <svg id="menu-icon-close" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
     </div>
   </div>
 
-  <div id="mobile-menu" class="hidden absolute top-20 left-4 right-4 bg-dark-surface/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-4 md:hidden">
+  <!-- Mobile Menu -->
+  <div 
+    id="mobile-menu" 
+    class="absolute top-20 left-4 right-4 bg-dark-surface/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-4 md:hidden opacity-0 invisible translate-y-[-8px] transition-all duration-300 ease-out"
+    role="menu"
+  >
     <div class="flex flex-col gap-2">
-      <a href="#como-funciona" class="px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 rounded-xl transition-colors">{t.nav.howItWorks}</a>
-      <a href="#instituciones" class="px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 rounded-xl transition-colors">{t.nav.forInstitutions}</a>
-      <a href={dashboardUrl} class="mt-2 w-full py-3 text-sm text-center text-dark-bg bg-white rounded-xl font-bold">{t.nav.startFree}</a>
+      <a href="#como-funciona" class="mobile-menu-link px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 rounded-xl transition-colors" role="menuitem">{t.nav.howItWorks}</a>
+      <a href="#instituciones" class="mobile-menu-link px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 rounded-xl transition-colors" role="menuitem">{t.nav.forInstitutions}</a>
+      <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" class="mobile-menu-link mt-2 w-full py-3 text-sm text-center text-dark-bg bg-white rounded-xl font-bold" role="menuitem">{t.nav.startFree}</a>
     </div>
   </div>
 </nav>
 
+<style>
+  /* Scrolled state: fixed navbar when hero is out of view */
+  #nav-container.scrolled {
+    background-color: #F5EFE7 !important;
+    border-color: #DCD3C5 !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  #nav-container.scrolled .nav-link {
+    color: #44403C;
+  }
+  #nav-container.scrolled .nav-link:hover {
+    color: #1F2523;
+    text-shadow: none;
+  }
+  #nav-container.scrolled #nav-logo-text {
+    color: #1F2523;
+  }
+  #nav-container.scrolled #nav-lang-switch,
+  #nav-container.scrolled #nav-lang-switch-mobile {
+    color: #44403C;
+  }
+  #nav-container.scrolled #nav-lang-switch:hover,
+  #nav-container.scrolled #nav-lang-switch-mobile:hover {
+    color: #1F2523;
+  }
+  #nav-container.scrolled #mobile-menu-btn {
+    color: #1F2523;
+    background-color: #DCD3C5;
+  }
+  #nav-container.scrolled + #mobile-menu {
+    background-color: #F5EFE7;
+    border-color: #DCD3C5;
+  }
+  #nav-container.scrolled ~ #mobile-menu .mobile-menu-link {
+    color: #44403C;
+  }
+  #nav-container.scrolled ~ #mobile-menu .mobile-menu-link:hover {
+    background-color: rgba(220, 211, 197, 0.3);
+  }
+  #nav-container.scrolled ~ #mobile-menu a[href*="dashboard"] {
+    color: #F5EFE7;
+    background-color: #1F2523;
+  }
+</style>
+
 <script>
   const btn = document.getElementById('mobile-menu-btn');
   const menu = document.getElementById('mobile-menu');
-  btn?.addEventListener('click', () => {
-    const isOpen = menu?.classList.toggle('hidden') === false;
-    btn.setAttribute('aria-expanded', String(isOpen));
+  const hamburgerIcon = document.getElementById('menu-icon-hamburger');
+  const closeIcon = document.getElementById('menu-icon-close');
+  let isOpen = false;
+
+  function openMenu() {
+    isOpen = true;
+    menu?.classList.remove('opacity-0', 'invisible', 'translate-y-[-8px]');
+    menu?.classList.add('opacity-100', 'visible', 'translate-y-0');
+    btn?.setAttribute('aria-expanded', 'true');
+    btn?.setAttribute('aria-label', 'Cerrar menú');
+    hamburgerIcon?.classList.add('hidden');
+    closeIcon?.classList.remove('hidden');
+  }
+
+  function closeMenu() {
+    isOpen = false;
+    menu?.classList.add('opacity-0', 'invisible', 'translate-y-[-8px]');
+    menu?.classList.remove('opacity-100', 'visible', 'translate-y-0');
+    btn?.setAttribute('aria-expanded', 'false');
+    btn?.setAttribute('aria-label', 'Abrir menú');
+    hamburgerIcon?.classList.remove('hidden');
+    closeIcon?.classList.add('hidden');
+    btn?.focus();
+  }
+
+  function toggleMenu() {
+    if (isOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  }
+
+  // Toggle on button click
+  btn?.addEventListener('click', toggleMenu);
+
+  // Close on link click
+  menu?.querySelectorAll('.mobile-menu-link').forEach((link) => {
+    link.addEventListener('click', closeMenu);
   });
-  menu?.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => { menu?.classList.add('hidden'); btn?.setAttribute('aria-expanded', 'false'); });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) {
+      closeMenu();
+    }
   });
+
+  // Close on click outside
+  document.addEventListener('click', (e) => {
+    if (isOpen && btn && menu) {
+      const target = e.target as Node | null;
+      if (!btn.contains(target) && !menu.contains(target)) {
+        closeMenu();
+      }
+    }
+  });
+
+  // Navbar scroll state: transparent on hero → solid beige past hero
+  const navContainer = document.getElementById('nav-container');
+  const hero = document.getElementById('hero');
+  if (navContainer && hero) {
+    const scrollObserver = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) {
+        navContainer.classList.add('scrolled');
+      } else {
+        navContainer.classList.remove('scrolled');
+      }
+    }, { threshold: 0 });
+    scrollObserver.observe(hero);
+  }
 </script>

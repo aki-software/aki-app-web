@@ -111,14 +111,14 @@ export function VoucherEmitForm({
         <div className="flex flex-col md:flex-row items-center justify-between border-t border-app-border pt-10 gap-6">
           <div className="flex-1">
             {errorMessage && (
-              <div className="flex items-center gap-3 text-rose-500 bg-rose-500/5 px-6 py-4 rounded-2xl border border-rose-500/10">
+              <div className="flex items-center gap-3 text-status-error bg-status-error/5 px-6 py-4 rounded-2xl border border-status-error/10">
                 <span className="text-xs font-black uppercase tracking-widest">
                   {errorMessage}
                 </span>
               </div>
             )}
             {successMessage && (
-              <div className="flex items-center gap-3 text-emerald-500 bg-emerald-500/5 px-6 py-4 rounded-2xl border border-emerald-500/10">
+              <div className="flex items-center gap-3 text-status-success bg-status-success/5 px-6 py-4 rounded-2xl border border-status-success/10">
                 <span className="text-xs font-black uppercase tracking-widest">
                   {successMessage}
                 </span>

@@ -3,13 +3,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { fetchSessionsList, type SessionData } from "../api/dashboard";
+import { fetchBehavioralTrends } from "../api/sessions.api";
+import type { BehavioralTrends } from "@akit/contracts";
 import { STATUS_OPTIONS, RESULTS_UI_TEXTS, type StatusFilter } from "../constants/results.constants";
 import { Button } from "../../../components/atoms/Button";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { Select } from "../../../components/atoms/Select";
 import { SearchInput } from "../../../components/molecules/SearchInput";
-import { StatCard } from "../../../components/molecules/StatCard";
+import { StatCard } from "../../../components/atoms/StatCard";
 import { UserSessionGroup } from "../components/results/UserSessionGroup";
+import { TriageList } from "../components/triage/TriageList";
+import { BehavioralTrendsSection } from "../components/results/BehavioralTrendsSection";
 
 const hasSessionResult = (s: SessionData) => (s.results?.length ?? 0) > 0;
 const isReportUnlocked = (s: SessionData) => Boolean(s.reportUnlockedAt);
@@ -19,6 +23,7 @@ export function DashboardResults() {
   const { user } = useAuth();
   
   const isInstitution = !!user?.institutionId && user.role?.toUpperCase() !== "ADMIN";
+  const isTherapist = user?.role?.toUpperCase() === "THERAPIST" || user?.role?.toUpperCase() === "PSYCHOLOGIST";
   const uiTexts = RESULTS_UI_TEXTS;
 
   const [sessions, setSessions] = useState<SessionData[]>([]);
@@ -26,12 +31,22 @@ export function DashboardResults() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>({});
+  const [trends, setTrends] = useState<BehavioralTrends | null>(null);
+  const [trendsLoading, setTrendsLoading] = useState(false);
 
   useEffect(() => {
     fetchSessionsList()
       .then(setSessions)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!isTherapist) return;
+    setTrendsLoading(true);
+    fetchBehavioralTrends({ scope: "global" })
+      .then(setTrends)
+      .finally(() => setTrendsLoading(false));
+  }, [isTherapist]);
 
   const toggleUserExpansion = (userName: string) => {
     setExpandedUsers((prev) => ({ ...prev, [userName]: !prev[userName] }));
@@ -70,10 +85,48 @@ export function DashboardResults() {
     () => groupedSessions.reduce((acc, [, list]) => acc + list.length, 0),
     [groupedSessions]
   );
+
+  const handleExportCSV = () => {
+    const csvRows = [];
+    csvRows.push(['Paciente', 'Fecha', 'Codigo Vocacional', 'Voucher', 'Estado', 'Institucion', 'Terapeuta'].join(','));
+
+    groupedSessions.forEach(([, userSessions]) => {
+      userSessions.forEach((session) => {
+        const date = new Date(session.sessionDate).toLocaleDateString('es-AR');
+        const status = session.reportUnlockedAt ? 'Reporte Desbloqueado' : (session.results?.length ? 'Completado' : 'Iniciado');
+        csvRows.push([
+          `"${session.patientName}"`,
+          `"${date}"`,
+          `"${session.hollandCode}"`,
+          `"${session.voucherCode || '-'}"`,
+          `"${status}"`,
+          `"${session.institutionName || '-'}"`,
+          `"${session.therapistName || '-'}"`
+        ].join(','));
+      });
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `exportacion-tests-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   return (
     <div className="space-y-10">
-      
+
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-[11px] font-semibold text-app-text-muted/70 uppercase tracking-[0.15em]">
+        <span>Dashboard</span>
+        <span className="opacity-30">/</span>
+        <span className="text-app-text-muted/80">Resultados</span>
+      </div>
+
       <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center border-b border-app-border pb-10">
         <div>
           <h2 className="text-3xl font-black text-app-text-main tracking-tight">
@@ -83,11 +136,31 @@ export function DashboardResults() {
             {isInstitution ? uiTexts.header.subtitleInstitution : uiTexts.header.subtitleAdmin}
           </p>
         </div>
-        <Button variant="outline" className="px-6 shadow-sm">
-          <FileSpreadsheet className="mr-3 h-4 w-4 text-emerald-500" />
+        <Button variant="outline" className="px-6 shadow-sm" onClick={handleExportCSV}>
+          <FileSpreadsheet className="mr-3 h-4 w-4 text-status-success" />
           Exportar Reporte
         </Button>
       </div>
+
+      {/* Triage: alertas de sesión para terapeutas */}
+      {isTherapist && (
+        <div className="max-w-2xl">
+          <TriageList />
+        </div>
+      )}
+
+      {/* Behavioral Trends: solo para terapeutas */}
+      {isTherapist && (
+        <div>
+          {trendsLoading ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="lg" className="border-app-primary" />
+            </div>
+          ) : (
+            <BehavioralTrendsSection trends={trends} />
+          )}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-4">
         <div className="min-w-[200px]">
@@ -105,7 +178,7 @@ export function DashboardResults() {
              <SearchInput
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar paciente, código Holland, terapeuta u organización..."
+              placeholder="Buscar paciente, código vocacional, terapeuta u organización..."
             />
           </div>
 

@@ -7,6 +7,15 @@ import {
 } from "../api/dashboard";
 import { ITEMS_PER_PAGE } from "../constants/vouchers.constants";
 
+export function calculateTotalPages(count: number, limit: number): number {
+  return limit > 0 ? Math.ceil(count / limit) : 0;
+}
+
+export function clampPage(page: number, totalPages: number): number {
+  if (totalPages <= 0) return 1;
+  return Math.max(1, Math.min(page, totalPages));
+}
+
 export interface VoucherListFilters {
   searchTerm: string;
   statusFilter: "ALL" | "AVAILABLE" | "USED" | "EXPIRED";

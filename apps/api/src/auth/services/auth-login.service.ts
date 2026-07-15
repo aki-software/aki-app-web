@@ -17,18 +17,6 @@ export class AuthLoginService {
   ) {}
 
   async login(loginDto: LoginDto): Promise<AuthLoginResponse> {
-    const adminEmail = this.configService.get<string>('ADMIN_USER');
-    const adminPass = this.configService.get<string>('ADMIN_PASS');
-
-    if (
-      adminEmail &&
-      adminPass &&
-      loginDto.email === adminEmail &&
-      loginDto.password === adminPass
-    ) {
-      return this.authResponseFactory.buildAdminLoginResponse(adminEmail);
-    }
-
     const user = await this.usersService.findByEmail(loginDto.email);
 
     if (!user) {
@@ -41,7 +29,7 @@ export class AuthLoginService {
       );
     }
 
-    const validPassword = this.cryptoService.verify(
+    const validPassword = await this.cryptoService.verify(
       loginDto.password,
       user.passwordHash,
     );

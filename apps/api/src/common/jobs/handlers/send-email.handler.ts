@@ -35,50 +35,14 @@ export class SendEmailHandler implements JobHandler<SendEmailJobPayload> {
     const sessionId = meta.sessionId ?? 'none';
     const voucherId = meta.voucherId ?? 'none';
 
-    if (template === 'voucher-code') {
-      this.logger.log(
-        `job-mail voucher-code jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
-      );
-      return await this.getMailService().sendVoucherCode(
-        meta.to,
-        typeof templatePayload.voucherCode === 'string'
-          ? templatePayload.voucherCode
-          : '',
-        typeof templatePayload.patientName === 'string'
-          ? templatePayload.patientName
-          : undefined,
-      );
-    }
+    this.logger.log(
+      `job-mail template=${template} jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
+    );
 
-    if (template === 'account-activation') {
-      this.logger.log(
-        `job-mail account-activation jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
-      );
-      return await this.getMailService().sendAccountActivation(
-        meta.to,
-        typeof templatePayload.name === 'string' ? templatePayload.name : '',
-        typeof templatePayload.activationLink === 'string'
-          ? templatePayload.activationLink
-          : '',
-        typeof templatePayload.institutionName === 'string'
-          ? templatePayload.institutionName
-          : null,
-      );
-    }
-
-    if (template === 'password-reset') {
-      this.logger.log(
-        `job-mail password-reset jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
-      );
-      return await this.getMailService().sendPasswordReset(
-        meta.to,
-        typeof templatePayload.name === 'string' ? templatePayload.name : '',
-        typeof templatePayload.resetLink === 'string'
-          ? templatePayload.resetLink
-          : '',
-      );
-    }
-
-    throw new Error('Unsupported email template: ' + String(template));
+    return await this.getMailService().send(
+      template,
+      templatePayload as any,
+      meta,
+    );
   }
 }

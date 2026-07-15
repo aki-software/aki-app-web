@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { translations } from '../i18n/translations';
+
+const locale = 'es';
+const t = translations[locale];
+const currentYear = new Date().getFullYear();
+---
+
+<BaseLayout locale={locale} t={t} title="Política de Privacidad - ORIENT A.KI">
+  <Navbar locale={locale} t={t} />
+  <main id="main" class="pt-24 pb-16 bg-[#F5EFE7]">
+    <div class="container max-w-3xl mx-auto bg-white rounded-2xl border border-[#DCD3C5]/40 shadow-sm p-8 md:p-12">
+      <h1 class="font-display font-bold text-3xl text-[#1F2523] mb-2">Política de Privacidad</h1>
+      <p class="text-sm text-[#44403C] mb-8">Última actualización: Junio {currentYear}</p>
+
+      <div class="prose prose-sm max-w-none text-[#44403C] space-y-6">
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">1. Información que recopilamos</h2>
+        <p>Recopilamos únicamente los datos necesarios para el funcionamiento del test vocacional:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Correo electrónico</strong> — para identificar tu cuenta y enviarte el reporte de resultados si lo solicitás.</li>
+          <li><strong>Respuestas del test</strong> — tus elecciones (swipes) durante el test vocacional, necesarias para calcular tu perfil.</li>
+          <li><strong>Datos de uso anónimos</strong> — métricas agregadas sobre el rendimiento del test, sin identificar al usuario.</li>
+        </ul>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">2. Uso de la información</h2>
+        <p>Los datos recopilados se utilizan exclusivamente para:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Calcular y mostrar tu perfil vocacional.</li>
+          <li>Generar el reporte PDF con recomendaciones de carreras.</li>
+          <li>Mejorar la experiencia del test (datos anónimos).</li>
+        </ul>
+        <p><strong>No compartimos, vendemos ni alquilamos tu información personal a terceros bajo ninguna circunstancia.</strong></p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">3. Seguridad de los datos</h2>
+        <p>Toda la información se transmite cifrada (HTTPS/TLS) y se almacena siguiendo estándares de seguridad de la industria. Utilizamos infraestructura en la nube con cifrado en reposo y controles de acceso estrictos.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">4. Retención y eliminación</h2>
+        <p>Conservamos tus datos mientras tu cuenta esté activa. Podés solicitar la eliminación de tu cuenta y todos tus datos asociados en cualquier momento escribiéndonos a contacto@orientaki.com. Los datos anónimos agregados pueden conservarse con fines estadísticos.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">5. Tus derechos</h2>
+        <p>Tenés derecho a acceder, rectificar, cancelar y oponerte al tratamiento de tus datos personales (derechos ARCO). Para ejercerlos, contactanos a contacto@orientaki.com.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">6. Contacto</h2>
+        <p>Si tenés dudas sobre esta política, escribinos a <a href="mailto:contacto@orientaki.com" class="text-[#0F6B68] underline">contacto@orientaki.com</a>.</p>
+      </div>
+    </div>
+  </main>
+  <Footer locale={locale} t={t} />
+</BaseLayout>

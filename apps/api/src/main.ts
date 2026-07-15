@@ -2,8 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
-import { HttpAdapterHost } from '@nestjs/core';
 import helmet from 'helmet';
 
 async function bootstrap() {
@@ -31,9 +29,6 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger));
 
-  const httpAdapterHost = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
-
   const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? [
     'http://localhost:5173',
   ];
@@ -51,7 +46,9 @@ async function bootstrap() {
     }),
   );
 
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api/v1', {
+    exclude: ['health', '/'],
+  });
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }

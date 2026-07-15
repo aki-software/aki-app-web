@@ -5,7 +5,7 @@ export interface NavItem {
   name: string;
   path: string;
   icon: LucideIcon;
-  adminOnly: boolean;
+  roles: Array<'ADMIN' | 'THERAPIST'>;
 }
 
 export const DASHBOARD_NAV_ITEMS: NavItem[] = [
@@ -13,31 +13,31 @@ export const DASHBOARD_NAV_ITEMS: NavItem[] = [
     name: "Resumen",
     path: APP_ROUTES.DASHBOARD.ROOT,
     icon: LayoutDashboard,
-    adminOnly: false,
+    roles: ['ADMIN', 'THERAPIST'],
   },
   {
     name: "Tests realizados",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.RESULTS}`,
     icon: ChartPie,
-    adminOnly: false,
+    roles: ['ADMIN', 'THERAPIST'],
   },
   {
     name: "Vouchers",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.VOUCHERS}`,
     icon: Ticket,
-    adminOnly: false,
+    roles: ['ADMIN'],
   },
   {
     name: "Instituciones y terapeutas",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.USERS}`,
     icon: Users,
-    adminOnly: true,
+    roles: ['ADMIN'],
   },
   {
     name: "Ajustes",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.SETTINGS}`,
     icon: Settings,
-    adminOnly: false,
+    roles: ['ADMIN', 'THERAPIST'],
   },
 ];
 

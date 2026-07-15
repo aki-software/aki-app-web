@@ -1,16 +1,16 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
   Query,
-  Req,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import type { AuthenticatedRequest } from '../auth/auth.types.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
@@ -29,6 +29,7 @@ import type {
 import { InstitutionAnalyticsService } from './services/institution-analytics.service.js';
 import { InstitutionOperationalAccountService } from './services/institution-operational-account.service.js';
 import { InstitutionPresenterService } from './services/institution-presenter.service.js';
+import { InstitutionOwnerGuard } from './guards/institution-owner.guard.js';
 
 @Controller('institutions')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -75,20 +76,17 @@ export class InstitutionsController {
   }
 
   @Get(':id/stats')
-  async getStats(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
-    this.assertOwnerOrAdmin(req, id);
-
+  @UseGuards(InstitutionOwnerGuard)
+  async getStats(@Param('id') id: string) {
     return await this.institutionAnalyticsService.getStats(id);
   }
 
   @Get(':id/overview')
+  @UseGuards(InstitutionOwnerGuard)
   async getOverview(
     @Param('id') id: string,
-    @Req() req?: AuthenticatedRequest,
     @Query() query?: InstitutionOverviewQueryDto,
   ): Promise<InstitutionOverviewResponse> {
-    this.assertOwnerOrAdmin(req, id);
-
     const normalizedDays = query?.periodDays ?? 7;
 
     return (await this.institutionAnalyticsService.getOverview(
@@ -120,6 +118,13 @@ export class InstitutionsController {
     };
   }
 
+  @Delete(':id')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id') id: string): Promise<void> {
+    await this.institutionsService.softRemove(id);
+  }
+
   @Post(':id/operational-account')
   @Roles(UserRole.ADMIN)
   async createOperationalAccount(
@@ -138,20 +143,5 @@ export class InstitutionsController {
       ),
       activationEmailSent,
     };
-  }
-
-  private assertOwnerOrAdmin(
-    req: AuthenticatedRequest | undefined,
-    institutionId: string,
-  ): void {
-    const isOwnerOrAdmin =
-      req?.user?.role?.toUpperCase() === UserRole.ADMIN ||
-      req?.user?.institutionId === institutionId;
-
-    if (!isOwnerOrAdmin) {
-      throw new UnauthorizedException(
-        'No tienes permisos para acceder a esta instituciÃ³n',
-      );
-    }
   }
 }

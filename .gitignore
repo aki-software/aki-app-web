@@ -19,3 +19,4 @@ build
 *.log
 pnpm-debug.log*
 tmp/
+openspec

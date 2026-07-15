@@ -20,6 +20,11 @@ export class JobDispatcherService {
     this.handlers.set(JobNames.SendReport, this.sendReportHandler);
   }
 
+  registerHandler(handler: JobHandler): void {
+    this.logger.debug(`Registering handler for job=${handler.name}`);
+    this.handlers.set(handler.name, handler);
+  }
+
   async dispatch(jobName: JobNames, payload: unknown): Promise<unknown> {
     const handler = this.handlers.get(jobName);
     if (!handler) {
@@ -34,7 +39,9 @@ export class JobDispatcherService {
 
     return await this.trackJobDuration(jobName, startedAt, context, () => {
       const timeoutMs = handler.getTimeoutMs?.(payload) ?? 60_000;
-      return this.runWithTimeout(timeoutMs, () => handler.handle(payload));
+      return this.runWithTimeout(timeoutMs, (signal) =>
+        handler.handle(payload, signal),
+      );
     });
   }
 

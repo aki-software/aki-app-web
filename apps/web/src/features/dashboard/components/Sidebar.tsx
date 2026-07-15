@@ -8,12 +8,19 @@ interface SidebarProps {
   onCloseMobile?: () => void;
 }
 
+const KNOWN_ROLES = ['ADMIN', 'THERAPIST'] as const;
+
 export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
   const { logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
-  const visibleNavItems = DASHBOARD_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+  const userRole = user?.role?.toUpperCase() ?? '';
+  const effectiveRole = (KNOWN_ROLES as readonly string[]).includes(userRole)
+    ? userRole
+    : 'THERAPIST';
+  const visibleNavItems = DASHBOARD_NAV_ITEMS.filter((item) =>
+    item.roles.includes(effectiveRole as 'ADMIN' | 'THERAPIST')
+  );
 
   const handleLogout = async () => {
     await logout();
@@ -45,7 +52,7 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
         <nav className="space-y-2">
           {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== APP_ROUTES.DASHBOARD.ROOT && location.pathname.startsWith(item.path));
-            const displayName = item.name === "Ajustes" ? (isAdmin ? "Material teórico (CMS)" : "Cambio de contraseña") : item.name;
+            const displayName = item.name === "Ajustes" ? (userRole === "ADMIN" ? "Material teórico (CMS)" : "Cambio de contraseña") : item.name;
 
             return (
               <Link
@@ -59,6 +66,7 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
                 }`}
               >
                 <item.icon
+                  aria-hidden="true"
                   className={`flex-shrink-0 w-5 h-5 mr-4 transition-all ${
                     isActive ? "text-app-primary scale-110" : "text-app-text-muted/40 group-hover:text-app-primary group-hover:scale-110"
                   }`}
@@ -75,9 +83,9 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
       <div className="p-6 border-t border-sidebar-border">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center px-5 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-app-text-muted rounded-2xl hover:bg-rose-500/10 hover:text-rose-400 transition-all group"
+          className="flex w-full items-center px-5 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-app-text-muted rounded-2xl hover:bg-status-error/10 hover:text-status-error transition-all group"
         >
-          <LogOut className="flex-shrink-0 w-5 h-5 mr-4 text-app-text-muted/40 group-hover:text-rose-500 group-hover:scale-110 transition-all" />
+          <LogOut aria-hidden="true" className="flex-shrink-0 w-5 h-5 mr-4 text-app-text-muted/40 group-hover:text-status-error group-hover:scale-110 transition-all" />
           Cerrar sesión
         </button>
       </div>
