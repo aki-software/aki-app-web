@@ -3,7 +3,6 @@ import * as pug from 'pug';
 import * as path from 'path';
 import { colors } from '@akit/design-tokens';
 
-
 @Injectable()
 export class TemplateRendererService {
   private readonly brandDomain = 'akituespacio.com.ar';
