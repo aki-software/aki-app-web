@@ -3,6 +3,7 @@ import { SessionPaymentStatus } from "../../api/dashboard";
 import type { SessionData } from "../../api/dashboard";
 import { formatDate, formatDuration } from "../../../../utils/date";
 import { Button } from "../../../../components/atoms/Button";
+import { CATEGORY_COLORS } from "../../constants/category-colors";
 
 
 const paymentLabel = (status: string) => {
@@ -100,6 +101,32 @@ export function UserSessionGroup({
                   {/* Fila superior: Tags e info principal */}
                   <div className="flex flex-wrap items-center gap-8">
                     <span className="app-label opacity-70">Ronda {userSessions.length - idx}</span>
+
+                    {/* Holland code con color */}
+                    {session.hollandCode && session.hollandCode !== "N/A" && (
+                      <div className="flex items-center gap-1.5">
+                        {Array.from(session.hollandCode).map((letter, i) => {
+                          // Buscar categoría que empiece con esta letra
+                          const catKey = Object.keys(CATEGORY_COLORS).find(
+                            (k) => k.startsWith(letter.toUpperCase()),
+                          );
+                          const color = catKey ? CATEGORY_COLORS[catKey] : null;
+                          return (
+                            <span
+                              key={`${letter}-${i}`}
+                              className="inline-flex items-center justify-center h-6 w-6 rounded-lg text-[10px] font-black uppercase tracking-wider"
+                              style={{
+                                backgroundColor: color ? `color-mix(in srgb, ${color.color} 12%, transparent)` : "var(--color-app-bg)",
+                                color: color?.color ?? "var(--color-app-text-muted)",
+                              }}
+                              title={catKey ?? letter}
+                            >
+                              {letter.toUpperCase()}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     <span className="flex items-center text-xs font-bold text-app-text-main group-hover/session:text-app-primary transition-colors">
                       <Calendar className="mr-3 h-4 w-4 text-app-text-muted" />

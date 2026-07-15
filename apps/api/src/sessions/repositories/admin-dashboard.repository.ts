@@ -199,6 +199,123 @@ export class AdminDashboardRepository {
       .getRawMany<RawRecentSessionRow>();
   }
 
+  async getBehavioralTrends(
+    institutionId: string | undefined,
+    periodStart: Date | undefined,
+    periodEnd: Date | undefined,
+  ): Promise<{
+    selectivityDistribution: {
+      selective: number;
+      balanced: number;
+      exploratory: number;
+    };
+    fatiguedCount: number;
+    rushCount: number;
+    totalSessions: number;
+    eligibleSessions: number;
+    avgReliabilityScore: number;
+    dailyTrends: Array<{
+      date: string;
+      sessions: number;
+      fatigueRate: number;
+      rushRate: number;
+    }>;
+  }> {
+    const conditions: string[] = ['sm.session_id IS NOT NULL'];
+    const params: unknown[] = [];
+
+    if (institutionId) {
+      conditions.push('s.institution_id = $' + (params.length + 1));
+      params.push(institutionId);
+    }
+    if (periodStart) {
+      conditions.push('s.session_date >= $' + (params.length + 1));
+      params.push(periodStart);
+    }
+    if (periodEnd) {
+      conditions.push('s.session_date <= $' + (params.length + 1));
+      params.push(periodEnd);
+    }
+
+    const whereClause = 'WHERE ' + conditions.join(' AND ');
+
+    // Selectivity distribution
+    const [distribRow] = await this.sessionRepository.manager.query(
+      `
+      SELECT
+        COALESCE(SUM(CASE WHEN sm.selectivity_level = 'SELECTIVE' THEN 1 ELSE 0 END), 0) AS "selective",
+        COALESCE(SUM(CASE WHEN sm.selectivity_level = 'BALANCED' THEN 1 ELSE 0 END), 0) AS "balanced",
+        COALESCE(SUM(CASE WHEN sm.selectivity_level = 'EXPLORATORY' THEN 1 ELSE 0 END), 0) AS "exploratory"
+      FROM sessions s
+      INNER JOIN session_metrics sm ON sm.session_id = s.id
+      ${whereClause}
+      `,
+      params,
+    );
+
+    // Fatigue/rush rates + avg reliability + total counts
+    const [ratesRow] = await this.sessionRepository.manager.query(
+      `
+      SELECT
+        COUNT(*) AS "totalSessions",
+        COALESCE(SUM(CASE WHEN sm.total_swipes >= 10 THEN 1 ELSE 0 END), 0) AS "eligibleSessions",
+        COALESCE(AVG(sm.reliability_score) FILTER (WHERE sm.reliability_score IS NOT NULL), 0)::numeric(10,4) AS "avgReliabilityScore",
+        COALESCE(SUM(CASE WHEN sm.fatigue_detected = true THEN 1 ELSE 0 END), 0) AS "fatiguedCount",
+        COALESCE(SUM(CASE WHEN sm.rush_detected = true THEN 1 ELSE 0 END), 0) AS "rushCount"
+      FROM sessions s
+      INNER JOIN session_metrics sm ON sm.session_id = s.id
+      ${whereClause}
+      `,
+      params,
+    );
+
+    // Daily trends
+    const dailyTrends = await this.sessionRepository.manager.query(
+      `
+      SELECT
+        to_char(s.session_date AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS "date",
+        COUNT(*) AS "sessions",
+        CASE
+          WHEN COUNT(*) FILTER (WHERE sm.total_swipes >= 10) > 0
+          THEN (COUNT(*) FILTER (WHERE sm.fatigue_detected = true)::numeric
+                / COUNT(*) FILTER (WHERE sm.total_swipes >= 10)::numeric)::numeric(10,4)
+          ELSE 0
+        END AS "fatigueRate",
+        CASE
+          WHEN COUNT(*) FILTER (WHERE sm.total_swipes >= 10) > 0
+          THEN (COUNT(*) FILTER (WHERE sm.rush_detected = true)::numeric
+                / COUNT(*) FILTER (WHERE sm.total_swipes >= 10)::numeric)::numeric(10,4)
+          ELSE 0
+        END AS "rushRate"
+      FROM sessions s
+      INNER JOIN session_metrics sm ON sm.session_id = s.id
+      ${whereClause}
+      GROUP BY to_char(s.session_date AT TIME ZONE 'UTC', 'YYYY-MM-DD')
+      ORDER BY "date" ASC
+      `,
+      params,
+    );
+
+    return {
+      selectivityDistribution: {
+        selective: Number(distribRow?.selective ?? 0),
+        balanced: Number(distribRow?.balanced ?? 0),
+        exploratory: Number(distribRow?.exploratory ?? 0),
+      },
+      fatiguedCount: Number(ratesRow?.fatiguedCount ?? 0),
+      rushCount: Number(ratesRow?.rushCount ?? 0),
+      totalSessions: Number(ratesRow?.totalSessions ?? 0),
+      eligibleSessions: Number(ratesRow?.eligibleSessions ?? 0),
+      avgReliabilityScore: Number(ratesRow?.avgReliabilityScore ?? 0),
+      dailyTrends: (dailyTrends ?? []).map((d: Record<string, unknown>) => ({
+        date: d.date as string,
+        sessions: Number(d.sessions),
+        fatigueRate: Number(d.fatigueRate),
+        rushRate: Number(d.rushRate),
+      })),
+    };
+  }
+
   async getStalledSessionsCount(now: Date): Promise<number> {
     const dayAgo = new Date(now.getTime() - ONE_DAY_IN_MS);
 

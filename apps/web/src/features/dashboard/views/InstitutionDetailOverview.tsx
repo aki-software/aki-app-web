@@ -29,7 +29,7 @@ export function InstitutionDetailOverview() {
   const state = (location.state ?? {}) as LocationState;
   const institutionName = state.institutionName;
 
-  // Delegamos toda la lógica al hook
+  // Delegamos toda la lógica al hook base
   const { loading, error, data } = useInstitutionDetailManager(id);
 
   if (loading) {
@@ -59,6 +59,16 @@ export function InstitutionDetailOverview() {
 
   return (
     <div className="space-y-10 animate-in">
+
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-[11px] font-semibold text-app-text-muted/50 uppercase tracking-[0.15em]">
+        <button onClick={() => navigate('/dashboard/users')} className="hover:text-app-primary transition-colors">Admin</button>
+        <span className="opacity-30">/</span>
+        <span className="hover:text-app-primary transition-colors">Instituciones</span>
+        <span className="opacity-30">/</span>
+        <span className="text-app-text-muted/80 truncate max-w-[250px]">{institutionName ?? id}</span>
+      </div>
+
       {/* HEADER */}
       <div className="flex flex-col gap-4 border-b border-app-border pb-8">
         <div className="flex items-center justify-between gap-4">

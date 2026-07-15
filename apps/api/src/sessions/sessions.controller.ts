@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -118,6 +119,60 @@ export class SessionsController {
       SESSION_CONSTANTS.ADMIN.DEFAULT_ACTIVITY_LIMIT,
     );
     return await this.adminDashboardService.getAdminActivity(parsedLimit);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('triage')
+  async triage(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    const parsedPage = this.parseIntOrDefault(
+      page,
+      SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE,
+    );
+    const parsedLimit = this.parseIntOrDefault(
+      limit,
+      SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
+    );
+    return await this.sessionsService.findTriage(
+      parsedPage,
+      parsedLimit,
+      this.extractScope(req),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Get('metrics/aggregate')
+  async getAggregateMetrics(
+    @Query('scope') scope: string,
+    @Query('id') id?: string,
+    @Query('period') period?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    if (!scope || !['institution', 'global'].includes(scope)) {
+      throw new BadRequestException('scope must be "institution" or "global"');
+    }
+    if (scope === 'institution' && !id) {
+      throw new BadRequestException('id is required when scope=institution');
+    }
+
+    const parsedPeriod = this.parseIntOrDefault(period, 30);
+
+    if (period !== undefined && (parsedPeriod < 1 || parsedPeriod > 365)) {
+      throw new BadRequestException('period must be between 1 and 365');
+    }
+
+    return await this.adminDashboardService.getBehavioralTrends({
+      scope,
+      id,
+      period: parsedPeriod,
+      from,
+      to,
+    });
   }
 
   @UseGuards(JwtAuthGuard)

@@ -3,13 +3,6 @@ import * as pug from 'pug';
 import * as path from 'path';
 import { colors } from '@akit/design-tokens';
 
-function getAppRoot(): string {
-  const cwd = process.cwd().replace(/\\/g, '/');
-  if (!cwd.endsWith('apps/api') && !cwd.includes('apps/api/')) {
-    return path.join(process.cwd(), 'apps', 'api');
-  }
-  return process.cwd();
-}
 
 @Injectable()
 export class TemplateRendererService {
@@ -23,11 +16,9 @@ export class TemplateRendererService {
     const templateFileName = templateName.endsWith('.pug')
       ? templateName
       : `${templateName}.pug`;
-    const templatePath = path.join(
-      getAppRoot(),
-      'src',
-      'mail',
-      'templates',
+    const templatePath = path.resolve(
+      __dirname,
+      '../../mail/templates',
       templateFileName,
     );
 

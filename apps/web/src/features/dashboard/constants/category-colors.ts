@@ -3,62 +3,62 @@ export const CATEGORY_COLORS: Record<
   { color: string; bg: string; textColor: string }
 > = {
   ART: {
-    color: "#8b5cf6",
+    color: "var(--color-category-art)",
     bg: "bg-violet-500",
     textColor: "text-violet-700",
   },
   HUM: {
-    color: "#d946ef",
+    color: "var(--color-category-hum)",
     bg: "bg-fuchsia-500",
     textColor: "text-fuchsia-700",
   },
   SERV: {
-    color: "#0d9488",
+    color: "var(--color-category-serv)",
     bg: "bg-teal-600",
     textColor: "text-teal-700",
   },
   PROT: {
-    color: "#334155",
+    color: "var(--color-category-prot)",
     bg: "bg-slate-700",
     textColor: "text-slate-700",
   },
   PHYS: {
-    color: "#e11d48",
-    bg: "bg-rose-600",
-    textColor: "text-rose-700",
+    color: "var(--color-app-destructive)",
+    bg: "bg-app-destructive",
+    textColor: "text-app-destructive",
   },
   IND: {
-    color: "#52525b",
+    color: "var(--color-category-ind)",
     bg: "bg-zinc-600",
     textColor: "text-zinc-700",
   },
   MECH: {
-    color: "#ea580c",
+    color: "var(--color-category-mech)",
     bg: "bg-orange-600",
     textColor: "text-orange-700",
   },
   NAT: {
-    color: "#059669",
-    bg: "bg-emerald-600",
-    textColor: "text-emerald-700",
+    color: "var(--color-app-confirm)",
+    bg: "bg-app-confirm",
+    textColor: "text-app-confirm",
   },
   LEAD: {
-    color: "#4f46e5",
+    color: "var(--color-category-lead)",
     bg: "bg-indigo-600",
     textColor: "text-indigo-700",
   },
   SCI: {
-    color: "#4338ca", /* Indigo mas profundo, no azul */
+    color: "var(--color-category-sci)",
     bg: "bg-indigo-700",
     textColor: "text-indigo-800",
   },
   SAL: {
-    color: "#f43f5e",
-    bg: "bg-rose-500",
-    textColor: "text-rose-700",
+    color: "var(--color-app-destructive)",
+    bg: "bg-app-destructive",
+    textColor: "text-app-destructive",
   },
   BUS: {
-    color: "#1e1b4b", /* Negro Indigo (Premium) */
+    color: "var(--color-category-bus)",
     bg: "bg-indigo-950",
     textColor: "text-indigo-950",
   },

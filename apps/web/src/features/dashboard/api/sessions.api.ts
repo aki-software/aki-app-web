@@ -4,7 +4,9 @@ import type {
   SessionApi, 
   SessionData, 
   SessionDetailData, 
-  SessionMetrics 
+  SessionMetrics,
+  TriageResponse,
+  BehavioralTrends,
 } from "@akit/contracts";
 
 export type { 
@@ -29,6 +31,50 @@ export async function fetchSessionDetail(
     return normalizeSessionDetail({ ...session, metrics });
   } catch (error) {
     console.error("Error fetching session detail:", error);
+    return null;
+  }
+}
+
+export async function fetchTriageSessions(
+  params: { page?: number; limit?: number } = {},
+): Promise<TriageResponse> {
+  const page = params.page ?? 1;
+  const limit = params.limit ?? 20;
+  try {
+    return await apiClient.get<TriageResponse>(
+      `/sessions/triage?page=${page}&limit=${limit}`,
+    );
+  } catch (error) {
+    console.error("Error fetching triage sessions:", error);
+    return {
+      data: [],
+      meta: { total: 0, page, limit, flaggedCount: 0 },
+    };
+  }
+}
+
+export async function fetchBehavioralTrends(
+  params: {
+    scope: "institution" | "global";
+    id?: string;
+    period?: number;
+    from?: string;
+    to?: string;
+  },
+): Promise<BehavioralTrends | null> {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.set("scope", params.scope);
+    if (params.id) queryParams.set("id", params.id);
+    if (params.period) queryParams.set("period", String(params.period));
+    if (params.from) queryParams.set("from", params.from);
+    if (params.to) queryParams.set("to", params.to);
+
+    return await apiClient.get<BehavioralTrends>(
+      `/sessions/metrics/aggregate?${queryParams.toString()}`,
+    );
+  } catch (error) {
+    console.error("Error fetching behavioral trends:", error);
     return null;
   }
 }

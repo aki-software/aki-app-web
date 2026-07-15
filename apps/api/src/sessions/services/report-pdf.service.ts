@@ -7,13 +7,6 @@ import { PDF_GENERATOR } from '../../common/constants/adapters.constants.js';
 import type { PdfGenerator } from '../../common/adapters/pdf-generator.adapter.js';
 import type { ReportData } from '../../common/types/report.types.js';
 
-function getAppRoot(): string {
-  const cwd = process.cwd().replace(/\\/g, '/');
-  if (!cwd.endsWith('apps/api') && !cwd.includes('apps/api/')) {
-    return path.join(process.cwd(), 'apps', 'api');
-  }
-  return process.cwd();
-}
 
 @Injectable()
 export class ReportPdfService {
@@ -21,20 +14,13 @@ export class ReportPdfService {
 
   private readonly brandDomain = 'akituespacio.com.ar';
   private readonly supportEmail = 'akituvocacion@gmail.com';
-  private readonly logoAssetPath = path.join(
-    getAppRoot(),
-    '..',
-    'web',
-    'src',
-    'assets',
-    'logo.png',
+  private readonly logoAssetPath = path.resolve(
+    __dirname,
+    '../../../web/src/assets/logo.png',
   );
-  private readonly templatePath = path.join(
-    getAppRoot(),
-    'src',
-    'mail',
-    'templates',
-    'report-pdf.pug',
+  private readonly templatePath = path.resolve(
+    __dirname,
+    '../../mail/templates/report-pdf.pug',
   );
   private cachedLogoDataUri: string | null = null;
 
@@ -79,6 +65,19 @@ export class ReportPdfService {
       return this.cachedLogoDataUri;
     }
 
+    // 1. Environment variable for production/Docker/Serverless
+    const envLogo = process.env.PDF_LOGO_DATA_URI;
+    if (envLogo) {
+      this.cachedLogoDataUri = envLogo;
+      return envLogo;
+    }
+
+    // 2. Serverless guard: no disk access without PDF_LOGO_DATA_URI
+    if (process.env.SERVERLESS === 'true') {
+      return '';
+    }
+
+    // 3. Fallback: local file for development
     try {
       if (fs.existsSync(this.logoAssetPath)) {
         const buffer = fs.readFileSync(this.logoAssetPath);

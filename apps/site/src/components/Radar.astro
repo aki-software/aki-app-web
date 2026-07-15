@@ -6,148 +6,243 @@ interface Props {
   t: Translation;
 }
 
-const { locale } = Astro.props;
+const { locale, t } = Astro.props;
+const categories = t.methodology.categories;
+
+interface BadgeStyle {
+  code: string;
+  border: string;
+  text: string;
+  bg: string;
+  dot: string;
+}
+
+const badgeStyles: BadgeStyle[] = [
+  { code: 'ART', border: 'border-violet-200', text: 'text-violet-700', bg: 'bg-violet-50', dot: '#a78bfa' },
+  { code: 'HUM', border: 'border-fuchsia-200', text: 'text-fuchsia-700', bg: 'bg-fuchsia-50', dot: '#d946ef' },
+  { code: 'SERV', border: 'border-teal-200', text: 'text-teal-700', bg: 'bg-teal-50', dot: '#0d9488' },
+  { code: 'PROT', border: 'border-slate-200', text: 'text-slate-700', bg: 'bg-slate-50', dot: '#64748b' },
+  { code: 'FÍS', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50', dot: '#f43f5e' },
+  { code: 'IND', border: 'border-zinc-200', text: 'text-zinc-700', bg: 'bg-zinc-50', dot: '#52525b' },
+  { code: 'MEC', border: 'border-orange-200', text: 'text-orange-700', bg: 'bg-orange-50', dot: '#ea580c' },
+  { code: 'NAT', border: 'border-green-200', text: 'text-green-700', bg: 'bg-green-50', dot: '#22c55e' },
+  { code: 'LÍD', border: 'border-indigo-200', text: 'text-indigo-700', bg: 'bg-indigo-50', dot: '#6366f1' },
+  { code: 'SCI', border: 'border-indigo-300', text: 'text-indigo-800', bg: 'bg-indigo-100', dot: '#4338ca' },
+  { code: 'VENT', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50', dot: '#f43f5e' },
+  { code: 'BUS', border: 'border-indigo-200', text: 'text-indigo-800', bg: 'bg-indigo-50', dot: '#312e81' },
+];
 ---
 
-<section class="py-24 md:py-32 relative bg-dark-bg text-white overflow-hidden" id="metodologia">
-  <!-- Soft Ambient Glow behind content -->
-  <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
-  <div class="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none"></div>
-
+<section class="py-24 md:py-32 relative bg-[#F5EFE7] overflow-hidden" id="metodologia">
   <div class="container relative z-10">
     <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-      
-      <!-- Premium Radar Visualization Card (Fixed SVG boundaries and label clipping) -->
-      <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0 reveal">
-        <!-- Floating Outer Glow -->
-        <div class="absolute -inset-1 bg-gradient-to-br from-primary via-emerald-500 to-primary rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-        
-        <div class="relative bg-white/5 backdrop-blur-2xl border border-white/10 p-8 md:p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden group">
-          <!-- Animated Top Glow Inside Card -->
-          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-24 bg-primary/10 blur-[40px] pointer-events-none"></div>
-          
-          <svg viewBox="0 0 100 100" class="w-full h-auto drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.15)] overflow-visible">
-            <defs>
-              <!-- Primary Radar Fills -->
-              <linearGradient id="radarFill" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--primary, #8b5cf6)" stop-opacity="0.35" />
-                <stop offset="100%" stop-color="#10b981" stop-opacity="0.35" />
-              </linearGradient>
-              <!-- Primary Radar Border -->
-              <linearGradient id="radarStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="var(--primary, #8b5cf6)" />
-                <stop offset="100%" stop-color="#34d399" />
-              </linearGradient>
-              <!-- Grid Ring Glow Filter -->
-              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="1.5" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-              </filter>
-            </defs>
+      <!-- Radar Visualization Card -->
+      <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0">
+        <div id="radar-card" class="bg-white border border-[#DCD3C5]/40 p-8 md:p-10 rounded-[3rem] shadow-md overflow-hidden">
+          <div class="radar-svg-wrapper" style="transform: scale(0.8); opacity: 0; transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;">
+            <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto overflow-visible">
+              <defs>
+                <linearGradient id="radarFillRecharts" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="5%" stop-color="var(--color-primary)" stop-opacity="0.55" />
+                  <stop offset="95%" stop-color="var(--color-primary)" stop-opacity="0.08" />
+                </linearGradient>
+                <filter id="dot-glow-recharts">
+                  <feGaussianBlur stdDeviation="1" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
 
-            <!-- Background Polygons (Radar Grid Rings scaled to Max R=36 to avoid clipping) -->
-            <!-- 100% Ring -->
-            <polygon points="50,14 81.2,32 81.2,68 50,86 18.8,68 18.8,32" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.75" />
-            <!-- 75% Ring -->
-            <polygon points="50,23 73.4,36.5 73.4,63.5 50,77 26.6,63.5 26.6,36.5" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5" />
-            <!-- 50% Ring -->
-            <polygon points="50,32 65.6,41 65.6,59 50,68 34.4,59 34.4,41" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5" />
-            <!-- 25% Ring -->
-            <polygon points="50,41 57.8,45.5 57.8,54.5 50,59 42.2,54.5 42.2,45.5" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5" />
-            
-            <!-- Axis lines from center to outer ring -->
-            <line x1="50" y1="50" x2="50" y2="14" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="81.2" y2="32" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="81.2" y2="68" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="50" y2="86" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="18.8" y2="68" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" stroke-dasharray="1 1" />
-            <line x1="50" y1="50" x2="18.8" y2="32" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" stroke-dasharray="1 1" />
+              <!-- Polar grid: concentric circles at 25%, 50%, 75%, 100% -->
+              <circle cx="50" cy="50" r="36" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="0.4" />
+              <circle cx="50" cy="50" r="27" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="0.3" stroke-dasharray="2 2" />
+              <circle cx="50" cy="50" r="18" fill="none" stroke="rgba(0,0,0,0.05)" stroke-width="0.3" stroke-dasharray="2 2" />
+              <circle cx="50" cy="50" r="9" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="0.3" stroke-dasharray="1.5 1.5" />
 
-            <!-- The "Result" Shape (Animated Profile scaled to R=36 max) -->
-            <polygon 
-              points="50,17 73.4,36.5 63.9,58 50,80 31.8,60.5 39.6,44" 
-              fill="url(#radarFill)" 
-              stroke="url(#radarStroke)" 
-              stroke-width="1.5"
-              class="animate-pulse origin-center"
-              style="animation-duration: 4s;"
-            />
+              <!-- Radius axis lines (dashed) -->
+              {[
+                [50, 14], [68, 18.8], [81.2, 32], [86, 50],
+                [81.2, 68], [68, 81.2], [50, 86], [32, 81.2],
+                [18.8, 68], [14, 50], [18.8, 32], [32, 18.8]
+              ].map(([x1, y1]) => (
+                <line x1={`${x1}`} y1={`${y1}`} x2="50" y2="50" stroke="rgba(0,0,0,0.07)" stroke-width="0.3" stroke-dasharray="2 3" />
+              ))}
 
-            <!-- Bright glowing vertices points -->
-            <circle cx="50" cy="17" r="1.5" fill="#a78bfa" filter="url(#glow)" />
-            <circle cx="73.4" cy="36.5" r="1.5" fill="#60a5fa" filter="url(#glow)" />
-            <circle cx="63.9" cy="58" r="1.5" fill="#34d399" filter="url(#glow)" />
-            <circle cx="50" cy="80" r="1.5" fill="#f43f5e" filter="url(#glow)" />
-            <circle cx="31.8" cy="60.5" r="1.5" fill="#f59e0b" filter="url(#glow)" />
-            <circle cx="39.6" cy="44" r="1.5" fill="#e2e8f0" filter="url(#glow)" />
+              <!-- Radius axis labels (0, 25, 50, 75, 100) on the right axis -->
+              {[
+                { x: 50, y: 91, val: '0' },
+                { x: 41, y: 83, val: '25' },
+                { x: 32, y: 74, val: '50' },
+                { x: 23, y: 65, val: '75' },
+                { x: 14, y: 56, val: '100' }
+              ].map(({ x, y, val }) => (
+                <text x={`${x}`} y={`${y}`} text-anchor="end" fill="rgba(0,0,0,0.15)" font-size="2.2" font-weight="500" font-family="monospace">{val}</text>
+              ))}
 
-            <!-- Dynamic labels (Holland letters positioned safely to avoid edge clipping) -->
-            <!-- R -->
-            <text x="50" y="8" text-anchor="middle" fill="#a78bfa" font-size="6.5" font-weight="900" font-family="Sora, sans-serif">R</text>
-            <!-- I -->
-            <text x="87" y="29" text-anchor="start" fill="#60a5fa" font-size="6.5" font-weight="900" font-family="Sora, sans-serif">I</text>
-            <!-- A -->
-            <text x="87" y="73" text-anchor="start" fill="#34d399" font-size="6.5" font-weight="900" font-family="Sora, sans-serif">A</text>
-            <!-- S -->
-            <text x="50" y="93" text-anchor="middle" fill="#f43f5e" font-size="6.5" font-weight="900" font-family="Sora, sans-serif">S</text>
-            <!-- E -->
-            <text x="13" y="73" text-anchor="end" fill="#f59e0b" font-size="6.5" font-weight="900" font-family="Sora, sans-serif">E</text>
-            <!-- C -->
-            <text x="13" y="29" text-anchor="end" fill="#e2e8f0" font-size="6.5" font-weight="900" font-family="Sora, sans-serif">C</text>
-          </svg>
+              <!-- Result polygon (animated draw) -->
+              <polygon id="radar-result"
+                points="50,20 63,25 72,35 78,50 72,60 62,72 50,78 38,72 28,60 24,50 28,38 38,25"
+                fill="url(#radarFillRecharts)"
+                stroke="var(--color-primary)"
+                stroke-width="1.8"
+                stroke-linejoin="round"
+                stroke-dasharray="400"
+                stroke-dashoffset="400"
+                filter="url(#dot-glow-recharts)"
+              />
+
+              <!-- Vertex dots on result polygon -->
+              {[
+                { x: 50, y: 20, color: '#a78bfa', code: 'ART' },
+                { x: 63, y: 25, color: '#d946ef', code: 'HUM' },
+                { x: 72, y: 35, color: '#0d9488', code: 'SERV' },
+                { x: 78, y: 50, color: '#64748b', code: 'PROT' },
+                { x: 72, y: 60, color: '#f43f5e', code: 'FÍS' },
+                { x: 62, y: 72, color: '#52525b', code: 'IND' },
+                { x: 50, y: 78, color: '#ea580c', code: 'MEC' },
+                { x: 38, y: 72, color: '#22c55e', code: 'NAT' },
+                { x: 28, y: 60, color: '#6366f1', code: 'LÍD' },
+                { x: 24, y: 50, color: '#4338ca', code: 'SCI' },
+                { x: 28, y: 38, color: '#f43f5e', code: 'VENT' },
+                { x: 38, y: 25, color: '#312e81', code: 'BUS' }
+              ].map(({ x, y, color, code }) => (
+                <circle id={`v-${code}`}
+                  cx={`${x}`} cy={`${y}`} r="3" fill={color} stroke="white" stroke-width="1" filter="url(#dot-glow-recharts)"
+                  class="radar-dot-recharts" />
+              ))}
+
+              <!-- Category labels (codes with full names below) -->
+              {[
+                { x: 50, y: 6, code: 'ART', fullName: 'Artística', color: '#7c3aed' },
+                { x: 70, y: 16, code: 'HUM', fullName: 'Humanidades', color: '#c026d3' },
+                { x: 86, y: 30, code: 'SERV', fullName: 'Servicio Social', color: '#0f766e' },
+                { x: 91, y: 50, code: 'PROT', fullName: 'Protección', color: '#475569' },
+                { x: 86, y: 70, code: 'FÍS', fullName: 'Deportes', color: '#dc2626' },
+                { x: 70, y: 84, code: 'IND', fullName: 'Industria', color: '#525252' },
+                { x: 50, y: 92, code: 'MEC', fullName: 'Mecánica', color: '#c2410c' },
+                { x: 30, y: 84, code: 'NAT', fullName: 'Naturaleza', color: '#16a34a' },
+                { x: 14, y: 70, code: 'LÍD', fullName: 'Liderazgo', color: '#4f46e5' },
+                { x: 9, y: 50, code: 'SCI', fullName: 'Ciencia', color: '#3730a3' },
+                { x: 14, y: 30, code: 'VENT', fullName: 'Ventas', color: '#dc2626' },
+                { x: 30, y: 16, code: 'BUS', fullName: 'Negocios', color: '#1e1b4b' }
+              ].map(({ x, y, code, fullName, color }) => {
+                const isLeft = x < 50;
+                const anchor = x === 50 ? 'middle' : isLeft ? 'end' : 'start';
+                const labelX = x === 50 ? x : isLeft ? x - 3 : x + 3;
+                return (
+                  <g>
+                    <text x={`${labelX}`} y={`${y}`} text-anchor={anchor} fill={color} font-size="4.2" font-weight="800" font-family="Sora, sans-serif" letter-spacing="1.5">{code}</text>
+                    <text x={`${labelX}`} y={`${y + 4.5}`} text-anchor={anchor} fill="rgba(0,0,0,0.35)" font-size="2.5" font-weight="500" font-family="Sora, sans-serif">{fullName}</text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
         </div>
       </div>
 
-      <!-- Holland Information and Descriptions -->
+      <!-- Right: Description + Interactive Badge Grid -->
       <div class="flex-1 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 reveal reveal-delay-1 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-          <p class="text-[11px] font-medium text-emerald-400 tracking-widest uppercase">
-            CIENCIA Y ORIENTACIÓN
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#8E5A12]/20 mb-6 reveal reveal-delay-1 shadow-sm">
+          <p class="text-[11px] font-medium text-[#8E5A12] tracking-widest uppercase">
+            METODOLOGÍA CIENTÍFICA
           </p>
         </div>
-        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-6 reveal reveal-delay-1 tracking-tight">
-          {locale === 'es' ? 'Tu perfil en 6 dimensiones' : 'Your profile in 6 dimensions'}
+        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-[#1F2523] mb-6 reveal reveal-delay-1 tracking-tight">
+          {locale === 'es' ? '12 categorías ocupacionales' : '12 occupational categories'}
         </h2>
-        <p class="text-lg text-dark-muted leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
-          {locale === 'es' 
-            ? 'A.ki mapea tus intereses mediante un enfoque científico de orientación vocacional validado globalmente. Identificamos tu afinidad en seis áreas clave de personalidad ocupacional para trazar el mapa de tu futuro.'
-            : 'A.ki maps your interests using a globally validated scientific approach in vocational guidance. We identify your affinity across six key areas of occupational personality to chart your future.'}
+        <p class="text-lg text-[#44403C] leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
+          {locale === 'es'
+            ? 'A.ki mapea tus intereses mediante un enfoque científico de orientación vocacional validado globalmente. Identificamos tu afinidad en doce categorías ocupacionales para trazar el mapa de tu futuro.'
+            : 'A.ki maps your interests using a globally validated scientific approach in vocational guidance. We identify your affinity across twelve occupational categories to chart your future.'}
         </p>
 
-        <!-- Legend Grid with Modern Micro-Interactions -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 reveal reveal-delay-3">
-          {[
-            { letter: 'R', label: locale === 'es' ? 'Realista' : 'Realistic', desc: locale === 'es' ? 'Hacer y construir' : 'Do & Build', color: 'border-violet-500/20 text-violet-400 bg-violet-500/10 hover:border-violet-500/50' },
-            { letter: 'I', label: locale === 'es' ? 'Investigativo' : 'Investigative', desc: locale === 'es' ? 'Pensar y analizar' : 'Think & Analyze', color: 'border-blue-500/20 text-blue-400 bg-blue-500/10 hover:border-blue-500/50' },
-            { letter: 'A', label: locale === 'es' ? 'Artístico' : 'Artistic', desc: locale === 'es' ? 'Crear y diseñar' : 'Create & Design', color: 'border-emerald-500/20 text-emerald-400 bg-emerald-500/10 hover:border-emerald-500/50' },
-            { letter: 'S', label: locale === 'es' ? 'Social' : 'Social', desc: locale === 'es' ? 'Ayudar y enseñar' : 'Help & Teach', color: 'border-rose-500/20 text-rose-400 bg-rose-500/10 hover:border-rose-500/50' },
-            { letter: 'E', label: locale === 'es' ? 'Emprendedor' : 'Enterprising', desc: locale === 'es' ? 'Liderar e influir' : 'Lead & Influence', color: 'border-amber-500/20 text-amber-400 bg-amber-500/10 hover:border-amber-500/50' },
-            { letter: 'C', label: locale === 'es' ? 'Convencional' : 'Conventional', desc: locale === 'es' ? 'Organizar y estructurar' : 'Organize & Structure', color: 'border-slate-400/20 text-slate-300 bg-slate-400/10 hover:border-slate-400/50' },
-          ].map((type) => (
-            <div class={`group flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/5 border backdrop-blur-md transition-all duration-300 hover:-translate-y-1 ${type.color} shadow-[0_4px_12px_rgba(0,0,0,0.15)]`}>
-              <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-display font-black text-sm group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                <span>{type.letter}</span>
-              </div>
-              <div class="text-left">
-                <p class="text-sm font-bold text-white leading-none mb-1">{type.label}</p>
-                <p class="text-[10px] text-dark-muted font-medium uppercase tracking-wider leading-none">{type.desc}</p>
-              </div>
-            </div>
-          ))}
+        <!-- Interactive badge grid -->
+        <div id="badge-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 reveal reveal-delay-3">
+          {badgeStyles.map((type) => {
+            const cat = categories.find((c) => c.code === type.code);
+            return (
+              <button
+                data-code={type.code}
+                data-fullname={cat?.name || type.code}
+                class={`badge-chip flex items-center gap-2 p-2 rounded-xl bg-white border shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${type.border}`}
+              >
+                <span class={`w-2 h-2 rounded-full flex-shrink-0 ${type.bg} border ${type.border}`} style={`background: ${type.dot}`}></span>
+                <span class={`font-display font-bold text-xs tracking-wider ${type.text}`}>{type.code}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <!-- Active category tooltip -->
+        <div id="cat-tooltip" class="mt-6 text-center text-sm text-[#44403C] min-h-[1.5rem] transition-opacity duration-300 opacity-0">
+          {locale === 'es' ? 'Pasá el cursor sobre una categoría' : 'Hover over a category'}
         </div>
       </div>
     </div>
   </div>
 </section>
 
+<style>
+  .radar-dot-recharts {
+    transition: r 0.25s ease, filter 0.25s ease;
+    cursor: default;
+  }
+  .radar-dot-recharts.active {
+    r: 5;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+  .radar-result-animate {
+    animation: radar-draw 1s ease-out forwards;
+  }
+  @keyframes radar-draw {
+    to { stroke-dashoffset: 0; }
+  }
+</style>
+
 <script>
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => { 
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible'); 
+  const radarCard = document.getElementById('radar-card');
+  const svgWrapper = document.querySelector('.radar-svg-wrapper') as HTMLElement | null;
+  const tooltip = document.getElementById('cat-tooltip');
+  const chips = document.querySelectorAll<HTMLButtonElement>('.badge-chip');
+
+  // Scroll-triggered radar animation
+  const radarObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && svgWrapper) {
+        svgWrapper.style.transform = 'scale(1)';
+        svgWrapper.style.opacity = '1';
+        const poly = document.getElementById('radar-result');
+        if (poly) poly.classList.add('radar-result-animate');
+        radarObserver.unobserve(entry.target);
       }
     });
+  }, { threshold: 0.3 });
+  if (radarCard) radarObserver.observe(radarCard);
+
+  // Badge hover → highlight dot
+  chips.forEach((chip) => {
+    chip.addEventListener('mouseenter', () => {
+      const code = chip.dataset.code;
+      const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
+      if (dot) dot.classList.add('active');
+      if (tooltip) {
+        tooltip.textContent = chip.dataset.fullname || code || '';
+        tooltip.style.opacity = '1';
+      }
+    });
+    chip.addEventListener('mouseleave', () => {
+      document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
+      if (tooltip) {
+        tooltip.style.opacity = '0';
+      }
+    });
+  });
+
+  // Standard reveal observer for other elements
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
   }, { threshold: 0.1 });
-  
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
 </script>
