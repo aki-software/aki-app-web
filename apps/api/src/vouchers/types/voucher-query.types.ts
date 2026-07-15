@@ -1,10 +1,6 @@
 import { VoucherStatus } from '../entities/voucher.enums.js';
 
-export interface VoucherScope {
-  role?: string;
-  ownerUserId?: string;
-  ownerInstitutionId?: string | null;
-}
+export type { VoucherScope } from '@akit/contracts';
 
 export type VoucherBatchSummary = {
   batchId: string;
@@ -40,7 +36,10 @@ export type VoucherBatchDetail = {
   available: number;
   used: number;
   pending: number;
-  vouchers: VoucherBatchDetailItem[];
+  data: VoucherBatchDetailItem[];
+  count: number;
+  page: number;
+  limit: number;
 };
 
 export type RawVoucherBatchCountRow = { count: string };

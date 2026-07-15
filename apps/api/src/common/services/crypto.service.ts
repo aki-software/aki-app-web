@@ -1,34 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { promisify } from 'node:util';
+import * as bcrypt from 'bcryptjs';
+
+const scryptAsync = promisify(scrypt);
 
 @Injectable()
 export class CryptoService {
-  hash(password: string): string {
-    const salt = randomBytes(16).toString('hex');
-    const hash = scryptSync(password, salt, 64).toString('hex');
-    return `scrypt$${salt}$${hash}`;
+  async hash(password: string): Promise<string> {
+    // 12 salt rounds is the current industry standard
+    return bcrypt.hash(password, 12);
   }
 
-  verify(password: string, hash: string): boolean {
-    if (!hash.startsWith('scrypt$')) {
-      return false;
+  async verify(password: string, storedHash: string): Promise<boolean> {
+    if (!storedHash) return false;
+
+    // Legacy Support: Check if the hash uses the old custom format
+    if (storedHash.startsWith('scrypt$')) {
+      const parts = storedHash.split('$');
+      if (parts.length !== 3) return false;
+
+      const [, salt, hashHex] = parts;
+      try {
+        const derivedBuffer = (await scryptAsync(password, salt, 64)) as Buffer;
+        const storedHashBuffer = Buffer.from(hashHex, 'hex');
+        if (derivedBuffer.length !== storedHashBuffer.length) return false;
+        return timingSafeEqual(derivedBuffer, storedHashBuffer);
+      } catch {
+        return false;
+      }
     }
 
-    const [, salt, storedHash] = hash.split('$');
-    if (!salt || !storedHash) {
-      return false;
-    }
-
-    const derived = scryptSync(password, salt, 64).toString('hex');
-    return timingSafeEqual(Buffer.from(derived), Buffer.from(storedHash));
+    // Modern Support: Use bcrypt for standard hashes ($2a$, $2b$, etc.)
+    return bcrypt.compare(password, storedHash);
   }
 
   isValidHash(hash: string | null | undefined): boolean {
     if (!hash) return false;
-    return hash.startsWith('scrypt$');
+    // Consider both bcrypt ($2a$, $2b$, $2y$) and legacy (scrypt$) as valid formats
+    return (
+      hash.startsWith('$2b$') ||
+      hash.startsWith('$2a$') ||
+      hash.startsWith('$2y$') ||
+      hash.startsWith('scrypt$')
+    );
   }
 
-  generateToken(bytes: number = 24): string {
-    return randomBytes(bytes).toString('base64url');
+  generateToken(bytes = 32): string {
+    return randomBytes(bytes).toString('hex');
   }
 }

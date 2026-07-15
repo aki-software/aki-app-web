@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -10,9 +10,11 @@ export interface RateLimitResult {
 
 @Injectable()
 export class RateLimitService implements OnModuleDestroy {
+  private readonly logger = new Logger(RateLimitService.name);
   private redis: Redis | null = null;
   private useRedis = false;
   private memoryStore = new Map<string, { count: number; resetAt: number }>();
+  private readonly cleanupInterval: NodeJS.Timeout;
 
   constructor(private readonly configService: ConfigService) {
     const redisUrl = this.configService.get<string>('REDIS_URL');
@@ -24,19 +26,36 @@ export class RateLimitService implements OnModuleDestroy {
           lazyConnect: true,
           connectTimeout: 5000,
         });
+
+        this.redis.on('error', (error) => {
+          this.logger.warn(
+            `Redis connection error, falling back to memory: ${error.message}`,
+          );
+          this.useRedis = false;
+        });
+
+        this.redis.on('connect', () => {
+          this.logger.log('Connected to Redis backend');
+          this.useRedis = true;
+        });
+
         this.useRedis = true;
-        console.log('[RateLimit] Using Redis backend');
+        this.logger.log('Initializing Redis backend');
       } catch (error) {
-        console.warn(
-          '[RateLimit] Failed to connect to Redis, falling back to memory',
-          error,
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        this.logger.warn(
+          `Failed to initialize Redis, falling back to memory: ${errorMessage}`,
         );
         this.useRedis = false;
       }
     } else {
-      console.log('[RateLimit] REDIS_URL not set, using memory backend');
+      this.logger.log('REDIS_URL not set, using memory backend');
       this.useRedis = false;
     }
+
+    // Clean up expired memory buckets every minute
+    this.cleanupInterval = setInterval(() => this.cleanupMemoryStore(), 60000);
   }
 
   async checkRateLimit(
@@ -82,7 +101,9 @@ export class RateLimitService implements OnModuleDestroy {
         resetAt,
       };
     } catch (error) {
-      console.error('[RateLimit] Redis error, falling back to memory', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error(`Redis error, falling back to memory: ${errorMessage}`);
       return this.checkMemory(key, limit, windowSec * 1000, now);
     }
   }
@@ -122,7 +143,17 @@ export class RateLimitService implements OnModuleDestroy {
     };
   }
 
+  private cleanupMemoryStore() {
+    const now = Date.now();
+    for (const [key, bucket] of this.memoryStore.entries()) {
+      if (bucket.resetAt <= now) {
+        this.memoryStore.delete(key);
+      }
+    }
+  }
+
   onModuleDestroy() {
+    clearInterval(this.cleanupInterval);
     if (this.redis) {
       this.redis.disconnect();
     }

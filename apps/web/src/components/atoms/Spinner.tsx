@@ -13,7 +13,7 @@ export const Spinner = ({ size = 'md', className = '' }: SpinnerProps) => {
 
   return (
     <div 
-      className={`inline-block ${sizeClasses[size]} border-gray-200 border-t-blue-600 rounded-full animate-spin ${className}`}
+      className={`inline-block ${sizeClasses[size]} border-gray-200 border-t-app-primary rounded-full animate-spin ${className}`}
       role="status"
       aria-label="Cargando..."
     >

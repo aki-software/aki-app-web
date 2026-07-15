@@ -1,0 +1,18 @@
+# SDD Change State (auto-managed)
+change_name: style-web
+created_at: 2026-06-09
+parent: style-improvements
+status: spec
+phases:
+  explore: completed
+  propose: completed
+  spec: completed
+  design: completed
+  tasks: completed
+  apply: in_progress
+  verify: pending
+  archive: pending
+execution_mode: interactive
+artifact_store: openspec
+delivery_strategy: ask-on-risk
+review_budget: 400

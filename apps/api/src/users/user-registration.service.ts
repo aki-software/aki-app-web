@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,16 +14,14 @@ import { AccountActivationNotifierService } from '../common/notifications/accoun
 import { CryptoService } from '../common/services/crypto.service.js';
 import { normalizeUserRole } from '../common/utils/role.utils.js';
 import { USER_ERROR_MESSAGES } from './users.constants.js';
+import { RegisterUserDto } from './dto/register-user.dto.js';
 
-export interface RegisterUserDto {
-  name: string;
-  email?: string;
-  role?: UserRole | string;
-  institutionId?: string | null;
-}
+export type { RegisterUserDto };
 
 @Injectable()
 export class UserRegistrationService {
+  private individualTestsOwnerCache: User | null = null;
+
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
@@ -35,10 +38,21 @@ export class UserRegistrationService {
     if (email) {
       const existingUser = await this.usersService.findByEmail(email);
       if (existingUser) {
-        return await this.usersService.register({
-          ...existingUser,
-          name,
-        });
+        if (normalizedRole === UserRole.PATIENT) {
+          if (
+            name &&
+            existingUser.name !== name &&
+            existingUser.role === UserRole.PATIENT
+          ) {
+            existingUser.name = name;
+            await this.usersService.register(existingUser);
+          }
+          return existingUser;
+        } else {
+          throw new BadRequestException(
+            'El correo electrónico ya está registrado por otro usuario.',
+          );
+        }
       }
     }
 
@@ -104,7 +118,7 @@ export class UserRegistrationService {
         : userOrId;
 
     if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.institutionOwnerMissing);
+      throw new NotFoundException(USER_ERROR_MESSAGES.institutionOwnerMissing);
     }
 
     if (user.institutionId) {
@@ -129,11 +143,11 @@ export class UserRegistrationService {
   async refreshPasswordSetupToken(userId: string): Promise<User> {
     const user = await this.usersService.findOneWithInstitution(userId);
     if (!user) {
-      throw new Error(USER_ERROR_MESSAGES.notFound);
+      throw new NotFoundException(USER_ERROR_MESSAGES.notFound);
     }
 
     if (this.usersService.hasPasswordConfigured(user)) {
-      throw new Error(USER_ERROR_MESSAGES.accountAlreadyActive);
+      throw new ConflictException(USER_ERROR_MESSAGES.accountAlreadyActive);
     }
 
     const passwordSetupToken = this.cryptoService.generateToken(24);
@@ -165,6 +179,10 @@ export class UserRegistrationService {
   }
 
   async getOrCreateIndividualTestsOwner(): Promise<User> {
+    if (this.individualTestsOwnerCache) {
+      return this.individualTestsOwnerCache;
+    }
+
     const email =
       this.configService.get<string>('INDIVIDUAL_TEST_OWNER_EMAIL') ||
       this.configService.get<string>('ADMIN_USER') ||
@@ -182,10 +200,13 @@ export class UserRegistrationService {
 
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
+      this.individualTestsOwnerCache = existingUser;
       return existingUser;
     }
 
-    return await this.register({ name, role, email, institutionId });
+    const newUser = await this.register({ name, role, email, institutionId });
+    this.individualTestsOwnerCache = newUser;
+    return newUser;
   }
 
   private buildPasswordSetupExpiry(): Date {

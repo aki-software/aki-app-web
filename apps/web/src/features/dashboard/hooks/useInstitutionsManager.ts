@@ -4,6 +4,7 @@ import {
   createInstitution,
   updateInstitution,
   updateInstitutionStatus,
+  deleteInstitution,
   resendInstitutionActivationInvitation,
   createInstitutionOperationalAccount,
   type InstitutionOption,
@@ -103,6 +104,22 @@ export const useInstitutionsManager = () => {
     return false;
   };
 
+  const handleDelete = async (institution: InstitutionOption) => {
+    notify("", false);
+    setSaving(true);
+    const success = await deleteInstitution(institution.id);
+    setSaving(false);
+
+    if (!success) {
+      notify(`No se pudo eliminar la institución ${institution.name}.`, true);
+      return false;
+    }
+
+    setInstitutions((prev) => prev.filter((i) => i.id !== institution.id));
+    notify(`Institución ${institution.name} eliminada.`);
+    return true;
+  };
+
   return {
     institutions,
     loading,
@@ -116,6 +133,7 @@ export const useInstitutionsManager = () => {
     handleToggleStatus,
     handleResendActivation,
     handleCreateOperational,
+    handleDelete,
     clearMessages: () => notify("", false),
   };
 };

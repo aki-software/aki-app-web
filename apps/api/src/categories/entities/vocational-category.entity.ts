@@ -20,9 +20,9 @@ export class VocationalCategory {
   @Column({ type: 'text' })
   description!: string; // Descripción breve levantada en el modal web o app
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }

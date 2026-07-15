@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, IsNull, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, IsNull, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { CategoriesService } from '../../categories/categories.service.js';
 import {
   Session,
@@ -32,12 +32,16 @@ export class InstitutionAnalyticsService {
           },
         }),
         this.sessionRepository.count({
-          where: { institutionId },
+          where: {
+            institutionId,
+            voucherId: Not(IsNull()),
+          },
         }),
         this.sessionRepository.count({
           where: {
             institutionId,
-            paymentStatus: SessionPaymentStatus.PAID,
+            paymentStatus: SessionPaymentStatus.VOUCHER_REDEEMED,
+            voucherId: Not(IsNull()),
           },
         }),
       ]);
@@ -125,6 +129,7 @@ export class InstitutionAnalyticsService {
     const periodSessions = await this.sessionRepository.find({
       where: {
         institutionId,
+        voucherId: Not(IsNull()),
         createdAt: MoreThanOrEqual(startDate),
       },
       relations: ['voucher', 'results'],
@@ -155,7 +160,10 @@ export class InstitutionAnalyticsService {
     }
 
     const topSessions = await this.sessionRepository.find({
-      where: { institutionId },
+      where: {
+        institutionId,
+        voucherId: Not(IsNull()),
+      },
       relations: ['voucher', 'results'],
       order: { createdAt: 'DESC' },
       take: 10,
@@ -184,7 +192,8 @@ export class InstitutionAnalyticsService {
             )
             .from('session_results', 'sr')
             .innerJoin('sessions', 's', 's.id = sr.session_id')
-            .where('s.institution_id = :institutionId', { institutionId }),
+            .where('s.institution_id = :institutionId', { institutionId })
+            .andWhere('s.voucher_id IS NOT NULL'),
         't',
       )
       .where('t.rn = 1')

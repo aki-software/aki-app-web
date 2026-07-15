@@ -75,7 +75,7 @@ export function VoucherBatchRow({ batch, onOpenDetail }: Props) {
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full border border-app-border bg-app-bg">
           <div
             className={`h-full rounded-full transition-all duration-700 ${
-              consumptionPercentage === 100 ? "bg-rose-500" : "bg-app-primary"
+              consumptionPercentage === 100 ? "bg-status-error" : "bg-app-primary"
             }`}
             style={{ width: `${consumptionPercentage}%` }}
           />
@@ -84,12 +84,12 @@ export function VoucherBatchRow({ batch, onOpenDetail }: Props) {
 
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-app-border pt-4 text-xs">
         <span className="inline-flex items-center gap-2 rounded-full border border-app-border bg-app-bg px-3 py-1 text-app-text-muted">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          Pendientes <span className="font-black text-emerald-300">{batch.pending}</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-status-success" />
+          Pendientes <span className="font-black text-status-success">{batch.pending}</span>
         </span>
         <span className="inline-flex items-center gap-2 rounded-full border border-app-border bg-app-bg px-3 py-1 text-app-text-muted">
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-          Consumidos <span className="font-black text-rose-300">{batch.used}</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-status-error" />
+          Consumidos <span className="font-black text-status-error">{batch.used}</span>
         </span>
         <span className="inline-flex items-center gap-2 rounded-full border border-app-border bg-app-bg px-3 py-1 text-app-text-muted">
           <span className="h-1.5 w-1.5 rounded-full bg-app-primary" />

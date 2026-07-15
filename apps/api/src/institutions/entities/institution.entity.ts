@@ -4,12 +4,15 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity.js';
 
 @Entity('institutions')
+@Index('IDX_institutions_name', ['name'])
 export class Institution {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -34,11 +37,14 @@ export class Institution {
   @Column({ name: 'is_active', default: true })
   isActive!: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true, select: false })
+  deletedAt!: Date | null;
 
   // Domain Methods for Encapsulation
   deactivate() {

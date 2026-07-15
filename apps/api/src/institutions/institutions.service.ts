@@ -71,4 +71,11 @@ export class InstitutionsService {
       relations: ['responsibleTherapist'],
     });
   }
+
+  async softRemove(id: string): Promise<void> {
+    const institution = await this.institutionRepository.findOneOrFail({
+      where: { id },
+    });
+    await this.institutionRepository.softRemove(institution);
+  }
 }

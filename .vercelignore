@@ -1,0 +1,9 @@
+.turbo
+apps/android
+apps/web
+apps/site
+**/node_modules/.cache
+**/.puppeteer_cache
+**/chromium
+scripts
+openspec

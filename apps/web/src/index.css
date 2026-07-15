@@ -35,6 +35,27 @@
   --color-app-warning: #F59E0B;
   --color-app-error: #B9414A;
 
+  /* ── Semantic status tokens ── */
+  --color-status-success: var(--color-status-success);
+  --color-status-error: var(--color-status-error);
+  --color-status-warning: var(--color-status-warning);
+
+  /* ── LowStockAlert custom palette ── */
+  --color-warning-bg: #FEF3C7;
+  --color-warning-border: #F59E0B;
+  --color-warning-text: #92400E;
+
+  /* ── Holland code category colors (light) ── */
+  --color-category-art: #8b5cf6;
+  --color-category-hum: #d946ef;
+  --color-category-serv: #0d9488;
+  --color-category-prot: #334155;
+  --color-category-ind: #52525b;
+  --color-category-mech: #ea580c;
+  --color-category-lead: #4f46e5;
+  --color-category-sci: #4338ca;
+  --color-category-bus: #1e1b4b;
+
   --color-sidebar-bg: rgba(240, 236, 228, 0.96);
   --color-sidebar-text: rgba(29, 25, 20, 0.9);
   --color-sidebar-border: rgba(122, 135, 131, 0.22);
@@ -64,12 +85,22 @@
     --color-app-bg: #0e0f0f;
     --color-app-bg-accent-1: rgba(196, 133, 30, 0.18);
     --color-app-bg-accent-2: rgba(26, 138, 135, 0.18);
-    --color-app-surface: rgba(255, 255, 255, 0.04);
+    --color-app-surface: rgba(255, 255, 255, 0.08);
     --color-app-surface-variant: rgba(220, 211, 197, 0.08);
     --color-app-border: rgba(255, 255, 255, 0.08);
     --color-app-text-main: #f5f1ec;
     --color-app-text-muted: rgba(245, 241, 236, 0.62);
     --color-app-text-soft: rgba(245, 241, 236, 0.78);
+
+    --color-category-art: #a78bfa;
+    --color-category-hum: #e879f9;
+    --color-category-serv: #2dd4bf;
+    --color-category-prot: #94a3b8;
+    --color-category-ind: #a1a1aa;
+    --color-category-mech: #fb923c;
+    --color-category-lead: #818cf8;
+    --color-category-sci: #6366f1;
+    --color-category-bus: #6366f1;
 
     --color-sidebar-bg: rgba(18, 19, 20, 0.92);
     --color-sidebar-text: rgba(245, 241, 236, 0.74);
@@ -228,4 +259,20 @@
 
 .animate-in {
   animation: app-fade-in-up 550ms ease-out both;
+}
+
+/* Respect user motion preferences — disable animations when reduced motion is preferred */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-in,
+  .animate-pulse {
+    animation: none;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

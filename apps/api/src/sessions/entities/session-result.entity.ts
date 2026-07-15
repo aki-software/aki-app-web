@@ -11,29 +11,38 @@ import { Session } from './session.entity.js';
 @Entity('session_results')
 export class SessionResult {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Index()
   @ManyToOne(() => Session, (session) => session.results, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'session_id' })
-  session: Session;
+  session!: Session;
 
   @Column({ name: 'category_id', type: 'varchar', length: 50 })
-  categoryId: string;
+  categoryId!: string;
 
   @Column({ type: 'int' })
-  score: number;
+  score!: number;
 
   @Column({ name: 'total_possible', type: 'int' })
-  totalPossible: number;
+  totalPossible!: number;
 
-  @Column({ name: 'percentage', type: 'int' })
-  percentage: number;
+  @Column({ name: 'percentage', type: 'float', default: 0 })
+  percentage!: number;
+
+  @Column({ name: 'weighted_score', type: 'float', default: 0 })
+  weightedScore!: number;
+
+  @Column({ name: 'avg_response_time_ms', type: 'int', default: 0 })
+  avgResponseTimeMs!: number;
 
   @Column({ name: 'suggested_careers', type: 'json', nullable: true })
   suggestedCareers?: string[];
+
+  @Column({ name: 'time_spent_ms', type: 'int', default: 0 })
+  timeSpentMs!: number;
 
   @Column({ name: 'material_snippet', type: 'text', nullable: true })
   materialSnippet?: string;

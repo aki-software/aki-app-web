@@ -1,0 +1,4 @@
+# OpenSpec Configuration
+version: 1.0.0
+project: akit-platform
+default_change: auto-migrations-dev-startup

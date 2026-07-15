@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -14,6 +13,9 @@ import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { UserRole } from './entities/user.entity.js';
 import { UsersService } from './users.service.js';
 import { UserRegistrationService } from './user-registration.service.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
+import { RegisterUserDto } from './dto/register-user.dto.js';
+import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
 
 @Controller('users')
 export class UsersController {
@@ -25,8 +27,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get()
-  async findAll(@Query('role') role?: string) {
-    if (role?.toUpperCase() === UserRole.THERAPIST) {
+  async findAll(@Query() query: ListUsersQueryDto) {
+    if (query.role?.toUpperCase() === UserRole.THERAPIST) {
       const users = await this.usersService.findTherapists();
       return {
         data: users.map((user) => ({
@@ -47,16 +49,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post()
-  async create(
-    @Body()
-    payload: {
-      name: string;
-      role?: UserRole;
-      email?: string;
-      institutionId?: string | null;
-    },
-  ) {
-    const user = await this.performRegistration(payload);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const user = await this.userRegistrationService.register({
+      name: createUserDto.name,
+      role: createUserDto.role ?? UserRole.THERAPIST,
+      email: createUserDto.email,
+      institutionId: createUserDto.institutionId,
+    });
 
     return {
       id: user.id,
@@ -69,16 +68,13 @@ export class UsersController {
   }
 
   @Post('register')
-  async register(
-    @Body()
-    payload: {
-      name: string;
-      role?: UserRole;
-      email?: string;
-      institutionId?: string | null;
-    },
-  ) {
-    const user = await this.performRegistration(payload);
+  async register(@Body() registerUserDto: RegisterUserDto) {
+    const user = await this.userRegistrationService.register({
+      name: registerUserDto.name,
+      role: registerUserDto.role ?? UserRole.THERAPIST,
+      email: registerUserDto.email,
+      institutionId: registerUserDto.institutionId,
+    });
     return {
       user_id: user.id,
       status: 'registered',
@@ -86,37 +82,15 @@ export class UsersController {
     };
   }
 
-  private async performRegistration(payload: {
-    name: string;
-    role?: UserRole;
-    email?: string;
-    institutionId?: string | null;
-  }) {
-    return await this.userRegistrationService.register({
-      name: payload.name,
-      role: payload.role ?? UserRole.THERAPIST,
-      email: payload.email,
-      institutionId: payload.institutionId,
-    });
-  }
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post(':id/resend-activation')
   async resendActivation(@Param('id') id: string) {
-    try {
-      const user =
-        await this.userRegistrationService.refreshPasswordSetupToken(id);
-      return {
-        id: user.id,
-        activationEmailSent: !!user.passwordSetupToken,
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo reenviar la invitación',
-      );
-    }
+    const user =
+      await this.userRegistrationService.refreshPasswordSetupToken(id);
+    return {
+      id: user.id,
+      activationEmailSent: !!user.passwordSetupToken,
+    };
   }
 }

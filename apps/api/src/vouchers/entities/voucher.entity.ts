@@ -14,37 +14,43 @@ import { VoucherBatch } from './voucher-batch.entity.js';
 import { VoucherOwnerType, VoucherStatus } from './voucher.enums.js';
 
 @Entity('vouchers')
+@Index('IDX_vouchers_owner_institution_id_status', [
+  'ownerInstitutionId',
+  'status',
+])
+@Index('IDX_vouchers_batch_id', ['batchId'])
+@Index('IDX_vouchers_status', ['status'])
 export class Voucher {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index({ unique: true })
   @Column({ length: 8, unique: true })
-  code: string;
+  code!: string;
 
   @Column({ name: 'batch_id', type: 'uuid' })
-  batchId: string;
+  batchId!: string;
 
   @ManyToOne(() => VoucherBatch)
   @JoinColumn({ name: 'batch_id' })
-  batch: VoucherBatch;
+  batch!: VoucherBatch;
 
   @Column({
     name: 'owner_type',
     type: 'enum',
     enum: VoucherOwnerType,
   })
-  ownerType: VoucherOwnerType;
+  ownerType!: VoucherOwnerType;
 
   @Column({ name: 'owner_user_id', type: 'uuid', nullable: true })
-  ownerUserId: string | null;
+  ownerUserId!: string | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'owner_user_id' })
   ownerUser?: User | null;
 
   @Column({ name: 'owner_institution_id', type: 'uuid', nullable: true })
-  ownerInstitutionId: string | null;
+  ownerInstitutionId!: string | null;
 
   @ManyToOne(() => Institution, { nullable: true })
   @JoinColumn({ name: 'owner_institution_id' })
@@ -63,7 +69,7 @@ export class Voucher {
     length: 255,
     nullable: true,
   })
-  assignedPatientName: string | null;
+  assignedPatientName!: string | null;
 
   @Column({
     name: 'assigned_patient_email',
@@ -71,26 +77,26 @@ export class Voucher {
     length: 255,
     nullable: true,
   })
-  assignedPatientEmail: string | null;
+  assignedPatientEmail!: string | null;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt!: Date;
 
-  @Column({ name: 'sent_at', type: 'timestamp', nullable: true })
-  sentAt: Date | null;
+  @Column({ name: 'sent_at', type: 'timestamptz', nullable: true })
+  sentAt!: Date | null;
 
   @Column({ name: 'redeemed_session_id', type: 'uuid', nullable: true })
-  redeemedSessionId: string | null;
+  redeemedSessionId!: string | null;
 
   @ManyToOne(() => Session, { nullable: true })
   @JoinColumn({ name: 'redeemed_session_id' })
   redeemedSession?: Session | null;
 
-  @Column({ name: 'redeemed_at', type: 'timestamp', nullable: true })
-  redeemedAt: Date | null;
+  @Column({ name: 'redeemed_at', type: 'timestamptz', nullable: true })
+  redeemedAt!: Date | null;
 
-  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
-  expiresAt: Date | null;
+  @Column({ name: 'expires_at', type: 'timestamptz', nullable: true })
+  expiresAt!: Date | null;
 
   // Domain Methods for Encapsulation
   assignToPatient(patientName: string, patientEmail: string) {

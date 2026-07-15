@@ -5,7 +5,7 @@ import { Spinner } from "../../../components/atoms/Spinner";
 import { useInstitutionOverviewManager, LOW_STOCK_ALERT_THRESHOLD } from "../hooks/useInstitutionOverviewManager";
 import { LowStockAlert } from "../components/institucion/LowStockAlert";
 import { TopSessionsTable } from "../components/institucion/TopSessionsTable";
-import { StatCard } from "../../../components/molecules/StatCard";
+import { StatCard } from "../../../components/atoms/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
 import { ResultsDistributionChart } from "../components/ResultsDistributionChart";
 import { PeriodSelector } from "../../../components/molecules/PeriodSelector";
@@ -97,13 +97,13 @@ export function InstitutionDashboardOverview() {
             label="Disponibles" 
             value={voucherStats?.available ?? 0} 
             description={`De ${voucherStats?.total ?? 0} históricos.`} 
-            valueColor="text-emerald-600 dark:text-emerald-400" 
+            valueColor="text-status-success" 
           />
           <StatCard 
             label="Consumidos (período)" 
             value={voucherStats?.vouchersRedeemedPeriod ?? 0} 
             description={`Tasa de uso: ${voucherStats?.voucherRedemptionRatePeriod ?? 0}%.`} 
-            valueColor="text-rose-600 dark:text-rose-400" 
+            valueColor="text-status-error" 
           />
           <StatCard 
             label="Sin asignar" 
@@ -171,7 +171,7 @@ export function InstitutionDashboardOverview() {
             title="Resultados predominantes"
             description="Cantidad de tests completados según la categoría con mayor afinidad en tu institución."
             icon={TrendingUp}
-            iconColorClass="text-emerald-500"
+            iconColorClass="text-status-success"
           >
             <div className="h-[220px] sm:h-[260px]">
               <ResultsDistributionChart data={overview.resultsDistribution} />

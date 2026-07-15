@@ -1,12 +1,16 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "..",
+  "testEnvironment": "node",
+  "testRegex": "test/.*\\.e2e-spec\\.ts$",
   "moduleNameMapper": {
+    "^@akit/contracts$": "<rootDir>/../../packages/contracts/src/index",
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
-  "testEnvironment": "node",
-  "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
-  }
+    "^.+\\.(t|j)s$": "babel-jest"
+  },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!(@akit/contracts)/)"
+  ]
 }

@@ -1,6 +1,4 @@
 import { X, Filter } from "lucide-react";
-import { useMemo, useState } from "react";
-import { DETAIL_ITEMS_PER_PAGE } from "../../constants/vouchers.constants";
 import { Pagination } from "../../../../components/molecules/Pagination";
 import { EmptyState } from "../../../../components/molecules/EmptyState";
 import { StatusBadge } from "../../../../components/atoms/StatusBadge";
@@ -13,24 +11,13 @@ interface BatchDetailDrawerProps {
   loading: boolean;
   error: string | null;
   isAdmin: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
   onClose: () => void;
 }
 
-export const BatchDetailDrawer = ({ batchId, detail, loading, error, isAdmin, onClose }: BatchDetailDrawerProps) => {
-  const [page, setPage] = useState(1);
-
-  const paginatedData = useMemo(() => {
-    const vouchers = detail?.vouchers ?? [];
-    const totalPages = Math.ceil(vouchers.length / DETAIL_ITEMS_PER_PAGE);
-    const safePage = totalPages > 0 ? Math.min(page, totalPages) : 1;
-    const start = (safePage - 1) * DETAIL_ITEMS_PER_PAGE;
-    return {
-      items: vouchers.slice(start, start + DETAIL_ITEMS_PER_PAGE),
-      totalPages,
-      safePage,
-    };
-  }, [detail, page]);
-
+export const BatchDetailDrawer = ({ batchId, detail, loading, error, isAdmin, currentPage, totalPages, onPageChange, onClose }: BatchDetailDrawerProps) => {
   return (
     <>
       <button type="button" onClick={onClose} className="fixed inset-0 z-40 bg-app-bg/90 backdrop-blur-sm" />
@@ -43,21 +30,20 @@ export const BatchDetailDrawer = ({ batchId, detail, loading, error, isAdmin, on
             </h3>
           </div>
           <button onClick={onClose} className="rounded-xl border border-app-border bg-app-bg p-2.5 text-app-text-muted hover:text-app-primary">
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
         {loading && <div className="flex h-48 items-center justify-center"><span className="app-label opacity-60">Cargando detalle...</span></div>}
-        {!loading && error && <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-200">{error}</div>}
+        {!loading && error && <div className="rounded-xl border border-status-error/30 bg-status-error/10 px-4 py-3 text-sm font-semibold text-status-error">{error}</div>}
         
         {!loading && !error && detail && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {/* Tarjetas de stats del lote... */}
               {[
                 { label: "Total", value: detail.total, color: "text-app-text-main" },
-                { label: "Pendientes", value: detail.pending, color: "text-emerald-300" },
-                { label: "Consumidos", value: detail.used, color: "text-rose-300" },
+                { label: "Pendientes", value: detail.pending, color: "text-status-success" },
+                { label: "Consumidos", value: detail.used, color: "text-status-error" },
                 { label: "Disponibles", value: detail.available, color: "text-sky-300" }
               ].map(stat => (
                 <div key={stat.label} className="rounded-xl border border-app-border bg-app-bg p-3">
@@ -90,18 +76,18 @@ export const BatchDetailDrawer = ({ batchId, detail, loading, error, isAdmin, on
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-app-border bg-app-surface">
-                    {paginatedData.items.length === 0 ? (
+                    {(detail.data ?? []).length === 0 ? (
                       <tr>
                         <td colSpan={4} className="px-3 py-5">
                           <EmptyState
-                            icon={<Filter className="h-8 w-8" />}
+                            icon={<Filter className="h-8 w-8" aria-hidden="true" />}
                             title="Lote vacío"
                             description="Este lote no tiene vouchers registrados."
                           />
                         </td>
                       </tr>
                     ) : (
-                      paginatedData.items.map((voucher) => (
+                      (detail.data ?? []).map((voucher) => (
                         <tr key={voucher.id}>
                           <td className="px-3 py-3 text-sm font-semibold">{voucher.code}</td>
                           <td className="px-3 py-3">
@@ -123,7 +109,7 @@ export const BatchDetailDrawer = ({ batchId, detail, loading, error, isAdmin, on
               </div>
             )}
 
-            {!isAdmin && <Pagination currentPage={paginatedData.safePage} totalPages={paginatedData.totalPages} onPageChange={setPage} />}
+            {!isAdmin && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />}
           </div>
         )}
       </aside>

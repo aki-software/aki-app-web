@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { translations } from '../i18n/translations';
+
+const locale = 'es';
+const t = translations[locale];
+const currentYear = new Date().getFullYear();
+---
+
+<BaseLayout locale={locale} t={t} title="Términos y Condiciones - ORIENT A.KI">
+  <Navbar locale={locale} t={t} />
+  <main id="main" class="pt-24 pb-16 bg-[#F5EFE7]">
+    <div class="container max-w-3xl mx-auto bg-white rounded-2xl border border-[#DCD3C5]/40 shadow-sm p-8 md:p-12">
+      <h1 class="font-display font-bold text-3xl text-[#1F2523] mb-2">Términos y Condiciones</h1>
+      <p class="text-sm text-[#44403C] mb-8">Última actualización: Junio {currentYear}</p>
+
+      <div class="prose prose-sm max-w-none text-[#44403C] space-y-6">
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">1. Aceptación de los términos</h2>
+        <p>Al usar la aplicación ORIENT A.KI (la "App") y el sitio web orientaki.com (el "Sitio"), aceptás estos Términos y Condiciones. Si no estás de acuerdo, no uses la App ni el Sitio.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">2. Descripción del servicio</h2>
+        <p>ORIENT A.KI es una herramienta de orientación vocacional que ofrece un test interactivo para ayudar a estudiantes a explorar sus intereses profesionales. El resultado es una orientación basada en 12 categorías ocupacionales y no constituye un diagnóstico psicológico ni una recomendación vinculante.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">3. Uso permitido</h2>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Podés usar la App y el Sitio para fines personales y no comerciales.</li>
+          <li>No podés reproducir, distribuir ni modificar el contenido sin autorización.</li>
+          <li>No podés usar la App para fines ilegales o no autorizados.</li>
+        </ul>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">4. Cuentas de usuario</h2>
+        <p>Para usar ciertas funciones, necesitás crear una cuenta con tu correo electrónico. Sos responsable de mantener la confidencialidad de tu cuenta y de toda actividad que ocurra en ella.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">5. Planes y pagos</h2>
+        <p>Ofrecemos planes gratuitos y planes de pago para instituciones educativas. Los detalles de cada plan se especifican en el Sitio. Los pagos se procesan a través de medios seguros y no almacenamos información de tarjetas de crédito.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">6. Limitación de responsabilidad</h2>
+        <p>ORIENT A.KI proporciona el servicio "tal cual", sin garantías de ningún tipo. No nos hacemos responsables por decisiones vocacionales, académicas o profesionales basadas en los resultados del test.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">7. Propiedad intelectual</h2>
+        <p>Todos los derechos de propiedad intelectual del test vocacional, las categorías ocupacionales, el diseño de la App y el contenido del Sitio pertenecen a ORIENT A.KI.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">8. Modificaciones</h2>
+        <p>Podemos actualizar estos términos en cualquier momento. Los cambios se publicarán en esta página con una nueva fecha de actualización. El uso continuado del servicio después de los cambios constituye la aceptación de los nuevos términos.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">9. Contacto</h2>
+        <p>Para consultas sobre estos términos, escribinos a <a href="mailto:contacto@orientaki.com" class="text-[#0F6B68] underline">contacto@orientaki.com</a>.</p>
+      </div>
+    </div>
+  </main>
+  <Footer locale={locale} t={t} />
+</BaseLayout>

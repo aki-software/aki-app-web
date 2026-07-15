@@ -3,6 +3,7 @@ export type MailPayload = Record<string, unknown>;
 export type MailMeta = {
   to: string;
   subject: string;
+  text?: string;
   attachments?: {
     filename: string;
     content: Buffer;

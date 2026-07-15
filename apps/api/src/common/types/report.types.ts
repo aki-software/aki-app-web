@@ -4,8 +4,10 @@ export interface ParsedDescriptionBlock {
 }
 
 export interface CategoryResult {
+  categoryId: string;
   title: string;
   percentage: number;
+  timeSpentMs?: number;
   description: string;
   parsedBlocks?: ParsedDescriptionBlock[];
   materialSnippet?: string;
@@ -26,6 +28,7 @@ export interface ReportTripletInsight {
   tendencies: string[];
   possibleJobs: string[];
   relatedProfessions: string[];
+  customSections?: { title: string; items: string[] }[];
 }
 
 export interface ReportData {
@@ -34,6 +37,7 @@ export interface ReportData {
   hollandCode?: string;
   hollandPercentages?: Record<string, number>;
   topResults: CategoryResult[];
+  bottomAreas?: Array<{ title: string; percentage: number }>;
   summary: ReportSummary;
   tripletInsight: ReportTripletInsight | null;
   strengths: string[];

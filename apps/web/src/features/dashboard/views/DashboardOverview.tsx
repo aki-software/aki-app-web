@@ -1,24 +1,31 @@
-import { BarChart3, Calendar, Sparkles, TrendingUp } from "lucide-react";
-import { useMemo } from "react";
+import { BarChart3, Calendar, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { getFormattedCurrentDate } from "../../../utils/date";
 import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashboard.constants";
 import { Spinner } from "../../../components/atoms/Spinner";
-import { StatCard } from "../../../components/molecules/StatCard";
+import { StatCard } from "../../../components/atoms/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
 import { PeriodSelector } from "../../../components/molecules/PeriodSelector";
 import { EmptyState } from "../../../components/molecules/EmptyState";
 import { ActivityFeed } from "../components/overview/ActivityFeed";
-import { AdminAlerts } from "../components/overview/AdminAlerts";
 import { OverviewHighlights } from "../components/overview/OverviewHighlights";
 import { QuickActions } from "../components/overview/QuickActions";
-import { ResultsDistributionChart } from "../components/ResultsDistributionChart";
 import { SessionsChart } from "../components/SessionsChart";
+import { HealthBar } from "../components/admin/HealthBar";
 import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 import { useAdminDashboardStats } from "../hooks/useAdminDashboardStats";
+import { fetchTriageSessions } from "../api/sessions.api";
 
 function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
   const { stats: adminStats, loading, periodDays, setPeriodDays } = useAdminDashboardStats();
+  const [triageCount, setTriageCount] = useState(0);
+
+  useEffect(() => {
+    fetchTriageSessions({ limit: 1 }).then((res) => {
+      setTriageCount(res.meta.total);
+    });
+  }, []);
 
   const sessionsSummary = useMemo(() => {
 
@@ -76,6 +83,13 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
         </div>
       </div>
 
+      {/* Centro de Mando: HealthBar */}
+      <HealthBar
+        completionRate={displayStats.completionRate}
+        alertsCount={displayStats.alerts.length}
+        triageCount={triageCount}
+      />
+
       <OverviewHighlights {...displayStats} />
       <div className="grid grid-cols-1 gap-6 xl:gap-8">
         {isAdmin && adminStats ? (
@@ -115,7 +129,6 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-7 xl:col-span-8 space-y-6">
-            {isAdmin && <AdminAlerts alerts={adminStats?.alerts ?? []} />}
             <QuickActions isAdmin={isAdmin} />
           </div>
           <div className="lg:col-span-5 xl:col-span-4 h-full">
@@ -123,24 +136,6 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
           </div>
         </div>
       </div>
-
-      {isAdmin && adminStats && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 px-1">
-            <span className="app-label opacity-60 tracking-[0.2em]">Insights secundarios</span>
-          </div>
-          <DashboardWidget
-            title={uiTexts.widgets.results.title}
-            description={uiTexts.widgets.results.description}
-            icon={TrendingUp}
-            iconColorClass="text-emerald-500"
-          >
-            <div className="h-[220px] sm:h-[260px]">
-              <ResultsDistributionChart data={adminStats.resultsDistribution} />
-            </div>
-          </DashboardWidget>
-        </div>
-      )}
     </div>
   );
 }

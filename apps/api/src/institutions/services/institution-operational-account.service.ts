@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserRole } from '../../users/entities/user.entity.js';
 import { UserRegistrationService } from '../../users/user-registration.service.js';
+import { UsersService } from '../../users/users.service.js';
 import { CreateInstitutionDto } from '../dto/create-institution.dto.js';
 import { Institution } from '../entities/institution.entity.js';
 import { InstitutionsService } from '../institutions.service.js';
@@ -10,12 +11,24 @@ export class InstitutionOperationalAccountService {
   constructor(
     private readonly institutionsService: InstitutionsService,
     private readonly userRegistrationService: UserRegistrationService,
+    private readonly usersService: UsersService,
   ) {}
 
   async createInstitutionWithOperationalAccount(
     payload: CreateInstitutionDto,
   ): Promise<{ institution: Institution; activationEmailSent: boolean }> {
     const hasResponsibleUserId = !!payload.responsibleTherapistUserId?.trim();
+
+    if (!hasResponsibleUserId && payload.email) {
+      const existingUser = await this.usersService.findByEmail(
+        payload.email.trim(),
+      );
+      if (existingUser) {
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado por otro usuario.',
+        );
+      }
+    }
 
     let institution = await this.institutionsService.create({
       name: payload.name,
@@ -68,6 +81,13 @@ export class InstitutionOperationalAccountService {
     }
 
     const normalizedEmail = email.trim();
+    const existingUser = await this.usersService.findByEmail(normalizedEmail);
+    if (existingUser) {
+      throw new BadRequestException(
+        'El correo electrónico ya está registrado por otro usuario.',
+      );
+    }
+
     const responsibleUser = await this.userRegistrationService.register({
       name: normalizedEmail,
       role: UserRole.THERAPIST,

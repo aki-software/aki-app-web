@@ -4,6 +4,7 @@ import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
 import { JobNames } from '../jobs/job-names.js';
 import { JobDispatcherService } from '../services/job-dispatcher.service.js';
 import { applyQueueDefaults } from './queue-defaults.js';
+import { getRedisConnection } from '../utils/redis.utils.js';
 
 @Injectable()
 export class InMemoryQueueAdapter implements QueueAdapter {
@@ -15,7 +16,7 @@ export class InMemoryQueueAdapter implements QueueAdapter {
   ) {}
 
   isConfigured(): boolean {
-    return this.hasQueueUrl() || this.hasRedisSettings();
+    return !!getRedisConnection(this.configService);
   }
 
   async enqueue(
@@ -58,25 +59,14 @@ export class InMemoryQueueAdapter implements QueueAdapter {
     if (
       promise !== undefined &&
       promise !== null &&
-      typeof (promise as any).catch === 'function'
+      typeof promise.catch === 'function'
     ) {
-      (promise as any).catch((error: any) => {
+      promise.catch((error) => {
         const message = error instanceof Error ? error.message : String(error);
         this.logger.error(`Inline job failed job=${jobName} error=${message}`);
       });
     }
 
     return Promise.resolve();
-  }
-
-  private hasQueueUrl(): boolean {
-    const url = this.configService.get<string>('QUEUE_REDIS_URL');
-    return !!url?.trim();
-  }
-
-  private hasRedisSettings(): boolean {
-    const url = this.configService.get<string>('REDIS_URL');
-    const host = this.configService.get<string>('REDIS_HOST');
-    return !!url?.trim() || !!host?.trim();
   }
 }

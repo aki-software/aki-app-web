@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { TresAreasCombination as TresAreasCombinationEntity } from './entities/tres-areas-combination.entity.js';
+import { UpdateTresAreasDto } from './dto/update-tres-areas.dto.js';
 
 export type TresAreasCombination = {
   id: string;
@@ -11,6 +12,7 @@ export type TresAreasCombination = {
   tendencies: string[];
   possibleJobs: string;
   relatedProfessions: string;
+  customSections: { title: string; items: string[] }[];
 };
 
 @Injectable()
@@ -35,6 +37,58 @@ export class TresAreasService {
 
     const key = this.buildKey(categories);
     return this.combinationsByKey.get(key) ?? null;
+  }
+
+  async findAll(
+    page: number = 1,
+    limit: number = 20,
+    search: string = '',
+  ): Promise<{ data: TresAreasCombinationEntity[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const where = search
+      ? [
+          { title: ILike(`%${search}%`) },
+          { narrative: ILike(`%${search}%`) },
+          { area1: ILike(`%${search}%`) },
+          { area2: ILike(`%${search}%`) },
+          { area3: ILike(`%${search}%`) },
+        ]
+      : {};
+
+    const [data, total] = await this.tresAreasRepo.findAndCount({
+      where,
+      order: { title: 'ASC' },
+      skip,
+      take: limit,
+    });
+
+    return { data, total };
+  }
+
+  async update(
+    id: string,
+    dto: UpdateTresAreasDto,
+  ): Promise<TresAreasCombinationEntity> {
+    const combination = await this.tresAreasRepo.findOne({ where: { id } });
+
+    if (!combination) {
+      throw new NotFoundException(`Combination with id ${id} not found`);
+    }
+
+    if (dto.narrative !== undefined) combination.narrative = dto.narrative;
+    if (dto.tendencies !== undefined) combination.tendencies = dto.tendencies;
+    if (dto.possibleJobs !== undefined) combination.possibleJobs = dto.possibleJobs;
+    if (dto.relatedProfessions !== undefined) combination.relatedProfessions = dto.relatedProfessions;
+    if (dto.customSections !== undefined) combination.customSections = dto.customSections;
+
+    return this.tresAreasRepo.save(combination);
+  }
+
+  async reloadCache(): Promise<void> {
+    this.cacheReady = false;
+    await this.loadContentFromDatabase();
+    this.cacheReady = true;
   }
 
   private async ensureCache(): Promise<void> {
@@ -65,6 +119,7 @@ export class TresAreasService {
           tendencies: item.tendencies,
           possibleJobs: item.possibleJobs,
           relatedProfessions: item.relatedProfessions,
+          customSections: item.customSections,
         });
       }
 

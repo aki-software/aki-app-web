@@ -1,6 +1,6 @@
 import { DashboardChannelBreakdown } from "@akit/contracts";
 import { ArrowRight, Target, TrendingUp } from "lucide-react";
-import { StatCard } from "../../../../components/molecules/StatCard";
+import { StatCard } from "../../../../components/atoms/StatCard";
 
 interface Props {
   periodLabel: string;

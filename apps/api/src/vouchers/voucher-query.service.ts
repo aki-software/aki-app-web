@@ -67,6 +67,7 @@ export class VoucherQueryService {
   async findBatchDetail(batchId: string, scope?: VoucherScope) {
     const qb = this.voucherRepository
       .createQueryBuilder('voucher')
+      .withDeleted()
       .leftJoinAndSelect('voucher.ownerUser', 'ownerUser')
       .leftJoinAndSelect('voucher.ownerInstitution', 'ownerInstitution')
       .where('voucher.batchId = :batchId', { batchId });
@@ -95,6 +96,7 @@ export class VoucherQueryService {
     );
     const qb = this.voucherRepository
       .createQueryBuilder('voucher')
+      .withDeleted()
       .leftJoinAndSelect('voucher.ownerUser', 'ownerUser')
       .leftJoinAndSelect('voucher.ownerInstitution', 'ownerInstitution')
       .leftJoinAndSelect('voucher.redeemedSession', 'redeemedSession')

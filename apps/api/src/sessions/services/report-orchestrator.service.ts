@@ -1,14 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
 import { ReportService } from './report.service.js';
-import { ReportCacheService } from './report-cache.service.js';
-import { ReportGeneratorService } from './report-generator.service.js';
+import type { IReportCacheService } from '../interfaces/report-cache.interface.js';
+import { ReportPdfService } from './report-pdf.service.js';
 import { ReportDeliveryService } from './report-delivery.service.js';
 import { SessionScope } from '../types/session-scope.type.js';
 import type { ReportData } from '../../common/types/report.types.js';
+import { SessionPaymentStatus } from '@akit/contracts';
+import { UserRole } from '../../users/entities/user.entity.js';
 
+const DELIVERY_CACHE_TTL_MS = 10 * 60 * 1000;
 @Injectable()
 export class ReportOrchestratorService {
   private readonly logger = new Logger(ReportOrchestratorService.name);
@@ -17,8 +26,9 @@ export class ReportOrchestratorService {
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
     private readonly reportService: ReportService,
-    private readonly reportCacheService: ReportCacheService,
-    private readonly reportGeneratorService: ReportGeneratorService,
+    @Inject('IReportCacheService')
+    private readonly reportCacheService: IReportCacheService,
+    private readonly reportPdfService: ReportPdfService,
     private readonly reportDeliveryService: ReportDeliveryService,
   ) {}
 
@@ -27,6 +37,7 @@ export class ReportOrchestratorService {
     targetEmail: string,
     voucherId?: string | null,
     scope?: SessionScope,
+    force?: boolean,
   ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(sessionId, scope);
     const voucherIdForLogging = voucherId ?? session.voucherId ?? undefined;
@@ -35,7 +46,6 @@ export class ReportOrchestratorService {
     const cached: {
       reportData: ReportData;
       pdfBuffer?: Buffer;
-      reportUrl?: string;
     } = await this.reportCacheService.getOrCreate(cacheKey, async () => {
       this.logger.debug(`Generating report for session: ${sessionId}`);
 
@@ -44,40 +54,33 @@ export class ReportOrchestratorService {
         targetEmail,
       );
 
-      const { pdfBuffer, reportUrl } =
-        await this.reportGeneratorService.generateAndUploadPdf(
-          session,
-          reportData,
-        );
+      const pdfBuffer =
+        await this.reportPdfService.generatePdfBuffer(reportData);
 
-      return { reportData, pdfBuffer, reportUrl };
+      return { reportData, pdfBuffer };
     });
 
     this.logger.debug(`Sending report for session: ${sessionId}`);
 
     const deliveryCacheKey = `delivery:${sessionId}:${targetEmail}`;
     const deliveryLockKey = `lock:${deliveryCacheKey}`;
-
-    // Fast-path: delivery already completed successfully (e.g. second request hits after first finishes)
     const previousResult = this.reportCacheService.get<{
       success: boolean;
       message: string;
     }>(deliveryCacheKey);
-    if (previousResult) {
+    if (previousResult && !force) {
       this.logger.debug(
         `Delivery already completed for session: ${sessionId}, returning cached result`,
       );
       return previousResult;
     }
 
-    // Slow-path: acquire lock so concurrent requests don't double-send
     return await this.reportCacheService.withLock(deliveryLockKey, async () => {
-      // Re-check inside lock (another request may have finished while we waited)
       const cachedDelivery = this.reportCacheService.get<{
         success: boolean;
         message: string;
       }>(deliveryCacheKey);
-      if (cachedDelivery) {
+      if (cachedDelivery && !force) {
         this.logger.debug(
           `Delivery already completed (post-lock check) for session: ${sessionId}`,
         );
@@ -90,12 +93,14 @@ export class ReportOrchestratorService {
         voucherIdForLogging,
         cached.reportData,
         cached.pdfBuffer,
-        cached.reportUrl,
       );
 
-      // Only cache on success — failed deliveries should remain retryable
       if (result.success) {
-        this.reportCacheService.set(deliveryCacheKey, result, 10 * 60 * 1000);
+        this.reportCacheService.set(
+          deliveryCacheKey,
+          result,
+          DELIVERY_CACHE_TTL_MS,
+        );
       }
 
       return result;
@@ -103,33 +108,69 @@ export class ReportOrchestratorService {
   }
 
   private async findOne(id: string, scope?: SessionScope): Promise<Session> {
-    const normalizedRole = scope?.role?.toUpperCase();
-    let where: any = {};
+    const query = this.sessionRepository
+      .createQueryBuilder('session')
+      .leftJoinAndSelect('session.results', 'results')
+      .leftJoinAndSelect('session.swipes', 'swipes')
+      .leftJoinAndSelect('session.institution', 'institution')
+      .leftJoinAndSelect('session.therapist', 'therapist')
+      .leftJoinAndSelect('session.voucher', 'voucher')
+      .where('session.id = :id', { id })
+      // Garantizar el orden del motor psicométrico: los joins no garantizan orden en SQL.
+      // percentage DESC → weighted_score DESC → category_id ASC
+      .addOrderBy('results.percentage', 'DESC')
+      .addOrderBy('results.weightedScore', 'DESC')
+      .addOrderBy('results.categoryId', 'ASC');
 
-    if (normalizedRole !== 'ADMIN') {
-      const scopedWhere =
-        normalizedRole === 'PATIENT' && scope?.patientId
-          ? { patientId: scope.patientId }
-          : scope?.therapistUserId
-            ? { therapistUserId: scope.therapistUserId }
-            : scope?.institutionId
-              ? { institutionId: scope.institutionId }
-              : { id: '__forbidden__' };
-      where = scopedWhere;
-    }
+    this.applySecurityBoundaries(query, scope);
 
-    if (id) {
-      where = { ...where, id };
-    }
-
-    const session = await this.sessionRepository.findOne({
-      where,
-      relations: ['results', 'swipes', 'institution', 'therapist', 'voucher'],
-    });
-
+    const session = await query.getOne();
     if (!session) {
-      throw new Error('Session not found');
+      throw new NotFoundException('Sesión no encontrada');
     }
+
+    if (
+      scope?.role === UserRole.PATIENT &&
+      session.paymentStatus !== SessionPaymentStatus.PAID &&
+      session.paymentStatus !== SessionPaymentStatus.VOUCHER_REDEEMED
+    ) {
+      throw new BadRequestException(
+        'Cannot generate report for a pending payment session',
+      );
+    }
+
     return session;
+  }
+
+  private applySecurityBoundaries(
+    query: SelectQueryBuilder<Session>,
+    scope?: SessionScope,
+  ): void {
+    if (!scope?.role) {
+      query.andWhere('1 = 0');
+      return;
+    }
+
+    const role = scope.role as UserRole;
+
+    if (role === UserRole.ADMIN) {
+      return;
+    }
+    if (role === UserRole.PATIENT) {
+      return;
+    }
+    if (scope.institutionId) {
+      query.andWhere('session.institutionId = :institutionId', {
+        institutionId: scope.institutionId,
+      });
+      return;
+    }
+    if (scope.therapistUserId) {
+      query.andWhere('session.therapistUserId = :therapistUserId', {
+        therapistUserId: scope.therapistUserId,
+      });
+      return;
+    }
+    query.andWhere('1 = 0');
   }
 }

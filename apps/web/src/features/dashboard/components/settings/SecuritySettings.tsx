@@ -57,7 +57,7 @@ export const SecuritySettings = () => {
           </div>
           
           {success && (
-            <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-500 animate-in zoom-in-90 duration-300">
+            <div className="inline-flex items-center gap-2 rounded-xl border border-status-success/20 bg-status-success/5 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-status-success animate-in zoom-in-90 duration-300">
               <CheckCircle2 className="h-3.5 w-3.5" /> Sesión Asegurada
             </div>
           )}
