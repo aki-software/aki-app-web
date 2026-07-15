@@ -386,6 +386,29 @@ html(lang="es")
         line-height: 1.6;
         color: #{colors.text.secondary};
       }
+      .custom-html-content p {
+        margin: 0 0 10px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #{colors.text.secondary};
+      }
+      .custom-html-content ul {
+        margin: 0 0 10px;
+        padding-left: 18px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #{colors.text.secondary};
+      }
+      .custom-html-content li {
+        margin: 0 0 4px;
+      }
+      .custom-html-content ol {
+        margin: 0 0 10px;
+        padding-left: 18px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #{colors.text.secondary};
+      }
       .careers-card {
         margin-top: 8px;
         border: 1px solid #{colors.surface.variantLight};
@@ -554,7 +577,7 @@ html(lang="es")
           p.block-text(style="margin-bottom: 16px;") Lo más importante no es cada área por separado, sino cómo se combinan entre sí. En tu caso, la combinación:
           .triplet
             h3 #{tripletInsight.title || 'Combinación de intereses'}
-            p #{tripletInsight.narrative || 'Tus áreas de interés se complementan en roles que requieren la integración de habilidades técnicas, comerciales y de organización.'}
+            .custom-html-content !{tripletInsight.narrative || '<p>Tus áreas de interés se complementan en roles que requieren la integración de habilidades técnicas, comerciales y de organización.</p>'}
             if tripletInsight.tendencies && tripletInsight.tendencies.length > 0
               p.block-title Tendencias observadas
               ul
@@ -570,6 +593,14 @@ html(lang="es")
               ul
                 each profession in tripletInsight.relatedProfessions
                   li #{profession}
+            if tripletInsight.customSections && tripletInsight.customSections.length > 0
+              each section in tripletInsight.customSections
+                if section.title
+                  p.block-title #{section.title}
+                if section.items && section.items.length > 0
+                  ul
+                    each item in section.items
+                      li #{item}
 
 
 
