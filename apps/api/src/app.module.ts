@@ -32,18 +32,27 @@ import { RequestLoggerMiddleware } from './common/middlewares/request-logger.mid
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        ...typeOrmConfig,
-        host: configService.get<string>('DATABASE_HOST') || typeOrmConfig.host,
-        port: configService.get<number>('DATABASE_PORT') || typeOrmConfig.port,
-        username:
-          configService.get<string>('DATABASE_USER') || typeOrmConfig.username,
-        password:
-          configService.get<string>('DATABASE_PASSWORD') ||
-          typeOrmConfig.password,
-        database:
-          configService.get<string>('DATABASE_NAME') || typeOrmConfig.database,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        if (databaseUrl) {
+          return {
+            ...typeOrmConfig,
+            url: databaseUrl,
+          };
+        }
+        return {
+          ...typeOrmConfig,
+          host: configService.get<string>('DATABASE_HOST') || typeOrmConfig.host,
+          port: configService.get<number>('DATABASE_PORT') || typeOrmConfig.port,
+          username:
+            configService.get<string>('DATABASE_USER') || typeOrmConfig.username,
+          password:
+            configService.get<string>('DATABASE_PASSWORD') ||
+            typeOrmConfig.password,
+          database:
+            configService.get<string>('DATABASE_NAME') || typeOrmConfig.database,
+        };
+      },
     }),
     CommonModule,
     UsersModule,
