@@ -14,12 +14,19 @@ export async function loginRequest(credentials: LoginCredentials): Promise<Login
     body: JSON.stringify(credentials),
   });
 
-  if (response.status === 401) {
-    throw new Error('UNAUTHORIZED');
-  }
   if (!response.ok) {
-    throw new Error(`SERVER_ERROR_${response.status}`);
+    let errorMessage = response.status === 401 ? 'UNAUTHORIZED' : `SERVER_ERROR_${response.status}`;
+    try {
+      const errorData = await response.json();
+      if (errorData && errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } catch {
+      // Ignorar si no se puede parsear JSON
+    }
+    throw new Error(errorMessage);
   }
+
   return response.json() as Promise<LoginResponse>;
 }
 

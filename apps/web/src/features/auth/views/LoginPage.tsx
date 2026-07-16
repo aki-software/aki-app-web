@@ -64,9 +64,14 @@ export function LoginPage() {
       await login({ email: email.trim(), password });
       // navigate() se dispara via useEffect cuando isAuthenticated cambie a true
     } catch (err) {
-      const msg = err instanceof Error && err.message === 'UNAUTHORIZED' 
-        ? "Credenciales incorrectas. Verificá tu email y contraseña." 
-        : "Ocurrió un error inesperado al iniciar sesión.";
+      let msg = "Ocurrió un error inesperado al iniciar sesión.";
+      if (err instanceof Error) {
+        if (err.message === 'UNAUTHORIZED') {
+          msg = "Credenciales incorrectas. Verificá tu email y contraseña.";
+        } else if (!err.message.startsWith('SERVER_ERROR_')) {
+          msg = err.message; // Usamos el mensaje exacto que mandó la API (ej: Cuenta bloqueada)
+        }
+      }
       setError(msg);
     } finally {
       setIsSubmitting(false);

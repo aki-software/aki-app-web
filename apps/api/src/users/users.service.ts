@@ -26,6 +26,10 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
+  async save(user: User): Promise<User> {
+    return await this.userRepository.save(user);
+  }
+
   async findOne(id: string): Promise<User | null> {
     return await this.userRepository.findOne({ where: { id } });
   }

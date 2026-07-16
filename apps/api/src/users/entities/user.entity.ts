@@ -63,6 +63,16 @@ export class User {
   })
   passwordResetExpiresAt!: Date | null;
 
+  @Column({ name: 'failed_login_attempts', type: 'int', default: 0 })
+  failedLoginAttempts!: number;
+
+  @Column({
+    name: 'locked_until',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  lockedUntil!: Date | null;
+
   @Column({
     type: 'enum',
     enum: UserRole,
