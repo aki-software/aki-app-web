@@ -5,7 +5,7 @@ export interface NavItem {
   name: string;
   path: string;
   icon: LucideIcon;
-  roles: Array<'ADMIN' | 'THERAPIST'>;
+  roles: Array<'ADMIN' | 'THERAPIST' | 'INSTITUTION'>;
 }
 
 export const DASHBOARD_NAV_ITEMS: NavItem[] = [
@@ -13,19 +13,19 @@ export const DASHBOARD_NAV_ITEMS: NavItem[] = [
     name: "Resumen",
     path: APP_ROUTES.DASHBOARD.ROOT,
     icon: LayoutDashboard,
-    roles: ['ADMIN', 'THERAPIST'],
+    roles: ['ADMIN', 'THERAPIST', 'INSTITUTION'],
   },
   {
     name: "Tests realizados",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.RESULTS}`,
     icon: ChartPie,
-    roles: ['ADMIN', 'THERAPIST'],
+    roles: ['ADMIN', 'THERAPIST', 'INSTITUTION'],
   },
   {
     name: "Vouchers",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.VOUCHERS}`,
     icon: Ticket,
-    roles: ['ADMIN'],
+    roles: ['ADMIN', 'INSTITUTION'],
   },
   {
     name: "Instituciones y terapeutas",
@@ -37,7 +37,7 @@ export const DASHBOARD_NAV_ITEMS: NavItem[] = [
     name: "Ajustes",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.SETTINGS}`,
     icon: Settings,
-    roles: ['ADMIN', 'THERAPIST'],
+    roles: ['ADMIN', 'THERAPIST', 'INSTITUTION'],
   },
 ];
 
