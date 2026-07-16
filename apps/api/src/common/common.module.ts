@@ -49,7 +49,8 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
         inMemoryAdapter: InMemoryQueueAdapter,
         configService: ConfigService,
       ) => {
-        const enableBullMq = configService.get<string>('ENABLE_BULLMQ') === 'true';
+        const enableBullMq =
+          configService.get<string>('ENABLE_BULLMQ') === 'true';
         return enableBullMq && bullMqAdapter.isEnabled
           ? bullMqAdapter
           : inMemoryAdapter;
