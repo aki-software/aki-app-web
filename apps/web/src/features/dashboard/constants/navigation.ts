@@ -25,7 +25,7 @@ export const DASHBOARD_NAV_ITEMS: NavItem[] = [
     name: "Vouchers",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.VOUCHERS}`,
     icon: Ticket,
-    roles: ['ADMIN', 'INSTITUTION'],
+    roles: ['ADMIN', 'INSTITUTION', 'THERAPIST'],
   },
   {
     name: "Instituciones y terapeutas",
