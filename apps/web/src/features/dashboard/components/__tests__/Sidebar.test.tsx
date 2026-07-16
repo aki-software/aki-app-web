@@ -92,10 +92,10 @@ describe("Sidebar — role-based nav filtering", () => {
       expect(screen.getByText("Cambio de contraseña")).toBeDefined();
     });
 
-    it("does NOT show Vouchers or Instituciones y terapeutas", () => {
+    it("shows Vouchers but NOT Instituciones y terapeutas or CMS", () => {
       renderWithRouter(<Sidebar />);
 
-      expect(screen.queryByText("Vouchers")).toBeNull();
+      expect(screen.getByText("Vouchers")).toBeDefined();
       expect(screen.queryByText("Instituciones y terapeutas")).toBeNull();
       expect(screen.queryByText("Material teórico (CMS)")).toBeNull();
     });
@@ -114,15 +114,15 @@ describe("Sidebar — role-based nav filtering", () => {
       });
     });
 
-    it("falls back to therapist-level nav (Resumen, Tests realizados, Cambio de contraseña)", () => {
+    it("falls back to therapist-level nav (Resumen, Tests realizados, Vouchers, Cambio de contraseña)", () => {
       renderWithRouter(<Sidebar />);
 
       expect(screen.getByText("Resumen")).toBeDefined();
       expect(screen.getByText("Tests realizados")).toBeDefined();
+      expect(screen.getByText("Vouchers")).toBeDefined();
       expect(screen.getByText("Cambio de contraseña")).toBeDefined();
 
       // Admin-only items hidden
-      expect(screen.queryByText("Vouchers")).toBeNull();
       expect(screen.queryByText("Instituciones y terapeutas")).toBeNull();
       expect(screen.queryByText("Material teórico (CMS)")).toBeNull();
     });
