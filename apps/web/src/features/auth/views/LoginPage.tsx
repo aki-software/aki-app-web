@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import { Input } from "../../../components/atoms/Input";
 import { Button } from "../../../components/atoms/Button";
 import { Alert } from "../../../components/atoms/Alert";
+import { ApiError } from "../../../api/client";
 import logoTransparent from "../../../assets/Logo app transparente.png";
 import logoDark from "../../../assets/logo.png";
 import { AuthLayout } from "./AuthLayout";
@@ -65,12 +66,14 @@ export function LoginPage() {
       // navigate() se dispara via useEffect cuando isAuthenticated cambie a true
     } catch (err) {
       let msg = "Ocurrió un error inesperado al iniciar sesión.";
-      if (err instanceof Error) {
-        if (err.message === 'UNAUTHORIZED') {
+      if (err instanceof ApiError) {
+        if (err.data.statusCode === 401) {
           msg = "Credenciales incorrectas. Verificá tu email y contraseña.";
-        } else if (!err.message.startsWith('SERVER_ERROR_')) {
-          msg = err.message; // Usamos el mensaje exacto que mandó la API (ej: Cuenta bloqueada)
+        } else {
+          msg = err.data.message;
         }
+      } else if (err instanceof Error) {
+        msg = err.message;
       }
       setError(msg);
     } finally {

@@ -1,4 +1,5 @@
 import { Module, Global } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { MailModule } from '../mail/mail.module.js';
 import { PdfService } from './services/pdf.service.js';
 import { StorageService } from './services/storage.service.js';
@@ -46,13 +47,14 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
       useFactory: (
         bullMqAdapter: BullMQQueueAdapter,
         inMemoryAdapter: InMemoryQueueAdapter,
+        configService: ConfigService,
       ) => {
-        const enableBullMq = process.env.ENABLE_BULLMQ === 'true';
+        const enableBullMq = configService.get<string>('ENABLE_BULLMQ') === 'true';
         return enableBullMq && bullMqAdapter.isEnabled
           ? bullMqAdapter
           : inMemoryAdapter;
       },
-      inject: [BullMQQueueAdapter, InMemoryQueueAdapter],
+      inject: [BullMQQueueAdapter, InMemoryQueueAdapter, ConfigService],
     },
     IdempotencyService,
     {

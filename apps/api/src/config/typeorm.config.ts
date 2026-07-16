@@ -17,23 +17,27 @@ dotenv.config();
 
 const databaseHost = process.env.DATABASE_HOST || 'localhost';
 
+const ALL_ENTITIES = [
+  Session,
+  SessionResult,
+  SessionSwipe,
+  SessionMetrics,
+  VocationalCategory,
+  User,
+  Institution,
+  Voucher,
+  VoucherBatch,
+  TresAreasCombination,
+] as const;
+
+const MIGRATIONS_GLOB = 'dist/migrations/*.js';
+
 export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
   ? {
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [
-        Session,
-        SessionResult,
-        SessionSwipe,
-        SessionMetrics,
-        VocationalCategory,
-        User,
-        Institution,
-        Voucher,
-        VoucherBatch,
-        TresAreasCombination,
-      ],
-      migrations: ['dist/migrations/*.js'],
+      entities: ALL_ENTITIES,
+      migrations: [MIGRATIONS_GLOB],
       synchronize: false,
       ssl: { rejectUnauthorized: false },
     }
@@ -44,19 +48,8 @@ export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
       username: process.env.DATABASE_USER || 'test_user',
       password: process.env.DATABASE_PASSWORD || 'test_password',
       database: process.env.DATABASE_NAME || 'akit_db',
-      entities: [
-        Session,
-        SessionResult,
-        SessionSwipe,
-        SessionMetrics,
-        VocationalCategory,
-        User,
-        Institution,
-        Voucher,
-        VoucherBatch,
-        TresAreasCombination,
-      ],
-      migrations: ['dist/migrations/*.js'],
+      entities: ALL_ENTITIES,
+      migrations: [MIGRATIONS_GLOB],
       synchronize: false,
       ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
     };

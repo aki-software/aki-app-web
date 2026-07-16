@@ -37,7 +37,7 @@ export class AuthLoginService {
       loginDto.password,
       user.passwordHash,
     );
-    
+
     if (!validPassword) {
       user.failedLoginAttempts += 1;
       const isNowLocked = user.failedLoginAttempts >= 5;

@@ -4,6 +4,7 @@ import {
   Logger,
   OnModuleDestroy,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Browser, Page } from 'puppeteer-core';
 import { PdfGenerator } from '../adapters/pdf-generator.adapter.js';
 
@@ -13,8 +14,13 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
   private readonly idlePages: Page[] = [];
   private readonly maxIdlePages = 4;
   private readonly pageTimeoutMs = 30_000;
+  private readonly isServerless: boolean;
   private browser: Browser | undefined;
   private browserLaunching: Promise<Browser> | undefined;
+
+  constructor(private readonly configService: ConfigService) {
+    this.isServerless = this.configService.get<string>('SERVERLESS') === 'true';
+  }
 
   async generateFromHtml(html: string, signal?: AbortSignal): Promise<Buffer> {
     if (signal?.aborted) {
@@ -132,7 +138,7 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
       return this.browserLaunching;
     }
 
-    if (process.env.SERVERLESS === 'true') {
+    if (this.isServerless) {
       const chromium = await import('@sparticuz/chromium');
       const puppeteerCore = await import('puppeteer-core');
 

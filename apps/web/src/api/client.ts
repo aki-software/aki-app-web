@@ -5,6 +5,7 @@ import { ApiErrorResponse } from "@akit/contracts";
 
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
+  skipAuthRedirect?: boolean;
 }
 
 export class ApiError extends Error {
@@ -15,7 +16,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { params, headers, ...init } = options;
+  const { params, headers, skipAuthRedirect, ...init } = options;
   
   // Build URL with query params
   const url = new URL(`${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`);
@@ -45,7 +46,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
+      if (response.status === 401 && !skipAuthRedirect) {
         clearStoredAuth();
         window.location.href = '/login?expired=true';
       }

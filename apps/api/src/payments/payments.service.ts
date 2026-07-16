@@ -4,12 +4,12 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
-import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
-import { SessionsService } from '../sessions/sessions.service';
+import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto.js';
+import { SessionsService } from '../sessions/sessions.service.js';
 import { SessionPaymentStatus } from '@akit/contracts';
 import type { androidpublisher_v3 } from 'googleapis';
-import { PaymentLockService } from './payment-lock.service';
-import { GooglePlayAdapter } from './google-play.adapter';
+import { PaymentLockService } from './payment-lock.service.js';
+import { GooglePlayAdapter } from './google-play.adapter.js';
 
 @Injectable()
 export class PaymentsService {

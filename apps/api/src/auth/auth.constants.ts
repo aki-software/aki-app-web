@@ -8,7 +8,8 @@ export const AUTH_ERROR_MESSAGES = {
   unauthorized: 'No autorizado',
   userNotFound: 'Usuario no encontrado',
   incorrectCurrentPassword: 'La contraseña actual es incorrecta',
-  accountLocked: 'Demasiados intentos fallidos. Cuenta bloqueada temporalmente por 15 minutos.',
+  accountLocked:
+    'Demasiados intentos fallidos. Cuenta bloqueada temporalmente por 15 minutos.',
 } as const;
 
 export const AUTH_INFO_MESSAGES = {
