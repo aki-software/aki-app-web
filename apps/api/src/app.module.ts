@@ -42,15 +42,19 @@ import { RequestLoggerMiddleware } from './common/middlewares/request-logger.mid
         }
         return {
           ...typeOrmConfig,
-          host: configService.get<string>('DATABASE_HOST') || typeOrmConfig.host,
-          port: configService.get<number>('DATABASE_PORT') || typeOrmConfig.port,
+          host:
+            configService.get<string>('DATABASE_HOST') || typeOrmConfig.host,
+          port:
+            configService.get<number>('DATABASE_PORT') || typeOrmConfig.port,
           username:
-            configService.get<string>('DATABASE_USER') || typeOrmConfig.username,
+            configService.get<string>('DATABASE_USER') ||
+            typeOrmConfig.username,
           password:
             configService.get<string>('DATABASE_PASSWORD') ||
             typeOrmConfig.password,
           database:
-            configService.get<string>('DATABASE_NAME') || typeOrmConfig.database,
+            configService.get<string>('DATABASE_NAME') ||
+            typeOrmConfig.database,
         };
       },
     }),
