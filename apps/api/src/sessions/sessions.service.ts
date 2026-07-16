@@ -337,11 +337,10 @@ export class SessionsService {
     }
 
     // Severity ordering: LOW_RELIABILITY > FATIGUE > RUSH > none
-    qb.addSelect(
+    qb.addOrderBy(
       "CASE WHEN metrics.reliability_level = 'Baja' THEN 0 WHEN metrics.fatigue_detected = true THEN 1 WHEN metrics.rush_detected = true THEN 2 ELSE 3 END",
-      'severity_score',
+      'ASC',
     );
-    qb.addOrderBy('severity_score', 'ASC');
     qb.addOrderBy('session.session_date', 'DESC');
 
     const skip = (page - 1) * limit;
