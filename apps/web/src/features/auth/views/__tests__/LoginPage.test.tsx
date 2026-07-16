@@ -114,7 +114,6 @@ describe("LoginPage error handling", () => {
 
 describe("LoginPage — expired session param", () => {
   it("should show expired session message from ?expired=true", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as unknown as Record<string, unknown>).location;
     window.location = { ...window.location, search: "?expired=true" };
 
