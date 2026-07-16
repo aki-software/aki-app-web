@@ -338,12 +338,7 @@ export class SessionsService {
 
     // Severity ordering: LOW_RELIABILITY > FATIGUE > RUSH > none
     qb.addSelect(
-      `CASE
-        WHEN metrics.reliability_level = 'Baja' THEN 0
-        WHEN metrics.fatigue_detected = true THEN 1
-        WHEN metrics.rush_detected = true THEN 2
-        ELSE 3
-      END`,
+      "CASE WHEN metrics.reliability_level = 'Baja' THEN 0 WHEN metrics.fatigue_detected = true THEN 1 WHEN metrics.rush_detected = true THEN 2 ELSE 3 END",
       'severity_score',
     );
     qb.addOrderBy('severity_score', 'ASC');
