@@ -8,7 +8,7 @@ interface Props {
 
 const { t, locale } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
-const dashboardUrl = import.meta.env.PUBLIC_DASHBOARD_URL || 'http://localhost:5173/';
+const dashboardUrl = import.meta.env.PUBLIC_WEB_URL || 'https://app.akituespacio.com.ar/login';
 const cardData = t.hero.cards;
 ---
 
