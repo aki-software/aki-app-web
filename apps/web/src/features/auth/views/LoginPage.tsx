@@ -67,11 +67,7 @@ export function LoginPage() {
     } catch (err) {
       let msg = "Ocurrió un error inesperado al iniciar sesión.";
       if (err instanceof ApiError) {
-        if (err.data.statusCode === 401) {
-          msg = "Credenciales incorrectas. Verificá tu email y contraseña.";
-        } else {
-          msg = err.data.message;
-        }
+        msg = err.data.message;
       } else if (err instanceof Error) {
         msg = err.message;
       }

@@ -71,10 +71,10 @@ describe("LoginPage error handling", () => {
     });
   });
 
-  it("should show 'Credenciales incorrectas' on 401 ApiError", async () => {
+  it("should show actual API message on 401 ApiError (invalid credentials)", async () => {
     const apiError = new ApiError({
       statusCode: 401,
-      message: "Unauthorized",
+      message: "Credenciales inválidas",
       timestamp: new Date().toISOString(),
     });
     mockLogin.mockRejectedValueOnce(apiError);
@@ -83,9 +83,26 @@ describe("LoginPage error handling", () => {
     fillAndSubmit("wrong@test.com", "wrong");
 
     await waitFor(() => {
+      expect(screen.getByText("Credenciales inválidas")).toBeInTheDocument();
+    });
+  });
+
+  it("should show account locked message on 401 ApiError (accountLocked)", async () => {
+    const apiError = new ApiError({
+      statusCode: 401,
+      message:
+        "Demasiados intentos fallidos. Cuenta bloqueada temporalmente por 15 minutos.",
+      timestamp: new Date().toISOString(),
+    });
+    mockLogin.mockRejectedValueOnce(apiError);
+    await renderPage();
+
+    fillAndSubmit("locked@test.com", "password");
+
+    await waitFor(() => {
       expect(
         screen.getByText(
-          "Credenciales incorrectas. Verificá tu email y contraseña.",
+          "Demasiados intentos fallidos. Cuenta bloqueada temporalmente por 15 minutos.",
         ),
       ).toBeInTheDocument();
     });
