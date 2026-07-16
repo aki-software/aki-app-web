@@ -8,7 +8,7 @@ interface SidebarProps {
   onCloseMobile?: () => void;
 }
 
-const KNOWN_ROLES = ['ADMIN', 'THERAPIST'] as const;
+const KNOWN_ROLES = ['ADMIN', 'THERAPIST', 'INSTITUTION'] as const;
 
 export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
   const { logout, user } = useAuth();
@@ -19,7 +19,7 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
     ? userRole
     : 'THERAPIST';
   const visibleNavItems = DASHBOARD_NAV_ITEMS.filter((item) =>
-    item.roles.includes(effectiveRole as 'ADMIN' | 'THERAPIST')
+    item.roles.includes(effectiveRole as 'ADMIN' | 'THERAPIST' | 'INSTITUTION')
   );
 
   const handleLogout = async () => {

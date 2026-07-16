@@ -13,38 +13,142 @@ const currentYear = new Date().getFullYear();
   <Navbar locale={locale} t={t} />
   <main id="main" class="pt-24 pb-16 bg-[#F5EFE7]">
     <div class="container max-w-3xl mx-auto bg-white rounded-2xl border border-[#DCD3C5]/40 shadow-sm p-8 md:p-12">
-      <h1 class="font-display font-bold text-3xl text-[#1F2523] mb-2">Política de Privacidad</h1>
-      <p class="text-sm text-[#44403C] mb-8">Última actualización: Junio {currentYear}</p>
+      <h1 class="font-display font-bold text-3xl text-[#1F2523] mb-2">Política de Privacidad de ORIENTA.KI</h1>
+      <p class="text-sm text-[#44403C] mb-8">Última actualización: {currentYear}</p>
 
       <div class="prose prose-sm max-w-none text-[#44403C] space-y-6">
-        <h2 class="font-display font-semibold text-xl text-[#1F2523]">1. Información que recopilamos</h2>
-        <p>Recopilamos únicamente los datos necesarios para el funcionamiento del test vocacional:</p>
+        <p>La presente Política de Privacidad explica cómo recopilamos, utilizamos, almacenamos y protegemos la información de las personas que utilizan nuestra aplicación.<br/>
+        Al utilizar ORIENTA.KI, el usuario declara haber leído y aceptado esta Política de Privacidad.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">1. Responsable del tratamiento de los datos</h2>
+        <p>ORIENTA.KI es una herramienta desarrollada por:<br/>
+        Lic. Paula Carolina Cardoso, Licenciada en Terapia Ocupacional, Especialista en Orientación Vocacional Ocupacional y Rehabilitación Profesional.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">2. Qué es ORIENTA.KI</h2>
+        <p>ORIENTA.KI es una herramienta digital de orientación vocacional-ocupacional cuyo objetivo es ayudar a las personas a identificar áreas ocupacionales, intereses y posibles ocupaciones compatibles con su perfil.<br/>
+        Los resultados poseen carácter orientativo y no constituyen un diagnóstico psicológico, médico ni laboral, ni garantizan la obtención de empleo.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">3. Qué datos recopilamos</h2>
+        <p>Podemos recopilar los siguientes datos:</p>
+        <h3 class="font-display font-semibold text-lg text-[#1F2523] mt-4 mb-2">Datos de identificación</h3>
         <ul class="list-disc pl-5 space-y-1">
-          <li><strong>Correo electrónico</strong> — para identificar tu cuenta y enviarte el reporte de resultados si lo solicitás.</li>
-          <li><strong>Respuestas del test</strong> — tus elecciones (swipes) durante el test vocacional, necesarias para calcular tu perfil.</li>
-          <li><strong>Datos de uso anónimos</strong> — métricas agregadas sobre el rendimiento del test, sin identificar al usuario.</li>
+          <li>Nombre y apellido</li>
+          <li>Edad</li>
+          <li>Fecha de nacimiento</li>
+          <li>Género (opcional)</li>
+          <li>Provincia o localidad</li>
+          <li>Correo electrónico</li>
+        </ul>
+        
+        <h3 class="font-display font-semibold text-lg text-[#1F2523] mt-4 mb-2">Datos de uso</h3>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Fecha de utilización</li>
+          <li>Tiempo de uso</li>
+          <li>Respuestas brindadas durante el cotejo ocupacional</li>
+          <li>Historial de evaluaciones realizadas</li>
+          <li>Resultados obtenidos</li>
+        </ul>
+        
+        <h3 class="font-display font-semibold text-lg text-[#1F2523] mt-4 mb-2">Datos técnicos</h3>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Tipo de dispositivo</li>
+          <li>Sistema operativo</li>
+          <li>Dirección IP</li>
+          <li>Identificador del dispositivo</li>
+          <li>Versión de la aplicación</li>
         </ul>
 
-        <h2 class="font-display font-semibold text-xl text-[#1F2523]">2. Uso de la información</h2>
-        <p>Los datos recopilados se utilizan exclusivamente para:</p>
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">4. Finalidad del tratamiento</h2>
+        <p>Los datos serán utilizados para:</p>
         <ul class="list-disc pl-5 space-y-1">
-          <li>Calcular y mostrar tu perfil vocacional.</li>
-          <li>Generar el reporte PDF con recomendaciones de carreras.</li>
-          <li>Mejorar la experiencia del test (datos anónimos).</li>
+          <li>generar el informe ocupacional personalizado;</li>
+          <li>identificar áreas de interés ocupacional;</li>
+          <li>mejorar la precisión del algoritmo de cotejo;</li>
+          <li>realizar investigaciones estadísticas de manera anonimizada;</li>
+          <li>validar científicamente la herramienta;</li>
+          <li>responder consultas del usuario;</li>
+          <li>enviar el informe solicitado;</li>
+          <li>mejorar la experiencia de uso;</li>
+          <li>garantizar el funcionamiento técnico de la aplicación.</li>
         </ul>
-        <p><strong>No compartimos, vendemos ni alquilamos tu información personal a terceros bajo ninguna circunstancia.</strong></p>
+        <p><strong>Nunca venderemos los datos personales del usuario.</strong></p>
 
-        <h2 class="font-display font-semibold text-xl text-[#1F2523]">3. Seguridad de los datos</h2>
-        <p>Toda la información se transmite cifrada (HTTPS/TLS) y se almacena siguiendo estándares de seguridad de la industria. Utilizamos infraestructura en la nube con cifrado en reposo y controles de acceso estrictos.</p>
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">5. Base legal</h2>
+        <p>Tratamos los datos personales sobre la base del consentimiento informado otorgado por el usuario al aceptar esta Política de Privacidad y los Términos y Condiciones.<br/>
+        Cuando corresponda, el usuario podrá retirar dicho consentimiento.</p>
 
-        <h2 class="font-display font-semibold text-xl text-[#1F2523]">4. Retención y eliminación</h2>
-        <p>Conservamos tus datos mientras tu cuenta esté activa. Podés solicitar la eliminación de tu cuenta y todos tus datos asociados en cualquier momento escribiéndonos a contacto@orientaki.com. Los datos anónimos agregados pueden conservarse con fines estadísticos.</p>
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">6. Datos de menores de edad</h2>
+        <p>ORIENTA.KI puede ser utilizada por adolescentes.<br/>
+        Cuando el usuario sea menor de edad y la legislación aplicable lo requiera, la utilización deberá realizarse con la autorización de su madre, padre, tutor o representante legal.</p>
 
-        <h2 class="font-display font-semibold text-xl text-[#1F2523]">5. Tus derechos</h2>
-        <p>Tenés derecho a acceder, rectificar, cancelar y oponerte al tratamiento de tus datos personales (derechos ARCO). Para ejercerlos, contactanos a contacto@orientaki.com.</p>
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">7. Conservación de los datos</h2>
+        <p>Los datos serán conservados únicamente durante el tiempo necesario para:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>generar informes;</li>
+          <li>mantener el historial del usuario;</li>
+          <li>realizar análisis estadísticos;</li>
+          <li>cumplir obligaciones legales.</li>
+        </ul>
+        <p>Una vez cumplida la finalidad, podrán ser eliminados o anonimizados.</p>
 
-        <h2 class="font-display font-semibold text-xl text-[#1F2523]">6. Contacto</h2>
-        <p>Si tenés dudas sobre esta política, escribinos a <a href="mailto:contacto@orientaki.com" class="text-[#0F6B68] underline">contacto@orientaki.com</a>.</p>
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">8. Compartición de la información</h2>
+        <p>No comercializamos ni cedemos datos personales.<br/>
+        Los datos únicamente podrán compartirse:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>cuando exista obligación legal;</li>
+          <li>con proveedores tecnológicos que permitan el funcionamiento de la aplicación, bajo acuerdos de confidencialidad;</li>
+          <li>cuando el usuario otorgue consentimiento expreso.</li>
+        </ul>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">9. Seguridad</h2>
+        <p>Implementamos medidas técnicas y organizativas destinadas a proteger la información contra:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>acceso no autorizado;</li>
+          <li>pérdida;</li>
+          <li>alteración;</li>
+          <li>destrucción;</li>
+          <li>divulgación indebida.</li>
+        </ul>
+        <p>No obstante, ningún sistema de almacenamiento o transmisión por Internet puede garantizar seguridad absoluta.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">10. Uso de inteligencia artificial</h2>
+        <p>ORIENTA.KI utiliza procesos automatizados e inteligencia artificial para analizar las respuestas del usuario y elaborar informes personalizados.<br/>
+        Los resultados constituyen una herramienta de apoyo para la orientación vocacional y ocupacional y no reemplazan la evaluación realizada por un profesional.<br/>
+        Cuando el usuario participe de estudios de validación o pruebas piloto, los datos podrán utilizarse con fines de investigación científica únicamente de forma anonimizada o previa obtención del consentimiento correspondiente.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">11. Derechos del usuario</h2>
+        <p>El usuario podrá solicitar en cualquier momento:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>acceso a sus datos;</li>
+          <li>rectificación de información incorrecta;</li>
+          <li>actualización;</li>
+          <li>eliminación de sus datos cuando corresponda;</li>
+          <li>limitación del tratamiento;</li>
+          <li>revocar el consentimiento otorgado.</li>
+        </ul>
+        <p>Las solicitudes podrán realizarse mediante el correo electrónico informado en esta Política.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">12. Cookies y tecnologías similares</h2>
+        <p>La aplicación podrá utilizar cookies o tecnologías equivalentes para:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>mantener la sesión iniciada;</li>
+          <li>recordar preferencias;</li>
+          <li>analizar el funcionamiento de la aplicación;</li>
+          <li>mejorar la experiencia del usuario.</li>
+        </ul>
+        <p>El usuario podrá configurar su dispositivo para limitar el uso de cookies cuando corresponda.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">13. Cambios en esta política</h2>
+        <p>Esta Política podrá modificarse para adaptarse a cambios legales, técnicos o funcionales.<br/>
+        La versión vigente estará siempre disponible dentro de la aplicación.</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">14. Autoridad de aplicación</h2>
+        <p>En la República Argentina, la autoridad de aplicación en materia de protección de datos personales es la Agencia de Acceso a la Información Pública (AAIP).</p>
+
+        <h2 class="font-display font-semibold text-xl text-[#1F2523]">15. Contacto</h2>
+        <p>Para consultas relacionadas con privacidad o tratamiento de datos:<br/>
+        <strong>ORIENTA.KI</strong><br/>
+        Correo electrónico: <a href="mailto:a.kituespacio@gmail.com" class="text-[#0F6B68] underline">a.kituespacio@gmail.com</a></p>
       </div>
     </div>
   </main>
