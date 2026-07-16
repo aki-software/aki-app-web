@@ -17,28 +17,48 @@ dotenv.config();
 
 const databaseHost = process.env.DATABASE_HOST || 'localhost';
 
-export const typeOrmConfig: PostgresConnectionOptions = {
-  type: 'postgres',
-  host: databaseHost,
-  port: parseInt(process.env.DATABASE_PORT || '5432', 10),
-  username: process.env.DATABASE_USER || 'test_user',
-  password: process.env.DATABASE_PASSWORD || 'test_password',
-  database: process.env.DATABASE_NAME || 'akit_db',
-  entities: [
-    Session,
-    SessionResult,
-    SessionSwipe,
-    SessionMetrics,
-    VocationalCategory,
-    User,
-    Institution,
-    Voucher,
-    VoucherBatch,
-    TresAreasCombination,
-  ],
-  migrations: ['dist/migrations/*.js'],
-  synchronize: false,
-  ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
-};
+export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
+  ? {
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      entities: [
+        Session,
+        SessionResult,
+        SessionSwipe,
+        SessionMetrics,
+        VocationalCategory,
+        User,
+        Institution,
+        Voucher,
+        VoucherBatch,
+        TresAreasCombination,
+      ],
+      migrations: ['dist/migrations/*.js'],
+      synchronize: false,
+      ssl: { rejectUnauthorized: false },
+    }
+  : {
+      type: 'postgres',
+      host: databaseHost,
+      port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+      username: process.env.DATABASE_USER || 'test_user',
+      password: process.env.DATABASE_PASSWORD || 'test_password',
+      database: process.env.DATABASE_NAME || 'akit_db',
+      entities: [
+        Session,
+        SessionResult,
+        SessionSwipe,
+        SessionMetrics,
+        VocationalCategory,
+        User,
+        Institution,
+        Voucher,
+        VoucherBatch,
+        TresAreasCombination,
+      ],
+      migrations: ['dist/migrations/*.js'],
+      synchronize: false,
+      ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
+    };
 
 export default new DataSource(typeOrmConfig);
