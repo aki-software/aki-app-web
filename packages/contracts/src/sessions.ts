@@ -50,6 +50,12 @@ export const sessionMetricsSchema = z.object({
     .object({
       likedToDisliked: z.number(),
       dislikedToLiked: z.number(),
+      details: z.array(
+        z.object({
+          categoryId: z.string(),
+          type: z.enum(['likedToDisliked', 'dislikedToLiked']),
+        }),
+      ),
     })
     .nullable(),
   calculatedAt: z.union([z.string(), z.instanceof(Date)]),

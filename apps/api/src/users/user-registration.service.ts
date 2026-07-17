@@ -92,7 +92,10 @@ export class UserRegistrationService {
       });
     }
 
+    // Patients are not web platform users — never send them the account activation email.
+    // They only receive report emails sent explicitly by a therapist.
     if (
+      normalizedRole !== UserRole.PATIENT &&
       user.passwordSetupToken &&
       user.email &&
       !user.email.endsWith('@akit.local')
