@@ -146,7 +146,8 @@ export function SessionDetailPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-6 flex-1">
-                    <div className="rounded-2xl bg-status-success/5 border border-status-success/20 p-6 flex flex-col items-center justify-center text-center">
+                    {/* Disliked → Liked */}
+                    <div className="rounded-2xl bg-status-success/5 border border-status-success/20 p-6 flex flex-col items-center text-center">
                       <ThumbsUp className="h-8 w-8 text-status-success mb-3" />
                       <span className="text-3xl font-black text-status-success">
                         {metrics.revertedDirection.dislikedToLiked}
@@ -154,8 +155,28 @@ export function SessionDetailPage() {
                       <span className="text-xs font-medium text-app-text-muted mt-2">
                         Rechazo → Aceptación
                       </span>
+                      {(() => {
+                        if (!metrics.revertedDirection.details) return null;
+                        const filtered = metrics.revertedDirection.details.filter(d => d.type === 'dislikedToLiked');
+                        if (filtered.length === 0) return null;
+                        
+                        const counts = new Map<string, number>();
+                        filtered.forEach(d => counts.set(d.categoryId, (counts.get(d.categoryId) || 0) + 1));
+                        
+                        return (
+                          <div className="mt-3 flex flex-wrap gap-1.5 justify-center w-full">
+                            {Array.from(counts.entries()).map(([categoryId, count]) => (
+                              <span key={categoryId} className="text-[10px] font-bold uppercase tracking-wide text-status-success bg-status-success/10 border border-status-success/20 rounded-md px-2 py-1">
+                                {categoriesMap[categoryId.toUpperCase()]?.title ?? categoryId} {count > 1 ? `(${count})` : ''}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
-                    <div className="rounded-2xl bg-status-error/5 border border-status-error/20 p-6 flex flex-col items-center justify-center text-center">
+
+                    {/* Liked → Disliked */}
+                    <div className="rounded-2xl bg-status-error/5 border border-status-error/20 p-6 flex flex-col items-center text-center">
                       <ThumbsDown className="h-8 w-8 text-status-error mb-3" />
                       <span className="text-3xl font-black text-status-error">
                         {metrics.revertedDirection.likedToDisliked}
@@ -163,6 +184,24 @@ export function SessionDetailPage() {
                       <span className="text-xs font-medium text-app-text-muted mt-2">
                         Aceptación → Rechazo
                       </span>
+                      {(() => {
+                        if (!metrics.revertedDirection.details) return null;
+                        const filtered = metrics.revertedDirection.details.filter(d => d.type === 'likedToDisliked');
+                        if (filtered.length === 0) return null;
+                        
+                        const counts = new Map<string, number>();
+                        filtered.forEach(d => counts.set(d.categoryId, (counts.get(d.categoryId) || 0) + 1));
+                        
+                        return (
+                          <div className="mt-3 flex flex-wrap gap-1.5 justify-center w-full">
+                            {Array.from(counts.entries()).map(([categoryId, count]) => (
+                              <span key={categoryId} className="text-[10px] font-bold uppercase tracking-wide text-status-error bg-status-error/10 border border-status-error/20 rounded-md px-2 py-1">
+                                {categoriesMap[categoryId.toUpperCase()]?.title ?? categoryId} {count > 1 ? `(${count})` : ''}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

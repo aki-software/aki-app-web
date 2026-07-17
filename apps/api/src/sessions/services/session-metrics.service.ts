@@ -43,6 +43,7 @@ export class SessionMetricsService {
     const swipesWithTime = session.swipes
       .map((s) => ({
         cardId: s.cardId,
+        categoryId: s.categoryId,
         isLiked: s.isLiked,
         timeMs: new Date(s.timestamp).getTime(),
       }))
@@ -243,33 +244,40 @@ export class SessionMetricsService {
   }
 
   private computeRevertedDirection(
-    swipes: Array<{ cardId: string; isLiked: boolean }>,
-  ): { likedToDisliked: number; dislikedToLiked: number } {
-    const grouped = new Map<string, Array<boolean>>();
+    swipes: Array<{ cardId: string; categoryId: string; isLiked: boolean }>,
+  ): {
+    likedToDisliked: number;
+    dislikedToLiked: number;
+    details: Array<{ categoryId: string; type: 'likedToDisliked' | 'dislikedToLiked' }>;
+  } {
+    const grouped = new Map<string, Array<{ isLiked: boolean; categoryId: string }>>();
 
     for (const swipe of swipes) {
       const existing = grouped.get(swipe.cardId);
       if (existing) {
-        existing.push(swipe.isLiked);
+        existing.push({ isLiked: swipe.isLiked, categoryId: swipe.categoryId });
       } else {
-        grouped.set(swipe.cardId, [swipe.isLiked]);
+        grouped.set(swipe.cardId, [{ isLiked: swipe.isLiked, categoryId: swipe.categoryId }]);
       }
     }
 
     let likedToDisliked = 0;
     let dislikedToLiked = 0;
+    const details: Array<{ categoryId: string; type: 'likedToDisliked' | 'dislikedToLiked' }> = [];
 
     for (const values of grouped.values()) {
       for (let i = 1; i < values.length; i++) {
-        if (values[i - 1] === true && values[i] === false) {
+        if (values[i - 1].isLiked === true && values[i].isLiked === false) {
           likedToDisliked++;
-        } else if (values[i - 1] === false && values[i] === true) {
+          details.push({ categoryId: values[i].categoryId, type: 'likedToDisliked' });
+        } else if (values[i - 1].isLiked === false && values[i].isLiked === true) {
           dislikedToLiked++;
+          details.push({ categoryId: values[i].categoryId, type: 'dislikedToLiked' });
         }
       }
     }
 
-    return { likedToDisliked, dislikedToLiked };
+    return { likedToDisliked, dislikedToLiked, details };
   }
 
   async getMetricsBySessionId(sessionId: string): Promise<SessionMetrics> {
