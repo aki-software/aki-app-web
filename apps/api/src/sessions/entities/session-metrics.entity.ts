@@ -125,7 +125,10 @@ export class SessionMetrics {
   revertedDirection!: {
     likedToDisliked: number;
     dislikedToLiked: number;
-    details: Array<{ categoryId: string; type: 'likedToDisliked' | 'dislikedToLiked' }>;
+    details: Array<{
+      categoryId: string;
+      type: 'likedToDisliked' | 'dislikedToLiked';
+    }>;
   } | null;
 
   @CreateDateColumn({ name: 'calculated_at', type: 'timestamptz' })
