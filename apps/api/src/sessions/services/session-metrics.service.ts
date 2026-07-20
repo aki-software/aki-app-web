@@ -248,31 +248,51 @@ export class SessionMetricsService {
   ): {
     likedToDisliked: number;
     dislikedToLiked: number;
-    details: Array<{ categoryId: string; type: 'likedToDisliked' | 'dislikedToLiked' }>;
+    details: Array<{
+      categoryId: string;
+      type: 'likedToDisliked' | 'dislikedToLiked';
+    }>;
   } {
-    const grouped = new Map<string, Array<{ isLiked: boolean; categoryId: string }>>();
+    const grouped = new Map<
+      string,
+      Array<{ isLiked: boolean; categoryId: string }>
+    >();
 
     for (const swipe of swipes) {
       const existing = grouped.get(swipe.cardId);
       if (existing) {
         existing.push({ isLiked: swipe.isLiked, categoryId: swipe.categoryId });
       } else {
-        grouped.set(swipe.cardId, [{ isLiked: swipe.isLiked, categoryId: swipe.categoryId }]);
+        grouped.set(swipe.cardId, [
+          { isLiked: swipe.isLiked, categoryId: swipe.categoryId },
+        ]);
       }
     }
 
     let likedToDisliked = 0;
     let dislikedToLiked = 0;
-    const details: Array<{ categoryId: string; type: 'likedToDisliked' | 'dislikedToLiked' }> = [];
+    const details: Array<{
+      categoryId: string;
+      type: 'likedToDisliked' | 'dislikedToLiked';
+    }> = [];
 
     for (const values of grouped.values()) {
       for (let i = 1; i < values.length; i++) {
         if (values[i - 1].isLiked === true && values[i].isLiked === false) {
           likedToDisliked++;
-          details.push({ categoryId: values[i].categoryId, type: 'likedToDisliked' });
-        } else if (values[i - 1].isLiked === false && values[i].isLiked === true) {
+          details.push({
+            categoryId: values[i].categoryId,
+            type: 'likedToDisliked',
+          });
+        } else if (
+          values[i - 1].isLiked === false &&
+          values[i].isLiked === true
+        ) {
           dislikedToLiked++;
-          details.push({ categoryId: values[i].categoryId, type: 'dislikedToLiked' });
+          details.push({
+            categoryId: values[i].categoryId,
+            type: 'dislikedToLiked',
+          });
         }
       }
     }
