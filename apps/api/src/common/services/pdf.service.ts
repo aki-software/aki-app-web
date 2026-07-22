@@ -12,7 +12,7 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
   private readonly idlePages: Page[] = [];
   private readonly maxIdlePages = 4;
-  private readonly pageTimeoutMs = 30_000;
+  private readonly pageTimeoutMs = 45_000;
   private browser: Browser | undefined;
   private browserLaunching: Promise<Browser> | undefined;
 
@@ -29,7 +29,7 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
         throw new Error('PDF generation aborted');
       }
 
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      await page.setContent(html, { waitUntil: 'networkidle2' });
 
       if (signal?.aborted) {
         throw new Error('PDF generation aborted');
