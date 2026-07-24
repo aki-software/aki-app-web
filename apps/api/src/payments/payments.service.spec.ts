@@ -110,9 +110,9 @@ describe('PaymentsService', () => {
     const mockSessionsMutationService = service[
       'sessionsMutationService'
     ] as jest.Mocked<SessionsMutationService>;
-    (mockSessionsMutationService.updatePaymentStatus as jest.Mock).mockResolvedValue(
-      {},
-    );
+    (
+      mockSessionsMutationService.updatePaymentStatus as jest.Mock
+    ).mockResolvedValue({});
 
     const session = {
       id: 'session-2',
