@@ -106,12 +106,14 @@ export class Session {
   })
   paymentReference!: string | null;
 
-  @OneToMany('SessionResult', (result: any) => result.session, {
+  @OneToMany(() => SessionResult, (result: SessionResult) => result.session, {
     cascade: true,
   })
   results!: SessionResult[];
 
-  @OneToMany('SessionSwipe', (swipe: any) => swipe.session, { cascade: true })
+  @OneToMany(() => SessionSwipe, (swipe: SessionSwipe) => swipe.session, {
+    cascade: true,
+  })
   swipes!: SessionSwipe[];
 
   @OneToOne('SessionMetrics', 'session', {
