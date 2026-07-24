@@ -22,14 +22,20 @@ import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 import { CompleteSessionDto } from './dto/complete-session.dto.js';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { SendReportDto } from './dto/send-report.dto.js';
+import { SessionDto, SessionDetailDto } from './dto/session.dto.js';
 import { ReportService } from './services/report.service.js';
 import { PDF_GENERATOR } from '../common/constants/adapters.constants.js';
 import type { PdfGenerator } from '../common/adapters/pdf-generator.adapter.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
-import { SessionsService } from './sessions.service.js';
+import { SessionsQueryService } from './services/sessions-query.service.js';
+import { SessionsMutationService } from './services/sessions-mutation.service.js';
+import { SessionsOrchestratorService } from './services/sessions-orchestrator.service.js';
 import { ReportPdfService } from './services/report-pdf.service.js';
 
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+
+@ApiTags('Sessions')
 @Controller('sessions')
 export class SessionsController {
   private extractScope(req?: AuthenticatedRequest) {
@@ -58,7 +64,9 @@ export class SessionsController {
     return Number.isNaN(parsed) ? fallback : parsed;
   }
   constructor(
-    private readonly sessionsService: SessionsService,
+    private readonly sessionsQueryService: SessionsQueryService,
+    private readonly sessionsMutationService: SessionsMutationService,
+    private readonly sessionsOrchestratorService: SessionsOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
     private readonly reportService: ReportService,
     @Inject(PDF_GENERATOR) private readonly pdfGenerator: PdfGenerator,
@@ -66,17 +74,30 @@ export class SessionsController {
     private readonly reportPdfService: ReportPdfService,
   ) {}
 
+  @ApiOperation({ summary: 'Create a new session' })
+  @ApiResponse({ status: 201, type: SessionDto })
   @Post()
-  async create(@Body() createSessionDto: CreateSessionDto) {
-    const { session } = await this.sessionsService.create(createSessionDto);
-    return session;
+  async create(
+    @Body() createSessionDto: CreateSessionDto,
+  ): Promise<SessionDto> {
+    const { session } =
+      await this.sessionsMutationService.create(createSessionDto);
+    return session as SessionDto;
   }
 
+  @ApiOperation({ summary: 'Complete an active session' })
+  @ApiResponse({ status: 201, type: SessionDetailDto })
   @Post('complete')
-  async complete(@Body() completeSessionDto: CompleteSessionDto) {
-    return await this.sessionsService.completeSession(completeSessionDto);
+  async complete(
+    @Body() completeSessionDto: CompleteSessionDto,
+  ): Promise<SessionDetailDto> {
+    const result =
+      await this.sessionsMutationService.completeSession(completeSessionDto);
+    return result as SessionDetailDto;
   }
 
+  @ApiOperation({ summary: 'List all sessions' })
+  @ApiResponse({ status: 200, type: [SessionDto] })
   @UseGuards(JwtAuthGuard)
   @Get()
   findAll(
@@ -92,7 +113,7 @@ export class SessionsController {
       limit,
       SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
     );
-    return this.sessionsService.findAll(
+    return this.sessionsQueryService.findAll(
       parsedPage,
       parsedLimit,
       this.extractScope(req),
@@ -136,7 +157,7 @@ export class SessionsController {
       limit,
       SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
     );
-    return await this.sessionsService.findTriage(
+    return this.sessionsQueryService.findTriage(
       parsedPage,
       parsedLimit,
       this.extractScope(req),
@@ -175,16 +196,25 @@ export class SessionsController {
     });
   }
 
+  @ApiOperation({ summary: 'Get session by id' })
+  @ApiResponse({ status: 200, type: SessionDetailDto })
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async findOne(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
-    return await this.sessionsService.findOne(id, this.extractScope(req));
+  async findOne(
+    @Param('id') id: string,
+    @Req() req?: AuthenticatedRequest,
+  ): Promise<SessionDetailDto> {
+    const result = await this.sessionsQueryService.findOne(
+      id,
+      this.extractScope(req),
+    );
+    return result as SessionDetailDto;
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id/result')
   async findResult(@Param('id') id: string, @Req() req?: AuthenticatedRequest) {
-    const session = await this.sessionsService.findOne(
+    const session = await this.sessionsQueryService.findOne(
       id,
       this.extractScope(req),
     );
@@ -204,7 +234,7 @@ export class SessionsController {
     @Body() sendReportDto: SendReportDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    const result = await this.sessionsService.sendReport(
+    const result = await this.sessionsOrchestratorService.sendReport(
       id,
       sendReportDto.email,
       null,
@@ -226,7 +256,7 @@ export class SessionsController {
     @Req() req: AuthenticatedRequest,
   ) {
     const scope = this.extractScope(req);
-    const session = await this.sessionsService.findOne(sessionId, scope);
+    const session = await this.sessionsQueryService.findOne(sessionId, scope);
     return this.sessionMetricsService.getMetricsBySessionId(session.id);
   }
 
@@ -240,9 +270,10 @@ export class SessionsController {
     @Query('minDuration') minDuration?: string,
     @Query('maxDuration') maxDuration?: string,
   ) {
-    return this.sessionsService.findVoucherSessions(
+    const scope = this.extractVoucherScope(req);
+    return await this.sessionsQueryService.findVoucherSessions(
       voucherId,
-      this.extractVoucherScope(req),
+      scope,
       {
         startDate,
         endDate,

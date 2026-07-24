@@ -3,7 +3,7 @@ import { IReportCacheService } from '../interfaces/report-cache.interface.js';
 
 @Injectable()
 export class InMemoryReportCacheService implements IReportCacheService {
-  private readonly locks = new Map<string, Promise<any>>();
+  private readonly locks = new Map<string, Promise<unknown>>();
   private readonly cache = new Map<
     string,
     { value: unknown; expiresAt: number }
