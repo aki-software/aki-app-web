@@ -1,7 +1,8 @@
-import { BrainCircuit, ActivitySquare, AlertCircle, HeartCrack, Info, Zap, BookOpen, ShieldAlert } from "lucide-react";
+import { BrainCircuit, ActivitySquare, AlertCircle, HeartCrack, Zap, BookOpen, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import type { SessionMetrics } from "@akit/contracts";
 import { BehavioralMethodologyPanel } from "./BehavioralMethodologyPanel";
+import { BottomSheet } from "../../../../components/ui/bottom-sheet";
 
 interface SessionClinicalInsightsProps {
   metrics?: SessionMetrics | null;
@@ -9,6 +10,7 @@ interface SessionClinicalInsightsProps {
 
 export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProps) {
   const [methodologyOpen, setMethodologyOpen] = useState(false);
+  const [selectedInsightInfo, setSelectedInsightInfo] = useState<string | null>(null);
 
   // Los insights vienen pre-calculados por el backend desde SessionMetricsService.
   // Este componente solo presenta los datos — no hay cómputo client-side.
@@ -33,7 +35,7 @@ export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProp
       items.push({
         title: "Perfil Explorador",
         desc: `El paciente dio 'Me gusta' al ${Math.round((likeRatio ?? 0) * 100)}% de los estímulos visuales presentados (${likes} de ${totalSwipes}). Sugiere dificultad para acotar intereses o fuerte deseo de complacer.`,
-        info: `Métrica del backend: likeRatio=${likeRatio?.toFixed(2)}, selectivityLevel=EXPLORATORY. Se considera "Explorador" cuando la aceptación supera el 75%.`,
+        info: `Se clasifica como "Explorador" cuando el índice de aceptación supera el 75%. Esto indica una tendencia a aceptar la mayoría de las opciones, mostrando dificultad para priorizar.`,
         icon: <HeartCrack className="h-5 w-5 text-status-error" />,
         color: "text-status-error",
         bg: "bg-status-error/10",
@@ -42,7 +44,7 @@ export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProp
       items.push({
         title: "Perfil Hiper-Selectivo",
         desc: `El paciente rechazó el ${Math.round((1 - (likeRatio ?? 0)) * 100)}% de las opciones. Puede indicar apatía, desinterés general o nivel de exigencia irreal.`,
-        info: `Métrica del backend: likeRatio=${likeRatio?.toFixed(2)}, selectivityLevel=SELECTIVE. Se considera "Hiper-Selectivo" cuando el rechazo supera el 75%.`,
+        info: `Se clasifica como "Hiper-Selectivo" cuando el índice de rechazo supera el 75%. Esto evidencia una discriminación muy restrictiva frente a los estímulos vocacionales.`,
         icon: <ActivitySquare className="h-5 w-5 text-orange-500" />,
         color: "text-orange-500",
         bg: "bg-orange-500/10",
@@ -51,7 +53,7 @@ export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProp
       items.push({
         title: "Selectividad Saludable",
         desc: `La proporción de aceptación (${Math.round((likeRatio ?? 0) * 100)}%) y rechazo muestra una capacidad equilibrada para discriminar intereses.`,
-        info: `Métrica del backend: likeRatio=${likeRatio?.toFixed(2)}, selectivityLevel=BALANCED. El balance se encuentra dentro del parámetro saludable (25% al 75%).`,
+        info: `Se considera un perfil "Equilibrado" cuando la aceptación se mantiene en el rango normal del 25% al 75%, mostrando una capacidad adecuada para seleccionar y descartar.`,
         icon: <BrainCircuit className="h-5 w-5 text-status-success" />,
         color: "text-status-success",
         bg: "bg-status-success/10",
@@ -60,12 +62,10 @@ export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProp
 
     // 2. Fatiga / Impulsividad — detectada por el backend
     if (metrics.fatigueDetected) {
-      const firstHalfRate = metrics.firstHalfLikeRate;
-      const lastHalfRate = metrics.lastHalfLikeRate;
       items.push({
         title: "Impulsividad o Fatiga Final",
         desc: `El ritmo de respuesta se redujo significativamente hacia el final del test, lo que puede indicar cansancio o apuro.`,
-        info: `Métrica del backend: fatigueDetected=true, firstHalfLikeRate=${firstHalfRate ?? "N/A"}, lastHalfLikeRate=${lastHalfRate ?? "N/A"}. Se activa cuando la velocidad del último tramo es menos de la mitad del primero.`,
+        info: `Se detecta este patrón cuando la velocidad de respuesta en la última etapa del test disminuye o se altera drásticamente respecto al ritmo inicial, sugiriendo fatiga cognitiva.`,
         icon: <ActivitySquare className="h-5 w-5 text-orange-500" />,
         color: "text-orange-500",
         bg: "bg-orange-500/10",
@@ -80,7 +80,7 @@ export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProp
       items.push({
         title: "Foco de Conflicto",
         desc: `El paciente presionó "Deshacer" en ${undosCount} ocasiones, evidenciando ambivalencia durante la evaluación. Esto no es un problema — es una señal valiosa para explorar en sesión.`,
-        info: `Métrica del backend: revertedMatches=${undosCount}. Cada retroceso representa un cambio de decisión y es un marcador de conflicto vocacional.`,
+        info: `Cada uso del botón "Deshacer" es analizado por el algoritmo. La acumulación de estos eventos señala áreas específicas de indecisión o conflicto de intereses.`,
         icon: <AlertCircle className="h-5 w-5 text-yellow-500" />,
         color: "text-yellow-500",
         bg: "bg-yellow-500/10",
@@ -94,7 +94,7 @@ export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProp
       items.push({
         title: "Respuesta Acelerada",
         desc: `El paciente respondió de forma inusualmente rápida en ciertos tramos, lo que puede indicar descuido o falta de reflexión.`,
-        info: `Métrica del backend: rushDetected=true. Se activa cuando el tiempo entre swipes cae por debajo de un umbral mínimo que sugiere respuesta sin lectura.`,
+        info: `Se activa cuando el tiempo de reacción frente a múltiples estímulos cae por debajo del umbral mínimo necesario para una lectura y procesamiento cognitivo adecuado.`,
         icon: <Zap className="h-5 w-5 text-yellow-500" />,
         color: "text-yellow-500",
         bg: "bg-yellow-500/10",
@@ -177,19 +177,24 @@ export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProp
                   <h5 className={`text-sm font-black uppercase tracking-wider ${insight.color}`}>
                     {insight.title}
                   </h5>
-                  {insight.info && (
-                    <div className="group relative flex items-center">
-                      <Info className="h-5 w-5 text-app-text-muted hover:text-app-primary cursor-help transition-colors" />
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 p-5 bg-app-text-main text-app-bg text-sm font-medium rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-20 text-left leading-relaxed">
-                        {insight.info}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-app-text-main" />
-                      </div>
-                    </div>
-                  )}
                 </div>
                 <p className="text-sm font-medium text-app-text-muted leading-relaxed">
                   {insight.desc}
                 </p>
+                {insight.info && (
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedInsightInfo(insight.info)}
+                      className="inline-block cursor-pointer transition-colors"
+                      aria-label="Ver detalle"
+                    >
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-app-text-muted hover:text-app-primary border-b border-app-text-muted/30 pb-0.5">
+                        Ver detalle
+                      </span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -217,6 +222,16 @@ export function SessionClinicalInsights({ metrics }: SessionClinicalInsightsProp
         open={methodologyOpen}
         onClose={() => setMethodologyOpen(false)}
       />
+
+      <BottomSheet
+        isOpen={!!selectedInsightInfo}
+        onClose={() => setSelectedInsightInfo(null)}
+        title="Criterio clínico"
+      >
+        <p className="text-sm text-app-text-muted leading-relaxed font-medium pb-8">
+          {selectedInsightInfo}
+        </p>
+      </BottomSheet>
     </>
   );
 }
