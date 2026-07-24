@@ -96,10 +96,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message: finalMessage,
     };
 
-    this.logger.error(
-      `Exception thrown at ${responseBody.path}`,
-      exception instanceof Error ? exception.stack : String(exception),
-    );
+    const logMessage = `Exception thrown at ${responseBody.path}`;
+    const logTrace =
+      exception instanceof Error ? exception.stack : String(exception);
+
+    if (isServerError) {
+      this.logger.error(logMessage, logTrace);
+    } else {
+      this.logger.warn(`${logMessage} - ${finalStatusCode}: ${finalMessage}`);
+    }
 
     httpAdapter.reply(ctx.getResponse(), responseBody, finalStatusCode);
   }

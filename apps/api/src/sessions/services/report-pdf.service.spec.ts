@@ -26,7 +26,7 @@ describe('ReportPdfService', () => {
   });
 
   it('renders HTML using pug', () => {
-    const reportData = { patientName: 'John Doe', strengths: [] } as any;
+    const reportData = { patientName: 'John Doe', strengths: [] } as never;
     const html = service.renderHtml(reportData);
 
     expect(html).toBe('<html/>');
@@ -42,7 +42,7 @@ describe('ReportPdfService', () => {
 
     const result = await service.generatePdfBuffer({
       patientName: 'Test',
-    } as any);
+    } as never);
 
     expect(pug.renderFile).toHaveBeenCalled();
     expect(pdfService.generateFromHtml).toHaveBeenCalledWith('<html/>');
@@ -57,7 +57,7 @@ describe('ReportPdfService', () => {
     await expect(
       service.generatePdfBuffer({
         patientName: 'Test',
-      } as any),
+      } as never),
     ).rejects.toThrow('PDF generation failed');
   });
 });

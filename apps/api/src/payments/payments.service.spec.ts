@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsService } from './payments.service';
-import { SessionsService } from '../sessions/sessions.service';
+import { SessionsQueryService } from '../sessions/services/sessions-query.service';
+import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
 import { ConfigService } from '@nestjs/config';
 import { SessionPaymentStatus } from '@akit/contracts';
 import { PaymentLockService } from './payment-lock.service';
@@ -14,9 +15,15 @@ describe('PaymentsService', () => {
       providers: [
         PaymentsService,
         {
-          provide: SessionsService,
+          provide: SessionsQueryService,
           useValue: {
             findOne: jest.fn(),
+            findByPaymentToken: jest.fn(),
+          },
+        },
+        {
+          provide: SessionsMutationService,
+          useValue: {
             updatePaymentStatus: jest.fn(),
           },
         },
@@ -100,12 +107,12 @@ describe('PaymentsService', () => {
       },
     } as any;
 
-    const mockSessionsService = service[
-      'sessionsService'
-    ] as jest.Mocked<SessionsService>;
-    (mockSessionsService.updatePaymentStatus as jest.Mock).mockResolvedValue(
-      {},
-    );
+    const mockSessionsMutationService = service[
+      'sessionsMutationService'
+    ] as jest.Mocked<SessionsMutationService>;
+    (
+      mockSessionsMutationService.updatePaymentStatus as jest.Mock
+    ).mockResolvedValue({});
 
     const session = {
       id: 'session-2',
