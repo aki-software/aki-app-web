@@ -11,8 +11,8 @@ import {
 } from 'typeorm';
 import { SessionPaymentStatus } from '@akit/contracts';
 export { SessionPaymentStatus };
-import { SessionResult } from './session-result.entity.js';
-import { SessionSwipe } from './session-swipe.entity.js';
+import type { SessionResult } from './session-result.entity.js';
+import type { SessionSwipe } from './session-swipe.entity.js';
 import type { SessionMetrics } from './session-metrics.entity.js';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
 import { User } from '../../users/entities/user.entity.js';
@@ -106,12 +106,12 @@ export class Session {
   })
   paymentReference!: string | null;
 
-  @OneToMany(() => SessionResult, (result: SessionResult) => result.session, {
+  @OneToMany('SessionResult', 'session', {
     cascade: true,
   })
   results!: SessionResult[];
 
-  @OneToMany(() => SessionSwipe, (swipe: SessionSwipe) => swipe.session, {
+  @OneToMany('SessionSwipe', 'session', {
     cascade: true,
   })
   swipes!: SessionSwipe[];

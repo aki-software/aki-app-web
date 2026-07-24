@@ -40,9 +40,8 @@ export class PaymentsService {
         return { success: true, valid: true };
       }
 
-      const existingSession = await this.sessionsQueryService.findByPaymentToken(
-        dto.purchaseToken,
-      );
+      const existingSession =
+        await this.sessionsQueryService.findByPaymentToken(dto.purchaseToken);
       if (existingSession && existingSession.id !== session.id) {
         this.logger.warn(
           `Purchase token ${dto.purchaseToken} is already used by session ${existingSession.id}. Rejecting for session ${session.id}.`,
