@@ -90,6 +90,7 @@ export class SessionsQueryService {
     const session = await this.sessionRepository.findOne({
       where,
       relations: ['results', 'voucher', 'swipes', 'metrics'],
+      relationLoadStrategy: 'query',
     });
     if (!session) {
       throw new NotFoundException('Sesión no encontrada');

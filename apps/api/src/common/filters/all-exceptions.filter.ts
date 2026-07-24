@@ -97,7 +97,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
 
     const logMessage = `Exception thrown at ${responseBody.path}`;
-    const logTrace = exception instanceof Error ? exception.stack : String(exception);
+    const logTrace =
+      exception instanceof Error ? exception.stack : String(exception);
 
     if (isServerError) {
       this.logger.error(logMessage, logTrace);
