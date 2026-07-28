@@ -110,11 +110,13 @@ export async function upsertInstitution(
     where: { userId: operationalUser.id, institutionId: savedInstitution.id },
   });
   if (!existingUI) {
-    await userInstitutionRepo.save(userInstitutionRepo.create({
-      userId: operationalUser.id,
-      institutionId: savedInstitution.id,
-      role: 'ADMIN'
-    }));
+    await userInstitutionRepo.save(
+      userInstitutionRepo.create({
+        userId: operationalUser.id,
+        institutionId: savedInstitution.id,
+        role: 'ADMIN',
+      }),
+    );
   }
 
   if (savedInstitution.responsibleTherapistUserId !== operationalUser.id) {

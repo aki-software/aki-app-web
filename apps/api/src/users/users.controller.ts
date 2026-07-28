@@ -37,7 +37,8 @@ export class UsersController {
           email: user.email,
           role: user.role,
           institutionId: user.userInstitutions?.[0]?.institutionId ?? null,
-          institutionName: user.userInstitutions?.[0]?.institution?.name ?? null,
+          institutionName:
+            user.userInstitutions?.[0]?.institution?.name ?? null,
           isActive: this.usersService.hasPasswordConfigured(user),
         })),
       };

@@ -136,7 +136,11 @@ export class VouchersService {
       ? new Date(createVoucherDto.expiresAt)
       : null;
 
-    const batch = await this.createBatch(normalizedOwnership, quantity);
+    const batch = await this.createBatch(
+      normalizedOwnership,
+      quantity,
+      createVoucherDto.name,
+    );
 
     const vouchersToCreate = await this.prepareVouchers(
       batch.id,
@@ -197,10 +201,12 @@ export class VouchersService {
       ownerInstitutionId: string | null;
     },
     quantity: number,
+    name?: string,
   ): Promise<VoucherBatch> {
     return await this.voucherBatchRepository.save(
       this.voucherBatchRepository.create({
         ...ownership,
+        name: name ?? null,
         quantity,
         unitPrice: '0',
         totalPrice: '0',
@@ -388,5 +394,28 @@ export class VouchersService {
       throw new BadRequestException('Voucher no disponible');
     if (voucher.expiresAt && voucher.expiresAt.getTime() < Date.now())
       throw new BadRequestException('Voucher expirado');
+  }
+
+  async recycleTherapistVouchers(
+    institutionId: string,
+    therapistUserId: string,
+  ): Promise<number> {
+    const vouchers = await this.voucherRepository.find({
+      where: {
+        ownerInstitutionId: institutionId,
+        ownerUserId: therapistUserId,
+        status: In([VoucherStatus.AVAILABLE, VoucherStatus.SENT]),
+      },
+    });
+
+    if (vouchers.length === 0) return 0;
+
+    for (const voucher of vouchers) {
+      voucher.ownerUserId = null;
+      voucher.ownerType = VoucherOwnerType.INSTITUTION;
+    }
+
+    await this.voucherRepository.save(vouchers);
+    return vouchers.length;
   }
 }

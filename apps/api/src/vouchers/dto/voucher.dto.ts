@@ -77,6 +77,10 @@ export class CreateVoucherDto extends VoucherCodeOptionalDto {
 
   @IsOptional()
   @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
   assignedPatientName?: string;
 
   @IsOptional()

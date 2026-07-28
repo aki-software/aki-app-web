@@ -11,13 +11,16 @@ import { MailModule } from '../mail/mail.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
 import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import { Session } from '../sessions/entities/session.entity.js';
+import { UserInstitution } from '../users/entities/user-institution.entity.js';
+import { VouchersModule } from '../vouchers/vouchers.module.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Institution, Voucher, Session]),
+    TypeOrmModule.forFeature([Institution, Voucher, Session, UserInstitution]),
     UsersModule,
     MailModule,
     CategoriesModule,
+    VouchersModule,
   ],
   controllers: [InstitutionsController],
   providers: [

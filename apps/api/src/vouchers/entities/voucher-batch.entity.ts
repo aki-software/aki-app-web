@@ -21,6 +21,9 @@ export class VoucherBatch {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ name: 'name', type: 'varchar', length: 255, nullable: true })
+  name!: string | null;
+
   @Column({
     name: 'owner_type',
     type: 'enum',

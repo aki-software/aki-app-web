@@ -4,12 +4,17 @@ import { Repository } from 'typeorm';
 import { Institution } from './entities/institution.entity.js';
 import type { CreateInstitutionDto } from './dto/create-institution.dto.js';
 import type { UpdateInstitutionDto } from './dto/update-institution.dto.js';
+import { UserInstitution } from '../users/entities/user-institution.entity.js';
+import { VouchersService } from '../vouchers/vouchers.service.js';
 
 @Injectable()
 export class InstitutionsService {
   constructor(
     @InjectRepository(Institution)
     private readonly institutionRepository: Repository<Institution>,
+    @InjectRepository(UserInstitution)
+    private readonly userInstitutionRepository: Repository<UserInstitution>,
+    private readonly vouchersService: VouchersService,
   ) {}
 
   async findAll(): Promise<Institution[]> {
@@ -77,5 +82,22 @@ export class InstitutionsService {
       where: { id },
     });
     await this.institutionRepository.softRemove(institution);
+  }
+
+  async removeTherapist(
+    institutionId: string,
+    therapistUserId: string,
+  ): Promise<void> {
+    const userInstitution = await this.userInstitutionRepository.findOne({
+      where: { institutionId, userId: therapistUserId },
+    });
+
+    if (userInstitution) {
+      await this.userInstitutionRepository.remove(userInstitution);
+      await this.vouchersService.recycleTherapistVouchers(
+        institutionId,
+        therapistUserId,
+      );
+    }
   }
 }

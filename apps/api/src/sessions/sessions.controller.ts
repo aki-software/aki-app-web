@@ -307,10 +307,7 @@ export class SessionsController {
   }
 
   @Get('share/:linkId/pdf')
-  async getSharedPdf(
-    @Param('linkId') linkId: string,
-    @Res() res: Response,
-  ) {
+  async getSharedPdf(@Param('linkId') linkId: string, @Res() res: Response) {
     const session = await this.sessionsService.getSessionByShareLink(linkId);
 
     const pdfBuffer = await this.reportOrchestratorService.getPdfBuffer(
@@ -333,4 +330,3 @@ export class SessionsController {
     res.send(pdfBuffer);
   }
 }
-

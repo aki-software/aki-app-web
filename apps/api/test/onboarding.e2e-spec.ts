@@ -37,7 +37,7 @@ describe('Token Onboarding (e2e)', () => {
     );
   });
 
-  it('/auth/onboarding (POST) - should reject invalid token', async () => {
+  it('/auth/onboarding (POST) - should reject invalid token', () => {
     const payload = {
       token: 'invalid',
       acceptTerms: true,
@@ -48,7 +48,7 @@ describe('Token Onboarding (e2e)', () => {
       .post('/auth/onboarding')
       .send(payload)
       .expect(HttpStatus.UNAUTHORIZED)
-      .catch((e) => {
+      .catch(() => {
         // Fallback if not implemented
       });
   });

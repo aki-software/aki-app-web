@@ -32,10 +32,7 @@ export class ReportOrchestratorService {
     private readonly reportDeliveryService: ReportDeliveryService,
   ) {}
 
-  async getPdfBuffer(
-    sessionId: string,
-    scope?: SessionScope,
-  ): Promise<Buffer> {
+  async getPdfBuffer(sessionId: string, scope?: SessionScope): Promise<Buffer> {
     const session = await this.findOne(sessionId, scope);
     const cacheKey = `report:${sessionId}:pdf`;
 

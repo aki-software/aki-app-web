@@ -92,6 +92,7 @@ export class VoucherBatchQueryService {
       .select('voucher.status', 'status')
       .addSelect('COUNT(*)', 'cnt')
       .groupBy('voucher.status')
+      .orderBy('voucher.status', 'ASC')
       .getRawMany<{ status: string; cnt: string }>();
 
     let available = 0;

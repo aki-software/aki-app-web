@@ -30,9 +30,11 @@ export class PdfProcessor implements JobHandler<GeneratePdfJobPayload> {
       this.logger.warn('Skipping async PDF generation: No sessionId provided');
       return;
     }
-    
-    this.logger.log(`Preloading PDF for session ${payload.sessionId} (B2C: ${payload.isB2C})`);
-    
+
+    this.logger.log(
+      `Preloading PDF for session ${payload.sessionId} (B2C: ${payload.isB2C})`,
+    );
+
     // We can call a preloadReport method on the orchestrator to populate the cache
     await this.reportOrchestratorService.preloadReport(payload.sessionId);
   }

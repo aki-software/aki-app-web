@@ -125,6 +125,16 @@ export class InstitutionsController {
     await this.institutionsService.softRemove(id);
   }
 
+  @Delete(':id/therapists/:therapistId')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeTherapist(
+    @Param('id') id: string,
+    @Param('therapistId') therapistId: string,
+  ): Promise<void> {
+    await this.institutionsService.removeTherapist(id, therapistId);
+  }
+
   @Post(':id/operational-account')
   @Roles(UserRole.ADMIN)
   async createOperationalAccount(
