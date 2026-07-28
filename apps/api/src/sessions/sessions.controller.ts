@@ -286,4 +286,51 @@ export class SessionsController {
     );
     res.send(pdfBuffer);
   }
+
+  @Post(':id/share')
+  @UseGuards(JwtAuthGuard)
+  async createShareLink(
+    @Param('id') sessionId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const scope = this.extractScope(req);
+    // Verifica acceso
+    const session = await this.sessionsService.findOne(sessionId, scope);
+    const shareLink = await this.sessionsService.createShareLink(
+      session.id,
+      req.user?.userId,
+    );
+    return {
+      linkId: shareLink.id,
+      expiresAt: shareLink.expiresAt,
+    };
+  }
+
+  @Get('share/:linkId/pdf')
+  async getSharedPdf(
+    @Param('linkId') linkId: string,
+    @Res() res: Response,
+  ) {
+    const session = await this.sessionsService.getSessionByShareLink(linkId);
+
+    const pdfBuffer = await this.reportOrchestratorService.getPdfBuffer(
+      session.id,
+    );
+
+    const safeName = (
+      session.patientName ?? SESSION_CONSTANTS.REPORTS.DEFAULT_PDF_PREFIX
+    )
+      .replace(/[^a-z0-9\s-]/gi, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .toLowerCase();
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${SESSION_CONSTANTS.REPORTS.DEFAULT_PDF_PREFIX}-${safeName}-${session.id}.pdf"`,
+    );
+    res.send(pdfBuffer);
+  }
 }
+

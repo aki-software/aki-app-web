@@ -20,6 +20,7 @@ import { CreateSessionDto } from './dto/create-session.dto.js';
 import { Session } from './entities/session.entity.js';
 import { SessionResult } from './entities/session-result.entity.js';
 import { SessionSwipe } from './entities/session-swipe.entity.js';
+import { SessionShareLink } from './entities/session-share-link.entity.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
 import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
@@ -48,6 +49,8 @@ export class SessionsService {
     private readonly sessionResultRepository: Repository<SessionResult>,
     @InjectRepository(SessionSwipe)
     private readonly sessionSwipeRepository: Repository<SessionSwipe>,
+    @InjectRepository(SessionShareLink)
+    private readonly sessionShareLinkRepository: Repository<SessionShareLink>,
     private readonly dataSource: DataSource,
     private readonly reportOrchestratorService: ReportOrchestratorService,
     @Inject(QUEUE_ADAPTER)
@@ -514,5 +517,43 @@ export class SessionsService {
       .execute();
 
     return this.findOne(id);
+  }
+
+  async createShareLink(
+    sessionId: string,
+    createdByUserId?: string,
+  ): Promise<SessionShareLink> {
+    const session = await this.findOne(sessionId);
+    if (!session) {
+      throw new NotFoundException('Sesión no encontrada');
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
+
+    const link = this.sessionShareLinkRepository.create({
+      sessionId: session.id,
+      expiresAt,
+      createdBy: createdByUserId,
+    });
+
+    return await this.sessionShareLinkRepository.save(link);
+  }
+
+  async getSessionByShareLink(linkId: string): Promise<Session> {
+    const link = await this.sessionShareLinkRepository.findOne({
+      where: { id: linkId },
+    });
+
+    if (!link) {
+      throw new NotFoundException('Enlace de sesión no encontrado');
+    }
+
+    if (link.expiresAt < new Date()) {
+      throw new NotFoundException('Enlace expirado');
+    }
+
+    // Usamos findOneForReport porque los links son para ver el PDF
+    return this.findOneForReport(link.sessionId);
   }
 }
