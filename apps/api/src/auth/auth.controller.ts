@@ -31,7 +31,11 @@ export class AuthController {
 
   @Post('setup-password')
   async setupPassword(@Body() body: TokenPasswordDto) {
-    return this.authService.setupPassword(body.token, body.password);
+    return this.authService.setupPassword(
+      body.token,
+      body.password,
+      body.tcAccepted,
+    );
   }
 
   @Post('request-password-reset')

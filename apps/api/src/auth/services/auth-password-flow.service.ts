@@ -43,6 +43,7 @@ export class AuthPasswordFlowService {
   async setupPassword(
     token: string,
     password: string,
+    tcAccepted?: boolean,
   ): Promise<AuthLoginResponse> {
     const user = await this.usersService.findByPasswordSetupToken(token);
     if (!user) {
@@ -56,12 +57,15 @@ export class AuthPasswordFlowService {
       throw new UnauthorizedException(AUTH_ERROR_MESSAGES.expiredToken);
     }
 
+    const tcAcceptedAt = tcAccepted ? new Date() : user.tcAcceptedAt;
+
     const updatedUser = await this.usersService.register({
       ...user,
       passwordHash: await this.cryptoService.hash(password),
       passwordSetAt: new Date(),
       passwordSetupToken: null,
       passwordSetupExpiresAt: null,
+      tcAcceptedAt,
     });
 
     // Invalidate any existing tokens for this user

@@ -1,6 +1,8 @@
 import {
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MinLength,
@@ -34,4 +36,8 @@ export class TokenPasswordDto {
   @MinLength(6)
   @Matches(/^(?=.*[A-Z])(?=.*\d).+$/)
   password!: string;
+
+  @IsBoolean()
+  @IsOptional()
+  tcAccepted?: boolean;
 }

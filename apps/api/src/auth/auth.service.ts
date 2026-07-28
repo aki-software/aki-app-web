@@ -27,8 +27,13 @@ export class AuthService {
   async setupPassword(
     token: string,
     password: string,
+    tcAccepted?: boolean,
   ): Promise<AuthLoginResponse> {
-    return this.authPasswordFlowService.setupPassword(token, password);
+    return this.authPasswordFlowService.setupPassword(
+      token,
+      password,
+      tcAccepted,
+    );
   }
 
   async requestPasswordReset(email: string): Promise<AuthInfoResponse> {
