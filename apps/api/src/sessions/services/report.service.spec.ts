@@ -3,8 +3,8 @@ import { Session } from '../entities/session.entity.js';
 
 describe('ReportService', () => {
   let service: ReportService;
-  let categoriesRepositoryMock: any;
-  let tresAreasServiceMock: any;
+  let categoriesRepositoryMock: unknown;
+  let tresAreasServiceMock: unknown;
 
   beforeEach(() => {
     categoriesRepositoryMock = {
@@ -14,7 +14,10 @@ describe('ReportService', () => {
       findByCategories: jest.fn().mockResolvedValue(null),
     };
 
-    service = new ReportService(categoriesRepositoryMock, tresAreasServiceMock);
+    service = new ReportService(
+      categoriesRepositoryMock as never,
+      tresAreasServiceMock as never,
+    );
   });
 
   it('should preserve session.results order as-is (single source of truth)', async () => {

@@ -5,7 +5,8 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
-import { SessionsService } from '../sessions/sessions.service';
+import { SessionsQueryService } from '../sessions/services/sessions-query.service';
+import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
 import { SessionPaymentStatus } from '@akit/contracts';
 import type { androidpublisher_v3 } from 'googleapis';
 import { PaymentLockService } from './payment-lock.service';
@@ -16,7 +17,8 @@ export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
 
   constructor(
-    private readonly sessionsService: SessionsService,
+    private readonly sessionsQueryService: SessionsQueryService,
+    private readonly sessionsMutationService: SessionsMutationService,
     private readonly paymentLockService: PaymentLockService,
     private readonly googlePlayAdapter: GooglePlayAdapter,
   ) {}
@@ -26,7 +28,7 @@ export class PaymentsService {
 
     await this.paymentLockService.acquireLock(dto.purchaseToken);
     try {
-      const session = await this.sessionsService.findOne(dto.sessionId);
+      const session = await this.sessionsQueryService.findOne(dto.sessionId);
       if (!session) {
         throw new BadRequestException('Sesión no encontrada');
       }
@@ -38,9 +40,8 @@ export class PaymentsService {
         return { success: true, valid: true };
       }
 
-      const existingSession = await this.sessionsService.findByPaymentToken(
-        dto.purchaseToken,
-      );
+      const existingSession =
+        await this.sessionsQueryService.findByPaymentToken(dto.purchaseToken);
       if (existingSession && existingSession.id !== session.id) {
         this.logger.warn(
           `Purchase token ${dto.purchaseToken} is already used by session ${existingSession.id}. Rejecting for session ${session.id}.`,
@@ -139,7 +140,7 @@ export class PaymentsService {
     }
 
     try {
-      await this.sessionsService.updatePaymentStatus(
+      await this.sessionsMutationService.updatePaymentStatus(
         session.id,
         SessionPaymentStatus.PAID,
         dto.purchaseToken,

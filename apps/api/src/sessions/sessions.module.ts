@@ -10,7 +10,9 @@ import { SessionSwipe } from './entities/session-swipe.entity.js';
 import { Session } from './entities/session.entity.js';
 import { SessionMetrics } from './entities/session-metrics.entity.js';
 import { SessionsController } from './sessions.controller.js';
-import { SessionsService } from './sessions.service.js';
+import { SessionsQueryService } from './services/sessions-query.service.js';
+import { SessionsMutationService } from './services/sessions-mutation.service.js';
+import { SessionsOrchestratorService } from './services/sessions-orchestrator.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 import { InMemoryReportCacheService } from './services/in-memory-report-cache.service.js';
@@ -43,7 +45,9 @@ import { JobDispatcherService } from '../common/services/job-dispatcher.service.
   ],
   controllers: [SessionsController],
   providers: [
-    SessionsService,
+    SessionsQueryService,
+    SessionsMutationService,
+    SessionsOrchestratorService,
     ReportService,
 
     ReportPdfService,
@@ -60,7 +64,12 @@ import { JobDispatcherService } from '../common/services/job-dispatcher.service.
     RateLimitGuard,
     CalculateMetricsHandler,
   ],
-  exports: [SessionsService, SessionMetricsService],
+  exports: [
+    SessionsQueryService,
+    SessionsMutationService,
+    SessionsOrchestratorService,
+    SessionMetricsService,
+  ],
 })
 export class SessionsModule implements OnModuleInit {
   constructor(
