@@ -7,9 +7,11 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
   Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity.js';
+import { UserInstitution } from '../../users/entities/user-institution.entity.js';
 
 @Entity('institutions')
 @Index('IDX_institutions_name', ['name'])
@@ -33,6 +35,9 @@ export class Institution {
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'responsible_therapist_user_id' })
   responsibleTherapist?: User | null;
+
+  @OneToMany(() => UserInstitution, (userInstitution) => userInstitution.institution)
+  userInstitutions!: UserInstitution[];
 
   @Column({ name: 'is_active', default: true })
   isActive!: boolean;

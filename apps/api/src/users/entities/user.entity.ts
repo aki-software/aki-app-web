@@ -5,17 +5,15 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  ManyToOne,
-  JoinColumn,
+  OneToMany,
   Index,
 } from 'typeorm';
-import { Institution } from '../../institutions/entities/institution.entity.js';
+import { UserInstitution } from './user-institution.entity.js';
 import { UserRole } from '@akit/contracts';
 
 export { UserRole } from '@akit/contracts';
 
 @Entity('users')
-@Index('IDX_users_institution_id', ['institutionId'])
 @Index('IDX_users_role', ['role'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -70,12 +68,11 @@ export class User {
   })
   role!: UserRole;
 
-  @Column({ name: 'institution_id', type: 'uuid', nullable: true })
-  institutionId!: string | null;
+  @Column({ name: 'tc_accepted_at', type: 'timestamptz', nullable: true })
+  tcAcceptedAt!: Date | null;
 
-  @ManyToOne(() => Institution, { nullable: true })
-  @JoinColumn({ name: 'institution_id' })
-  institution?: Institution | null;
+  @OneToMany(() => UserInstitution, (userInstitution) => userInstitution.user)
+  userInstitutions!: UserInstitution[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
