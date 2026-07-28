@@ -36,7 +36,10 @@ export class Institution {
   @JoinColumn({ name: 'responsible_therapist_user_id' })
   responsibleTherapist?: User | null;
 
-  @OneToMany(() => UserInstitution, (userInstitution) => userInstitution.institution)
+  @OneToMany(
+    () => UserInstitution,
+    (userInstitution) => userInstitution.institution,
+  )
   userInstitutions!: UserInstitution[];
 
   @Column({ name: 'is_active', default: true })

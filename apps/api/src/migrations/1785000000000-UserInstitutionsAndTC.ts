@@ -36,7 +36,7 @@ export class UserInstitutionsAndTC1785000000000 implements MigrationInterface {
     await queryRunner.query(`
       CREATE INDEX "IDX_user_institutions_user_id" ON "user_institutions" ("user_id")
     `);
-    
+
     await queryRunner.query(`
       CREATE INDEX "IDX_user_institutions_institution_id" ON "user_institutions" ("institution_id")
     `);
