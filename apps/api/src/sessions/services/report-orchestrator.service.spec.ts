@@ -49,11 +49,11 @@ describe('ReportOrchestratorService', () => {
     };
 
     service = new ReportOrchestratorService(
-      mockSessionRepository as any,
-      mockReportService as any,
+      mockSessionRepository as never,
+      mockReportService as never,
       cacheService,
-      mockReportPdfService as any,
-      mockDeliveryService as any,
+      mockReportPdfService as never,
+      mockDeliveryService as never,
     );
   });
 

@@ -74,7 +74,7 @@ describe('admin-dashboard-formatter.util', () => {
         reportUnlockedAt: null,
         paidAt: null,
         voucherId: null,
-        paymentStatus: undefined as any,
+        paymentStatus: undefined as never,
         resultsCount: '0',
         hollandCode: '',
         voucherCode: '',

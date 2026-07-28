@@ -9,128 +9,137 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  CompleteSessionDto as ICompleteSessionDto,
+  SessionSwipeData,
+} from '@akit/contracts';
 
-class CompleteSessionSwipeDto {
+class CompleteSessionSwipeDto implements SessionSwipeData {
+  @ApiProperty()
   @IsString()
   cardId!: string;
 
+  @ApiProperty()
   @IsString()
   categoryId!: string;
 
+  @ApiProperty()
   @IsBoolean()
-  liked!: boolean;
+  isLiked!: boolean;
 
+  @ApiProperty({ type: String })
   @IsISO8601()
   timestamp!: string;
 }
 
-class CompleteSessionRadarItemDto {
-  @IsString()
-  categoryId!: string;
-
-  @IsNumber()
-  likes!: number;
-
-  @IsNumber()
-  total!: number;
-
-  @IsNumber()
-  affinity!: number;
-}
-
 class CompleteSessionCategoryResultDto {
+  @ApiProperty()
   @IsString()
   categoryId!: string;
 
+  @ApiProperty()
   @IsNumber()
   percentage!: number;
 
+  @ApiProperty()
   @IsNumber()
   score!: number;
 
+  @ApiProperty()
   @IsNumber()
   totalPossible!: number;
 
+  @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   suggestedCareers?: string[];
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   materialSnippet?: string;
 }
 
-class CompleteSessionResultPayloadDto {
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CompleteSessionRadarItemDto)
-  radar!: CompleteSessionRadarItemDto[];
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CompleteSessionCategoryResultDto)
-  top3!: CompleteSessionCategoryResultDto[];
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CompleteSessionCategoryResultDto)
-  bottom3!: CompleteSessionCategoryResultDto[];
-
-  @IsString()
-  hollandCode!: string;
-}
-
-export class CompleteSessionDto {
+export class CompleteSessionDto implements ICompleteSessionDto {
+  @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
   id?: string;
 
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
   @IsUUID()
-  userId!: string;
+  userId?: string;
 
+  @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
   patientId?: string;
 
+  @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
   therapistUserId?: string;
 
+  @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
   institutionId?: string;
 
+  @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
   voucherId?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   voucherCode?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   paymentStatus?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  patientName!: string;
+  patientName?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  catalogVersion!: string;
+  catalogVersion?: string;
 
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
   @IsISO8601()
-  startedAt!: string;
+  startedAt?: string;
 
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
   @IsISO8601()
-  finishedAt!: string;
+  finishedAt?: string;
 
+  @ApiProperty({ format: 'uuid' })
+  @IsUUID()
+  sessionId!: string;
+
+  @ApiProperty({ type: [CompleteSessionCategoryResultDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CompleteSessionCategoryResultDto)
+  results!: CompleteSessionCategoryResultDto[];
+
+  @ApiProperty({ type: [CompleteSessionSwipeDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CompleteSessionSwipeDto)
   swipes!: CompleteSessionSwipeDto[];
 
-  @ValidateNested()
-  @Type(() => CompleteSessionResultPayloadDto)
-  resultPayload!: CompleteSessionResultPayloadDto;
+  @ApiProperty()
+  @IsNumber()
+  totalTimeMs!: number;
 }
