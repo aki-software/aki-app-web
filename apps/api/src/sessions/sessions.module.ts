@@ -25,6 +25,7 @@ import { TresAreasModule } from '../tres-areas/tres-areas.module.js';
 
 import { CalculateMetricsHandler } from './services/calculate-metrics.handler.js';
 import { JobDispatcherService } from '../common/services/job-dispatcher.service.js';
+import { PdfProcessor } from './jobs/pdf.processor.js';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { JobDispatcherService } from '../common/services/job-dispatcher.service.
     SessionOwnerResolverService,
     RateLimitGuard,
     CalculateMetricsHandler,
+    PdfProcessor,
   ],
   exports: [SessionsService, SessionMetricsService],
 })
@@ -66,9 +68,11 @@ export class SessionsModule implements OnModuleInit {
   constructor(
     private readonly jobDispatcher: JobDispatcherService,
     private readonly calculateMetricsHandler: CalculateMetricsHandler,
+    private readonly pdfProcessor: PdfProcessor,
   ) {}
 
   onModuleInit(): void {
     this.jobDispatcher.registerHandler(this.calculateMetricsHandler);
+    this.jobDispatcher.registerHandler(this.pdfProcessor);
   }
 }

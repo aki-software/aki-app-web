@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { JobNames } from '../jobs/job-names.js';
 import { JobHandler } from '../jobs/handlers/job-handler.interface.js';
 import { SendEmailHandler } from '../jobs/handlers/send-email.handler.js';
-import { GeneratePdfHandler } from '../jobs/handlers/generate-pdf.handler.js';
 import { SendReportHandler } from '../jobs/handlers/send-report.handler.js';
 
 @Injectable()
@@ -12,11 +11,9 @@ export class JobDispatcherService {
 
   constructor(
     private readonly sendEmailHandler: SendEmailHandler,
-    private readonly generatePdfHandler: GeneratePdfHandler,
     private readonly sendReportHandler: SendReportHandler,
   ) {
     this.handlers.set(JobNames.SendEmail, this.sendEmailHandler);
-    this.handlers.set(JobNames.GeneratePdf, this.generatePdfHandler);
     this.handlers.set(JobNames.SendReport, this.sendReportHandler);
   }
 

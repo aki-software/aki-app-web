@@ -32,6 +32,25 @@ export class ReportOrchestratorService {
     private readonly reportDeliveryService: ReportDeliveryService,
   ) {}
 
+  async getPdfBuffer(
+    sessionId: string,
+    scope?: SessionScope,
+  ): Promise<Buffer> {
+    const session = await this.findOne(sessionId, scope);
+    const cacheKey = `report:${sessionId}:pdf`;
+
+    return await this.reportCacheService.getOrCreate(cacheKey, async () => {
+      this.logger.debug(`Generating PDF for session: ${sessionId}`);
+      const reportData = await this.reportService.buildReportData(session);
+      return await this.reportPdfService.generatePdfBuffer(reportData);
+    });
+  }
+
+  async preloadReport(sessionId: string): Promise<void> {
+    this.logger.debug(`Preloading PDF for session: ${sessionId}`);
+    await this.getPdfBuffer(sessionId);
+  }
+
   async sendReport(
     sessionId: string,
     targetEmail: string,

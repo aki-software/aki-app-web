@@ -29,6 +29,7 @@ import { SessionMetricsService } from './services/session-metrics.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { SessionsService } from './sessions.service.js';
 import { ReportPdfService } from './services/report-pdf.service.js';
+import { ReportOrchestratorService } from './services/report-orchestrator.service.js';
 
 @Controller('sessions')
 export class SessionsController {
@@ -64,6 +65,7 @@ export class SessionsController {
     @Inject(PDF_GENERATOR) private readonly pdfGenerator: PdfGenerator,
     private readonly adminDashboardService: AdminDashboardService,
     private readonly reportPdfService: ReportPdfService,
+    private readonly reportOrchestratorService: ReportOrchestratorService,
   ) {}
 
   @Post()
@@ -264,9 +266,10 @@ export class SessionsController {
       this.extractScope(req),
     );
 
-    const reportData = await this.reportService.buildReportData(session);
-    const html = this.reportPdfService.renderHtml(reportData);
-    const pdfBuffer = await this.pdfGenerator.generateFromHtml(html);
+    const pdfBuffer = await this.reportOrchestratorService.getPdfBuffer(
+      sessionId,
+      this.extractScope(req),
+    );
 
     const safeName = (
       session.patientName ?? SESSION_CONSTANTS.REPORTS.DEFAULT_PDF_PREFIX

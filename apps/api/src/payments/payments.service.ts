@@ -3,6 +3,7 @@ import {
   Logger,
   BadRequestException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { SessionsService } from '../sessions/sessions.service';
@@ -10,6 +11,11 @@ import { SessionPaymentStatus } from '@akit/contracts';
 import type { androidpublisher_v3 } from 'googleapis';
 import { PaymentLockService } from './payment-lock.service';
 import { GooglePlayAdapter } from './google-play.adapter';
+
+import { ConfigService } from '@nestjs/config';
+import { JobNames } from '../common/jobs/job-names';
+import type { QueueAdapter } from '../common/adapters/queue.adapter';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
 
 @Injectable()
 export class PaymentsService {
@@ -19,6 +25,8 @@ export class PaymentsService {
     private readonly sessionsService: SessionsService,
     private readonly paymentLockService: PaymentLockService,
     private readonly googlePlayAdapter: GooglePlayAdapter,
+    private readonly configService: ConfigService,
+    @Inject(QUEUE_ADAPTER) private readonly queueAdapter: QueueAdapter,
   ) {}
 
   async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto) {
@@ -144,6 +152,34 @@ export class PaymentsService {
         SessionPaymentStatus.PAID,
         dto.purchaseToken,
       );
+
+      // Assign STAFF_THERAPIST and enqueue PDF generation for B2C
+      const staffTherapistId =
+        this.configService.get<string>('STAFF_THERAPIST_ID');
+      if (staffTherapistId) {
+        await this.sessionsService.update(session.id, {
+          therapistUserId: staffTherapistId,
+        });
+      } else {
+        this.logger.warn(
+          'STAFF_THERAPIST_ID not set, unable to assign therapist to B2C session',
+        );
+      }
+
+      await this.queueAdapter
+        .enqueue(
+          JobNames.GeneratePdf,
+          {
+            sessionId: session.id,
+            isB2C: true,
+          },
+          { delayMs: 1000 },
+        )
+        .catch((err) => {
+          this.logger.warn(
+            `Failed to enqueue PDF job for B2C session ${session.id}: ${(err as Error).message}`,
+          );
+        });
     } catch (error) {
       // Catch DB constraint error if another request managed to save it first despite the lock (e.g. cross-instance race condition)
       if (
