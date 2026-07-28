@@ -89,7 +89,6 @@ export async function upsertInstitution(
       name: userName,
       email: userEmail,
       role: UserRole.THERAPIST,
-      institutionId: savedInstitution.id,
       passwordHash: buildSeedPasswordHash(userPassword),
       passwordSetAt: new Date(),
       passwordSetupToken: null,
@@ -98,7 +97,6 @@ export async function upsertInstitution(
   } else {
     operationalUser.name = userName;
     operationalUser.role = UserRole.THERAPIST;
-    operationalUser.institutionId = savedInstitution.id;
     operationalUser.passwordHash = buildSeedPasswordHash(userPassword);
     operationalUser.passwordSetAt = new Date();
     operationalUser.passwordSetupToken = null;
@@ -106,6 +104,18 @@ export async function upsertInstitution(
   }
 
   operationalUser = await userRepo.save(operationalUser);
+
+  const userInstitutionRepo = provider.getRepository('user_institutions');
+  const existingUI = await userInstitutionRepo.findOne({
+    where: { userId: operationalUser.id, institutionId: savedInstitution.id },
+  });
+  if (!existingUI) {
+    await userInstitutionRepo.save(userInstitutionRepo.create({
+      userId: operationalUser.id,
+      institutionId: savedInstitution.id,
+      role: 'ADMIN'
+    }));
+  }
 
   if (savedInstitution.responsibleTherapistUserId !== operationalUser.id) {
     savedInstitution.responsibleTherapistUserId = operationalUser.id;

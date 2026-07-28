@@ -24,7 +24,6 @@ export async function upsertAdminUser(provider: RepoProvider): Promise<User> {
     existingAdmin.passwordSetAt = new Date();
     existingAdmin.passwordSetupToken = null;
     existingAdmin.passwordSetupExpiresAt = null;
-    existingAdmin.institutionId = null;
     const updatedAdmin = await userRepo.save(existingAdmin);
     console.log(`Admin updated: ${adminEmail}`);
     return updatedAdmin;
@@ -38,7 +37,6 @@ export async function upsertAdminUser(provider: RepoProvider): Promise<User> {
     passwordSetAt: new Date(),
     passwordSetupToken: null,
     passwordSetupExpiresAt: null,
-    institutionId: null,
   });
 
   const createdAdmin = await userRepo.save(admin);

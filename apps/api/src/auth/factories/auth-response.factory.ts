@@ -32,7 +32,7 @@ export class AuthResponseFactory {
       email: user.email,
       sub: user.id,
       role: user.role,
-      institutionId: user.institutionId ?? null,
+      institutionId: user.userInstitutions?.[0]?.institutionId ?? null,
     });
   }
 
@@ -42,8 +42,8 @@ export class AuthResponseFactory {
       email: user.email,
       name: user.name,
       role: user.role,
-      institutionId: user.institutionId ?? null,
-      institutionName: user.institution?.name ?? null,
+      institutionId: user.userInstitutions?.[0]?.institutionId ?? null,
+      institutionName: user.userInstitutions?.[0]?.institution?.name ?? null,
     };
   }
 

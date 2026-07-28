@@ -48,8 +48,8 @@ export function mapToCreateDto(
         ? undefined
         : payloadInstitutionId ||
           voucher?.ownerInstitutionId ||
-          user?.institutionId ||
-          fallbackOwner?.institutionId ||
+          user?.userInstitutions?.[0]?.institutionId ||
+          fallbackOwner?.userInstitutions?.[0]?.institutionId ||
           undefined,
     patientId:
       (payloadPatientId ?? undefined) ||

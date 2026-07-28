@@ -36,8 +36,8 @@ export class UsersController {
           name: user.name,
           email: user.email,
           role: user.role,
-          institutionId: user.institutionId,
-          institutionName: user.institution?.name ?? null,
+          institutionId: user.userInstitutions?.[0]?.institutionId ?? null,
+          institutionName: user.userInstitutions?.[0]?.institution?.name ?? null,
           isActive: this.usersService.hasPasswordConfigured(user),
         })),
       };
@@ -62,7 +62,7 @@ export class UsersController {
       name: user.name,
       email: user.email,
       role: user.role,
-      institutionId: user.institutionId,
+      institutionId: user.userInstitutions?.[0]?.institutionId ?? null,
       activationEmailSent: !!user.passwordSetupToken,
     };
   }
