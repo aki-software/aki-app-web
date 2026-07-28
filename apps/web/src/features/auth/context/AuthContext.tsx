@@ -18,6 +18,8 @@ export interface AuthContextValue {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  activeInstitutionId: string | null;
+  setActiveInstitutionId: (id: string | null) => void;
 }
 interface AuthProviderProps {
   children: ReactNode;
@@ -48,8 +50,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [activeInstitutionId, setActiveInstitutionId] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('activeInstitutionId') || user?.userInstitutions?.[0]?.institutionId || null;
+    } catch {
+      return null;
+    }
+  });
 
-
+  const handleSetActiveInstitutionId = useCallback((id: string | null) => {
+    setActiveInstitutionId(id);
+    if (id) {
+      localStorage.setItem('activeInstitutionId', id);
+    } else {
+      localStorage.removeItem('activeInstitutionId');
+    }
+  }, []);
   const login = useCallback(async (credentials: LoginCredentials) => {
     setIsLoading(true);
     try {
@@ -92,8 +108,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isLoading,
       login,
       logout,
+      activeInstitutionId,
+      setActiveInstitutionId: handleSetActiveInstitutionId,
     }),
-    [user, accessToken, isLoading, login, logout]
+    [user, accessToken, isLoading, login, logout, activeInstitutionId, handleSetActiveInstitutionId]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

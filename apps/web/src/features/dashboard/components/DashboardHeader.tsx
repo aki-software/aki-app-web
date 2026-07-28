@@ -1,6 +1,7 @@
 import { Menu, Moon, Sun } from "lucide-react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useTheme } from "../../../hooks/useTheme";
+import { ContextSwitcher } from "./ContextSwitcher";
 
 interface DashboardHeaderProps {
   title: string;
@@ -30,6 +31,7 @@ export const DashboardHeader = ({ title, onOpenMobileMenu }: DashboardHeaderProp
       </div>
 
       <div className="flex items-center space-x-6 md:space-x-8">
+        <ContextSwitcher />
         <button
           onClick={toggleTheme}
           className="p-4 rounded-xl bg-app-surface/80 border border-app-border text-app-text-muted hover:text-app-primary transition-all shadow-sm hover:scale-110 active:scale-95 text-xs font-semibold uppercase"
