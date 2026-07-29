@@ -45,6 +45,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         );
         if (internalUser) {
           authUser.userId = internalUser.id;
+          authUser.role = internalUser.role;
+          authUser.institutionId =
+            internalUser.userInstitutions?.[0]?.institutionId ?? null;
         }
       }
 

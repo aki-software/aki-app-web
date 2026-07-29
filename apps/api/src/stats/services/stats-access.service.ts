@@ -36,6 +36,9 @@ export class StatsAccessService {
       return requestedInstitutionId;
     }
 
+    this.logger.log(`RESOLVING INSTITUTION SCOPE FOR USER: ${JSON.stringify(user)}`);
+    require('fs').appendFileSync('debug-stats.log', JSON.stringify(user) + '\n');
+
     if (!user.institutionId) {
       this.logger.warn(
         `${normalizedRole} user ${user.id} attempted to access stats without institutionId`,

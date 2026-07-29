@@ -7,8 +7,9 @@ import {
   Index,
   CreateDateColumn,
   UpdateDateColumn,
+  type Relation,
 } from 'typeorm';
-import { User } from './user.entity.js';
+import type { User } from './user.entity.js';
 import { Institution } from '../../institutions/entities/institution.entity.js';
 
 @Entity('user_institutions')
@@ -30,11 +31,11 @@ export class UserInstitution {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
-  @ManyToOne(() => User, (user) => user.userInstitutions, {
+  @ManyToOne('User', 'userInstitutions', {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })
-  user!: User;
+  user!: Relation<User>;
 
   @ManyToOne(() => Institution, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'institution_id' })

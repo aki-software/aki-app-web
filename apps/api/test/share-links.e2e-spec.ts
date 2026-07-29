@@ -27,7 +27,12 @@ describe('Share Links (e2e)', () => {
       .post('/sessions/session_id_123/share')
       .send({})
       .expect((res) => {
-        expect([HttpStatus.CREATED, HttpStatus.OK, HttpStatus.NOT_FOUND, HttpStatus.UNAUTHORIZED]).toContain(res.status);
+        expect([
+          HttpStatus.CREATED,
+          HttpStatus.OK,
+          HttpStatus.NOT_FOUND,
+          HttpStatus.UNAUTHORIZED,
+        ]).toContain(res.status);
       });
   });
 
@@ -36,7 +41,11 @@ describe('Share Links (e2e)', () => {
     return request(app.getHttpServer())
       .get('/sessions/share/expired-token-123')
       .expect((res) => {
-         expect([HttpStatus.NOT_FOUND, HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED]).toContain(res.status);
+        expect([
+          HttpStatus.NOT_FOUND,
+          HttpStatus.BAD_REQUEST,
+          HttpStatus.UNAUTHORIZED,
+        ]).toContain(res.status);
       });
   });
 });

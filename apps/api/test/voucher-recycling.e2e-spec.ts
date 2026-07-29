@@ -24,14 +24,19 @@ describe('Voucher Batching and Recycling (e2e)', () => {
   it('/vouchers/recycle (POST) - Unused Voucher Recycling', async () => {
     const payload = {
       therapistId: 'therapist-123',
-      institutionId: 'inst-456'
+      institutionId: 'inst-456',
     };
 
     return request(app.getHttpServer())
       .post('/vouchers/recycle')
       .send(payload)
       .expect((res) => {
-        expect([HttpStatus.OK, HttpStatus.CREATED, HttpStatus.NOT_FOUND, HttpStatus.UNAUTHORIZED]).toContain(res.status);
+        expect([
+          HttpStatus.OK,
+          HttpStatus.CREATED,
+          HttpStatus.NOT_FOUND,
+          HttpStatus.UNAUTHORIZED,
+        ]).toContain(res.status);
       });
   });
 });

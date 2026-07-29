@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Institution } from './entities/institution.entity.js';
 import type { CreateInstitutionDto } from './dto/create-institution.dto.js';
 import type { UpdateInstitutionDto } from './dto/update-institution.dto.js';
 import { UserInstitution } from '../users/entities/user-institution.entity.js';
-import { VouchersService } from '../vouchers/vouchers.service.js';
+import { Voucher } from '../vouchers/entities/voucher.entity.js';
+import { VoucherStatus, VoucherOwnerType } from '../vouchers/entities/voucher.enums.js';
 
 @Injectable()
 export class InstitutionsService {
@@ -14,7 +15,8 @@ export class InstitutionsService {
     private readonly institutionRepository: Repository<Institution>,
     @InjectRepository(UserInstitution)
     private readonly userInstitutionRepository: Repository<UserInstitution>,
-    private readonly vouchersService: VouchersService,
+    @InjectRepository(Voucher)
+    private readonly voucherRepository: Repository<Voucher>,
   ) {}
 
   async findAll(): Promise<Institution[]> {
@@ -94,10 +96,22 @@ export class InstitutionsService {
 
     if (userInstitution) {
       await this.userInstitutionRepository.remove(userInstitution);
-      await this.vouchersService.recycleTherapistVouchers(
-        institutionId,
-        therapistUserId,
-      );
+
+      // Recycle unspent vouchers assigned to this therapist back to the institution pool
+      const vouchers = await this.voucherRepository.find({
+        where: {
+          ownerInstitutionId: institutionId,
+          ownerUserId: therapistUserId,
+          status: In([VoucherStatus.AVAILABLE, VoucherStatus.SENT]),
+        },
+      });
+      if (vouchers.length > 0) {
+        for (const voucher of vouchers) {
+          voucher.ownerUserId = null;
+          voucher.ownerType = VoucherOwnerType.INSTITUTION;
+        }
+        await this.voucherRepository.save(vouchers);
+      }
     }
   }
 }

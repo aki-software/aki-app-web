@@ -33,25 +33,28 @@ export class UsersService {
   async findOneWithInstitution(id: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { id },
-      relations: ['institution'],
+      relations: ['userInstitutions', 'userInstitutions.institution'],
     });
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { email } });
+    return await this.userRepository.findOne({
+      where: { email },
+      relations: ['userInstitutions', 'userInstitutions.institution'],
+    });
   }
 
   async findByPasswordSetupToken(token: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { passwordSetupToken: token },
-      relations: ['institution'],
+      relations: ['userInstitutions', 'userInstitutions.institution'],
     });
   }
 
   async findTherapists(): Promise<User[]> {
     return await this.userRepository.find({
       where: { role: UserRole.THERAPIST },
-      relations: ['institution'],
+      relations: ['userInstitutions', 'userInstitutions.institution'],
       order: { name: 'ASC' },
     });
   }
@@ -59,7 +62,7 @@ export class UsersService {
   async findByPasswordResetToken(token: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { passwordResetToken: token },
-      relations: ['institution'],
+      relations: ['userInstitutions', 'userInstitutions.institution'],
     });
   }
 

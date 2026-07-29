@@ -7,8 +7,9 @@ import {
   DeleteDateColumn,
   OneToMany,
   Index,
+  type Relation,
 } from 'typeorm';
-import { UserInstitution } from './user-institution.entity.js';
+import type { UserInstitution } from './user-institution.entity.js';
 import { UserRole } from '@akit/contracts';
 
 export { UserRole } from '@akit/contracts';
@@ -71,8 +72,8 @@ export class User {
   @Column({ name: 'tc_accepted_at', type: 'timestamptz', nullable: true })
   tcAcceptedAt!: Date | null;
 
-  @OneToMany(() => UserInstitution, (userInstitution) => userInstitution.user)
-  userInstitutions!: UserInstitution[];
+  @OneToMany('UserInstitution', 'user')
+  userInstitutions!: Relation<UserInstitution>[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
