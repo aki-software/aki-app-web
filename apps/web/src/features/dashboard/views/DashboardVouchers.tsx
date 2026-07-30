@@ -1,5 +1,6 @@
 import { AlertTriangle, Layers3 } from "lucide-react";
 import { useState, useEffect, useMemo, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { PERIOD_DAYS, DETAIL_ITEMS_PER_PAGE } from "../constants/vouchers.constants";
 import { useVoucherList, calculateTotalPages } from "../hooks/useVoucherList";
@@ -20,6 +21,7 @@ import type { VoucherBatchDetailResponse } from "@akit/contracts";
 
 export function DashboardVouchers() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isAdmin = user?.role?.toUpperCase() === "ADMIN";
 
   // Messages State
@@ -165,6 +167,7 @@ export function DashboardVouchers() {
         isAdmin={isAdmin}
         showCreateForm={showCreateForm}
         onToggleForm={() => setShowCreateForm(prev => !prev)}
+        onBuyClick={() => navigate("/pricing")}
         stats={statsManager.stats}
         periodDays={PERIOD_DAYS}
       />

@@ -7,7 +7,9 @@ export const ContextSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const institutions = user?.userInstitutions?.map((ui) => ui.institution) || [];
+  const institutions = user?.institutionId 
+    ? [{ id: user.institutionId, name: user.institutionName }] 
+    : [];
   
   const activeInstitution = institutions.find(
     (inst) => inst?.id === activeInstitutionId

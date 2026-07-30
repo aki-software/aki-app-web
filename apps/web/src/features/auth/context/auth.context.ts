@@ -8,6 +8,8 @@ export interface AuthContextValue {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  activeInstitutionId: string | null;
+  setActiveInstitutionId: (id: string | null) => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

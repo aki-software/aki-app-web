@@ -8,19 +8,10 @@ import {
   setStoredToken,
   setStoredUser,
 } from '../../../utils/storage';
-import { AuthContext } from './auth.context';
+import { AuthContext, AuthContextValue } from './auth.context';
 import { AuthUser, LoginCredentials } from '@akit/contracts';
 
-export interface AuthContextValue {
-  user: AuthUser | null;
-  accessToken: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  logout: () => Promise<void>;
-  activeInstitutionId: string | null;
-  setActiveInstitutionId: (id: string | null) => void;
-}
+// interface is defined in auth.context.ts
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -52,7 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeInstitutionId, setActiveInstitutionId] = useState<string | null>(() => {
     try {
-      return localStorage.getItem('activeInstitutionId') || user?.userInstitutions?.[0]?.institutionId || null;
+      return localStorage.getItem('activeInstitutionId') || user?.institutionId || null;
     } catch {
       return null;
     }

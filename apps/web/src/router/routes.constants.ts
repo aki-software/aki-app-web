@@ -1,5 +1,6 @@
 export const APP_ROUTES = {
     ROOT: '/',
+    PRICING: '/pricing',
     AUTH: {
         LOGIN: '/login',
         SETUP_PASSWORD: '/setup-password',
@@ -15,5 +16,6 @@ export const APP_ROUTES = {
         INSTITUTIONS: 'institutions/:id',
         SETTINGS: 'settings',
         ACTIVITY: 'activity',
+        BILLING: 'billing',
     }
 } as const;

@@ -24,6 +24,9 @@ const DashboardUsers = lazy(() => import("../features/dashboard/views/DashboardU
 const InstitutionDetailOverview = lazy(() => import("../features/dashboard/views/InstitutionDetailOverview").then(m => ({ default: m.InstitutionDetailOverview })));
 const DashboardSettings = lazy(() => import("../features/dashboard/views/DashboardSettings").then(m => ({ default: m.DashboardSettings })));
 const DashboardActivity = lazy(() => import("../features/dashboard/views/DashboardActivity").then(m => ({ default: m.DashboardActivity })));
+const BillingDashboard = lazy(() => import("../features/dashboard/billing/BillingDashboard").then(m => ({ default: m.BillingDashboard })));
+
+const PricingPage = lazy(() => import("../features/dashboard/billing/PricingPage").then(m => ({ default: m.PricingPage })));
 
 function RootRedirect() {
   const { isAuthenticated } = useAuth();
@@ -34,6 +37,10 @@ export const router = createBrowserRouter([
   {
     path: APP_ROUTES.ROOT,
     element: <RootRedirect />,
+  },
+  {
+    path: APP_ROUTES.PRICING,
+    element: <SuspenseWrapper><PricingPage /></SuspenseWrapper>,
   },
   {
     path: APP_ROUTES.AUTH.LOGIN,
@@ -91,6 +98,10 @@ export const router = createBrowserRouter([
           {
             path: APP_ROUTES.DASHBOARD.ACTIVITY,
             element: <SuspenseWrapper><DashboardActivity /></SuspenseWrapper>,
+          },
+          {
+            path: APP_ROUTES.DASHBOARD.BILLING,
+            element: <SuspenseWrapper><BillingDashboard /></SuspenseWrapper>,
           },
           {
             path: "*",
