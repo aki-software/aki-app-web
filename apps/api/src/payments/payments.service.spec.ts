@@ -40,6 +40,12 @@ describe('PaymentsService', () => {
             getPackageName: jest.fn(),
           },
         },
+        {
+          provide: 'QUEUE_ADAPTER',
+          useValue: {
+            enqueue: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 

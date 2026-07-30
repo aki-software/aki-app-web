@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
+import { ConfigService } from '@nestjs/config';
+import { getQueueToken } from '@nestjs/bullmq';
+import { JobDispatcherService } from '../common/services/job-dispatcher.service';
 
 describe('PaymentsController', () => {
   let controller: PaymentsController;
@@ -15,6 +18,25 @@ describe('PaymentsController', () => {
           provide: PaymentsService,
           useValue: {
             verifyGooglePlayPurchase: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(),
+          },
+        },
+        {
+          provide: JobDispatcherService,
+          useValue: {
+            dispatch: jest.fn(),
+            dispatchWithRetry: jest.fn(),
+          },
+        },
+        {
+          provide: getQueueToken('stripe-webhooks'),
+          useValue: {
+            add: jest.fn(),
           },
         },
       ],
