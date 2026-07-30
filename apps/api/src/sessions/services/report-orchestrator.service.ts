@@ -36,9 +36,18 @@ export class ReportOrchestratorService {
     private readonly storageAdapter: StorageAdapter,
   ) {}
 
-  private async enrichReportDataWithLogo(reportData: ReportData, session: Session): Promise<void> {
-    if (session.institution?.logoUrl && this.storageAdapter.getPresignedDownloadUrl) {
-      reportData.institutionLogoUrl = await this.storageAdapter.getPresignedDownloadUrl(session.institution.logoUrl);
+  private async enrichReportDataWithLogo(
+    reportData: ReportData,
+    session: Session,
+  ): Promise<void> {
+    if (
+      session.institution?.logoUrl &&
+      this.storageAdapter.getPresignedDownloadUrl
+    ) {
+      reportData.institutionLogoUrl =
+        await this.storageAdapter.getPresignedDownloadUrl(
+          session.institution.logoUrl,
+        );
     }
   }
 

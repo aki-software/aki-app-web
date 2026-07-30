@@ -51,7 +51,9 @@ describe('ReportOrchestratorService', () => {
     };
 
     const mockStorageAdapter = {
-      getPresignedDownloadUrl: jest.fn().mockResolvedValue('https://s3.url/logo.png'),
+      getPresignedDownloadUrl: jest
+        .fn()
+        .mockResolvedValue('https://s3.url/logo.png'),
     };
 
     service = new ReportOrchestratorService(
@@ -77,29 +79,37 @@ describe('ReportOrchestratorService', () => {
         addOrderBy: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(mockSessionWithLogo),
       };
-      
+
       const mockSessionRepositoryWithLogo = {
         createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilderWithLogo),
       };
-      const getPresignedDownloadUrl = jest.fn().mockResolvedValue('https://s3.url/logo.png');
+      const getPresignedDownloadUrl = jest
+        .fn()
+        .mockResolvedValue('https://s3.url/logo.png');
       const mockStorageAdapter = { getPresignedDownloadUrl };
-      const buildReportData = jest.fn().mockResolvedValue({ ...mockReportData });
-      
+      const buildReportData = jest
+        .fn()
+        .mockResolvedValue({ ...mockReportData });
+
       const customService = new ReportOrchestratorService(
         mockSessionRepositoryWithLogo as any,
         { buildReportData } as any,
         new InMemoryReportCacheService(),
-        { generatePdfBuffer: jest.fn().mockResolvedValue(Buffer.from('pdf')) } as any,
+        {
+          generatePdfBuffer: jest.fn().mockResolvedValue(Buffer.from('pdf')),
+        } as any,
         { deliverReport: jest.fn() } as any,
         mockStorageAdapter as any,
       );
 
       await customService.getPdfBuffer(sessionId);
-      
+
       expect(getPresignedDownloadUrl).toHaveBeenCalledWith('inst1/logo.png');
       // Report data should be updated with logo url
       const generatedReportData = await buildReportData.mock.results[0].value;
-      expect(generatedReportData.institutionLogoUrl).toBe('https://s3.url/logo.png');
+      expect(generatedReportData.institutionLogoUrl).toBe(
+        'https://s3.url/logo.png',
+      );
     });
 
     it('GIVEN institution has NO logoUrl WHEN PDF is generated THEN PDF renders with A.kit logo only (no error)', async () => {
@@ -114,25 +124,29 @@ describe('ReportOrchestratorService', () => {
         addOrderBy: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue(mockSessionNoLogo),
       };
-      
+
       const mockSessionRepositoryNoLogo = {
         createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilderNoLogo),
       };
       const getPresignedDownloadUrl = jest.fn();
       const mockStorageAdapter = { getPresignedDownloadUrl };
-      const buildReportData = jest.fn().mockResolvedValue({ ...mockReportData });
-      
+      const buildReportData = jest
+        .fn()
+        .mockResolvedValue({ ...mockReportData });
+
       const customService = new ReportOrchestratorService(
         mockSessionRepositoryNoLogo as any,
         { buildReportData } as any,
         new InMemoryReportCacheService(),
-        { generatePdfBuffer: jest.fn().mockResolvedValue(Buffer.from('pdf')) } as any,
+        {
+          generatePdfBuffer: jest.fn().mockResolvedValue(Buffer.from('pdf')),
+        } as any,
         { deliverReport: jest.fn() } as any,
         mockStorageAdapter as any,
       );
 
       await customService.getPdfBuffer(sessionId);
-      
+
       expect(getPresignedDownloadUrl).not.toHaveBeenCalled();
       const generatedReportData = await buildReportData.mock.results[0].value;
       expect(generatedReportData.institutionLogoUrl).toBeUndefined();
