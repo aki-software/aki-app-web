@@ -10,6 +10,8 @@ import {
   Post,
   Query,
   UseGuards,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -25,7 +27,9 @@ import type {
   InstitutionOverviewResponse,
   PaginatedResponse,
   InstitutionOption,
+  PreSignedUrlResponse,
 } from '@akit/contracts';
+import { StorageService } from '../common/services/storage.service.js';
 import { InstitutionAnalyticsService } from './services/institution-analytics.service.js';
 import { InstitutionOperationalAccountService } from './services/institution-operational-account.service.js';
 import { InstitutionPresenterService } from './services/institution-presenter.service.js';
@@ -39,6 +43,7 @@ export class InstitutionsController {
     private readonly institutionAnalyticsService: InstitutionAnalyticsService,
     private readonly institutionOperationalAccountService: InstitutionOperationalAccountService,
     private readonly institutionPresenterService: InstitutionPresenterService,
+    private readonly storageService: StorageService,
   ) {}
 
   @Get()
@@ -100,6 +105,47 @@ export class InstitutionsController {
   async update(@Param('id') id: string, @Body() payload: UpdateInstitutionDto) {
     const institution = await this.institutionsService.update(id, payload);
     return this.institutionPresenterService.toInstitutionResponse(institution);
+  }
+
+  @Post(':id/logo/upload-url')
+  @UseGuards(InstitutionOwnerGuard)
+  async generateLogoUploadUrl(
+    @Param('id') id: string,
+    @Body('mimeType') mimeType: string = 'image/png',
+  ): Promise<PreSignedUrlResponse> {
+    if (!['image/png', 'image/jpeg'].includes(mimeType)) {
+      throw new BadRequestException(
+        'Formato de imagen no soportado (solo PNG o JPEG)',
+      );
+    }
+
+    const ext = mimeType.split('/')[1];
+    const fileKey = `institutions/${id}/logo/${Date.now()}.${ext}`;
+
+    const uploadUrl = await this.storageService.getPresignedUploadUrl(
+      fileKey,
+      mimeType,
+      300, // 5 minutes
+    );
+
+    if (!uploadUrl) {
+      throw new InternalServerErrorException(
+        'Error al generar la URL de subida',
+      );
+    }
+
+    return { uploadUrl, fileKey };
+  }
+
+  @Patch(':id/logo')
+  @UseGuards(InstitutionOwnerGuard)
+  async updateLogo(@Param('id') id: string, @Body('fileKey') fileKey: string) {
+    if (!fileKey || typeof fileKey !== 'string') {
+      throw new BadRequestException('fileKey es requerido y debe ser un texto');
+    }
+
+    await this.institutionsService.updateLogo(id, fileKey);
+    return { success: true };
   }
 
   @Patch(':id/status')

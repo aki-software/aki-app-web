@@ -75,3 +75,9 @@ export interface UpdateInstitutionDto {
   name?: string;
   billingEmail?: string;
 }
+
+export interface PreSignedUrlResponse {
+  uploadUrl: string;
+  fileKey: string;
+}
+

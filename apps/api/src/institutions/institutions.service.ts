@@ -6,7 +6,10 @@ import type { CreateInstitutionDto } from './dto/create-institution.dto.js';
 import type { UpdateInstitutionDto } from './dto/update-institution.dto.js';
 import { UserInstitution } from '../users/entities/user-institution.entity.js';
 import { Voucher } from '../vouchers/entities/voucher.entity.js';
-import { VoucherStatus, VoucherOwnerType } from '../vouchers/entities/voucher.enums.js';
+import {
+  VoucherStatus,
+  VoucherOwnerType,
+} from '../vouchers/entities/voucher.enums.js';
 
 @Injectable()
 export class InstitutionsService {
@@ -67,6 +70,13 @@ export class InstitutionsService {
     return await this.institutionRepository.findOneOrFail({
       where: { id },
       relations: ['responsibleTherapist'],
+    });
+  }
+
+  async updateLogo(id: string, logoUrl: string): Promise<Institution> {
+    await this.institutionRepository.update(id, { logoUrl });
+    return await this.institutionRepository.findOneOrFail({
+      where: { id },
     });
   }
 

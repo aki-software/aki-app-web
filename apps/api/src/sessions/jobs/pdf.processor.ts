@@ -32,7 +32,8 @@ export class PdfProcessor implements JobHandler<GeneratePdfJobPayload> {
     }
 
     this.logger.log(
-      `Preloading PDF for session ${payload.sessionId} (B2C: ${payload.isB2C})`,
+      `Preloading PDF for session ${payload.sessionId} (B2C: ${payload.isB2C})` +
+        (payload.logoUrl ? ` with logo` : ''),
     );
 
     // We can call a preloadReport method on the orchestrator to populate the cache

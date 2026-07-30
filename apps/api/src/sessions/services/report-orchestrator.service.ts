@@ -14,6 +14,8 @@ import { ReportPdfService } from './report-pdf.service.js';
 import { ReportDeliveryService } from './report-delivery.service.js';
 import { SessionScope } from '../types/session-scope.type.js';
 import type { ReportData } from '../../common/types/report.types.js';
+import { STORAGE_ADAPTER } from '../../common/constants/adapters.constants.js';
+import type { StorageAdapter } from '../../common/adapters/storage.adapter.js';
 import { SessionPaymentStatus } from '@akit/contracts';
 import { UserRole } from '../../users/entities/user.entity.js';
 
@@ -30,7 +32,15 @@ export class ReportOrchestratorService {
     private readonly reportCacheService: IReportCacheService,
     private readonly reportPdfService: ReportPdfService,
     private readonly reportDeliveryService: ReportDeliveryService,
+    @Inject(STORAGE_ADAPTER)
+    private readonly storageAdapter: StorageAdapter,
   ) {}
+
+  private async enrichReportDataWithLogo(reportData: ReportData, session: Session): Promise<void> {
+    if (session.institution?.logoUrl && this.storageAdapter.getPresignedDownloadUrl) {
+      reportData.institutionLogoUrl = await this.storageAdapter.getPresignedDownloadUrl(session.institution.logoUrl);
+    }
+  }
 
   async getPdfBuffer(sessionId: string, scope?: SessionScope): Promise<Buffer> {
     const session = await this.findOne(sessionId, scope);
@@ -39,6 +49,7 @@ export class ReportOrchestratorService {
     return await this.reportCacheService.getOrCreate(cacheKey, async () => {
       this.logger.debug(`Generating PDF for session: ${sessionId}`);
       const reportData = await this.reportService.buildReportData(session);
+      await this.enrichReportDataWithLogo(reportData, session);
       return await this.reportPdfService.generatePdfBuffer(reportData);
     });
   }
@@ -69,6 +80,8 @@ export class ReportOrchestratorService {
         session,
         targetEmail,
       );
+
+      await this.enrichReportDataWithLogo(reportData, session);
 
       const pdfBuffer =
         await this.reportPdfService.generatePdfBuffer(reportData);

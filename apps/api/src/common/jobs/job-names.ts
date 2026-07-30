@@ -3,4 +3,5 @@ export enum JobNames {
   GeneratePdf = 'generate_pdf',
   SendReport = 'send_report',
   CalculateMetrics = 'calculate_metrics',
+  ProcessStripeWebhook = 'process_stripe_webhook',
 }

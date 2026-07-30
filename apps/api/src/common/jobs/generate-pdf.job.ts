@@ -7,6 +7,7 @@ export type GeneratePdfJobPayload = JobRetryOptions & {
   sessionId?: string;
   userId?: string;
   isB2C?: boolean;
+  logoUrl?: string;
 };
 
 export type GeneratePdfJob = {

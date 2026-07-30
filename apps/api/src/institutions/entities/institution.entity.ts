@@ -26,6 +26,9 @@ export class Institution {
   @Column({ name: 'billing_email', type: 'varchar', nullable: true })
   billingEmail!: string | null;
 
+  @Column({ name: 'logo_url', type: 'varchar', nullable: true })
+  logoUrl!: string | null;
+
   @Column({
     name: 'responsible_therapist_user_id',
     type: 'uuid',

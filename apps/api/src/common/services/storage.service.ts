@@ -65,6 +65,69 @@ export class StorageService implements StorageAdapter {
     }
   }
 
+  async getPresignedUploadUrl(
+    fileName: string,
+    mimeType: string,
+    expiresIn = 300,
+  ): Promise<string | null> {
+    const s3Client = await this.getS3Client();
+    if (!s3Client) {
+      this.logger.warn(
+        'S3 Storage no está configurado. No se puede generar la URL presignada.',
+      );
+      return null;
+    }
+
+    try {
+      const { PutObjectCommand } = await import('@aws-sdk/client-s3');
+      const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: fileName,
+        ContentType: mimeType,
+        ACL: 'private',
+      });
+
+      return await getSignedUrl(s3Client, command, { expiresIn });
+    } catch (error) {
+      this.logger.error(
+        'Error generating pre-signed URL for S3',
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw new InternalServerErrorException('Error al generar URL de subida.');
+    }
+  }
+
+  async getPresignedDownloadUrl(
+    fileName: string,
+    expiresIn = 300,
+  ): Promise<string | null> {
+    const s3Client = await this.getS3Client();
+    if (!s3Client) {
+      this.logger.warn(
+        'S3 Storage no está configurado. No se puede generar la URL presignada de descarga.',
+      );
+      return null;
+    }
+
+    try {
+      const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+      const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: fileName,
+      });
+
+      return await getSignedUrl(s3Client, command, { expiresIn });
+    } catch (error) {
+      this.logger.error(
+        'Error generating pre-signed GET URL for S3',
+        error instanceof Error ? error.stack : String(error),
+      );
+      return null;
+    }
+  }
+
   private async getS3Client(): Promise<S3Client | null> {
     if (!this.isConfigured()) {
       return null;

@@ -39,7 +39,7 @@ export class ReportPdfService {
       hollandPercentages: reportData.hollandPercentages || null,
       strengths: reportData.strengths || [],
       colors,
-      logoDataUri: this.getLogoDataUri(),
+      logoDataUri: reportData.institutionLogoUrl || this.getLogoDataUri(),
       brandDomain: this.brandDomain,
       supportEmail: this.supportEmail,
     });

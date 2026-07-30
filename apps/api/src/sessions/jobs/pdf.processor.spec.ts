@@ -36,11 +36,24 @@ describe('PdfProcessor', () => {
     expect(reportOrchestratorService.preloadReport).not.toHaveBeenCalled();
   });
 
-  it('should call preloadReport with correct sessionId', async () => {
+  it('should call preloadReport with correct sessionId (logoUrl absent)', async () => {
     const payload = {
       sessionId: 'session1',
       userId: '123',
       isB2C: true,
+    } as GeneratePdfJobPayload;
+    await processor.handle(payload);
+    expect(reportOrchestratorService.preloadReport).toHaveBeenCalledWith(
+      'session1',
+    );
+  });
+
+  it('should call preloadReport with correct sessionId (logoUrl present)', async () => {
+    const payload = {
+      sessionId: 'session1',
+      userId: '123',
+      isB2C: true,
+      logoUrl: 'https://example.com/logo.png',
     } as GeneratePdfJobPayload;
     await processor.handle(payload);
     expect(reportOrchestratorService.preloadReport).toHaveBeenCalledWith(

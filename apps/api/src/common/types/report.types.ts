@@ -41,4 +41,5 @@ export interface ReportData {
   summary: ReportSummary;
   tripletInsight: ReportTripletInsight | null;
   strengths: string[];
+  institutionLogoUrl?: string | null;
 }

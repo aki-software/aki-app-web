@@ -7,6 +7,7 @@ import { InstitutionOperationalAccountService } from './services/institution-ope
 import { InstitutionPresenterService } from './services/institution-presenter.service.js';
 import { InstitutionOwnerGuard } from './guards/institution-owner.guard.js';
 import { UserRole } from '../users/entities/user.entity.js';
+import { StorageService } from '../common/services/storage.service.js';
 
 describe('InstitutionsController & InstitutionOwnerGuard', () => {
   let controller: InstitutionsController;
@@ -22,6 +23,7 @@ describe('InstitutionsController & InstitutionOwnerGuard', () => {
       update: jest.fn(),
       updateStatus: jest.fn(),
       softRemove: jest.fn(),
+      updateLogo: jest.fn(),
     };
     analyticsService = {
       getStats: jest.fn(),
@@ -46,6 +48,10 @@ describe('InstitutionsController & InstitutionOwnerGuard', () => {
           useValue: operationalService,
         },
         { provide: InstitutionPresenterService, useValue: presenterService },
+        {
+          provide: StorageService,
+          useValue: { getPresignedUploadUrl: jest.fn() },
+        },
         InstitutionOwnerGuard,
       ],
     }).compile();
@@ -217,6 +223,41 @@ describe('InstitutionsController & InstitutionOwnerGuard', () => {
         email: 'ops@test.com',
       });
       expect(result.activationEmailSent).toBe(true);
+    });
+  });
+
+  describe('generateLogoUploadUrl', () => {
+    it('should return a pre-signed url', async () => {
+      const storageService = {
+        getPresignedUploadUrl: jest
+          .fn()
+          .mockResolvedValue('https://presigned.url'),
+      };
+      const controllerWithStorage = new InstitutionsController(
+        institutionsService,
+        analyticsService,
+        operationalService,
+        presenterService,
+        storageService as any,
+      );
+      const result = await controllerWithStorage.generateLogoUploadUrl(
+        '1',
+        'image/png',
+      );
+      expect(result.uploadUrl).toBe('https://presigned.url');
+      expect(result.fileKey).toContain('institutions/1/logo/');
+    });
+  });
+
+  describe('updateLogo', () => {
+    it('should call institutionsService.updateLogo', async () => {
+      institutionsService.updateLogo.mockResolvedValue(undefined);
+      const result = await controller.updateLogo('1', 'file.png');
+      expect(institutionsService.updateLogo).toHaveBeenCalledWith(
+        '1',
+        'file.png',
+      );
+      expect(result).toEqual({ success: true });
     });
   });
 });
