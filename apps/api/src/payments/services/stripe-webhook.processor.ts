@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { StripeEvent } from '../entities/stripe-event.entity.js';
-import { StripeProductMapping } from '../entities/stripe-product-mapping.entity.js';
+import { PaymentEvent } from '../entities/payment-event.entity.js';
+import { VoucherPlan } from '../entities/voucher-plan.entity.js';
+import { PaymentEventStatus } from '../enums/payment-event-status.enum.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
 import { VoucherOwnerType } from '../../vouchers/entities/voucher.enums.js';
 import { JobHandler } from '../../common/jobs/handlers/job-handler.interface.js';
@@ -33,10 +34,10 @@ export class StripeWebhookProcessor implements JobHandler<StripeWebhookPayload> 
   private readonly logger = new Logger(StripeWebhookProcessor.name);
 
   constructor(
-    @InjectRepository(StripeEvent)
-    private readonly stripeEventRepo: Repository<StripeEvent>,
-    @InjectRepository(StripeProductMapping)
-    private readonly productMappingRepo: Repository<StripeProductMapping>,
+    @InjectRepository(PaymentEvent)
+    private readonly paymentEventRepo: Repository<PaymentEvent>,
+    @InjectRepository(VoucherPlan)
+    private readonly voucherPlanRepo: Repository<VoucherPlan>,
     private readonly vouchersService: VouchersService,
     private readonly dataSource: DataSource,
     private readonly jobDispatcher: JobDispatcherService,
@@ -50,8 +51,8 @@ export class StripeWebhookProcessor implements JobHandler<StripeWebhookPayload> 
     const session = payload.data.object;
 
     // Idempotency check
-    const existingEvent = await this.stripeEventRepo.findOne({
-      where: { stripeEventId: payload.id },
+    const existingEvent = await this.paymentEventRepo.findOne({
+      where: { gatewayPaymentId: payload.id },
     });
 
     if (existingEvent) {
@@ -74,11 +75,11 @@ export class StripeWebhookProcessor implements JobHandler<StripeWebhookPayload> 
     const priceId =
       session.metadata?.priceId ?? session.line_items?.data?.[0]?.price?.id;
 
-    let mapping: StripeProductMapping | null = null;
+    let mapping: VoucherPlan | null = null;
 
     if (priceId) {
-      mapping = await this.productMappingRepo.findOne({
-        where: { stripePriceId: priceId },
+      mapping = await this.voucherPlanRepo.findOne({
+        where: { description: priceId }, // TODO(Phase 3): use proper field
       });
     }
 
@@ -101,10 +102,16 @@ export class StripeWebhookProcessor implements JobHandler<StripeWebhookPayload> 
         name: `Stripe Checkout ${session.id}`,
       });
 
-      const processedEvent = this.stripeEventRepo.create({
-        stripeEventId: payload.id,
-        type: payload.type,
-        payload: payload as unknown as Record<string, unknown>,
+      const processedEvent = this.paymentEventRepo.create({
+        gatewayName: 'stripe', // TODO(Phase 3): abstract
+        gatewayPaymentId: payload.id,
+        gatewayEventType: payload.type,
+        status: PaymentEventStatus.APPROVED, // TODO(Phase 3): abstract
+        amountPaid: session.amount_total || 0,
+        currency: 'usd', // TODO(Phase 3): abstract
+        voucherPlanId: mapping.id,
+        institutionId: institutionId,
+        rawPayload: payload as unknown as Record<string, unknown>,
       });
       await queryRunner.manager.save(processedEvent);
 

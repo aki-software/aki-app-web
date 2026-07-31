@@ -5,9 +5,9 @@ import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { AppModule } from './../src/app.module';
 import { Institution } from '../src/institutions/entities/institution.entity';
-import { StripeProductMapping } from '../src/payments/entities/stripe-product-mapping.entity';
+import { VoucherPlan } from '../src/payments/entities/voucher-plan.entity';
 import { VoucherBatch } from '../src/vouchers/entities/voucher-batch.entity';
-import { StripeEvent } from '../src/payments/entities/stripe-event.entity';
+import { PaymentEvent } from '../src/payments/entities/payment-event.entity';
 
 describe('Stripe Webhook (e2e)', () => {
   let app: INestApplication<App>;
@@ -25,7 +25,7 @@ describe('Stripe Webhook (e2e)', () => {
     dataSource = app.get<DataSource>(DataSource);
 
     const instRepo = dataSource.getRepository(Institution);
-    const mappingRepo = dataSource.getRepository(StripeProductMapping);
+    const mappingRepo = dataSource.getRepository(VoucherPlan);
 
     const inst = await instRepo.save(
       instRepo.create({
@@ -37,7 +37,7 @@ describe('Stripe Webhook (e2e)', () => {
 
     await mappingRepo.save(
       mappingRepo.create({
-        stripePriceId: 'price_test_e2e',
+        description: 'price_test_e2e',
         voucherQuantity: 50,
       }),
     );
@@ -45,14 +45,14 @@ describe('Stripe Webhook (e2e)', () => {
 
   afterAll(async () => {
     const instRepo = dataSource.getRepository(Institution);
-    const mappingRepo = dataSource.getRepository(StripeProductMapping);
+    const mappingRepo = dataSource.getRepository(VoucherPlan);
     const batchRepo = dataSource.getRepository(VoucherBatch);
-    const stripeEventRepo = dataSource.getRepository(StripeEvent);
+    const stripeEventRepo = dataSource.getRepository(PaymentEvent);
 
     await batchRepo.delete({ ownerInstitutionId: institutionId });
-    await stripeEventRepo.delete({ stripeEventId: 'evt_test_e2e_123' });
+    await stripeEventRepo.delete({ gatewayPaymentId: 'evt_test_e2e_123' });
     await instRepo.delete({ id: institutionId });
-    await mappingRepo.delete({ stripePriceId: 'price_test_e2e' });
+    await mappingRepo.delete({ description: 'price_test_e2e' });
 
     await app.close();
   });

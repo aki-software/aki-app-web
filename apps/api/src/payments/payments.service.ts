@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { StripeProductMapping } from './entities/stripe-product-mapping.entity.js';
+import { VoucherPlan } from './entities/voucher-plan.entity.js';
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { SessionsService } from '../sessions/sessions.service';
 import { SessionPaymentStatus } from '@akit/contracts';
@@ -33,8 +33,8 @@ export class PaymentsService {
     private readonly googlePlayAdapter: GooglePlayAdapter,
     private readonly configService: ConfigService,
     @Inject(QUEUE_ADAPTER) private readonly queueAdapter: QueueAdapter,
-    @InjectRepository(StripeProductMapping)
-    private readonly productMappingRepo: Repository<StripeProductMapping>,
+    @InjectRepository(VoucherPlan)
+    private readonly voucherPlanRepo: Repository<VoucherPlan>,
   ) {}
 
   async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto) {
@@ -215,19 +215,20 @@ export class PaymentsService {
     }
     const stripe = new Stripe(stripeKey);
 
-    const mappings = await this.productMappingRepo.find({
+    const mappings = await this.voucherPlanRepo.find({
       where: { isActive: true },
     });
 
     const plans = await Promise.all(
       mappings.map(async (mapping) => {
         try {
-          const price = await stripe.prices.retrieve(mapping.stripePriceId);
+          const stripePriceId = mapping.description as string; // TODO(Phase 2): update to use VoucherPlan fields
+          const price = await stripe.prices.retrieve(stripePriceId);
           const product = await stripe.products.retrieve(
             price.product as string,
           );
           return {
-            id: mapping.stripePriceId,
+            id: stripePriceId,
             name: product.name,
             price: price.unit_amount ? price.unit_amount / 100 : 0,
             currency: price.currency.toUpperCase(),
@@ -235,7 +236,7 @@ export class PaymentsService {
           };
         } catch (error) {
           this.logger.error(
-            `Error fetching Stripe price ${mapping.stripePriceId}:`,
+            `Error fetching Stripe price ${mapping.description}:`, // TODO(Phase 2): update to use VoucherPlan fields
             error,
           );
           return null;

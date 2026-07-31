@@ -7,8 +7,8 @@ import { SessionsModule } from '../sessions/sessions.module.js';
 import { VouchersModule } from '../vouchers/vouchers.module.js';
 import { PaymentLockService } from './payment-lock.service.js';
 import { GooglePlayAdapter } from './google-play.adapter.js';
-import { StripeEvent } from './entities/stripe-event.entity.js';
-import { StripeProductMapping } from './entities/stripe-product-mapping.entity.js';
+import { PaymentEvent } from './entities/payment-event.entity.js';
+import { VoucherPlan } from './entities/voucher-plan.entity.js';
 import { StripeWebhookProcessor } from './services/stripe-webhook.processor.js';
 import { JobDispatcherService } from '../common/services/job-dispatcher.service.js';
 import { CommonModule } from '../common/common.module.js';
@@ -18,7 +18,7 @@ import { CommonModule } from '../common/common.module.js';
     SessionsModule,
     VouchersModule,
     CommonModule,
-    TypeOrmModule.forFeature([StripeEvent, StripeProductMapping]),
+    TypeOrmModule.forFeature([PaymentEvent, VoucherPlan]),
   ],
   controllers: [PaymentsController, PublicPaymentsController],
   providers: [
