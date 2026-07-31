@@ -1,8 +1,12 @@
-import { IsString, IsUrl } from 'class-validator';
+import { IsIn, IsString, IsUrl, IsUUID } from 'class-validator';
 
 export class CreateCheckoutSessionDto {
+  @IsUUID()
+  voucherPlanId!: string;
+
   @IsString()
-  stripePriceId!: string;
+  @IsIn(['mercadopago', 'stripe'] as const)
+  gateway!: 'mercadopago' | 'stripe';
 
   @IsUrl({ require_tld: false })
   successUrl!: string;

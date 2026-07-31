@@ -17,11 +17,16 @@ import { PaymentLockService } from './payment-lock.service';
 import { GooglePlayAdapter } from './adapters/google-play.adapter.js';
 
 import { ConfigService } from '@nestjs/config';
-import { JobNames } from '../common/jobs/job-names';
-import type { QueueAdapter } from '../common/adapters/queue.adapter';
-import { QUEUE_ADAPTER } from '../common/constants/adapters.constants';
-import Stripe from 'stripe';
-import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
+import { JobNames } from '../common/jobs/job-names.js';
+import type { QueueAdapter } from '../common/adapters/queue.adapter.js';
+import { QUEUE_ADAPTER } from '../common/constants/adapters.constants.js';
+import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto.js';
+import { PaymentGatewayRegistry } from './services/payment-gateway.registry.js';
+import type {
+  GatewayName,
+  PaymentVerificationResult,
+} from './interfaces/payment-gateway.interface.js';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class PaymentsService {
@@ -35,6 +40,7 @@ export class PaymentsService {
     @Inject(QUEUE_ADAPTER) private readonly queueAdapter: QueueAdapter,
     @InjectRepository(VoucherPlan)
     private readonly voucherPlanRepo: Repository<VoucherPlan>,
+    private readonly gatewayRegistry: PaymentGatewayRegistry,
   ) {}
 
   async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto) {
@@ -95,7 +101,10 @@ export class PaymentsService {
   }
 
   private isAlreadyProcessed(
-    session: { paymentReference?: string | null; paymentStatus?: SessionPaymentStatus },
+    session: {
+      paymentReference?: string | null;
+      paymentStatus?: SessionPaymentStatus;
+    },
     token: string,
   ): boolean {
     return (
@@ -210,67 +219,41 @@ export class PaymentsService {
     return { success: true, valid: true };
   }
 
-  async getPricingPlans() {
-    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (!stripeKey) {
-      this.logger.error('STRIPE_SECRET_KEY is missing in environment');
-      throw new InternalServerErrorException('Payment gateway not configured');
-    }
-    const stripe = new Stripe(stripeKey);
-
-    const mappings = await this.voucherPlanRepo.find({
+  async getPricingPlans(): Promise<VoucherPlan[]> {
+    return this.voucherPlanRepo.find({
       where: { isActive: true },
+      order: { priceArs: 'ASC' },
     });
-
-    const plans = await Promise.all(
-      mappings.map(async (mapping) => {
-        try {
-          const stripePriceId = mapping.description as string; // TODO(Phase 2): update to use VoucherPlan fields
-          const price = await stripe.prices.retrieve(stripePriceId);
-          const product = await stripe.products.retrieve(
-            price.product as string,
-          );
-          return {
-            id: stripePriceId,
-            name: product.name,
-            price: price.unit_amount ? price.unit_amount / 100 : 0,
-            currency: price.currency.toUpperCase(),
-            voucherQuantity: mapping.voucherQuantity,
-          };
-        } catch (error) {
-          this.logger.error(
-            `Error fetching Stripe price ${mapping.description}:`, // TODO(Phase 2): update to use VoucherPlan fields
-            error,
-          );
-          return null;
-        }
-      }),
-    );
-
-    return plans.filter((p) => p !== null);
   }
 
   async createCheckoutSession(
     dto: CreateCheckoutSessionDto,
     userId: string,
     institutionId: string,
-  ) {
-    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (!stripeKey) {
-      this.logger.error('STRIPE_SECRET_KEY is missing in environment');
-      throw new InternalServerErrorException('Payment gateway not configured');
-    }
-    const stripe = new Stripe(stripeKey);
-
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      line_items: [{ price: dto.stripePriceId, quantity: 1 }],
-      success_url: dto.successUrl,
-      cancel_url: dto.cancelUrl,
-      metadata: { institutionId, priceId: dto.stripePriceId },
-      client_reference_id: institutionId,
+  ): Promise<{ checkoutUrl: string }> {
+    const plan = await this.voucherPlanRepo.findOne({
+      where: { id: dto.voucherPlanId, isActive: true },
     });
+    if (!plan) {
+      throw new NotFoundException('Voucher plan not found or inactive');
+    }
 
-    return { url: session.url };
+    const adapter = this.gatewayRegistry.get(dto.gateway);
+    const result = await adapter.createCheckoutSession({
+      plan,
+      userId,
+      institutionId,
+      successUrl: dto.successUrl,
+      cancelUrl: dto.cancelUrl,
+    });
+    return { checkoutUrl: result.checkoutUrl };
+  }
+
+  async verifyPayment(
+    gatewayPaymentId: string,
+    gateway: GatewayName,
+  ): Promise<PaymentVerificationResult> {
+    const adapter = this.gatewayRegistry.get(gateway);
+    return adapter.verifyPayment(gatewayPaymentId);
   }
 }

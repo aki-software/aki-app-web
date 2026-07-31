@@ -2,6 +2,7 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentsController } from './payments.controller.js';
 import { PublicPaymentsController } from './public-payments.controller.js';
+import { AdminPaymentsController } from './admin-payments.controller.js';
 import { PaymentsService } from './payments.service.js';
 import { SessionsModule } from '../sessions/sessions.module.js';
 import { VouchersModule } from '../vouchers/vouchers.module.js';
@@ -23,7 +24,7 @@ import { GooglePlayAdapter } from './adapters/google-play.adapter.js';
     CommonModule,
     TypeOrmModule.forFeature([PaymentEvent, VoucherPlan]),
   ],
-  controllers: [PaymentsController, PublicPaymentsController],
+  controllers: [PaymentsController, PublicPaymentsController, AdminPaymentsController],
   providers: [
     PaymentsService,
     PaymentLockService,
