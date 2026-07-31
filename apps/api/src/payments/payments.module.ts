@@ -8,7 +8,7 @@ import { VouchersModule } from '../vouchers/vouchers.module.js';
 import { PaymentLockService } from './payment-lock.service.js';
 import { PaymentEvent } from './entities/payment-event.entity.js';
 import { VoucherPlan } from './entities/voucher-plan.entity.js';
-import { StripeWebhookProcessor } from './services/stripe-webhook.processor.js';
+import { PaymentWebhookProcessor } from './services/payment-webhook.processor.js';
 import { JobDispatcherService } from '../common/services/job-dispatcher.service.js';
 import { CommonModule } from '../common/common.module.js';
 import { PaymentGatewayRegistry } from './services/payment-gateway.registry.js';
@@ -31,14 +31,14 @@ import { GooglePlayAdapter } from './adapters/google-play.adapter.js';
     MercadoPagoAdapter,
     StripeAdapter,
     GooglePlayAdapter,
-    StripeWebhookProcessor,
+    PaymentWebhookProcessor,
   ],
   exports: [PaymentGatewayRegistry, PaymentsService],
 })
 export class PaymentsModule implements OnModuleInit {
   constructor(
     private readonly jobDispatcher: JobDispatcherService,
-    private readonly stripeWebhookProcessor: StripeWebhookProcessor,
+    private readonly paymentWebhookProcessor: PaymentWebhookProcessor,
     private readonly registry: PaymentGatewayRegistry,
     private readonly mpAdapter: MercadoPagoAdapter,
     private readonly stripeAdapter: StripeAdapter,
@@ -49,6 +49,6 @@ export class PaymentsModule implements OnModuleInit {
     this.registry.register(this.mpAdapter);
     this.registry.register(this.stripeAdapter);
     this.registry.register(this.googlePlayAdapter);
-    this.jobDispatcher.registerHandler(this.stripeWebhookProcessor);
+    this.jobDispatcher.registerHandler(this.paymentWebhookProcessor);
   }
 }

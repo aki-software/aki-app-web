@@ -42,7 +42,8 @@ function extractCheckoutSession(type: WebhookEventType): StripeEventExtractor {
  */
 export const STRIPE_EVENT_EXTRACTORS: Record<string, StripeEventExtractor> = {
   'checkout.session.completed': extractCheckoutSession('approved'),
-  'checkout.session.async_payment_succeeded': extractCheckoutSession('approved'),
+  'checkout.session.async_payment_succeeded':
+    extractCheckoutSession('approved'),
   'checkout.session.async_payment_failed': extractCheckoutSession('rejected'),
   'checkout.session.expired': extractCheckoutSession('rejected'),
 
@@ -78,7 +79,10 @@ export const STRIPE_EVENT_EXTRACTORS: Record<string, StripeEventExtractor> = {
 };
 
 /** Maps Stripe checkout session payment_status to our internal PaymentStatus. */
-export const STRIPE_SESSION_STATUS_MAP: Record<string, 'approved' | 'pending' | 'rejected'> = {
+export const STRIPE_SESSION_STATUS_MAP: Record<
+  string,
+  'approved' | 'pending' | 'rejected'
+> = {
   paid: 'approved',
   unpaid: 'pending',
 };
