@@ -2,15 +2,50 @@ import {
   Injectable,
   Logger,
   InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { androidpublisher_v3 } from 'googleapis';
+import type {
+  PaymentGateway,
+  GatewayName,
+  CreateSessionParams,
+  CheckoutSessionResult,
+  PaymentVerificationResult,
+  WebhookEventResult,
+} from '../interfaces/payment-gateway.interface.js';
 
 @Injectable()
-export class GooglePlayAdapter {
+export class GooglePlayAdapter implements PaymentGateway {
+  readonly name: GatewayName = 'google_play';
   private readonly logger = new Logger(GooglePlayAdapter.name);
 
   constructor(private readonly configService: ConfigService) {}
+
+  async createCheckoutSession(
+    params: CreateSessionParams,
+  ): Promise<CheckoutSessionResult> {
+    throw new BadRequestException(
+      'Google Play purchases are initiated from the mobile app',
+    );
+  }
+
+  async verifyPayment(
+    gatewayPaymentId: string,
+  ): Promise<PaymentVerificationResult> {
+    // This gateway uses verifyPlayPurchase via PaymentsService directly due to its unique flow.
+    // We implement a minimal verifyPayment to satisfy the interface, but it's not meant for the generic webhook path.
+    throw new BadRequestException(
+      'Use verifyGooglePlayPurchase for Google Play transactions',
+    );
+  }
+
+  async constructWebhookEvent(
+    rawBody: Buffer,
+    signature: string,
+  ): Promise<WebhookEventResult> {
+    throw new BadRequestException('Google Play does not use webhooks');
+  }
 
   async getAndroidPublisher(): Promise<androidpublisher_v3.Androidpublisher> {
     const { google } = await import('googleapis');
@@ -36,7 +71,6 @@ export class GooglePlayAdapter {
     return google.androidpublisher({ version: 'v3', auth });
   }
 
-  // Comentario para forzar recarga de .env
   getPackageName(): string {
     const packageName = this.configService.get<string>('ANDROID_PACKAGE_NAME');
 

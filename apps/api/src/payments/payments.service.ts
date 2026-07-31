@@ -14,7 +14,7 @@ import { SessionsService } from '../sessions/sessions.service';
 import { SessionPaymentStatus } from '@akit/contracts';
 import type { androidpublisher_v3 } from 'googleapis';
 import { PaymentLockService } from './payment-lock.service';
-import { GooglePlayAdapter } from './google-play.adapter';
+import { GooglePlayAdapter } from './adapters/google-play.adapter.js';
 
 import { ConfigService } from '@nestjs/config';
 import { JobNames } from '../common/jobs/job-names';

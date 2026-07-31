@@ -123,6 +123,9 @@ importers:
       ioredis:
         specifier: ^5.10.1
         version: 5.10.1
+      mercadopago:
+        specifier: ^3.2.1
+        version: 3.2.1
       nestjs-pino:
         specifier: ^4.6.0
         version: 4.6.0(@nestjs/common@11.1.14(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(pino-http@11.0.0)(pino@10.3.1)(rxjs@7.8.2)
@@ -6386,6 +6389,10 @@ packages:
   memfs@3.5.3:
     resolution: {integrity: sha512-UERzLsxzllchadvbPs5aolHh65ISpKpM+ccLbOJ8/vvpBKmAWf+la7dXFy7Mr0ySHbdHrFv5kGFCUHHe6GFEmw==}
     engines: {node: '>= 4.0.0'}
+
+  mercadopago@3.2.1:
+    resolution: {integrity: sha512-CFKq5H4XCL8xiLcsFbW84uGZPYnIpE2IRWlDGSHLQf3rszSiHRleWrrg7KG486B46GpJ0gzhvGMdWVwsNKTvFg==}
+    engines: {node: '>=18'}
 
   merge-descriptors@2.0.0:
     resolution: {integrity: sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g==}
@@ -16031,6 +16038,8 @@ snapshots:
   memfs@3.5.3:
     dependencies:
       fs-monkey: 1.1.0
+
+  mercadopago@3.2.1: {}
 
   merge-descriptors@2.0.0: {}
 
