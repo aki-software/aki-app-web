@@ -4,8 +4,10 @@ import { SessionsService } from '../sessions/sessions.service';
 import { ConfigService } from '@nestjs/config';
 import { SessionPaymentStatus } from '@akit/contracts';
 import { PaymentLockService } from './payment-lock.service';
-import { GooglePlayAdapter } from './google-play.adapter';
-
+import { GooglePlayAdapter } from './adapters/google-play.adapter';
+import { PaymentGatewayRegistry } from './services/payment-gateway.registry';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { VoucherPlan } from './entities/voucher-plan.entity';
 describe('PaymentsService', () => {
   let service: PaymentsService;
 
@@ -44,6 +46,19 @@ describe('PaymentsService', () => {
           provide: 'QUEUE_ADAPTER',
           useValue: {
             enqueue: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: getRepositoryToken(VoucherPlan),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: PaymentGatewayRegistry,
+          useValue: {
+            get: jest.fn(),
           },
         },
       ],

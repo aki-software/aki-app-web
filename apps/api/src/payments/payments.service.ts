@@ -26,7 +26,6 @@ import type {
   GatewayName,
   PaymentVerificationResult,
 } from './interfaces/payment-gateway.interface.js';
-import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class PaymentsService {
