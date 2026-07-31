@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
-import * as crypto from 'crypto';
 import type {
   PaymentGateway,
   GatewayName,
@@ -13,32 +12,16 @@ import type {
   CheckoutSessionResult,
   PaymentVerificationResult,
   WebhookEventResult,
-  PaymentStatus,
-  WebhookEventType,
 } from '../interfaces/payment-gateway.interface.js';
-
-// --- Status lookup tables (O(1), easily extended) ---
-
-const MP_PAYMENT_STATUS_MAP: Record<string, PaymentStatus> = {
-  approved: 'approved',
-  pending: 'pending',
-  in_process: 'pending',
-};
-
-const MP_WEBHOOK_STATUS_MAP: Record<string, WebhookEventType> = {
-  approved: 'approved',
-  refunded: 'refunded',
-  charged_back: 'chargeback',
-  rejected: 'rejected',
-  cancelled: 'rejected',
-};
-
-// --- Parsed signature header shape ---
-
-interface MpSignatureHeader {
-  ts: string;
-  v1: string;
-}
+import {
+  parseSignatureHeader,
+  validateSignature,
+  parseWebhookPayload,
+} from './mercadopago-webhook.validator.js';
+import {
+  MP_PAYMENT_STATUS_MAP,
+  MP_WEBHOOK_STATUS_MAP,
+} from './mercadopago-status.maps.js';
 
 @Injectable()
 export class MercadoPagoAdapter implements PaymentGateway {
@@ -46,10 +29,6 @@ export class MercadoPagoAdapter implements PaymentGateway {
   private readonly logger = new Logger(MercadoPagoAdapter.name);
 
   constructor(private readonly configService: ConfigService) {}
-
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
 
   private getClient(): MercadoPagoConfig {
     const accessToken = this.configService.get<string>('MP_ACCESS_TOKEN');
@@ -61,74 +40,14 @@ export class MercadoPagoAdapter implements PaymentGateway {
     return new MercadoPagoConfig({ accessToken });
   }
 
-  /** Parses the x-signature header: "ts=...,v1=..." */
-  private parseSignatureHeader(signature: string): MpSignatureHeader {
-    const result: MpSignatureHeader = { ts: '', v1: '' };
-    for (const part of signature.split(',')) {
-      const [key, value] = part.split('=');
-      if (key === 'ts') result.ts = value;
-      if (key === 'v1') result.v1 = value;
-    }
-    return result;
-  }
-
-  /** Validates HMAC-SHA256 signature. Logs warning but does NOT throw — MP API double-checks. */
-  private validateSignature(
-    paymentId: unknown,
-    requestId: unknown,
-    ts: string,
-    v1: string,
-    secret: string,
-  ): void {
-    const manifest = `id:${paymentId};request-id:${requestId ?? ''};ts:${ts};`;
-    const expected = crypto
-      .createHmac('sha256', secret)
-      .update(manifest)
-      .digest('hex');
-
-    if (expected !== v1) {
-      this.logger.warn(
-        `MercadoPago webhook signature mismatch. Expected ${expected}, got ${v1}`,
-      );
-    }
-  }
-
-  /** Parses raw body JSON and extracts the numeric payment ID. */
-  private parseWebhookPayload(rawBody: Buffer): {
-    payload: Record<string, unknown>;
-    paymentId: unknown;
-  } {
-    let payload: Record<string, unknown>;
-    try {
-      payload = JSON.parse(rawBody.toString('utf8')) as Record<string, unknown>;
-    } catch {
-      throw new InternalServerErrorException('Invalid webhook payload format');
-    }
-
-    const dataObj = payload.data as Record<string, unknown> | undefined;
-    const paymentId = dataObj?.id ?? payload.id;
-    if (!paymentId) {
-      throw new InternalServerErrorException(
-        'Payment ID missing in webhook payload',
-      );
-    }
-
-    return { payload, paymentId };
-  }
-
-  // ---------------------------------------------------------------------------
-  // PaymentGateway interface
-  // ---------------------------------------------------------------------------
-
   async createCheckoutSession(
     params: CreateSessionParams,
   ): Promise<CheckoutSessionResult> {
     const client = this.getClient();
-    const preference = new Preference(client);
     const notificationUrl = this.configService.get<string>('MP_WEBHOOK_URL');
 
     try {
-      const response = await preference.create({
+      const response = await new Preference(client).create({
         body: {
           items: [
             {
@@ -156,22 +75,15 @@ export class MercadoPagoAdapter implements PaymentGateway {
         },
       });
 
-      if (!response.init_point) {
+      if (!response.init_point || !response.id) {
         throw new InternalServerErrorException(
-          'Failed to get MercadoPago checkout URL',
-        );
-      }
-
-      const sessionId = response.id;
-      if (!sessionId) {
-        throw new InternalServerErrorException(
-          'MercadoPago returned a preference without an ID',
+          'MercadoPago returned an incomplete preference response',
         );
       }
 
       return {
         checkoutUrl: response.init_point,
-        gatewaySessionId: sessionId,
+        gatewaySessionId: response.id,
       };
     } catch (error) {
       this.logger.error('Failed to create MercadoPago preference', error);
@@ -184,14 +96,10 @@ export class MercadoPagoAdapter implements PaymentGateway {
   async verifyPayment(
     gatewayPaymentId: string,
   ): Promise<PaymentVerificationResult> {
-    const client = this.getClient();
-    const payment = new Payment(client);
-
     try {
-      const response = await payment.get({ id: gatewayPaymentId });
-
-      const status: PaymentStatus =
-        MP_PAYMENT_STATUS_MAP[response.status ?? ''] ?? 'rejected';
+      const response = await new Payment(this.getClient()).get({
+        id: gatewayPaymentId,
+      });
 
       const paymentId = response.id?.toString();
       if (!paymentId) {
@@ -201,7 +109,7 @@ export class MercadoPagoAdapter implements PaymentGateway {
       }
 
       return {
-        status,
+        status: MP_PAYMENT_STATUS_MAP[response.status ?? ''] ?? 'rejected',
         gatewayPaymentId: paymentId,
         amountPaid: Math.round((response.transaction_amount ?? 0) * 100),
         currency: response.currency_id ?? 'ARS',
@@ -226,29 +134,21 @@ export class MercadoPagoAdapter implements PaymentGateway {
       );
     }
 
-    const { ts, v1 } = this.parseSignatureHeader(signature);
-    const { payload, paymentId } = this.parseWebhookPayload(rawBody);
+    const { ts, v1 } = parseSignatureHeader(signature);
+    const { payload, paymentId } = parseWebhookPayload(rawBody);
+    validateSignature(paymentId, payload.id, ts, v1, webhookSecret, (msg) =>
+      this.logger.warn(msg),
+    );
 
-    this.validateSignature(paymentId, payload.id, ts, v1, webhookSecret);
-
-    // Fetch full payment details from MP API (source of truth)
-    const client = this.getClient();
-    const payment = new Payment(client);
     let paymentData: Awaited<ReturnType<Payment['get']>>;
     try {
-      paymentData = await payment.get({ id: paymentId });
+      paymentData = await new Payment(this.getClient()).get({ id: paymentId });
     } catch (error) {
-      this.logger.error(
-        'Failed to retrieve MP payment details during webhook processing',
-        error,
-      );
+      this.logger.error('Failed to retrieve MP payment during webhook', error);
       throw new InternalServerErrorException(
         'Failed to verify payment webhook details',
       );
     }
-
-    const type: WebhookEventType =
-      MP_WEBHOOK_STATUS_MAP[paymentData.status ?? ''] ?? 'pending';
 
     const resolvedId = paymentData.id?.toString();
     if (!resolvedId) {
@@ -260,7 +160,7 @@ export class MercadoPagoAdapter implements PaymentGateway {
     const metadata = paymentData.metadata as Record<string, string> | undefined;
 
     return {
-      type,
+      type: MP_WEBHOOK_STATUS_MAP[paymentData.status ?? ''] ?? 'pending',
       gatewayPaymentId: resolvedId,
       amountPaid: Math.round((paymentData.transaction_amount ?? 0) * 100),
       currency: paymentData.currency_id ?? 'ARS',

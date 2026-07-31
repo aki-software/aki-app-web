@@ -12,92 +12,12 @@ import type {
   CheckoutSessionResult,
   PaymentVerificationResult,
   WebhookEventResult,
-  PaymentStatus,
   WebhookEventType,
 } from '../interfaces/payment-gateway.interface.js';
-
-// ---------------------------------------------------------------------------
-// Per-event extractor types
-// ---------------------------------------------------------------------------
-
-/** Subset of WebhookEventResult fields that event-specific extractors populate. */
-type ExtractedEventFields = Omit<WebhookEventResult, 'rawPayload'>;
-
-/** A function that knows how to convert a specific Stripe event into our domain model. */
-type StripeEventExtractor = (
-  event: Stripe.Event,
-) => ExtractedEventFields | null;
-
-// ---------------------------------------------------------------------------
-// Stripe status lookup
-// ---------------------------------------------------------------------------
-
-const STRIPE_SESSION_STATUS_MAP: Record<string, PaymentStatus> = {
-  paid: 'approved',
-  unpaid: 'pending',
-};
-
-// ---------------------------------------------------------------------------
-// Per-event extractors — add a new Stripe event = add one entry here
-// ---------------------------------------------------------------------------
-
-const STRIPE_EVENT_EXTRACTORS: Record<string, StripeEventExtractor> = {
-  'checkout.session.completed': extractCheckoutSession('approved'),
-  'checkout.session.async_payment_succeeded':
-    extractCheckoutSession('approved'),
-  'checkout.session.async_payment_failed': extractCheckoutSession('rejected'),
-  'checkout.session.expired': extractCheckoutSession('rejected'),
-
-  'charge.refunded': (event) => {
-    const charge = event.data.object as Stripe.Charge;
-    return {
-      type: 'refunded',
-      gatewayPaymentId:
-        typeof charge.payment_intent === 'string'
-          ? charge.payment_intent
-          : charge.id,
-      amountPaid: charge.amount_refunded ?? 0,
-      currency: (charge.currency ?? 'usd').toUpperCase(),
-    };
-  },
-
-  'charge.dispute.created': (event) => {
-    const dispute = event.data.object as Stripe.Dispute;
-    const intentId =
-      typeof dispute.payment_intent === 'string'
-        ? dispute.payment_intent
-        : null;
-    return {
-      type: 'chargeback',
-      gatewayPaymentId:
-        typeof dispute.charge === 'string'
-          ? dispute.charge
-          : (intentId ?? dispute.id),
-      amountPaid: dispute.amount,
-      currency: (dispute.currency ?? 'usd').toUpperCase(),
-    };
-  },
-};
-
-/** Factory that creates a checkout-session extractor for a given event type. */
-function extractCheckoutSession(type: WebhookEventType): StripeEventExtractor {
-  return (event) => {
-    const session = event.data.object as Stripe.Checkout.Session;
-    return {
-      type,
-      gatewayPaymentId: session.id,
-      amountPaid: session.amount_total ?? 0,
-      currency: (session.currency ?? 'usd').toUpperCase(),
-      institutionId: session.metadata?.institutionId,
-      userId: session.metadata?.userId,
-      voucherPlanId: session.metadata?.planId,
-    };
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Adapter
-// ---------------------------------------------------------------------------
+import {
+  STRIPE_EVENT_EXTRACTORS,
+  STRIPE_SESSION_STATUS_MAP,
+} from './stripe-event-extractors.js';
 
 @Injectable()
 export class StripeAdapter implements PaymentGateway {
@@ -111,27 +31,17 @@ export class StripeAdapter implements PaymentGateway {
     this.stripeClient = new Stripe(stripeKey);
   }
 
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
-
   private getStripeClient(): Stripe {
-    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (!stripeKey) {
+    if (!this.configService.get<string>('STRIPE_SECRET_KEY')) {
       throw new InternalServerErrorException('Payment gateway not configured');
     }
     return this.stripeClient;
   }
 
-  // ---------------------------------------------------------------------------
-  // PaymentGateway interface
-  // ---------------------------------------------------------------------------
-
   async createCheckoutSession(
     params: CreateSessionParams,
   ): Promise<CheckoutSessionResult> {
     const stripe = this.getStripeClient();
-
     const amount = params.plan.priceUsd ?? params.plan.priceArs;
     const currency = params.plan.priceUsd ? 'usd' : 'ars';
 
@@ -141,7 +51,7 @@ export class StripeAdapter implements PaymentGateway {
         {
           price_data: {
             currency,
-            unit_amount: amount, // already in minor currency units (cents)
+            unit_amount: amount,
             product_data: {
               name: params.plan.name,
               description: params.plan.description ?? undefined,
@@ -166,10 +76,7 @@ export class StripeAdapter implements PaymentGateway {
       );
     }
 
-    return {
-      checkoutUrl: session.url,
-      gatewaySessionId: session.id,
-    };
+    return { checkoutUrl: session.url, gatewaySessionId: session.id };
   }
 
   async verifyPayment(
@@ -178,12 +85,9 @@ export class StripeAdapter implements PaymentGateway {
     const stripe = this.getStripeClient();
     try {
       const session = await stripe.checkout.sessions.retrieve(gatewayPaymentId);
-
-      const status: PaymentStatus =
-        STRIPE_SESSION_STATUS_MAP[session.payment_status ?? ''] ?? 'rejected';
-
       return {
-        status,
+        status:
+          STRIPE_SESSION_STATUS_MAP[session.payment_status ?? ''] ?? 'rejected',
         gatewayPaymentId: session.id,
         amountPaid: session.amount_total ?? 0,
         currency: (session.currency ?? 'usd').toUpperCase(),
@@ -201,11 +105,9 @@ export class StripeAdapter implements PaymentGateway {
     rawBody: Buffer,
     signature: string,
   ): Promise<WebhookEventResult> {
-    const stripe = this.getStripeClient();
     const webhookSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_SECRET',
     );
-
     if (!webhookSecret) {
       throw new InternalServerErrorException(
         'STRIPE_WEBHOOK_SECRET is not configured',
@@ -214,14 +116,17 @@ export class StripeAdapter implements PaymentGateway {
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+      event = this.getStripeClient().webhooks.constructEvent(
+        rawBody,
+        signature,
+        webhookSecret,
+      );
     } catch (err) {
       this.logger.error('Stripe webhook signature verification failed', err);
       throw new InternalServerErrorException('Webhook verification failed');
     }
 
-    const extractor = STRIPE_EVENT_EXTRACTORS[event.type];
-    const extracted = extractor?.(event) ?? {
+    const extracted = STRIPE_EVENT_EXTRACTORS[event.type]?.(event) ?? {
       type: 'pending' as WebhookEventType,
       gatewayPaymentId: event.id,
       amountPaid: 0,
