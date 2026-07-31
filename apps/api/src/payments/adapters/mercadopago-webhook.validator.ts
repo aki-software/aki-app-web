@@ -36,7 +36,7 @@ export function validateSignature(
   secret: string,
   warn: (msg: string) => void,
 ): void {
-  const manifest = `id:${paymentId};request-id:${requestId ?? ''};ts:${ts};`;
+  const manifest = `id:${String(paymentId)};request-id:${requestId ? String(requestId) : ''};ts:${ts};`;
   const expected = crypto
     .createHmac('sha256', secret)
     .update(manifest)

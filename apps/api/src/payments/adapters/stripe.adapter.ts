@@ -101,7 +101,7 @@ export class StripeAdapter implements PaymentGateway {
     }
   }
 
-  async constructWebhookEvent(
+  constructWebhookEvent(
     rawBody: Buffer,
     signature: string,
   ): Promise<WebhookEventResult> {
@@ -133,9 +133,9 @@ export class StripeAdapter implements PaymentGateway {
       currency: 'USD',
     };
 
-    return {
+    return Promise.resolve({
       ...extracted,
       rawPayload: JSON.parse(JSON.stringify(event)) as Record<string, unknown>,
-    };
+    });
   }
 }

@@ -1,13 +1,13 @@
 import { API_URL, getAuthHeaders } from "./client";
 
-export async function createCheckoutSession(priceId: string, successUrl: string, cancelUrl: string): Promise<{ url: string }> {
-  const res = await fetch(`${API_URL}/payments/stripe/checkout-session`, {
+export async function createCheckoutSession(voucherPlanId: string, gateway: 'stripe' | 'mercadopago', successUrl: string, cancelUrl: string): Promise<{ checkoutUrl: string }> {
+  const res = await fetch(`${API_URL}/payments/checkout/session`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...getAuthHeaders(),
     },
-    body: JSON.stringify({ stripePriceId: priceId, successUrl, cancelUrl }),
+    body: JSON.stringify({ voucherPlanId, gateway, successUrl, cancelUrl }),
   });
   if (!res.ok) {
     throw new Error("Failed to create checkout session");
@@ -15,8 +15,12 @@ export async function createCheckoutSession(priceId: string, successUrl: string,
   return res.json();
 }
 
-export async function getPricingPlans(): Promise<Array<{ id: string; name: string; price: number; currency: string; voucherQuantity: number }>> {
-  const res = await fetch(`${API_URL}/public/payments/stripe/pricing-plans`);
+export async function getPricingPlans(): Promise<Array<{ id: string; name: string; description?: string; priceArs: number; priceUsd?: number; voucherQuantity: number }>> {
+  const res = await fetch(`${API_URL}/payments/pricing-plans`, {
+    headers: {
+      ...getAuthHeaders(),
+    }
+  });
   if (!res.ok) {
     throw new Error("Failed to fetch pricing plans");
   }

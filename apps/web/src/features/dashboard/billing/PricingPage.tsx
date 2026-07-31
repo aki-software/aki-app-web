@@ -5,13 +5,14 @@ import { createCheckoutSession, getPricingPlans } from '../api/payments.api';
 interface Plan {
   id: string;
   name: string;
-  price: number;
-  currency: string;
+  description?: string;
+  priceArs: number;
+  priceUsd?: number;
   voucherQuantity: number;
 }
 
 export const PricingPage: React.FC = () => {
-  const [loading, setLoading] = useState<string | null>(null);
+  const [loading, setLoading] = useState<{ planId: string, gateway: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
@@ -34,14 +35,14 @@ export const PricingPage: React.FC = () => {
     return () => { mounted = false; };
   }, []);
 
-  const handleSubscribe = async (planId: string): Promise<void> => {
-    setLoading(planId);
+  const handleSubscribe = async (planId: string, gateway: 'stripe' | 'mercadopago'): Promise<void> => {
+    setLoading({ planId, gateway });
     setError(null);
     try {
       const successUrl = `${window.location.origin}/dashboard/vouchers?success=1`;
       const cancelUrl = `${window.location.origin}/pricing`;
-      const { url } = await createCheckoutSession(planId, successUrl, cancelUrl);
-      window.location.href = url;
+      const { checkoutUrl } = await createCheckoutSession(planId, gateway, successUrl, cancelUrl);
+      window.location.href = checkoutUrl;
     } catch {
       setError('Ocurrió un error al procesar el pago.');
       setLoading(null);
@@ -81,30 +82,49 @@ export const PricingPage: React.FC = () => {
               
               <div className="mb-8">
                 <div className="app-value mb-2">
-                  {plan.currency === 'USD' ? 'US$ ' : '$ '}
-                  {plan.price.toLocaleString()}
+                  $ {plan.priceArs.toLocaleString()}
                 </div>
                 <div className="app-desc">Incluye {plan.voucherQuantity} vouchers completos</div>
+                {plan.description && <div className="text-sm text-app-text-muted mt-2">{plan.description}</div>}
               </div>
             </div>
 
-            <button
-              onClick={() => { void handleSubscribe(plan.id); }}
-              disabled={loading !== null}
-              className="app-button-primary w-full flex items-center justify-center gap-2 mt-4 relative z-10"
-            >
-              {loading === plan.id ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Procesando...</span>
-                </>
-              ) : (
-                <>
-                  <span>Comprar vouchers</span>
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
+            <div className="flex flex-col gap-3 mt-4 relative z-10">
+              <button
+                onClick={() => { void handleSubscribe(plan.id, 'mercadopago'); }}
+                disabled={loading !== null}
+                className="app-button-primary w-full flex items-center justify-center gap-2"
+              >
+                {loading?.planId === plan.id && loading?.gateway === 'mercadopago' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Procesando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Pagar con Mercado Pago</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => { void handleSubscribe(plan.id, 'stripe'); }}
+                disabled={loading !== null}
+                className="app-button-secondary w-full flex items-center justify-center gap-2"
+              >
+                {loading?.planId === plan.id && loading?.gateway === 'stripe' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Procesando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Pagar con Stripe</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         ))}
         </div>

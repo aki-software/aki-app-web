@@ -24,7 +24,11 @@ import { GooglePlayAdapter } from './adapters/google-play.adapter.js';
     CommonModule,
     TypeOrmModule.forFeature([PaymentEvent, VoucherPlan]),
   ],
-  controllers: [PaymentsController, PublicPaymentsController, AdminPaymentsController],
+  controllers: [
+    PaymentsController,
+    PublicPaymentsController,
+    AdminPaymentsController,
+  ],
   providers: [
     PaymentsService,
     PaymentLockService,

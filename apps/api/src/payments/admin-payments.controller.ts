@@ -50,7 +50,7 @@ export class AdminPaymentsController {
     if (!plan) {
       throw new NotFoundException('Voucher plan not found');
     }
-    
+
     Object.assign(plan, updateDto);
     return this.voucherPlanRepo.save(plan);
   }

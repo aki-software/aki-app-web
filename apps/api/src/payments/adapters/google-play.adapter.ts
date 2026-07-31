@@ -9,7 +9,6 @@ import type { androidpublisher_v3 } from 'googleapis';
 import type {
   PaymentGateway,
   GatewayName,
-  CreateSessionParams,
   CheckoutSessionResult,
   PaymentVerificationResult,
   WebhookEventResult,
@@ -22,9 +21,7 @@ export class GooglePlayAdapter implements PaymentGateway {
 
   constructor(private readonly configService: ConfigService) {}
 
-  createCheckoutSession(
-    _params: CreateSessionParams,
-  ): Promise<CheckoutSessionResult> {
+  createCheckoutSession(): Promise<CheckoutSessionResult> {
     return Promise.reject(
       new BadRequestException(
         'Google Play purchases are initiated from the mobile app',
@@ -32,7 +29,7 @@ export class GooglePlayAdapter implements PaymentGateway {
     );
   }
 
-  verifyPayment(_gatewayPaymentId: string): Promise<PaymentVerificationResult> {
+  verifyPayment(): Promise<PaymentVerificationResult> {
     return Promise.reject(
       new BadRequestException(
         'Use verifyGooglePlayPurchase for Google Play transactions',
@@ -40,10 +37,7 @@ export class GooglePlayAdapter implements PaymentGateway {
     );
   }
 
-  constructWebhookEvent(
-    _rawBody: Buffer,
-    _signature: string,
-  ): Promise<WebhookEventResult> {
+  constructWebhookEvent(): Promise<WebhookEventResult> {
     return Promise.reject(
       new BadRequestException('Google Play does not use webhooks'),
     );
@@ -63,7 +57,7 @@ export class GooglePlayAdapter implements PaymentGateway {
 
     const credentials = JSON.parse(
       Buffer.from(serviceAccountBase64, 'base64').toString('utf8'),
-    );
+    ) as Record<string, unknown>;
 
     const auth = new google.auth.GoogleAuth({
       credentials,
