@@ -33,8 +33,6 @@ export class GooglePlayAdapter implements PaymentGateway {
   }
 
   verifyPayment(_gatewayPaymentId: string): Promise<PaymentVerificationResult> {
-    // This gateway uses verifyPlayPurchase via PaymentsService directly due to its unique flow.
-    // We implement a minimal verifyPayment to satisfy the interface, but it's not meant for the generic webhook path.
     return Promise.reject(
       new BadRequestException(
         'Use verifyGooglePlayPurchase for Google Play transactions',

@@ -16,16 +16,104 @@ import type {
   WebhookEventType,
 } from '../interfaces/payment-gateway.interface.js';
 
+// ---------------------------------------------------------------------------
+// Per-event extractor types
+// ---------------------------------------------------------------------------
+
+/** Subset of WebhookEventResult fields that event-specific extractors populate. */
+type ExtractedEventFields = Omit<WebhookEventResult, 'rawPayload'>;
+
+/** A function that knows how to convert a specific Stripe event into our domain model. */
+type StripeEventExtractor = (
+  event: Stripe.Event,
+) => ExtractedEventFields | null;
+
+// ---------------------------------------------------------------------------
+// Stripe status lookup
+// ---------------------------------------------------------------------------
+
+const STRIPE_SESSION_STATUS_MAP: Record<string, PaymentStatus> = {
+  paid: 'approved',
+  unpaid: 'pending',
+};
+
+// ---------------------------------------------------------------------------
+// Per-event extractors — add a new Stripe event = add one entry here
+// ---------------------------------------------------------------------------
+
+const STRIPE_EVENT_EXTRACTORS: Record<string, StripeEventExtractor> = {
+  'checkout.session.completed': extractCheckoutSession('approved'),
+  'checkout.session.async_payment_succeeded':
+    extractCheckoutSession('approved'),
+  'checkout.session.async_payment_failed': extractCheckoutSession('rejected'),
+  'checkout.session.expired': extractCheckoutSession('rejected'),
+
+  'charge.refunded': (event) => {
+    const charge = event.data.object as Stripe.Charge;
+    return {
+      type: 'refunded',
+      gatewayPaymentId:
+        typeof charge.payment_intent === 'string'
+          ? charge.payment_intent
+          : charge.id,
+      amountPaid: charge.amount_refunded ?? 0,
+      currency: (charge.currency ?? 'usd').toUpperCase(),
+    };
+  },
+
+  'charge.dispute.created': (event) => {
+    const dispute = event.data.object as Stripe.Dispute;
+    const intentId =
+      typeof dispute.payment_intent === 'string'
+        ? dispute.payment_intent
+        : null;
+    return {
+      type: 'chargeback',
+      gatewayPaymentId:
+        typeof dispute.charge === 'string'
+          ? dispute.charge
+          : (intentId ?? dispute.id),
+      amountPaid: dispute.amount,
+      currency: (dispute.currency ?? 'usd').toUpperCase(),
+    };
+  },
+};
+
+/** Factory that creates a checkout-session extractor for a given event type. */
+function extractCheckoutSession(type: WebhookEventType): StripeEventExtractor {
+  return (event) => {
+    const session = event.data.object as Stripe.Checkout.Session;
+    return {
+      type,
+      gatewayPaymentId: session.id,
+      amountPaid: session.amount_total ?? 0,
+      currency: (session.currency ?? 'usd').toUpperCase(),
+      institutionId: session.metadata?.institutionId,
+      userId: session.metadata?.userId,
+      voucherPlanId: session.metadata?.planId,
+    };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Adapter
+// ---------------------------------------------------------------------------
+
 @Injectable()
 export class StripeAdapter implements PaymentGateway {
   readonly name: GatewayName = 'stripe';
   private readonly logger = new Logger(StripeAdapter.name);
-  private stripeClient: Stripe;
+  private readonly stripeClient: Stripe;
 
   constructor(private readonly configService: ConfigService) {
-    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY') ?? 'not-configured';
+    const stripeKey =
+      this.configService.get<string>('STRIPE_SECRET_KEY') ?? 'not-configured';
     this.stripeClient = new Stripe(stripeKey);
   }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
 
   private getStripeClient(): Stripe {
     const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
@@ -35,16 +123,16 @@ export class StripeAdapter implements PaymentGateway {
     return this.stripeClient;
   }
 
+  // ---------------------------------------------------------------------------
+  // PaymentGateway interface
+  // ---------------------------------------------------------------------------
+
   async createCheckoutSession(
     params: CreateSessionParams,
   ): Promise<CheckoutSessionResult> {
     const stripe = this.getStripeClient();
 
-    // In Stripe, we use Price IDs. Since the new model uses VoucherPlan IDs,
-    // if the existing system required Stripe Price IDs, they might be stored in a mapping.
-    // The instructions say: "Instead of using stripePriceId, use plan.id as a metadata reference and set amount from plan.priceUsd (or priceArs if USD not set)."
-
-    const amount = params.plan.priceUsd || params.plan.priceArs;
+    const amount = params.plan.priceUsd ?? params.plan.priceArs;
     const currency = params.plan.priceUsd ? 'usd' : 'ars';
 
     const session = await stripe.checkout.sessions.create({
@@ -52,11 +140,11 @@ export class StripeAdapter implements PaymentGateway {
       line_items: [
         {
           price_data: {
-            currency: currency,
-            unit_amount: amount, // Stripe expects cents, assuming price is already in cents as before
+            currency,
+            unit_amount: amount, // already in minor currency units (cents)
             product_data: {
               name: params.plan.name,
-              description: params.plan.description || undefined,
+              description: params.plan.description ?? undefined,
             },
           },
           quantity: 1,
@@ -91,23 +179,14 @@ export class StripeAdapter implements PaymentGateway {
     try {
       const session = await stripe.checkout.sessions.retrieve(gatewayPaymentId);
 
-      let status: PaymentStatus = 'pending';
-      switch (session.payment_status) {
-        case 'paid':
-          status = 'approved';
-          break;
-        case 'unpaid':
-          status = 'pending';
-          break;
-        default:
-          status = 'rejected';
-      }
+      const status: PaymentStatus =
+        STRIPE_SESSION_STATUS_MAP[session.payment_status ?? ''] ?? 'rejected';
 
       return {
         status,
         gatewayPaymentId: session.id,
-        amountPaid: session.amount_total || 0,
-        currency: (session.currency || 'usd').toUpperCase(),
+        amountPaid: session.amount_total ?? 0,
+        currency: (session.currency ?? 'usd').toUpperCase(),
       };
     } catch (error) {
       this.logger.error(
@@ -141,74 +220,16 @@ export class StripeAdapter implements PaymentGateway {
       throw new InternalServerErrorException('Webhook verification failed');
     }
 
-    let type: WebhookEventType = 'pending';
-    let gatewayPaymentId = '';
-    let amountPaid = 0;
-    let currency = 'usd';
-    let institutionId: string | undefined;
-    let userId: string | undefined;
-    let voucherPlanId: string | undefined;
-
-    switch (event.type) {
-      case 'checkout.session.completed':
-      case 'checkout.session.async_payment_succeeded': {
-        const session = event.data.object;
-        type = 'approved';
-        gatewayPaymentId = session.id;
-        amountPaid = session.amount_total || 0;
-        currency = (session.currency || 'usd').toUpperCase();
-        institutionId = session.metadata?.institutionId;
-        userId = session.metadata?.userId;
-        voucherPlanId = session.metadata?.planId;
-        break;
-      }
-      case 'checkout.session.async_payment_failed':
-      case 'checkout.session.expired': {
-        const session = event.data.object;
-        type = 'rejected';
-        gatewayPaymentId = session.id;
-        amountPaid = session.amount_total || 0;
-        currency = (session.currency || 'usd').toUpperCase();
-        institutionId = session.metadata?.institutionId;
-        userId = session.metadata?.userId;
-        voucherPlanId = session.metadata?.planId;
-        break;
-      }
-      case 'charge.refunded': {
-        const charge = event.data.object;
-        type = 'refunded';
-        gatewayPaymentId =
-          typeof charge.payment_intent === 'string'
-            ? charge.payment_intent
-            : charge.id;
-        amountPaid = charge.amount_refunded || 0;
-        currency = (charge.currency || 'usd').toUpperCase();
-        break;
-      }
-      case 'charge.dispute.created': {
-        const dispute = event.data.object;
-        type = 'chargeback';
-        gatewayPaymentId =
-          typeof dispute.charge === 'string'
-            ? dispute.charge
-            : (dispute.payment_intent as string) || dispute.id;
-        amountPaid = dispute.amount;
-        currency = (dispute.currency || 'usd').toUpperCase();
-        break;
-      }
-      default:
-        type = 'pending';
-        gatewayPaymentId = event.id;
-    }
+    const extractor = STRIPE_EVENT_EXTRACTORS[event.type];
+    const extracted = extractor?.(event) ?? {
+      type: 'pending' as WebhookEventType,
+      gatewayPaymentId: event.id,
+      amountPaid: 0,
+      currency: 'USD',
+    };
 
     return {
-      type,
-      gatewayPaymentId,
-      amountPaid,
-      currency,
-      institutionId,
-      userId,
-      voucherPlanId,
+      ...extracted,
       rawPayload: JSON.parse(JSON.stringify(event)) as Record<string, unknown>,
     };
   }
