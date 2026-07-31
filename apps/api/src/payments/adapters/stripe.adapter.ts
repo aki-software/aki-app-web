@@ -23,16 +23,8 @@ export class StripeAdapter implements PaymentGateway {
   private stripeClient: Stripe;
 
   constructor(private readonly configService: ConfigService) {
-    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (!stripeKey) {
-      this.logger.error('STRIPE_SECRET_KEY is missing in environment');
-      // For now, we don't throw in constructor to allow module initialization if Stripe is not primary,
-      // but methods will throw if they try to use it and it failed to init, or we initialize a dummy and throw later.
-      // Better yet, just initialize it if present.
-      this.stripeClient = new Stripe(stripeKey || 'dummy');
-    } else {
-      this.stripeClient = new Stripe(stripeKey);
-    }
+    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY') ?? 'not-configured';
+    this.stripeClient = new Stripe(stripeKey);
   }
 
   private getStripeClient(): Stripe {
@@ -217,7 +209,7 @@ export class StripeAdapter implements PaymentGateway {
       institutionId,
       userId,
       voucherPlanId,
-      rawPayload: event as unknown as Record<string, unknown>,
+      rawPayload: JSON.parse(JSON.stringify(event)) as Record<string, unknown>,
     };
   }
 }

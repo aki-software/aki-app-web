@@ -97,26 +97,25 @@ export class MercadoPagoAdapter implements PaymentGateway {
     try {
       const response = await payment.get({ id: gatewayPaymentId });
 
-      let status: PaymentStatus = 'pending';
-      switch (response.status) {
-        case 'approved':
-          status = 'approved';
-          break;
-        case 'pending':
-        case 'in_process':
-          status = 'pending';
-          break;
-        default:
-          status = 'rejected';
+      const STATUS_MAP: Record<string, PaymentStatus> = {
+        approved: 'approved',
+        pending: 'pending',
+        in_process: 'pending',
+      };
+      const status: PaymentStatus =
+        STATUS_MAP[response.status ?? ''] ?? 'rejected';
+      const paymentId = response.id?.toString();
+      if (!paymentId) {
+        throw new InternalServerErrorException(
+          'MercadoPago returned a payment without an ID',
+        );
       }
 
       return {
         status,
-        gatewayPaymentId: response.id!.toString(),
-        amountPaid: response.transaction_amount
-          ? response.transaction_amount * 100
-          : 0, // Convert to cents
-        currency: response.currency_id || 'ARS',
+        gatewayPaymentId: paymentId,
+        amountPaid: Math.round((response.transaction_amount ?? 0) * 100),
+        currency: response.currency_id ?? 'ARS',
       };
     } catch (error) {
       this.logger.error(
@@ -196,35 +195,33 @@ export class MercadoPagoAdapter implements PaymentGateway {
       );
     }
 
-    let type: WebhookEventType = 'pending';
-    switch (paymentData.status) {
-      case 'approved':
-        type = 'approved';
-        break;
-      case 'refunded':
-        type = 'refunded';
-        break;
-      case 'charged_back':
-        type = 'chargeback';
-        break;
-      case 'rejected':
-      case 'cancelled':
-        type = 'rejected';
-        break;
-      default:
-        type = 'pending';
+    const MP_STATUS_MAP: Record<string, WebhookEventType> = {
+      approved: 'approved',
+      refunded: 'refunded',
+      charged_back: 'chargeback',
+      rejected: 'rejected',
+      cancelled: 'rejected',
+    };
+    const type: WebhookEventType =
+      MP_STATUS_MAP[paymentData.status ?? ''] ?? 'pending';
+
+    const paymentId = paymentData.id?.toString();
+    if (!paymentId) {
+      throw new InternalServerErrorException(
+        'MercadoPago returned webhook data without a payment ID',
+      );
     }
+
+    const metadata = paymentData.metadata as Record<string, string> | undefined;
 
     return {
       type,
-      gatewayPaymentId: paymentData.id!.toString(),
-      amountPaid: paymentData.transaction_amount
-        ? paymentData.transaction_amount * 100
-        : 0,
-      currency: paymentData.currency_id || 'ARS',
-      institutionId: paymentData.metadata?.institution_id,
-      userId: paymentData.metadata?.user_id,
-      voucherPlanId: paymentData.metadata?.plan_id,
+      gatewayPaymentId: paymentId,
+      amountPaid: Math.round((paymentData.transaction_amount ?? 0) * 100),
+      currency: paymentData.currency_id ?? 'ARS',
+      institutionId: metadata?.institution_id,
+      userId: metadata?.user_id,
+      voucherPlanId: metadata?.plan_id,
       rawPayload: payload,
     };
   }

@@ -94,7 +94,10 @@ export class PaymentsService {
     }
   }
 
-  private isAlreadyProcessed(session: any, token: string): boolean {
+  private isAlreadyProcessed(
+    session: { paymentReference?: string | null; paymentStatus?: SessionPaymentStatus },
+    token: string,
+  ): boolean {
     return (
       session.paymentReference === token &&
       session.paymentStatus === SessionPaymentStatus.PAID
