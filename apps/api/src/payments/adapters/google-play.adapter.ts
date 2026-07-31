@@ -22,29 +22,33 @@ export class GooglePlayAdapter implements PaymentGateway {
 
   constructor(private readonly configService: ConfigService) {}
 
-  async createCheckoutSession(
-    params: CreateSessionParams,
+  createCheckoutSession(
+    _params: CreateSessionParams,
   ): Promise<CheckoutSessionResult> {
-    throw new BadRequestException(
-      'Google Play purchases are initiated from the mobile app',
+    return Promise.reject(
+      new BadRequestException(
+        'Google Play purchases are initiated from the mobile app',
+      ),
     );
   }
 
-  async verifyPayment(
-    gatewayPaymentId: string,
-  ): Promise<PaymentVerificationResult> {
+  verifyPayment(_gatewayPaymentId: string): Promise<PaymentVerificationResult> {
     // This gateway uses verifyPlayPurchase via PaymentsService directly due to its unique flow.
     // We implement a minimal verifyPayment to satisfy the interface, but it's not meant for the generic webhook path.
-    throw new BadRequestException(
-      'Use verifyGooglePlayPurchase for Google Play transactions',
+    return Promise.reject(
+      new BadRequestException(
+        'Use verifyGooglePlayPurchase for Google Play transactions',
+      ),
     );
   }
 
-  async constructWebhookEvent(
-    rawBody: Buffer,
-    signature: string,
+  constructWebhookEvent(
+    _rawBody: Buffer,
+    _signature: string,
   ): Promise<WebhookEventResult> {
-    throw new BadRequestException('Google Play does not use webhooks');
+    return Promise.reject(
+      new BadRequestException('Google Play does not use webhooks'),
+    );
   }
 
   async getAndroidPublisher(): Promise<androidpublisher_v3.Androidpublisher> {

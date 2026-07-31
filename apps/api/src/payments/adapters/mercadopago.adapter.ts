@@ -98,15 +98,16 @@ export class MercadoPagoAdapter implements PaymentGateway {
       const response = await payment.get({ id: gatewayPaymentId });
 
       let status: PaymentStatus = 'pending';
-      if (response.status === 'approved') {
-        status = 'approved';
-      } else if (
-        response.status === 'pending' ||
-        response.status === 'in_process'
-      ) {
-        status = 'pending';
-      } else {
-        status = 'rejected';
+      switch (response.status) {
+        case 'approved':
+          status = 'approved';
+          break;
+        case 'pending':
+        case 'in_process':
+          status = 'pending';
+          break;
+        default:
+          status = 'rejected';
       }
 
       return {
@@ -148,7 +149,7 @@ export class MercadoPagoAdapter implements PaymentGateway {
       if (key === 'v1') v1 = value;
     }
 
-    let payload: any;
+    let payload: Record<string, unknown>;
     try {
       payload = JSON.parse(rawBody.toString('utf8'));
     } catch (e) {
@@ -156,7 +157,8 @@ export class MercadoPagoAdapter implements PaymentGateway {
     }
 
     // data.id is the ID we use in the manifest for verification, although action differs (payment.created)
-    const paymentId = payload.data?.id || payload.id;
+    const dataObj = payload.data as Record<string, unknown> | undefined;
+    const paymentId = dataObj?.id || payload.id;
     if (!paymentId) {
       throw new InternalServerErrorException(
         'Payment ID missing in webhook payload',
@@ -195,14 +197,23 @@ export class MercadoPagoAdapter implements PaymentGateway {
     }
 
     let type: WebhookEventType = 'pending';
-    if (paymentData.status === 'approved') type = 'approved';
-    else if (paymentData.status === 'refunded') type = 'refunded';
-    else if (paymentData.status === 'charged_back') type = 'chargeback';
-    else if (
-      paymentData.status === 'rejected' ||
-      paymentData.status === 'cancelled'
-    )
-      type = 'rejected';
+    switch (paymentData.status) {
+      case 'approved':
+        type = 'approved';
+        break;
+      case 'refunded':
+        type = 'refunded';
+        break;
+      case 'charged_back':
+        type = 'chargeback';
+        break;
+      case 'rejected':
+      case 'cancelled':
+        type = 'rejected';
+        break;
+      default:
+        type = 'pending';
+    }
 
     return {
       type,

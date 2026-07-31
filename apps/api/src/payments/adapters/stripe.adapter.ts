@@ -100,12 +100,15 @@ export class StripeAdapter implements PaymentGateway {
       const session = await stripe.checkout.sessions.retrieve(gatewayPaymentId);
 
       let status: PaymentStatus = 'pending';
-      if (session.payment_status === 'paid') {
-        status = 'approved';
-      } else if (session.payment_status === 'unpaid') {
-        status = 'pending';
-      } else {
-        status = 'rejected';
+      switch (session.payment_status) {
+        case 'paid':
+          status = 'approved';
+          break;
+        case 'unpaid':
+          status = 'pending';
+          break;
+        default:
+          status = 'rejected';
       }
 
       return {
