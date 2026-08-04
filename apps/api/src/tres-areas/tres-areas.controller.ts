@@ -30,7 +30,7 @@ export class TresAreasController {
   ) {
     const pageNum = Math.max(1, parseInt(page ?? '1', 10) || 1);
     const limitNum = Math.min(
-      100,
+      500,
       Math.max(1, parseInt(limit ?? '20', 10) || 20),
     );
 
