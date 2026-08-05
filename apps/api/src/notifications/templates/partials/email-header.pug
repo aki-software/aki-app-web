@@ -1,9 +1,11 @@
 table(role="presentation" width="100%" cellpadding="0" cellspacing="0")
   tr
-    td(align="center")
+    td(style=`height:6px;background-image:linear-gradient(90deg,${colors.primary.DEFAULT} 0%,#2d8a87 60%,${colors.tertiary.DEFAULT} 100%);`)
+  tr
+    td(align="center" style="padding:40px 40px 16px;")
       if logoDataUri
         img(src=logoDataUri alt="A.ki" style="width:110px;height:auto;display:block;")
       else
-        span(style="font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;text-shadow:0 1px 4px rgba(0,0,0,0.18);") A.ki
-  tr
-    td(align="center" style="padding-top:10px;font-size:12px;color:rgba(255,255,255,0.82);text-transform:uppercase;letter-spacing:0.16em;font-weight:700;")= headerLabel || 'A.ki'
+        span(style=`font-size:32px;font-weight:800;color:${colors.primary.DEFAULT};letter-spacing:-0.03em;`) A.ki
+      if headerLabel
+        p(style=`margin:16px 0 0 0;font-size:12px;color:${colors.outline.light};text-transform:uppercase;letter-spacing:0.16em;font-weight:700;`) #{headerLabel}
