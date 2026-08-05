@@ -36,6 +36,7 @@ export class VoucherBatchQueryService {
     const baseQb = this.voucherRepository
       .createQueryBuilder('voucher')
       .withDeleted()
+      .leftJoin('voucher.batch', 'batch')
       .leftJoin('voucher.ownerInstitution', 'ownerInstitution')
       .leftJoin('voucher.ownerUser', 'ownerUser');
 
@@ -92,6 +93,7 @@ export class VoucherBatchQueryService {
       .select('voucher.status', 'status')
       .addSelect('COUNT(*)', 'cnt')
       .groupBy('voucher.status')
+      .orderBy('voucher.status', 'ASC')
       .getRawMany<{ status: string; cnt: string }>();
 
     let available = 0;
@@ -105,6 +107,7 @@ export class VoucherBatchQueryService {
 
     return {
       batchId,
+      shortCode: meta.batch?.shortCode,
       ownerInstitutionName: meta.ownerInstitution
         ? meta.ownerInstitution.deletedAt ||
           meta.ownerInstitution.isActive === false
@@ -139,6 +142,7 @@ export class VoucherBatchQueryService {
     return this.voucherRepository
       .createQueryBuilder('voucher')
       .withDeleted()
+      .leftJoinAndSelect('voucher.batch', 'batch')
       .leftJoinAndSelect('voucher.ownerUser', 'ownerUser')
       .leftJoinAndSelect('voucher.ownerInstitution', 'ownerInstitution')
       .leftJoinAndSelect('voucher.redeemedSession', 'redeemedSession')
@@ -163,6 +167,7 @@ export class VoucherBatchQueryService {
     return qb
       .clone()
       .select('voucher.batchId', 'batch_id')
+      .addSelect('MAX(batch.short_code)', 'shortCode')
       .addSelect(
         "COALESCE(MAX(CASE WHEN ownerInstitution.deletedAt IS NOT NULL OR ownerInstitution.isActive = false THEN CONCAT(ownerInstitution.name, ' (Eliminada)') ELSE ownerInstitution.name END), 'Institución no informada')",
         'ownerInstitutionName',
@@ -203,6 +208,7 @@ export class VoucherBatchQueryService {
   ): VoucherBatchSummary[] {
     return rows.map((row) => ({
       batchId: row.batch_id,
+      shortCode: row.shortCode,
       ownerInstitutionName: row.ownerInstitutionName,
       ownerUserName: row.ownerUserName,
       createdAt: row.batchCreatedAt,

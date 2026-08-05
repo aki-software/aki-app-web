@@ -60,6 +60,7 @@ export const voucherBaseSchema = z.object({
 
 export const voucherBatchSummarySchema = z.object({
   batchId: z.string().uuid(),
+  shortCode: z.string().optional(),
   ownerInstitutionName: z.string(),
   ownerUserName: z.string(),
   createdAt: z.union([z.string(), z.instanceof(Date)]),
@@ -84,6 +85,7 @@ export const voucherBatchDetailItemSchema = z.object({
 
 export const voucherBatchDetailResponseSchema = z.object({
   batchId: z.string().uuid(),
+  shortCode: z.string().optional(),
   ownerInstitutionName: z.string(),
   ownerUserName: z.string(),
   createdAt: z.union([z.string(), z.instanceof(Date)]),
@@ -223,6 +225,7 @@ export type RawVoucherBatchCountRow = { count: string };
 
 export type RawVoucherBatchSummaryRow = {
   batch_id: string;
+  shortCode: string;
   ownerInstitutionName: string;
   ownerUserName: string;
   batchCreatedAt: string;

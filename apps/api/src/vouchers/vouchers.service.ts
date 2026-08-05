@@ -198,9 +198,11 @@ export class VouchersService {
     },
     quantity: number,
   ): Promise<VoucherBatch> {
+    const shortCode = await this.codeGenerator.generateUniqueBatchCode();
     return await this.voucherBatchRepository.save(
       this.voucherBatchRepository.create({
         ...ownership,
+        shortCode,
         quantity,
         unitPrice: '0',
         totalPrice: '0',
