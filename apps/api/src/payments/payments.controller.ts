@@ -12,7 +12,7 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('google-play/verify')
-  @Roles(UserRole.PATIENT)
+  @Roles('PATIENT' as any)
   async verifyGooglePlay(@Body() verifyDto: VerifyPlayPurchaseDto) {
     return this.paymentsService.verifyGooglePlayPurchase(verifyDto);
   }

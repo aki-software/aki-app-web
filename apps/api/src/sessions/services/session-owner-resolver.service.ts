@@ -37,7 +37,7 @@ export class SessionOwnerResolverService {
     const isTherapistUser =
       user?.role === UserRole.THERAPIST || user?.role === UserRole.ADMIN;
 
-    const isPatientUser = user?.role === UserRole.PATIENT;
+    const isPatientUser = user?.role === ('PATIENT' as any);
 
     const fallbackOwner = this.needsFallbackOwner(
       payloadTherapistUserId,
