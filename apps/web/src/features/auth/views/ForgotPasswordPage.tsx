@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Input } from "../../../components/atoms/Input";
 import { Button } from "../../../components/atoms/Button";
@@ -8,15 +8,14 @@ import { requestPasswordResetRequest } from "../api/auth";
 import { APP_ROUTES } from "../../../router/routes.constants";
 
 export function ForgotPasswordPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
 
     if (!email.trim()) {
       setError("Ingresá un email válido.");
@@ -26,7 +25,7 @@ export function ForgotPasswordPage() {
     setLoading(true);
     try {
       const result = await requestPasswordResetRequest(email.trim());
-      setSuccess(result.message);
+      navigate(APP_ROUTES.AUTH.LOGIN, { state: { success: result.message } });
     } catch {
       setError("No se pudo procesar la solicitud.");
     } finally {
@@ -42,7 +41,6 @@ export function ForgotPasswordPage() {
       </p>
       <div className="mt-6 space-y-4">
         <Alert type="error" message={error || ""} />
-        <Alert type="success" message={success || ""} />
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             id="forgot-email"
