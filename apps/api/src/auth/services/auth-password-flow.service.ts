@@ -65,7 +65,7 @@ export class AuthPasswordFlowService {
     });
 
     // Invalidate any existing tokens for this user
-    this.authTokenService.invalidateToken(token);
+    await this.authTokenService.invalidateToken(token);
 
     return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
@@ -137,7 +137,7 @@ export class AuthPasswordFlowService {
     });
 
     // Invalidate any existing tokens for this user
-    this.authTokenService.invalidateToken(token);
+    await this.authTokenService.invalidateToken(token);
 
     return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
@@ -190,7 +190,7 @@ export class AuthPasswordFlowService {
     // Invalidate any existing tokens for this user.
     // Prefer the real JWT when the controller passed it through; fall back to
     // userId for backward compatibility (legacy callers / tests).
-    this.authTokenService.invalidateToken(token ?? userId ?? '');
+    await this.authTokenService.invalidateToken(token ?? userId ?? '');
 
     return { ok: true };
   }
