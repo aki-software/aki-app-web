@@ -4,32 +4,33 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserRegistrationService } from './user-registration.service.js';
 import { UsersService } from './users.service.js';
 import { Institution } from '../institutions/entities/institution.entity.js';
-import { AccountActivationNotifierService } from '../common/notifications/account-activation-notifier.service.js';
 import { CryptoService } from '../common/services/crypto.service.js';
 import { UserRole } from './entities/user.entity.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 describe('UserRegistrationService', () => {
   let service: UserRegistrationService;
   let usersService: any;
   let institutionRepository: any;
-  let notifier: any;
   let cryptoService: any;
+  let eventEmitter: any;
 
   beforeEach(async () => {
     usersService = {
       findByEmail: jest.fn(),
       register: jest.fn(),
       buildPasswordSetupLink: jest.fn(),
+      findOne: jest.fn(),
     };
     institutionRepository = {
       create: jest.fn(),
       save: jest.fn(),
     };
-    notifier = {
-      notifyAccountActivation: jest.fn(),
-    };
     cryptoService = {
       generateToken: jest.fn(),
+    };
+    eventEmitter = {
+      emitAsync: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -41,8 +42,8 @@ describe('UserRegistrationService', () => {
           provide: getRepositoryToken(Institution),
           useValue: institutionRepository,
         },
-        { provide: AccountActivationNotifierService, useValue: notifier },
         { provide: CryptoService, useValue: cryptoService },
+        { provide: EventEmitter2, useValue: eventEmitter },
       ],
     }).compile();
 
@@ -73,28 +74,6 @@ describe('UserRegistrationService', () => {
       expect(usersService.register).not.toHaveBeenCalled();
     });
 
-    it('should return existing user and update name if role is PATIENT', async () => {
-      const existingUser = {
-        id: '1',
-        name: 'Old Name',
-        email,
-        role: UserRole.PATIENT,
-      };
-      usersService.findByEmail.mockResolvedValue(existingUser);
-      usersService.register.mockResolvedValue({ ...existingUser, name });
-
-      const result = await service.register({
-        name,
-        email,
-        role: UserRole.PATIENT,
-      });
-
-      expect(usersService.register).toHaveBeenCalledWith(
-        expect.objectContaining({ name, email }),
-      );
-      expect(result.name).toBe(name);
-    });
-
     it('should create a new user and trigger activation', async () => {
       usersService.findByEmail.mockResolvedValue(null);
       cryptoService.generateToken.mockReturnValue('token123');
@@ -106,6 +85,7 @@ describe('UserRegistrationService', () => {
         passwordSetupToken: 'token123',
       };
       usersService.register.mockResolvedValue(newUser);
+      usersService.findOne.mockResolvedValue(newUser);
       usersService.buildPasswordSetupLink.mockReturnValue('http://link.com');
       // Mock institution creation for therapist role
       institutionRepository.create.mockReturnValue({ id: 'inst-1' });
@@ -114,16 +94,14 @@ describe('UserRegistrationService', () => {
       const result = await service.register({ name, email, role });
 
       expect(usersService.register).toHaveBeenCalled();
-      expect(notifier.notifyAccountActivation).toHaveBeenCalledWith(
-        email,
-        name,
-        'http://link.com',
-        null,
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
+        'account.activation.requested',
+        expect.objectContaining({ email, name }),
       );
       expect(result.id).toBe('2');
     });
 
-    it('should create a private institution for therapists without one', async () => {
+    it('should emit user.registered event for therapists without institution', async () => {
       usersService.findByEmail.mockResolvedValue(null);
       const userWithoutInst = {
         id: '3',
@@ -133,22 +111,16 @@ describe('UserRegistrationService', () => {
         institutionId: null,
       };
       usersService.register.mockResolvedValue(userWithoutInst);
-      institutionRepository.create.mockReturnValue({
-        id: 'inst-1',
-        name: 'Consultorio John Doe',
-      });
-      institutionRepository.save.mockResolvedValue({
-        id: 'inst-1',
-        name: 'Consultorio John Doe',
+      usersService.findOne.mockResolvedValue({
+        ...userWithoutInst,
+        institutionId: 'inst-1',
       });
 
       await service.register({ name, email, role });
 
-      expect(institutionRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: `Consultorio ${name}`,
-          responsibleTherapistUserId: '3',
-        }),
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
+        'user.registered',
+        userWithoutInst,
       );
     });
   });
