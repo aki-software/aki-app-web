@@ -12,8 +12,7 @@ type MaterialCategoryItem = {
   text: string;
 };
 
-const DEFAULT_MATERIAL_PATH =
-  'src/common/assets/material_teorico.json';
+const DEFAULT_MATERIAL_PATH = 'src/common/assets/material_teorico.json';
 
 function getMaterialPath(): string {
   const customPath = process.env.SEED_MATERIAL_TEORICO_PATH?.trim();
