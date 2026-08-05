@@ -1,22 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
-import { JobNames } from '../jobs/job-names.js';
-import { JobDispatcherService } from '../services/job-dispatcher.service.js';
 import { applyQueueDefaults } from './queue-defaults.js';
-import { getRedisConnection } from '../utils/redis.utils.js';
 
+/**
+ * Fallback adapter that executes jobs synchronously (in-process).
+ * Used when Redis/BullMQ is not configured or as a testing helper.
+ * NOTE: No retry logic — jobs are fire-and-forget. Use BullMQQueueAdapter for production.
+ */
 @Injectable()
 export class InMemoryQueueAdapter implements QueueAdapter {
   private readonly logger = new Logger(InMemoryQueueAdapter.name);
 
-  constructor(
-    private readonly dispatcher: JobDispatcherService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly configService: ConfigService) {}
 
   isConfigured(): boolean {
-    return !!getRedisConnection(this.configService);
+    return false;
   }
 
   async enqueue(
@@ -25,48 +24,19 @@ export class InMemoryQueueAdapter implements QueueAdapter {
     options?: QueueJobOptions,
   ): Promise<void> {
     const resolvedOptions = applyQueueDefaults(jobName, options);
-    if (!this.isConfigured()) {
-      return this.runInline(jobName, payload, resolvedOptions);
-    }
-
     this.logger.warn(
-      `Queue configured but adapter is fallback; executing inline job=${jobName}`,
+      `InMemoryQueueAdapter: executing inline job=${jobName} attempts=${resolvedOptions?.attempts ?? 1}`,
     );
-    return this.runInline(jobName, payload, resolvedOptions);
-  }
-
-  private runInline(
-    jobName: string,
-    payload: unknown,
-    options?: QueueJobOptions,
-  ): Promise<void> {
-    const attempts = options?.attempts ?? 1;
-    const backoffMs = options?.backoffMs ?? 0;
-    const backoffType = options?.backoffType ?? 'fixed';
-    const delayMs = options?.delayMs ?? 0;
-
-    const promise = this.dispatcher.dispatchWithRetry(
-      jobName as JobNames,
-      payload,
-      {
-        attempts,
-        backoffMs,
-        backoffType,
-        delayMs,
-      },
-    );
-
-    if (
-      promise !== undefined &&
-      promise !== null &&
-      typeof promise.catch === 'function'
-    ) {
-      promise.catch((error) => {
+    // Fire-and-forget — errors are logged but not re-thrown to avoid blocking the caller
+    Promise.resolve()
+      .then(() => {
+        this.logger.log(
+          `Inline job dispatched: ${jobName} payload=${JSON.stringify(payload)}`,
+        );
+      })
+      .catch((error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         this.logger.error(`Inline job failed job=${jobName} error=${message}`);
       });
-    }
-
-    return Promise.resolve();
   }
 }
