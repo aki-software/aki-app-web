@@ -13,7 +13,7 @@ type MaterialCategoryItem = {
 };
 
 const DEFAULT_MATERIAL_PATH =
-  '../../../CotejoApp/app/src/main/assets/material_teorico.json';
+  'src/common/assets/material_teorico.json';
 
 function getMaterialPath(): string {
   const customPath = process.env.SEED_MATERIAL_TEORICO_PATH?.trim();
