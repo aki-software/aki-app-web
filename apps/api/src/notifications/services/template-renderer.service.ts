@@ -17,7 +17,7 @@ export class TemplateRendererService {
       : `${templateName}.pug`;
     const templatePath = path.resolve(
       __dirname,
-      '../../mail/templates',
+      '../templates',
       templateFileName,
     );
 
