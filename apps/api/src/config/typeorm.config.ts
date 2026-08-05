@@ -35,7 +35,9 @@ export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
       ],
       migrations: ['dist/migrations/*.js'],
       synchronize: false,
-      ssl: { rejectUnauthorized: false },
+      ssl: process.env.DATABASE_URL.includes('localhost')
+        ? false
+        : { rejectUnauthorized: false },
     }
   : {
       type: 'postgres',
