@@ -18,7 +18,7 @@ export class InMemoryQueueAdapter implements QueueAdapter {
     return false;
   }
 
-  async enqueue(
+  enqueue(
     jobName: string,
     payload: unknown,
     options?: QueueJobOptions,
@@ -38,5 +38,6 @@ export class InMemoryQueueAdapter implements QueueAdapter {
         const message = error instanceof Error ? error.message : String(error);
         this.logger.error(`Inline job failed job=${jobName} error=${message}`);
       });
+    return Promise.resolve();
   }
 }

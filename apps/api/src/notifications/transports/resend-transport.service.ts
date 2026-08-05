@@ -19,7 +19,7 @@ export class ResendTransportService implements MailTransport {
       this.resend = new Resend(this.apiKey);
     }
 
-    const { data, error } = await this.resend.emails.send({
+    const { error } = await this.resend.emails.send({
       from: options.from,
       to: options.to,
       subject: options.subject,
