@@ -17,9 +17,13 @@ import { VoucherBatchStatus, VoucherOwnerType } from './voucher.enums.js';
   'status',
 ])
 @Index('IDX_voucher_batches_owner_institution_id', ['ownerInstitutionId'])
+@Index('IDX_voucher_batches_short_code', ['shortCode'], { unique: true })
 export class VoucherBatch {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column({ name: 'short_code', type: 'varchar', length: 10, unique: true })
+  shortCode!: string;
 
   @Column({
     name: 'owner_type',

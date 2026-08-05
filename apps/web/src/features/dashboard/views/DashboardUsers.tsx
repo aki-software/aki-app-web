@@ -1,4 +1,4 @@
-import { Building2, Users } from "lucide-react";
+import { Building2, Users, Search } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
@@ -71,6 +71,7 @@ export function DashboardUsers() {
     setSearchParams(next, { replace: true });
   };
 
+  const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "PENDING">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [formState, setFormState] = useState(initialFormState);
@@ -78,7 +79,7 @@ export function DashboardUsers() {
   const [activeAsyncId, setActiveAsyncId] = useState<string | null>(null); // Para spinners de la card
 
   useEffect(() => { loadData(); }, [loadData]);
-  useEffect(() => { setCurrentPage(1); }, [statusFilter]);
+  useEffect(() => { setCurrentPage(1); }, [statusFilter, searchQuery]);
 
   const onSubmitCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -102,9 +103,16 @@ export function DashboardUsers() {
 
   const filtered = useMemo(() => {
     return institutions
-      .filter(i => statusFilter === "ALL" || (statusFilter === "ACTIVE") === !!i.responsibleTherapistActive)
+      .filter(i => {
+        const matchesStatus = statusFilter === "ALL" || (statusFilter === "ACTIVE") === !!i.responsibleTherapistActive;
+        const query = searchQuery.trim().toLowerCase();
+        const matchesSearch = !query || 
+          i.name.toLowerCase().includes(query) || 
+          i.responsibleTherapistEmail?.toLowerCase().includes(query);
+        return matchesStatus && matchesSearch;
+      })
       .sort((a, b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0));
-  }, [institutions, statusFilter]);
+  }, [institutions, statusFilter, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const pageItems = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -155,21 +163,31 @@ export function DashboardUsers() {
           />
 
           <div className="app-card !p-6">
-            <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
               <div className="flex items-center">
                 <Building2 className="mr-2 h-5 w-5 text-app-primary" />
-                <h3 className="font-semibold text-app-text-main">Listado</h3>
+                <h3 className="font-semibold text-app-text-main whitespace-nowrap">Instituciones Registradas</h3>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="w-48">
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-app-text-muted/60" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-[52px] pl-10 pr-4 rounded-2xl border border-app-border bg-app-surface text-sm font-medium text-app-text-main placeholder:text-app-text-muted/60 outline-none transition-all focus:border-app-primary focus:ring-4 focus:ring-app-primary/5"
+                  />
+                </div>
+                <div className="w-full sm:w-48">
                   <Select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "PENDING")}
                     options={[{ value: "ALL", label: "Todos los estados" }, { value: "ACTIVE", label: "Activos" }, { value: "PENDING", label: "Pendientes" }]}
                   />
                 </div>
-                <div className="text-xs text-app-text-muted whitespace-nowrap">
+                <div className="text-xs text-app-text-muted whitespace-nowrap hidden sm:block">
                   Total: <span className="font-medium">{filtered.length}</span>
                 </div>
               </div>

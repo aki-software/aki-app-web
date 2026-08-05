@@ -1,32 +1,23 @@
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
-import { JobHandler } from '../../common/jobs/handlers/job-handler.interface.js';
+import { Job } from 'bullmq';
 import { JobNames } from '../../common/jobs/job-names.js';
 import { CalculateMetricsJobPayload } from '../../common/jobs/calculate-metrics.job.js';
 import { SessionMetricsService } from './session-metrics.service.js';
 
+@Processor('metrics')
 @Injectable()
-export class CalculateMetricsHandler implements JobHandler<CalculateMetricsJobPayload> {
+export class CalculateMetricsHandler extends WorkerHost {
   readonly name = JobNames.CalculateMetrics;
-  private readonly defaultTimeoutMs = 30_000;
   private readonly logger = new Logger(CalculateMetricsHandler.name);
 
-  constructor(private readonly sessionMetricsService: SessionMetricsService) {}
-
-  getTimeoutMs(): number {
-    return this.defaultTimeoutMs;
+  constructor(private readonly sessionMetricsService: SessionMetricsService) {
+    super();
   }
 
-  getJobContext(payload: CalculateMetricsJobPayload) {
-    return {
-      sessionId: payload.sessionId,
-    };
-  }
-
-  async handle(payload: CalculateMetricsJobPayload): Promise<unknown> {
-    const { sessionId } = payload;
-
+  async process(job: Job<CalculateMetricsJobPayload>): Promise<unknown> {
+    const { sessionId } = job.data;
     this.logger.log(`job-metrics dispatch sessionId=${sessionId}`);
-
-    return await this.sessionMetricsService.calculateAndSaveMetrics(sessionId);
+    return this.sessionMetricsService.calculateAndSaveMetrics(sessionId);
   }
 }

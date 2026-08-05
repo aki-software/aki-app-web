@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { OnEvent } from '@nestjs/event-emitter';
+import { UsersService } from '../users/users.service.js';
 import { Institution } from './entities/institution.entity.js';
 import type { CreateInstitutionDto } from './dto/create-institution.dto.js';
 import type { UpdateInstitutionDto } from './dto/update-institution.dto.js';
@@ -10,7 +12,27 @@ export class InstitutionsService {
   constructor(
     @InjectRepository(Institution)
     private readonly institutionRepository: Repository<Institution>,
+    private readonly usersService: UsersService,
   ) {}
+
+  @OnEvent('user.registered', { async: true })
+  async handleUserRegistered(user: any) {
+    if (!user.institutionId) {
+      const institution = this.institutionRepository.create({
+        name: `Consultorio ${user.name}`,
+        billingEmail: user.email?.trim() || null,
+        responsibleTherapistUserId: user.id,
+        isActive: true,
+      });
+      const savedInstitution =
+        await this.institutionRepository.save(institution);
+
+      await this.usersService.register({
+        ...user,
+        institutionId: savedInstitution.id,
+      });
+    }
+  }
 
   async findAll(): Promise<Institution[]> {
     return await this.institutionRepository.find({

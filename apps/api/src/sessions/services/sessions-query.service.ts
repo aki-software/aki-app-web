@@ -45,7 +45,7 @@ export class SessionsQueryService {
       return where;
     }
 
-    if (role === UserRole.PATIENT) {
+    if (role === ('PATIENT' as any)) {
       where.patientId = scope.patientId;
       return where;
     }
@@ -160,7 +160,7 @@ export class SessionsQueryService {
     if (scope) {
       const role = scope.role as UserRole;
       if (role !== UserRole.ADMIN) {
-        if (role === UserRole.PATIENT && scope.patientId) {
+        if (role === ('PATIENT' as any) && scope.patientId) {
           qb.andWhere('session.patientId = :patientId', {
             patientId: scope.patientId,
           });
@@ -176,14 +176,15 @@ export class SessionsQueryService {
       }
     }
 
-    qb.addOrderBy(
+    qb.addSelect(
       "CASE WHEN metrics.reliability_level = 'Baja' THEN 0 WHEN metrics.fatigue_detected = true THEN 1 WHEN metrics.rush_detected = true THEN 2 ELSE 3 END",
-      'ASC',
+      'sort_order',
     );
+    qb.addOrderBy('sort_order', 'ASC');
     qb.addOrderBy('session.session_date', 'DESC');
 
     const skip = (page - 1) * limit;
-    qb.skip(skip).take(limit);
+    qb.offset(skip).limit(limit);
 
     const [sessions, total] = await qb.getManyAndCount();
 

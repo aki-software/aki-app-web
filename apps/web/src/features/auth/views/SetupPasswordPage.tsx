@@ -8,8 +8,10 @@ import { Button } from "../../../components/atoms/Button";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { Alert } from "../../../components/atoms/Alert";
 import { AuthLayout } from "./AuthLayout";
+import { useAuth } from "../hooks/useAuth";
 
 export function SetupPasswordPage() {
+  const { logout, isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token") ?? "";
@@ -25,6 +27,12 @@ export function SetupPasswordPage() {
     role: string;
     institutionName?: string | null;
   } | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      logout().catch(console.error);
+    }
+  }, [isAuthenticated, logout]);
 
   useEffect(() => {
     if (!token) {
