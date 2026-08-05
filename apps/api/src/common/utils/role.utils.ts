@@ -8,8 +8,5 @@ export function normalizeUserRole(role?: UserRole | string): UserRole {
   if (normalized === UserRole.INSTITUTION_ADMIN) {
     return UserRole.INSTITUTION_ADMIN;
   }
-  if (normalized === UserRole.PATIENT || normalized === 'PACIENTE') {
-    return UserRole.PATIENT;
-  }
   return UserRole.THERAPIST;
 }
