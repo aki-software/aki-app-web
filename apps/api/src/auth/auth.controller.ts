@@ -35,7 +35,10 @@ export class AuthController {
 
   @Post('setup-password')
   async setupPassword(@Body() body: TokenPasswordDto) {
-    return this.authPasswordFlowService.setupPassword(body.token, body.password);
+    return this.authPasswordFlowService.setupPassword(
+      body.token,
+      body.password,
+    );
   }
 
   @Post('request-password-reset')
@@ -65,7 +68,10 @@ export class AuthController {
     AUTH_RATE_LIMITS.resetPassword.windowMs,
   )
   async resetPassword(@Body() body: TokenPasswordDto) {
-    return this.authPasswordFlowService.resetPassword(body.token, body.password);
+    return this.authPasswordFlowService.resetPassword(
+      body.token,
+      body.password,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
