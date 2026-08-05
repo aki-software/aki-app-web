@@ -7,9 +7,7 @@ import {
   Post,
   Query,
   Req,
-  Res,
   UseGuards,
-  Inject,
   InternalServerErrorException,
 } from '@nestjs/common';
 import type { Response } from 'express';

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ReportGeneratedEvent } from '../../events/domain-events.js';
-import type { ReportData } from '../../common/types/report.types.js';
 
 @Injectable()
 export class ReportDeliveryService {
@@ -12,9 +11,6 @@ export class ReportDeliveryService {
   async deliverReport(
     targetEmail: string,
     sessionId: string,
-    _voucherIdForLogging: string | undefined,
-    _reportData: ReportData,
-    _pdfBuffer?: Buffer,
   ): Promise<{ success: boolean; message: string }> {
     // Note: Since this is now decoupled, actual PDF uploading would happen elsewhere.
     // We emit the event and simulate a report URL.
