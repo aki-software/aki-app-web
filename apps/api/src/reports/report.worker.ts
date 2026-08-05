@@ -25,7 +25,7 @@ export class ReportWorker extends WorkerHost {
       const reportUrl = `https://s3.bucket/reports/report-${job.id}.pdf`;
 
       // Emit success event
-      this.eventEmitter.emit(
+      await this.eventEmitter.emitAsync(
         'report.generated',
         new ReportGeneratedEvent(reportUrl, job.data.requestedByEmail),
       );

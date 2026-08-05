@@ -29,7 +29,7 @@ export class SendEmailProcessor extends WorkerHost {
       `job-mail template=${template} jobId=${jobId} sessionId=${sessionId} voucherId=${voucherId} to=${meta.to}`,
     );
 
-    this.getEventEmitter().emit(
+    await this.getEventEmitter().emitAsync(
       'email.requested',
       new EmailRequestedEvent(template, templatePayload, meta),
     );

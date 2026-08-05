@@ -12,9 +12,9 @@ export class ReportDeliveryService {
   async deliverReport(
     targetEmail: string,
     sessionId: string,
-    voucherIdForLogging: string | undefined,
-    reportData: ReportData,
-    pdfBuffer?: Buffer,
+    _voucherIdForLogging: string | undefined,
+    _reportData: ReportData,
+    _pdfBuffer?: Buffer,
   ): Promise<{ success: boolean; message: string }> {
     // Note: Since this is now decoupled, actual PDF uploading would happen elsewhere.
     // We emit the event and simulate a report URL.
@@ -24,7 +24,7 @@ export class ReportDeliveryService {
       `Emitting report.generated event for sessionId=${sessionId} targetEmail=${targetEmail}`,
     );
 
-    this.eventEmitter.emit(
+    await this.eventEmitter.emitAsync(
       'report.generated',
       new ReportGeneratedEvent(reportUrl, targetEmail),
     );
