@@ -27,7 +27,6 @@ import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { SessionsQueryService } from './services/sessions-query.service.js';
 import { SessionsMutationService } from './services/sessions-mutation.service.js';
 import { SessionsOrchestratorService } from './services/sessions-orchestrator.service.js';
-
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Sessions')
