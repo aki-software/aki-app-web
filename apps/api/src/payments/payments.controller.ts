@@ -7,6 +7,16 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { UserRole } from '@akit/contracts';
+import type { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    id: string;
+    email: string;
+    institutionId: string;
+    role: UserRole;
+  };
+}
 
 @Controller('payments')
 export class PaymentsController {
@@ -27,7 +37,7 @@ export class PaymentsController {
   @Roles(UserRole.INSTITUTION_ADMIN)
   async initiateCheckout(
     @Body() checkoutDto: CheckoutRequestDto,
-    @Request() req: any,
+    @Request() req: RequestWithUser,
   ) {
     return this.checkoutService.initiateCheckout({
       ...checkoutDto,

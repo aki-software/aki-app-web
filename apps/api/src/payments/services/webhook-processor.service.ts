@@ -62,7 +62,9 @@ export class WebhookProcessorService {
     }
 
     if (!externalReference) {
-      this.logger.warn(`No external reference found in webhook payload for ${params.gateway}`);
+      this.logger.warn(
+        `No external reference found in webhook payload for ${params.gateway}`,
+      );
       return;
     }
 

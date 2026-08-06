@@ -12,6 +12,12 @@ import type { androidpublisher_v3 } from 'googleapis';
 import { PaymentLockService } from './payment-lock.service';
 import { GooglePlayAdapter } from './google-play.adapter';
 
+export interface VerifyPurchaseResult {
+  success: boolean;
+  valid: boolean;
+  reason?: string;
+}
+
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
@@ -23,7 +29,7 @@ export class PaymentsService {
     private readonly googlePlayAdapter: GooglePlayAdapter,
   ) {}
 
-  async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto) {
+  async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto): Promise<VerifyPurchaseResult> {
     this.logger.log(`Verifying purchase for session ${dto.sessionId}`);
 
     await this.paymentLockService.acquireLock(dto.purchaseToken);
@@ -95,7 +101,7 @@ export class PaymentsService {
       paymentReference?: string | null;
       paymentStatus?: SessionPaymentStatus;
     },
-  ) {
+  ): Promise<VerifyPurchaseResult> {
     let purchase: androidpublisher_v3.Schema$ProductPurchase;
 
     try {

@@ -8,7 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PricingPlan } from '../entities/pricing-plan.entity.js';
 import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
-import { VoucherOwnerType, VoucherBatchStatus } from '../../vouchers/entities/voucher.enums.js';
+import {
+  VoucherOwnerType,
+  VoucherBatchStatus,
+} from '../../vouchers/entities/voucher.enums.js';
 import * as crypto from 'crypto';
 import { ExchangeRateService } from './exchange-rate.service.js';
 
@@ -57,9 +60,14 @@ export class CheckoutService {
       ownerType: VoucherOwnerType.INSTITUTION,
       ownerInstitution: { id: params.institutionId },
       quantity: plan.voucherQuantity,
-      totalPrice: String(params.gateway === 'MERCADO_PAGO' ? priceArs : priceUsd),
+      totalPrice: String(
+        params.gateway === 'MERCADO_PAGO' ? priceArs : priceUsd,
+      ),
       currency: params.gateway === 'MERCADO_PAGO' ? 'ARS' : 'USD',
-      unitPrice: String((params.gateway === 'MERCADO_PAGO' ? priceArs! : priceUsd) / plan.voucherQuantity),
+      unitPrice: String(
+        (params.gateway === 'MERCADO_PAGO' ? priceArs! : priceUsd) /
+          plan.voucherQuantity,
+      ),
       paymentProvider: params.gateway,
       status: VoucherBatchStatus.PENDING,
       shortCode: crypto.randomBytes(4).toString('hex').toUpperCase(),

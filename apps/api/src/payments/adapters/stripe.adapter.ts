@@ -61,7 +61,9 @@ export class StripeAdapter implements PaymentGatewayAdapter {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
     if (!signature || !secret) {
-      this.logger.warn('Stripe webhook missing signature or secret not configured');
+      this.logger.warn(
+        'Stripe webhook missing signature or secret not configured',
+      );
       return Promise.resolve(false); // Stripe strict fail
     }
 
