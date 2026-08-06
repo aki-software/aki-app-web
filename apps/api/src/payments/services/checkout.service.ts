@@ -19,6 +19,15 @@ interface InitiateCheckoutParams {
   failureUrl?: string;
 }
 
+/**
+ * Orchestrates the creation of a new payment intent.
+ * 
+ * Responsibilities:
+ * 1. Validates the selected pricing plan.
+ * 2. Applies currency conversion if the gateway (like MercadoPago) requires local currency.
+ * 3. Creates a `VoucherBatch` in 'PENDING' state to track the intent.
+ * 4. Calls the appropriate Gateway SDK (Stripe/MP) to generate a checkout URL.
+ */
 @Injectable()
 export class CheckoutService {
   constructor(
