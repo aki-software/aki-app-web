@@ -27,9 +27,14 @@ export class ExchangeRateService {
       this.cacheTimestamp = now;
       return rate;
     } catch (error) {
-      this.logger.error('Failed to fetch exchange rate, using fallback', error instanceof Error ? error.message : error);
+      this.logger.error(
+        'Failed to fetch exchange rate, using fallback',
+        (error as Error).stack || error,
+      );
       const fallbackRateStr = process.env.USD_ARS_FALLBACK_RATE;
-      return fallbackRateStr ? parseFloat(fallbackRateStr) : this.DEFAULT_FALLBACK_RATE;
+      return fallbackRateStr
+        ? parseFloat(fallbackRateStr)
+        : this.DEFAULT_FALLBACK_RATE;
     }
   }
 
@@ -38,7 +43,7 @@ export class ExchangeRateService {
     if (!response.ok) {
       throw new Error(`DolarAPI returned ${response.status}`);
     }
-    const data = await response.json() as { venta?: number };
+    const data = (await response.json()) as { venta?: number };
     if (!data.venta) {
       throw new Error('DolarAPI did not return venta field');
     }

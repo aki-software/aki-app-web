@@ -9,7 +9,7 @@ export class StripeAdapter implements PaymentGatewayAdapter {
 
   constructor() {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test', {
-      apiVersion: '2024-04-10' as any, // Type matching based on SDK installed
+      apiVersion: '2024-04-10', // SDK default matching
     });
   }
 
@@ -85,24 +85,16 @@ export class StripeAdapter implements PaymentGatewayAdapter {
       const session =
         await this.stripe.checkout.sessions.retrieve(externalReference);
 
-      let mappedStatus: 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED' =
-        'PENDING';
-
-      if (session.payment_status === 'paid') {
-        mappedStatus = 'APPROVED';
-      } else if (session.status === 'expired') {
-        mappedStatus = 'EXPIRED';
-      } else if (session.status === 'open') {
-        mappedStatus = 'PENDING';
-      } else {
-        mappedStatus = 'REJECTED';
-      }
+      const getStatus = (): 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED' => {
+        if (session.payment_status === 'paid') return 'APPROVED';
+        if (session.status === 'expired') return 'EXPIRED';
+        if (session.status === 'open') return 'PENDING';
+        return 'REJECTED';
+      };
 
       return {
-        status: mappedStatus,
-        paidAmount: session.amount_total
-          ? session.amount_total / 100
-          : undefined,
+        status: getStatus(),
+        paidAmount: session.amount_total ? session.amount_total / 100 : undefined,
         currency: session.currency?.toUpperCase(),
       };
     } catch (err) {

@@ -17,6 +17,17 @@ interface WebhookParams {
   body: any;
 }
 
+/**
+ * Idempotent Webhook Processor for Payment Gateways.
+ * 
+ * Responsibilities:
+ * 1. Validates the cryptographic signature of incoming webhooks.
+ * 2. Parses the external payment reference from the payload.
+ * 3. Executes a strict SERIALIZABLE database transaction to ensure idempotency.
+ *    - It checks if a `PaymentEvent` already exists for this reference.
+ * 4. If new, it updates the `VoucherBatch` status to 'PAID' and saves the `PaymentEvent`.
+ * 5. Emits the `payment.completed` domain event to trigger emails and downstream logic.
+ */
 @Injectable()
 export class WebhookProcessorService {
   private readonly logger = new Logger(WebhookProcessorService.name);
@@ -126,9 +137,7 @@ export class WebhookProcessorService {
       });
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      this.logger.error(
-        `Error processing webhook: ${err instanceof Error ? err.message : err}`,
-      );
+      this.logger.error('Error processing webhook', (err as Error).stack || err);
       throw err;
     } finally {
       await queryRunner.release();

@@ -6,10 +6,11 @@ import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
+import { UserRole } from '../users/entities/user.entity.js';
 
 @Controller('admin/pricing-plans')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN' as any)
+@Roles(UserRole.SUPER_ADMIN)
 export class AdminPricingController {
   constructor(
     @InjectRepository(PricingPlan)
