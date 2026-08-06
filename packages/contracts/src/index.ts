@@ -6,6 +6,7 @@ export * from './vouchers.js';
 export * from './institutions.js';
 export * from './categories.js';
 export * from './common.js';
+export * from './payments.js';
 
 // Explicit schema exports for test compatibility
 export { sessionApiSchema } from './sessions.js';
