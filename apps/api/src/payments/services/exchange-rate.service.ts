@@ -6,6 +6,7 @@ export class ExchangeRateService {
   private cachedRate: number | null = null;
   private cacheTimestamp: number | null = null;
   private readonly CACHE_TTL_MS = 60 * 60 * 1000; // 60 minutes
+  private readonly DEFAULT_FALLBACK_RATE = 1000;
 
   async getUsdToArsRate(): Promise<number> {
     const now = Date.now();
@@ -26,9 +27,9 @@ export class ExchangeRateService {
       this.cacheTimestamp = now;
       return rate;
     } catch (error) {
-      this.logger.error('Failed to fetch exchange rate, using fallback', error);
+      this.logger.error('Failed to fetch exchange rate, using fallback', error instanceof Error ? error.message : error);
       const fallbackRateStr = process.env.USD_ARS_FALLBACK_RATE;
-      return fallbackRateStr ? parseFloat(fallbackRateStr) : 1000;
+      return fallbackRateStr ? parseFloat(fallbackRateStr) : this.DEFAULT_FALLBACK_RATE;
     }
   }
 
@@ -37,7 +38,7 @@ export class ExchangeRateService {
     if (!response.ok) {
       throw new Error(`DolarAPI returned ${response.status}`);
     }
-    const data = await response.json();
+    const data = await response.json() as { venta?: number };
     if (!data.venta) {
       throw new Error('DolarAPI did not return venta field');
     }
