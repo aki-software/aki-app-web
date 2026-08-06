@@ -9,7 +9,7 @@ export class StripeAdapter implements PaymentGatewayAdapter {
 
   constructor() {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test', {
-      apiVersion: '2024-04-10', // SDK default matching
+      apiVersion: '2026-07-29.dahlia', // SDK default matching
     });
   }
 
@@ -53,7 +53,7 @@ export class StripeAdapter implements PaymentGatewayAdapter {
     };
   }
 
-  async validateWebhook(
+  validateWebhook(
     rawBody: string,
     headers: Record<string, string>,
   ): Promise<boolean> {
@@ -61,18 +61,16 @@ export class StripeAdapter implements PaymentGatewayAdapter {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
     if (!signature || !secret) {
-      this.logger.warn(
-        'Stripe webhook missing signature or secret not configured',
-      );
-      return false; // Stripe strict fail
+      this.logger.warn('Stripe webhook missing signature or secret not configured');
+      return Promise.resolve(false); // Stripe strict fail
     }
 
     try {
       this.stripe.webhooks.constructEvent(rawBody, signature, secret);
-      return true;
+      return Promise.resolve(true);
     } catch (err) {
       this.logger.error('Stripe webhook signature validation failed', err);
-      return false;
+      return Promise.resolve(false);
     }
   }
 
@@ -94,7 +92,9 @@ export class StripeAdapter implements PaymentGatewayAdapter {
 
       return {
         status: getStatus(),
-        paidAmount: session.amount_total ? session.amount_total / 100 : undefined,
+        paidAmount: session.amount_total
+          ? session.amount_total / 100
+          : undefined,
         currency: session.currency?.toUpperCase(),
       };
     } catch (err) {

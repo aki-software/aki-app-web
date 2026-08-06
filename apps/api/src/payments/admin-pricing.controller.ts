@@ -1,12 +1,24 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { CreatePricingPlanDto, UpdatePricingPlanDto } from './dto/pricing-plan.dto.js';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  CreatePricingPlanDto,
+  UpdatePricingPlanDto,
+} from './dto/pricing-plan.dto.js';
 import { PricingPlan } from './entities/pricing-plan.entity.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
-import { UserRole } from '../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 
 @Controller('admin/pricing-plans')
 @UseGuards(JwtAuthGuard, RolesGuard)

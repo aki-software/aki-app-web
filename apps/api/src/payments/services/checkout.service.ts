@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PricingPlan } from '../entities/pricing-plan.entity.js';
 import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
+import { VoucherOwnerType, VoucherBatchStatus } from '../../vouchers/entities/voucher.enums.js';
+import * as crypto from 'crypto';
 import { ExchangeRateService } from './exchange-rate.service.js';
 
 interface InitiateCheckoutParams {
@@ -19,15 +21,6 @@ interface InitiateCheckoutParams {
   failureUrl?: string;
 }
 
-/**
- * Orchestrates the creation of a new payment intent.
- * 
- * Responsibilities:
- * 1. Validates the selected pricing plan.
- * 2. Applies currency conversion if the gateway (like MercadoPago) requires local currency.
- * 3. Creates a `VoucherBatch` in 'PENDING' state to track the intent.
- * 4. Calls the appropriate Gateway SDK (Stripe/MP) to generate a checkout URL.
- */
 @Injectable()
 export class CheckoutService {
   constructor(
@@ -61,14 +54,15 @@ export class CheckoutService {
     }
 
     const voucherBatch = this.voucherBatchRepo.create({
-      institution: { id: params.institutionId },
-      totalPrice: params.gateway === 'MERCADO_PAGO' ? priceArs : priceUsd,
+      ownerType: VoucherOwnerType.INSTITUTION,
+      ownerInstitution: { id: params.institutionId },
+      quantity: plan.voucherQuantity,
+      totalPrice: String(params.gateway === 'MERCADO_PAGO' ? priceArs : priceUsd),
       currency: params.gateway === 'MERCADO_PAGO' ? 'ARS' : 'USD',
-      unitPrice:
-        (params.gateway === 'MERCADO_PAGO' ? priceArs! : priceUsd) /
-        plan.voucherQuantity,
+      unitPrice: String((params.gateway === 'MERCADO_PAGO' ? priceArs! : priceUsd) / plan.voucherQuantity),
       paymentProvider: params.gateway,
-      status: 'PENDING',
+      status: VoucherBatchStatus.PENDING,
+      shortCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
     });
 
     // Save batch first so we have an ID for the gateway

@@ -25,7 +25,7 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
     description: string;
   }): Promise<{ checkoutUrl: string; externalReference: string }> {
     const preference = new Preference(this.client);
-    
+
     // MP always charges in ARS in Argentina
     const amount = params.priceArs ?? params.priceUsd * 1000;
 
@@ -64,7 +64,7 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
     };
   }
 
-  async validateWebhook(
+  validateWebhook(
     rawBody: string,
     headers: Record<string, string>,
   ): Promise<boolean> {
@@ -73,7 +73,7 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
     const dataId = headers['data.id'] || '';
 
     if (!signatureHeader || !requestId) {
-      return false;
+      return Promise.resolve(false);
     }
 
     // signature is like: ts=12345,v1=abcdef...
@@ -88,8 +88,10 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
 
     const secret = process.env.MP_WEBHOOK_SECRET || '';
     if (!secret) {
-      this.logger.warn('MP_WEBHOOK_SECRET not configured, bypassing signature validation');
-      return true; // Bypass in dev if not set
+      this.logger.warn(
+        'MP_WEBHOOK_SECRET not configured, bypassing signature validation',
+      );
+      return Promise.resolve(true); // Bypass in dev if not set
     }
 
     const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
@@ -97,7 +99,7 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
     hmac.update(manifest);
     const expectedHash = hmac.digest('hex');
 
-    return hash === expectedHash;
+    return Promise.resolve(hash === expectedHash);
   }
 
   async getPaymentStatus(externalReference: string): Promise<{
@@ -109,8 +111,9 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
       const payment = new Payment(this.client);
       const result = await payment.get({ id: externalReference });
 
-      let mappedStatus: 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED' = 'PENDING';
-      
+      let mappedStatus: 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED' =
+        'PENDING';
+
       switch (result.status) {
         case 'approved':
           mappedStatus = 'APPROVED';
@@ -133,7 +136,10 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
         currency: result.currency_id,
       };
     } catch (err) {
-      this.logger.error(`Failed to fetch payment status for ${externalReference}`, err);
+      this.logger.error(
+        `Failed to fetch payment status for ${externalReference}`,
+        err,
+      );
       return { status: 'PENDING' }; // Default safe fallback
     }
   }

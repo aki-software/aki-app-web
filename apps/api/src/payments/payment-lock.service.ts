@@ -6,11 +6,6 @@ export class PaymentLockService {
   private readonly lockedTokens = new Map<string, number>();
   private readonly LOCK_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-  /**
-   * Intenta adquirir un lock para el token especificado de forma asíncrona.
-   * Si ya está procesándose, reintenta durante unos segundos antes de lanzar una excepción.
-   * @param token El token de compra (purchaseToken)
-   */
   async acquireLock(token: string): Promise<void> {
     const maxRetries = 5;
     const delayMs = 500;
@@ -34,10 +29,6 @@ export class PaymentLockService {
     throw new ConflictException('Este pago ya está siendo procesado.');
   }
 
-  /**
-   * Libera el lock para el token especificado.
-   * @param token El token de compra
-   */
   releaseLock(token: string): void {
     this.lockedTokens.delete(token);
     this.logger.debug(`Lock liberado para el token ${token}`);
