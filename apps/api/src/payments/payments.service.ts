@@ -10,7 +10,20 @@ import { SessionsMutationService } from '../sessions/services/sessions-mutation.
 import { SessionPaymentStatus } from '@akit/contracts';
 import type { androidpublisher_v3 } from 'googleapis';
 import { PaymentLockService } from './payment-lock.service';
-import { GooglePlayAdapter } from './google-play.adapter';
+import { GooglePlayAdapter } from './google-play.adapter.js';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
+import { Voucher } from '../vouchers/entities/voucher.entity.js';
+import {
+  VoucherBatchStatus,
+  VoucherStatus,
+} from '../vouchers/entities/voucher.enums.js';
+import type {
+  BillingHistory,
+  PaymentGateway,
+  PaymentEventStatus,
+} from '@akit/contracts';
 
 export interface VerifyPurchaseResult {
   success: boolean;
@@ -27,9 +40,57 @@ export class PaymentsService {
     private readonly sessionsMutationService: SessionsMutationService,
     private readonly paymentLockService: PaymentLockService,
     private readonly googlePlayAdapter: GooglePlayAdapter,
+    @InjectDataSource() private dataSource: DataSource,
   ) {}
 
-  async verifyGooglePlayPurchase(dto: VerifyPlayPurchaseDto): Promise<VerifyPurchaseResult> {
+  async getBillingHistory(institutionId: string): Promise<BillingHistory> {
+    const batches = await this.dataSource.manager.find(VoucherBatch, {
+      where: {
+        ownerInstitutionId: institutionId,
+        status: VoucherBatchStatus.PAID,
+      },
+      order: { paidAt: 'DESC' },
+    });
+
+    const totalPaid = batches.reduce(
+      (acc, batch) => acc + Number(batch.totalPrice || 0),
+      0,
+    );
+
+    const transactions = batches.map((batch) => ({
+      id: batch.id,
+      gateway: (batch.paymentProvider as PaymentGateway) || 'MERCADO_PAGO',
+      externalReference: batch.paymentReference || '',
+      status: 'APPROVED' as PaymentEventStatus,
+      amount: Number(batch.totalPrice),
+      currency: batch.currency,
+      createdAt: batch.paidAt?.toISOString() || batch.createdAt.toISOString(),
+      plan: {
+        id: batch.id, // Using batch ID as plan ID mock since we don't store planId in batch
+        name: `Lote de ${batch.quantity} vouchers`,
+        voucherQuantity: batch.quantity,
+        priceUsd: Number(batch.totalPrice),
+        isActive: true,
+      },
+    }));
+
+    const currentBalance = await this.dataSource.manager.count(Voucher, {
+      where: {
+        ownerInstitutionId: institutionId,
+        status: VoucherStatus.AVAILABLE,
+      },
+    });
+
+    return {
+      transactions,
+      totalPaid,
+      currentBalance,
+    };
+  }
+
+  async verifyGooglePlayPurchase(
+    dto: VerifyPlayPurchaseDto,
+  ): Promise<VerifyPurchaseResult> {
     this.logger.log(`Verifying purchase for session ${dto.sessionId}`);
 
     await this.paymentLockService.acquireLock(dto.purchaseToken);

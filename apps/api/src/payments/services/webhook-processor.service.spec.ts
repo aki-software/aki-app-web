@@ -5,6 +5,7 @@ import {
   PAYMENT_GATEWAY_STRIPE,
 } from '../interfaces/payment-gateway.adapter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DataSource } from 'typeorm';
 
 describe('WebhookProcessorService', () => {
   let service: WebhookProcessorService;
@@ -13,7 +14,11 @@ describe('WebhookProcessorService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WebhookProcessorService,
-        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
+        {
+          provide: EventEmitter2,
+          useValue: { emit: jest.fn(), emitAsync: jest.fn() },
+        },
+        { provide: DataSource, useValue: { createQueryRunner: jest.fn() } },
         {
           provide: PAYMENT_GATEWAY_MP,
           useValue: { validateWebhook: jest.fn().mockResolvedValue(true) },

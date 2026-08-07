@@ -41,25 +41,8 @@ export class WebhookProcessorService {
       throw new ForbiddenException('Invalid webhook signature');
     }
 
-    let externalReference: string | undefined;
     const body = params.body as Record<string, any>;
-
-    if (params.gateway === 'MERCADO_PAGO') {
-      if (body?.type === 'payment') {
-        const paymentId = body?.data?.id;
-        if (!paymentId) return;
-        externalReference = String(paymentId);
-      } else {
-        return;
-      }
-    } else {
-      if (body?.type === 'checkout.session.completed') {
-        externalReference = body?.data?.object?.id;
-        if (!externalReference) return;
-      } else {
-        return;
-      }
-    }
+    const externalReference = adapter.extractPaymentReference(body);
 
     if (!externalReference) {
       this.logger.warn(
@@ -96,8 +79,10 @@ export class WebhookProcessorService {
       }
 
       const voucherBatch = await queryRunner.manager.findOne(VoucherBatch, {
-        where: { paymentReference: externalReference },
-        relations: ['institution'],
+        where: paymentStatus.externalReference
+          ? { id: paymentStatus.externalReference }
+          : { paymentReference: externalReference },
+        relations: ['ownerInstitution', 'ownerUser'],
       });
 
       if (!voucherBatch) {
@@ -126,10 +111,11 @@ export class WebhookProcessorService {
 
       this.eventEmitter.emit('payment.completed', {
         voucherBatchId: voucherBatch.id,
-        institutionId: voucherBatch.institution.id,
-        buyerEmail: 'admin@institution.com', // Would ideally come from metadata or batch
-        planName: `Lote de ${voucherBatch.totalPrice}`, // Mocked
-        voucherQuantity: 0, // Mocked
+        institutionId:
+          voucherBatch.ownerInstitutionId || voucherBatch.ownerInstitution?.id,
+        buyerEmail: voucherBatch.ownerUser?.email || 'admin@institution.com',
+        planName: `Lote de ${voucherBatch.quantity} vouchers`,
+        voucherQuantity: voucherBatch.quantity,
         gateway: params.gateway,
       });
     } catch (err) {

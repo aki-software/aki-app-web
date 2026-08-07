@@ -15,7 +15,7 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import type { AuthenticatedRequest } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
-import { UserRole } from '../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 import { CompleteSessionDto } from './dto/complete-session.dto.js';
 import { CreateSessionDto } from './dto/create-session.dto.js';

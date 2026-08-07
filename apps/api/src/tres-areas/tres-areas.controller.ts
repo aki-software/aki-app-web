@@ -12,7 +12,7 @@ import {
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { UserRole } from '../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 import { TresAreasService } from './tres-areas.service.js';
 import { UpdateTresAreasDto } from './dto/update-tres-areas.dto.js';
 

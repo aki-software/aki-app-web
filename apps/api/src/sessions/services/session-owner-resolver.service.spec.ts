@@ -3,7 +3,7 @@ import { SessionOwnerResolverService } from './session-owner-resolver.service.js
 import { UsersService } from '../../users/users.service.js';
 import { UserRegistrationService } from '../../users/user-registration.service.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 
 describe('SessionOwnerResolverService', () => {
   let service: SessionOwnerResolverService;

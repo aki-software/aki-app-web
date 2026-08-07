@@ -12,6 +12,7 @@ import { VoucherAssignedHandler } from './handlers/voucher-assigned.handler.js';
 import { VoucherBatchAssignedHandler } from './handlers/voucher-batch-assigned.handler.js';
 import { ReportGeneratedHandler } from './handlers/report-generated.handler.js';
 import { EmailRequestedHandler } from './handlers/email-requested.handler.js';
+import { PaymentNotificationHandler } from './handlers/payment-notification.handler.js';
 
 const handlers = [
   AccountActivationHandler,
@@ -20,6 +21,7 @@ const handlers = [
   VoucherBatchAssignedHandler,
   ReportGeneratedHandler,
   EmailRequestedHandler,
+  PaymentNotificationHandler,
 ];
 
 @Module({

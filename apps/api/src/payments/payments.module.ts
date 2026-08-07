@@ -26,11 +26,7 @@ import {
     SessionsModule,
     VouchersModule,
   ],
-  controllers: [
-    PaymentsController,
-    WebhookController,
-    AdminPricingController,
-  ],
+  controllers: [PaymentsController, WebhookController, AdminPricingController],
   providers: [
     PaymentsService,
     PaymentLockService,

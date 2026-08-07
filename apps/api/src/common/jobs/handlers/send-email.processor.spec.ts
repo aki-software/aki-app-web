@@ -11,7 +11,7 @@ describe('SendEmailProcessor', () => {
   let moduleRef: jest.Mocked<ModuleRef>;
 
   beforeEach(async () => {
-    eventEmitter = { emit: jest.fn() } as any;
+    eventEmitter = { emit: jest.fn(), emitAsync: jest.fn() } as any;
     moduleRef = { get: jest.fn().mockReturnValue(eventEmitter) } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -37,7 +37,7 @@ describe('SendEmailProcessor', () => {
     const result = await processor.process(mockJob);
 
     expect(result).toBe(true);
-    expect(eventEmitter.emit).toHaveBeenCalledWith(
+    expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
       'email.requested',
       expect.any(EmailRequestedEvent),
     );

@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../../auth/auth.types.js';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 import { VoucherScope } from '@akit/contracts';
 import { VouchersService } from '../vouchers.service.js';
 import { Voucher } from '../entities/voucher.entity.js';

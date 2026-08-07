@@ -4,6 +4,10 @@ import {
   PAYMENT_GATEWAY_MP,
   PAYMENT_GATEWAY_STRIPE,
 } from '../interfaces/payment-gateway.adapter';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { PricingPlan } from '../entities/pricing-plan.entity';
+import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity';
+import { ExchangeRateService } from './exchange-rate.service';
 
 describe('CheckoutService', () => {
   let service: CheckoutService;
@@ -29,6 +33,18 @@ describe('CheckoutService', () => {
               externalReference: 'ref',
             }),
           },
+        },
+        {
+          provide: getRepositoryToken(PricingPlan),
+          useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(VoucherBatch),
+          useValue: { create: jest.fn(), save: jest.fn() },
+        },
+        {
+          provide: ExchangeRateService,
+          useValue: { getUsdToArsRate: jest.fn() },
         },
       ],
     }).compile();

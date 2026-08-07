@@ -1,4 +1,4 @@
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 
 export function normalizeUserRole(role?: UserRole | string): UserRole {
   const normalized = role?.toString().trim().toUpperCase();
