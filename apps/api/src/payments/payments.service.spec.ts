@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { SessionPaymentStatus } from '@akit/contracts';
 import { PaymentLockService } from './payment-lock.service';
 import { GooglePlayAdapter } from './google-play.adapter';
+import { getDataSourceToken } from '@nestjs/typeorm';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -45,6 +46,15 @@ describe('PaymentsService', () => {
           useValue: {
             getAndroidPublisher: jest.fn(),
             getPackageName: jest.fn(),
+          },
+        },
+        {
+          provide: getDataSourceToken(),
+          useValue: {
+            manager: {
+              find: jest.fn().mockResolvedValue([]),
+              count: jest.fn().mockResolvedValue(0),
+            },
           },
         },
       ],

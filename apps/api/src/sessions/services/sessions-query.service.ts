@@ -13,7 +13,7 @@ import { SessionScope } from '../types/session-scope.type.js';
 import { VoucherScope } from '../../vouchers/types/voucher-query.types.js';
 import { SESSION_CONSTANTS } from '../constants/sessions.constants.js';
 import { TriageResponse } from '@akit/contracts';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 
 const UNAUTHORIZED_FALLBACK_ID = '00000000-0000-0000-0000-000000000000';
 

@@ -15,6 +15,7 @@ describe('ReportDeliveryService', () => {
   beforeEach(async () => {
     eventEmitter = {
       emit: jest.fn(),
+      emitAsync: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -51,7 +52,7 @@ describe('ReportDeliveryService', () => {
       Buffer.from('pdf'),
     );
 
-    expect(eventEmitter.emit).toHaveBeenCalledWith(
+    expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
       'report.generated',
       expect.any(ReportGeneratedEvent),
     );

@@ -11,6 +11,10 @@ export class CreatePricingPlanDto {
   @IsNotEmpty()
   name!: string;
 
+  @IsString()
+  @IsOptional()
+  description?: string;
+
   @IsNumber()
   @IsNotEmpty()
   voucherQuantity!: number;
@@ -28,6 +32,10 @@ export class UpdatePricingPlanDto {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
 
   @IsNumber()
   @IsOptional()

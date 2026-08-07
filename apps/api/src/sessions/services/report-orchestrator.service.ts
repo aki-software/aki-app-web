@@ -11,7 +11,7 @@ import { Queue } from 'bullmq';
 import { Session } from '../entities/session.entity.js';
 import { SessionScope } from '../types/session-scope.type.js';
 import { SessionPaymentStatus } from '@akit/contracts';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 
 @Injectable()
 export class ReportOrchestratorService {

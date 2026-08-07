@@ -14,6 +14,9 @@ export class PricingPlan {
   @Column({ type: 'varchar' })
   name: string;
 
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
   @Column({ type: 'int' })
   voucherQuantity: number;
 

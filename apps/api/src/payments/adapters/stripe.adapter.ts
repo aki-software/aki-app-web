@@ -85,26 +85,36 @@ export class StripeAdapter implements PaymentGatewayAdapter {
       const session =
         await this.stripe.checkout.sessions.retrieve(externalReference);
 
-      const getStatus = (): 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED' => {
-        if (session.payment_status === 'paid') return 'APPROVED';
-        if (session.status === 'expired') return 'EXPIRED';
-        if (session.status === 'open') return 'PENDING';
-        return 'REJECTED';
-      };
+      let mappedStatus: 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED' =
+        'PENDING';
+
+      if (session.payment_status === 'paid') {
+        mappedStatus = 'APPROVED';
+      } else if (session.status === 'expired') {
+        mappedStatus = 'EXPIRED';
+      } else if (session.status === 'open') {
+        mappedStatus = 'PENDING';
+      } else {
+        mappedStatus = 'REJECTED';
+      }
 
       return {
-        status: getStatus(),
+        status: mappedStatus,
         paidAmount: session.amount_total
           ? session.amount_total / 100
           : undefined,
         currency: session.currency?.toUpperCase(),
       };
-    } catch (err) {
-      this.logger.error(
-        `Failed to fetch payment status for ${externalReference}`,
-        err,
-      );
-      return { status: 'PENDING' };
+    } catch (error) {
+      this.logger.error('Error getting payment status', error);
+      throw error;
     }
+  }
+
+  extractPaymentReference(body: any): string | undefined {
+    if (body?.type === 'checkout.session.completed') {
+      return body?.data?.object?.id;
+    }
+    return undefined;
   }
 }

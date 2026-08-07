@@ -22,7 +22,7 @@ import { UserRole } from '@akit/contracts';
 
 @Controller('admin/pricing-plans')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SUPER_ADMIN)
+@Roles(UserRole.ADMIN)
 export class AdminPricingController {
   constructor(
     @InjectRepository(PricingPlan)

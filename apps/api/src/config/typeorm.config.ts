@@ -12,6 +12,8 @@ import { Institution } from '../institutions/entities/institution.entity.js';
 import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
 import { TresAreasCombination } from '../tres-areas/entities/tres-areas-combination.entity.js';
+import { PricingPlan } from '../payments/entities/pricing-plan.entity.js';
+import { PaymentEvent } from '../payments/entities/payment-event.entity.js';
 
 dotenv.config();
 
@@ -32,6 +34,8 @@ export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
         Voucher,
         VoucherBatch,
         TresAreasCombination,
+        PricingPlan,
+        PaymentEvent,
       ],
       migrations: ['dist/migrations/*.js'],
       synchronize: false,
@@ -57,6 +61,8 @@ export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
         Voucher,
         VoucherBatch,
         TresAreasCombination,
+        PricingPlan,
+        PaymentEvent,
       ],
       migrations: ['dist/migrations/*.js'],
       synchronize: false,

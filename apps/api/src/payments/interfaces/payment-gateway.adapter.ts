@@ -13,11 +13,13 @@ export interface PaymentGatewayAdapter {
     rawBody: string,
     headers: Record<string, string>,
   ): Promise<boolean>;
-  getPaymentStatus(externalReference: string): Promise<{
+  getPaymentStatus(externalPaymentId: string): Promise<{
     status: 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED';
     paidAmount?: number;
     currency?: string;
+    externalReference?: string;
   }>;
+  extractPaymentReference(body: any): string | undefined;
 }
 
 export const PAYMENT_GATEWAY_MP = 'PAYMENT_GATEWAY_MP';
