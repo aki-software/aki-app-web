@@ -15,5 +15,7 @@ export const APP_ROUTES = {
         INSTITUTIONS: 'institutions/:id',
         SETTINGS: 'settings',
         ACTIVITY: 'activity',
+        BILLING: 'billing',
+        PRICING_PLANS: 'pricing-plans',
     }
 } as const;
