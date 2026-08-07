@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { InstitutionsService } from './institutions.service.js';
 import { Institution } from './entities/institution.entity.js';
+import { UsersService } from '../users/users.service.js';
 
 describe('InstitutionsService', () => {
   let service: InstitutionsService;
@@ -23,6 +24,10 @@ describe('InstitutionsService', () => {
         {
           provide: getRepositoryToken(Institution),
           useValue: repository,
+        },
+        {
+          provide: UsersService,
+          useValue: { register: jest.fn() },
         },
       ],
     }).compile();

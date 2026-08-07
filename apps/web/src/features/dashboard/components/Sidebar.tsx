@@ -14,7 +14,10 @@ export const Sidebar = ({ onCloseMobile }: SidebarProps) => {
   const { logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const userRole = user?.role?.toUpperCase() ?? '';
+  let userRole = user?.role?.toUpperCase() ?? '';
+  if (userRole === 'INSTITUTION_ADMIN') {
+    userRole = 'INSTITUTION';
+  }
   const effectiveRole = (KNOWN_ROLES as readonly string[]).includes(userRole)
     ? userRole
     : 'THERAPIST';

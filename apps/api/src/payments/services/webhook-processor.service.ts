@@ -1,0 +1,132 @@
+import { Injectable, Inject, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  PAYMENT_GATEWAY_MP,
+  PAYMENT_GATEWAY_STRIPE,
+} from '../interfaces/payment-gateway.adapter.js';
+import type { PaymentGatewayAdapter } from '../interfaces/payment-gateway.adapter.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { PaymentEvent } from '../entities/payment-event.entity.js';
+import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
+
+interface WebhookParams {
+  gateway: 'MERCADO_PAGO' | 'STRIPE';
+  rawBody: string;
+  headers: Record<string, string>;
+  body: any;
+}
+
+@Injectable()
+export class WebhookProcessorService {
+  private readonly logger = new Logger(WebhookProcessorService.name);
+
+  constructor(
+    private eventEmitter: EventEmitter2,
+    @Inject(PAYMENT_GATEWAY_MP) private mpAdapter: PaymentGatewayAdapter,
+    @Inject(PAYMENT_GATEWAY_STRIPE)
+    private stripeAdapter: PaymentGatewayAdapter,
+    @InjectDataSource() private dataSource: DataSource,
+  ) {}
+
+  async processWebhook(params: WebhookParams) {
+    const adapter =
+      params.gateway === 'MERCADO_PAGO' ? this.mpAdapter : this.stripeAdapter;
+    const isValid = await adapter.validateWebhook(
+      params.rawBody,
+      params.headers,
+    );
+    if (!isValid) {
+      this.logger.warn(`Invalid webhook signature for ${params.gateway}`);
+      throw new ForbiddenException('Invalid webhook signature');
+    }
+
+    const body = params.body as Record<string, any>;
+    const externalReference = adapter.extractPaymentReference(body);
+
+    if (!externalReference) {
+      this.logger.warn(
+        `No external reference found in webhook payload for ${params.gateway}`,
+      );
+      return;
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('SERIALIZABLE');
+
+    try {
+      // Idempotency check
+      const existingEvent = await queryRunner.manager.findOne(PaymentEvent, {
+        where: {
+          externalPaymentId: externalReference,
+          gateway: params.gateway,
+        },
+      });
+
+      if (existingEvent) {
+        this.logger.debug(
+          `Webhook already processed for payment ${externalReference}`,
+        );
+        await queryRunner.rollbackTransaction();
+        return;
+      }
+
+      const paymentStatus = await adapter.getPaymentStatus(externalReference);
+      if (paymentStatus.status !== 'APPROVED') {
+        await queryRunner.rollbackTransaction();
+        return;
+      }
+
+      const voucherBatch = await queryRunner.manager.findOne(VoucherBatch, {
+        where: paymentStatus.externalReference
+          ? { id: paymentStatus.externalReference }
+          : { paymentReference: externalReference },
+        relations: ['ownerInstitution', 'ownerUser'],
+      });
+
+      if (!voucherBatch) {
+        this.logger.warn(
+          `VoucherBatch not found for payment ${externalReference}`,
+        );
+        await queryRunner.rollbackTransaction();
+        return;
+      }
+
+      if (voucherBatch.status === 'PENDING') {
+        voucherBatch.markAsPaid(params.gateway, externalReference);
+        await queryRunner.manager.save(VoucherBatch, voucherBatch);
+      }
+
+      const paymentEvent = queryRunner.manager.create(PaymentEvent, {
+        gateway: params.gateway,
+        externalPaymentId: externalReference,
+        status: paymentStatus.status,
+        rawPayload: params.body,
+        voucherBatchId: voucherBatch.id,
+      });
+      await queryRunner.manager.save(PaymentEvent, paymentEvent);
+
+      await queryRunner.commitTransaction();
+
+      this.eventEmitter.emit('payment.completed', {
+        voucherBatchId: voucherBatch.id,
+        institutionId:
+          voucherBatch.ownerInstitutionId || voucherBatch.ownerInstitution?.id,
+        buyerEmail: voucherBatch.ownerUser?.email || 'admin@institution.com',
+        planName: `Lote de ${voucherBatch.quantity} vouchers`,
+        voucherQuantity: voucherBatch.quantity,
+        gateway: params.gateway,
+      });
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(
+        'Error processing webhook',
+        (err as Error).stack || err,
+      );
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { lazy } from "react";
 import { APP_ROUTES } from "./routes.constants";
 import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
@@ -24,10 +24,22 @@ const DashboardUsers = lazy(() => import("../features/dashboard/views/DashboardU
 const InstitutionDetailOverview = lazy(() => import("../features/dashboard/views/InstitutionDetailOverview").then(m => ({ default: m.InstitutionDetailOverview })));
 const DashboardSettings = lazy(() => import("../features/dashboard/views/DashboardSettings").then(m => ({ default: m.DashboardSettings })));
 const DashboardActivity = lazy(() => import("../features/dashboard/views/DashboardActivity").then(m => ({ default: m.DashboardActivity })));
+const BillingDashboard = lazy(() => import("../features/billing/pages/BillingDashboard").then(m => ({ default: m.BillingDashboard })));
+const AdminPricingPlansPage = lazy(() => import("../features/admin/views/AdminPricingPlansPage").then(m => ({ default: m.AdminPricingPlansPage })));
 
 function RootRedirect() {
   const { isAuthenticated } = useAuth();
   return <Navigate to={isAuthenticated ? APP_ROUTES.DASHBOARD.ROOT : APP_ROUTES.AUTH.LOGIN} replace />;
+}
+
+function RoleGuard({ allowedRoles }: { allowedRoles: string[] }) {
+  const { user } = useAuth();
+  const role = user?.role?.toUpperCase() ?? '';
+  const effective = role === 'INSTITUTION_ADMIN' ? 'INSTITUTION' : role;
+  if (!allowedRoles.includes(effective)) {
+    return <Navigate to={APP_ROUTES.DASHBOARD.ROOT} replace />;
+  }
+  return <Outlet />;
 }
 
 export const router = createBrowserRouter([
@@ -91,6 +103,19 @@ export const router = createBrowserRouter([
           {
             path: APP_ROUTES.DASHBOARD.ACTIVITY,
             element: <SuspenseWrapper><DashboardActivity /></SuspenseWrapper>,
+          },
+          {
+            path: APP_ROUTES.DASHBOARD.BILLING,
+            element: <SuspenseWrapper><BillingDashboard /></SuspenseWrapper>,
+          },
+          {
+            element: <RoleGuard allowedRoles={['ADMIN']} />,
+            children: [
+              {
+                path: APP_ROUTES.DASHBOARD.PRICING_PLANS,
+                element: <SuspenseWrapper><AdminPricingPlansPage /></SuspenseWrapper>,
+              },
+            ],
           },
           {
             path: "*",

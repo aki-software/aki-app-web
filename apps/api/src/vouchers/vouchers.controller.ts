@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
-import { UserRole } from '../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 import {
   CreateVoucherDto,
   ListVoucherBatchesDto,

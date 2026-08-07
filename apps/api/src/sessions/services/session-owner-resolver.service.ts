@@ -1,8 +1,9 @@
+import { UserRole } from '@akit/contracts';
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../../users/users.service.js';
 import { UserRegistrationService } from '../../users/user-registration.service.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
-import { User, UserRole } from '../../users/entities/user.entity.js';
+import { User } from '../../users/entities/user.entity.js';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
 import { ResolvedOwnerContext } from '../interfaces/resolved-owner-context.interface.js';
 
@@ -37,7 +38,7 @@ export class SessionOwnerResolverService {
     const isTherapistUser =
       user?.role === UserRole.THERAPIST || user?.role === UserRole.ADMIN;
 
-    const isPatientUser = user?.role === UserRole.PATIENT;
+    const isPatientUser = user?.role === ('PATIENT' as any);
 
     const fallbackOwner = this.needsFallbackOwner(
       payloadTherapistUserId,

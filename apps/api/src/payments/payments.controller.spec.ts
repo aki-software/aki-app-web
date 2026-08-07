@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
+import { CheckoutService } from './services/checkout.service';
 
 describe('PaymentsController', () => {
   let controller: PaymentsController;
@@ -15,6 +16,12 @@ describe('PaymentsController', () => {
           provide: PaymentsService,
           useValue: {
             verifyGooglePlayPurchase: jest.fn(),
+          },
+        },
+        {
+          provide: CheckoutService,
+          useValue: {
+            initiateCheckout: jest.fn(),
           },
         },
       ],

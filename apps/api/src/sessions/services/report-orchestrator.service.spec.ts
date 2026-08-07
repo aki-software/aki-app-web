@@ -1,41 +1,29 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { getQueueToken } from '@nestjs/bullmq';
 import { ReportOrchestratorService } from './report-orchestrator.service.js';
-import { IReportCacheService } from '../interfaces/report-cache.interface.js';
-import { InMemoryReportCacheService } from './in-memory-report-cache.service.js';
+import { Session } from '../entities/session.entity.js';
+import { SessionPaymentStatus } from '@akit/contracts';
 
 describe('ReportOrchestratorService', () => {
   let service: ReportOrchestratorService;
-  let cacheService: IReportCacheService;
-  let deliverReport: jest.Mock;
+  let reportsQueue: any;
+  let sessionRepository: any;
 
   const sessionId = 'session-abc';
   const targetEmail = 'patient@example.com';
-  const mockReportData = {
-    patientName: 'Juan',
-    hollandCode: 'RIS',
-    summary: null,
-    tripletInsight: null,
-  };
+
   const mockSession = {
     id: sessionId,
-    voucherId: null,
-    reportUrl: null,
-    results: [],
-    swipes: [],
+    voucherId: 'voucher-1',
+    paymentStatus: SessionPaymentStatus.PAID,
   };
 
-  beforeEach(() => {
-    cacheService = new InMemoryReportCacheService();
-    deliverReport = jest
-      .fn()
-      .mockResolvedValue({ success: true, message: 'ok' });
+  beforeEach(async () => {
+    reportsQueue = {
+      add: jest.fn().mockResolvedValue(true),
+    };
 
-    const mockReportService = {
-      buildReportData: jest.fn().mockResolvedValue(mockReportData),
-    };
-    const mockReportPdfService = {
-      generatePdfBuffer: jest.fn().mockResolvedValue(Buffer.from('pdf')),
-    };
-    const mockDeliveryService = { deliverReport };
     const mockQueryBuilder = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
@@ -44,64 +32,44 @@ describe('ReportOrchestratorService', () => {
       getOne: jest.fn().mockResolvedValue(mockSession),
     };
 
-    const mockSessionRepository = {
+    sessionRepository = {
       createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
     };
 
-    service = new ReportOrchestratorService(
-      mockSessionRepository as never,
-      mockReportService as never,
-      cacheService,
-      mockReportPdfService as never,
-      mockDeliveryService as never,
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ReportOrchestratorService,
+        {
+          provide: getRepositoryToken(Session),
+          useValue: sessionRepository,
+        },
+        {
+          provide: getQueueToken('reports'),
+          useValue: reportsQueue,
+        },
+      ],
+    }).compile();
+
+    service = module.get<ReportOrchestratorService>(ReportOrchestratorService);
+  });
+
+  it('debería encolar el trabajo de generación de reporte (job: report.requested)', async () => {
+    const result = await service.sendReport(
+      sessionId,
+      targetEmail,
+      'voucher-1',
     );
-  });
 
-  it('debería enviar el correo una sola vez cuando hay una sola llamada', async () => {
-    await service.sendReport(sessionId, targetEmail);
-
-    expect(deliverReport).toHaveBeenCalledTimes(1);
-  });
-
-  it('debería enviar el correo una sola vez cuando dos requests llegan simultáneamente (race condition)', async () => {
-    const [r1, r2] = await Promise.all([
-      service.sendReport(sessionId, targetEmail),
-      service.sendReport(sessionId, targetEmail),
-    ]);
-
-    expect(deliverReport).toHaveBeenCalledTimes(1);
-    expect(r1).toEqual({ success: true, message: 'ok' });
-    expect(r2).toEqual({ success: true, message: 'ok' });
-  });
-
-  it('debería enviar el correo una sola vez cuando el segundo request llega después del primero (fast-path cache)', async () => {
-    await service.sendReport(sessionId, targetEmail);
-    const result = await service.sendReport(sessionId, targetEmail);
-
-    expect(deliverReport).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ success: true, message: 'ok' });
-  });
-
-  it('debería reintentar el envío si el primero falló (no cachear fallas)', async () => {
-    deliverReport.mockResolvedValueOnce({
-      success: false,
-      message: 'error de red',
+    expect(reportsQueue.add).toHaveBeenCalledTimes(1);
+    expect(reportsQueue.add).toHaveBeenCalledWith('report.requested', {
+      sessionId,
+      requestedByEmail: targetEmail,
+      voucherId: 'voucher-1',
     });
 
-    const first = await service.sendReport(sessionId, targetEmail);
-    expect(first.success).toBe(false);
-
-    deliverReport.mockResolvedValueOnce({ success: true, message: 'ok' });
-    const second = await service.sendReport(sessionId, targetEmail);
-    expect(second.success).toBe(true);
-
-    expect(deliverReport).toHaveBeenCalledTimes(2);
-  });
-
-  it('no debería enviar el correo a un email diferente aunque la sesión sea la misma', async () => {
-    await service.sendReport(sessionId, 'otro@example.com');
-    await service.sendReport(sessionId, targetEmail);
-
-    expect(deliverReport).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      success: true,
+      message: `Report generation queued for ${targetEmail}`,
+    });
   });
 });
