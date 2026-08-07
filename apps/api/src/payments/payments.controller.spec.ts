@@ -3,6 +3,8 @@ import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { CheckoutService } from './services/checkout.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { PricingPlan } from './entities/pricing-plan.entity';
 
 describe('PaymentsController', () => {
   let controller: PaymentsController;
@@ -22,6 +24,12 @@ describe('PaymentsController', () => {
           provide: CheckoutService,
           useValue: {
             initiateCheckout: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(PricingPlan),
+          useValue: {
+            find: jest.fn().mockResolvedValue([]),
           },
         },
       ],

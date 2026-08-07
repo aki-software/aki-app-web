@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExchangeRateService } from './exchange-rate.service';
+import { Logger } from '@nestjs/common';
 
 describe('ExchangeRateService', () => {
   let service: ExchangeRateService;
@@ -9,6 +10,7 @@ describe('ExchangeRateService', () => {
     process.env.USD_ARS_FALLBACK_RATE = '';
     jest.useFakeTimers();
     jest.clearAllMocks();
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [ExchangeRateService],

@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentNotificationHandler } from './payment-notification.handler';
+import { TemplateRendererService } from '../services/template-renderer.service';
+import { EmailService } from '../services/email.service';
 
 describe('PaymentNotificationHandler', () => {
   let handler: PaymentNotificationHandler;
@@ -8,7 +10,8 @@ describe('PaymentNotificationHandler', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentNotificationHandler,
-        { provide: 'BullQueue_email', useValue: { add: jest.fn() } },
+        { provide: TemplateRendererService, useValue: { renderTemplate: jest.fn() } },
+        { provide: EmailService, useValue: { sendEmail: jest.fn() } },
       ],
     }).compile();
     handler = module.get<PaymentNotificationHandler>(

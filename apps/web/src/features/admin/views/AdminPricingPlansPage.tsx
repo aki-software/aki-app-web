@@ -84,7 +84,7 @@ export function AdminPricingPlansPage() {
                       <span className="text-sm font-semibold text-app-text-main">{plan.name}</span>
                     </td>
                     <td className="py-4 px-6">
-                      <span className="text-sm font-semibold text-app-text-main">{plan.vouchersCount}</span>
+                      <span className="text-sm font-semibold text-app-text-main">{plan.voucherQuantity}</span>
                     </td>
                     <td className="py-4 px-6">
                       <span className="text-sm font-bold text-app-primary font-display">${plan.priceUsd}</span>
