@@ -6,6 +6,7 @@ export type PaymentGateway = z.infer<typeof PaymentGateway>;
 export const PricingPlan = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  description: z.string().nullable().optional(),
   voucherQuantity: z.number().int().nonnegative(),
   priceUsd: z.number().nonnegative(),
   isActive: z.boolean(),
@@ -43,5 +44,6 @@ export type PaymentTransaction = z.infer<typeof PaymentTransaction>;
 export const BillingHistory = z.object({
   transactions: z.array(PaymentTransaction),
   totalPaid: z.number().nonnegative(),
+  currentBalance: z.number().int().nonnegative(),
 });
 export type BillingHistory = z.infer<typeof BillingHistory>;
