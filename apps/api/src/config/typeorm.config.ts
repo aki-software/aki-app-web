@@ -43,7 +43,7 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         PaymentEvent,
         PaymentFulfillmentOutbox,
       ],
-      migrations: ['dist/migrations/*.js'],
+      migrations: ['dist/migrations/[0-9]*.js'],
       synchronize: false,
       ssl: isLocalDatabaseUrl ? false : { rejectUnauthorized: false },
     }
@@ -69,7 +69,7 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         PaymentEvent,
         PaymentFulfillmentOutbox,
       ],
-      migrations: ['dist/migrations/*.js'],
+      migrations: ['dist/migrations/[0-9]*.js'],
       synchronize: false,
       ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
     };
