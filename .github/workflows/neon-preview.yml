@@ -51,7 +51,7 @@ jobs:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
         run: |
           cd apps/api
-          pnpm db:bootstrap
+          pnpm db:bootstrap && pnpm seed:admin
 
       - name: Delete Neon Branch
         uses: neondatabase/delete-branch-action@v3
