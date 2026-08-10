@@ -5,6 +5,7 @@ import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { CheckoutService } from './services/checkout.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PricingPlan } from './entities/pricing-plan.entity';
+import { RateLimitService } from '../common/services/rate-limit.service';
 
 describe('PaymentsController', () => {
   let controller: PaymentsController;
@@ -32,6 +33,12 @@ describe('PaymentsController', () => {
             find: jest.fn().mockResolvedValue([]),
           },
         },
+        {
+          provide: RateLimitService,
+          useValue: {
+            checkRateLimit: jest.fn(),
+          } satisfies Pick<RateLimitService, 'checkRateLimit'>,
+        },
       ],
     }).compile();
 
@@ -47,7 +54,7 @@ describe('PaymentsController', () => {
     it('should call service and return its result', async () => {
       const dto: VerifyPlayPurchaseDto = {
         sessionId: 'session-123',
-        productId: 'report_unlock',
+        productId: 'report_unlock_v2',
         purchaseToken: 'token-abc',
       };
 
@@ -56,9 +63,15 @@ describe('PaymentsController', () => {
         .mocked(service.verifyGooglePlayPurchase)
         .mockResolvedValue(expectedResult);
 
-      const result = await controller.verifyGooglePlay(dto);
+      const request = {
+        user: { userId: 'patient-123', institutionId: 'institution-123' },
+      };
+      const result = await controller.verifyGooglePlay(dto, request as never);
 
-      expect(service.verifyGooglePlayPurchase).toHaveBeenCalledWith(dto);
+      expect(service.verifyGooglePlayPurchase).toHaveBeenCalledWith(dto, {
+        userId: 'patient-123',
+        institutionId: 'institution-123',
+      });
       expect(result).toEqual(expectedResult);
     });
   });

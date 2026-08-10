@@ -18,6 +18,10 @@ import { ReportsModule } from './reports/reports.module.js';
 import { BullModule } from '@nestjs/bullmq';
 import { RequestLoggerMiddleware } from './common/middlewares/request-logger.middleware.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
+import { resolvePaymentConfiguration } from './payments/config/payment-configuration.js';
+
+const { migrations: _migrations, ...applicationTypeOrmConfig } = typeOrmConfig;
+void _migrations;
 
 @Module({
   imports: [
@@ -31,17 +35,29 @@ import { NotificationsModule } from './notifications/notifications.module.js';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: (environment) => {
+        resolvePaymentConfiguration(environment);
+        return environment;
+      },
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get('REDIS_HOST', 'localhost'),
-          port: configService.get('REDIS_PORT', 6379),
-          password: configService.get('REDIS_PASSWORD', ''),
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const tlsEnabled = configService.get('REDIS_TLS') === 'true';
+        return {
+          connection: {
+            host: configService.get('REDIS_HOST', 'localhost'),
+            port: configService.get('REDIS_PORT', 6379),
+            username: configService.get('REDIS_USERNAME') || undefined,
+            password: configService.get('REDIS_PASSWORD') || undefined,
+            db: Number(configService.get('REDIS_DB', 0)),
+            ...(tlsEnabled ? { tls: {} } : {}),
+            connectTimeout: 10_000,
+            maxRetriesPerRequest: null,
+          },
+        };
+      },
     }),
     EventEmitterModule.forRoot(),
     TypeOrmModule.forRootAsync({
@@ -51,12 +67,12 @@ import { NotificationsModule } from './notifications/notifications.module.js';
         const databaseUrl = configService.get<string>('DATABASE_URL');
         if (databaseUrl) {
           return {
-            ...typeOrmConfig,
+            ...applicationTypeOrmConfig,
             url: databaseUrl,
           };
         }
         return {
-          ...typeOrmConfig,
+          ...applicationTypeOrmConfig,
           host:
             configService.get<string>('DATABASE_HOST') || typeOrmConfig.host,
           port:

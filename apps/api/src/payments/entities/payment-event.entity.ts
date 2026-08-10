@@ -6,36 +6,49 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
 
 @Entity('payment_event')
+@Index(
+  'IDX_payment_event_gateway_external_payment',
+  ['gateway', 'externalPaymentId'],
+  {
+    unique: true,
+  },
+)
 export class PaymentEvent {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar' })
-  gateway: 'MERCADO_PAGO' | 'STRIPE';
-
-  @Column({ type: 'varchar', unique: true })
-  externalPaymentId: string;
+  gateway!: 'MERCADO_PAGO' | 'STRIPE';
 
   @Column({ type: 'varchar' })
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+  externalPaymentId!: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  rawPayload: any;
+  @Column({ type: 'varchar' })
+  status!: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+
+  @Column({
+    name: 'payload_digest',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
+  payloadDigest!: string | null;
 
   @Column({ type: 'uuid', nullable: true })
-  voucherBatchId: string;
+  voucherBatchId!: string;
 
   @ManyToOne(() => VoucherBatch, { nullable: true })
   @JoinColumn({ name: 'voucherBatchId' })
-  voucherBatch: VoucherBatch;
+  voucherBatch!: VoucherBatch;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

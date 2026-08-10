@@ -95,6 +95,22 @@ export class Session {
   @Column({ name: 'report_unlocked_at', type: 'timestamptz', nullable: true })
   reportUnlockedAt!: Date | null;
 
+  @Column({
+    name: 'report_unlock_purchase_token',
+    type: 'varchar',
+    length: 2048,
+    nullable: true,
+  })
+  reportUnlockPurchaseToken!: string | null;
+
+  @Column({
+    name: 'expected_report_sku',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
+  expectedReportSku!: string | null;
+
   @Column({ name: 'paid_at', type: 'timestamptz', nullable: true })
   paidAt!: Date | null;
 

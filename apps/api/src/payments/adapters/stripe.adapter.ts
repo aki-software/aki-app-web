@@ -1,5 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PaymentGatewayAdapter } from '../interfaces/payment-gateway.adapter.js';
+import { ConfigService } from '@nestjs/config';
+import {
+  createVerifiedPayment,
+  type CheckoutRequest,
+  type CheckoutResponse,
+  type PaymentGatewayAdapter,
+  type VerifiedPayment,
+} from '../interfaces/payment-gateway.adapter.js';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -7,22 +14,20 @@ export class StripeAdapter implements PaymentGatewayAdapter {
   private stripe: Stripe;
   private readonly logger = new Logger(StripeAdapter.name);
 
-  constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test', {
+  constructor(private readonly configService: ConfigService) {
+    const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY is required for Stripe payments');
+    }
+    if (!this.configService.get<string>('STRIPE_WEBHOOK_SECRET')) {
+      throw new Error('STRIPE_WEBHOOK_SECRET is required for Stripe payments');
+    }
+    this.stripe = new Stripe(secretKey, {
       apiVersion: '2026-07-29.dahlia', // SDK default matching
     });
   }
 
-  async createCheckout(params: {
-    voucherBatchId: string;
-    priceUsd: number;
-    priceArs?: number;
-    successUrl: string;
-    failureUrl: string;
-    notificationUrl: string;
-    buyerEmail: string;
-    description: string;
-  }): Promise<{ checkoutUrl: string; externalReference: string }> {
+  async createCheckout(params: CheckoutRequest): Promise<CheckoutResponse> {
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: params.buyerEmail,
@@ -54,11 +59,15 @@ export class StripeAdapter implements PaymentGatewayAdapter {
   }
 
   validateWebhook(
-    rawBody: string,
-    headers: Record<string, string>,
+    rawBody: Buffer,
+    context:
+      | { headers: Record<string, string | undefined> }
+      | Record<string, string | undefined>,
   ): Promise<boolean> {
+    if (!Buffer.isBuffer(rawBody)) return Promise.resolve(false);
+    const headers = verificationHeaders(context);
     const signature = headers['stripe-signature'];
-    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    const secret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
 
     if (!signature || !secret) {
       this.logger.warn(
@@ -68,22 +77,18 @@ export class StripeAdapter implements PaymentGatewayAdapter {
     }
 
     try {
-      this.stripe.webhooks.constructEvent(rawBody, signature, secret);
+      this.stripe.webhooks.constructEvent(rawBody, signature, secret, 300);
       return Promise.resolve(true);
-    } catch (err) {
-      this.logger.error('Stripe webhook signature validation failed', err);
+    } catch {
+      this.logger.error('Stripe webhook signature validation failed');
       return Promise.resolve(false);
     }
   }
 
-  async getPaymentStatus(externalReference: string): Promise<{
-    status: 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED';
-    paidAmount?: number;
-    currency?: string;
-  }> {
+  async getPaymentStatus(externalPaymentId: string): Promise<VerifiedPayment> {
     try {
       const session =
-        await this.stripe.checkout.sessions.retrieve(externalReference);
+        await this.stripe.checkout.sessions.retrieve(externalPaymentId);
 
       let mappedStatus: 'APPROVED' | 'REJECTED' | 'PENDING' | 'EXPIRED' =
         'PENDING';
@@ -98,23 +103,57 @@ export class StripeAdapter implements PaymentGatewayAdapter {
         mappedStatus = 'REJECTED';
       }
 
-      return {
+      if (
+        session.amount_total === null ||
+        !session.currency ||
+        !session.client_reference_id
+      ) {
+        throw new Error(
+          'Stripe payment is missing immutable settlement fields',
+        );
+      }
+
+      return createVerifiedPayment({
+        providerPaymentId: session.id,
+        merchantReference: session.client_reference_id,
+        amountMinor: BigInt(session.amount_total),
+        currency: session.currency,
         status: mappedStatus,
-        paidAmount: session.amount_total
-          ? session.amount_total / 100
-          : undefined,
-        currency: session.currency?.toUpperCase(),
-      };
+      });
     } catch (error) {
       this.logger.error('Error getting payment status', error);
       throw error;
     }
   }
 
-  extractPaymentReference(body: any): string | undefined {
-    if (body?.type === 'checkout.session.completed') {
-      return body?.data?.object?.id;
+  extractPaymentReference(body: unknown): string | undefined {
+    if (!isRecord(body) || body.type !== 'checkout.session.completed') {
+      return undefined;
     }
-    return undefined;
+    const data = body.data;
+    if (!isRecord(data) || !isRecord(data.object)) {
+      return undefined;
+    }
+    return typeof data.object.id === 'string' ? data.object.id : undefined;
   }
+}
+
+function verificationHeaders(
+  context:
+    | { headers: Record<string, string | undefined> }
+    | Record<string, string | undefined>,
+): Record<string, string | undefined> {
+  return isVerificationContext(context) ? context.headers : context;
+}
+
+function isVerificationContext(
+  context:
+    | { headers: Record<string, string | undefined> }
+    | Record<string, string | undefined>,
+): context is { headers: Record<string, string | undefined> } {
+  return typeof context['headers'] === 'object' && context['headers'] !== null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }

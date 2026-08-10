@@ -99,6 +99,21 @@ export class SessionsQueryService {
     return session;
   }
 
+  async findOneForPaymentUnlock(
+    id: string,
+    patientId: string,
+    institutionId: string,
+  ): Promise<Session> {
+    const session = await this.sessionRepository.findOne({
+      where: { id, patientId, institutionId },
+      relations: ['results'],
+    });
+    if (!session) {
+      throw new NotFoundException('Sesión no encontrada');
+    }
+    return session;
+  }
+
   async findOneForReport(id: string, scope?: SessionScope): Promise<Session> {
     const where = this.applyScope(scope);
 
@@ -224,7 +239,10 @@ export class SessionsQueryService {
 
   async findByPaymentToken(token: string): Promise<Session | null> {
     return await this.sessionRepository.findOne({
-      where: { paymentReference: token },
+      where: [
+        { paymentReference: token },
+        { reportUnlockPurchaseToken: token },
+      ],
     });
   }
 

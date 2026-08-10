@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '@akit/contracts';
 import { ConfigService } from '@nestjs/config';
@@ -12,9 +12,10 @@ type AuthAccessTokenPayload = {
 };
 
 @Injectable()
-export class AuthTokenService {
+export class AuthTokenService implements OnModuleDestroy {
   private readonly redis: Redis;
   private readonly TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private redisClosed = false;
 
   constructor(
     private readonly jwtService: JwtService,
@@ -36,5 +37,11 @@ export class AuthTokenService {
   async isTokenInvalidated(token: string): Promise<boolean> {
     const result = await this.redis.get(`blacklist:${token}`);
     return result !== null;
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    if (this.redisClosed) return;
+    this.redisClosed = true;
+    await this.redis.quit();
   }
 }

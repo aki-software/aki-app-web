@@ -10,8 +10,9 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { Session } from '../entities/session.entity.js';
 import { SessionScope } from '../types/session-scope.type.js';
-import { SessionPaymentStatus } from '@akit/contracts';
 import { UserRole } from '@akit/contracts';
+
+const PATIENT_ROLE = 'PATIENT';
 
 @Injectable()
 export class ReportOrchestratorService {
@@ -70,9 +71,8 @@ export class ReportOrchestratorService {
     }
 
     if (
-      scope?.role === ('PATIENT' as any) &&
-      session.paymentStatus !== SessionPaymentStatus.PAID &&
-      session.paymentStatus !== SessionPaymentStatus.VOUCHER_REDEEMED
+      scope?.role === PATIENT_ROLE &&
+      (!session.reportUnlockedAt || !session.results?.length)
     ) {
       throw new BadRequestException(
         'Cannot generate report for a pending payment session',
@@ -96,7 +96,11 @@ export class ReportOrchestratorService {
     if (role === UserRole.ADMIN) {
       return;
     }
-    if (role === ('PATIENT' as any)) {
+    if (scope.role === PATIENT_ROLE && scope.patientId) {
+      query.andWhere('session.patientId = :patientId', {
+        patientId: scope.patientId,
+      });
+      query.andWhere('session.reportUnlockedAt IS NOT NULL');
       return;
     }
     if (scope.institutionId) {

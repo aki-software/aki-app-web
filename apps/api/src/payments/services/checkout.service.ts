@@ -1,9 +1,15 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Inject,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   PAYMENT_GATEWAY_MP,
   PAYMENT_GATEWAY_STRIPE,
+  toMinorUnits,
+  type PaymentGatewayAdapter,
 } from '../interfaces/payment-gateway.adapter.js';
-import type { PaymentGatewayAdapter } from '../interfaces/payment-gateway.adapter.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PricingPlan } from '../entities/pricing-plan.entity.js';
@@ -22,6 +28,7 @@ interface InitiateCheckoutParams {
   buyerEmail: string;
   successUrl?: string;
   failureUrl?: string;
+  idempotencyKey?: string;
 }
 
 @Injectable()
@@ -38,6 +45,20 @@ export class CheckoutService {
   ) {}
 
   async initiateCheckout(params: InitiateCheckoutParams) {
+    const idempotencyKey = this.requireIdempotencyKey(params.idempotencyKey);
+    const existing = await this.findExistingCheckout(
+      params.institutionId,
+      idempotencyKey,
+    );
+    if (existing?.checkoutUrl) {
+      return {
+        checkoutUrl: existing.checkoutUrl,
+        voucherBatchId: existing.id,
+      };
+    }
+
+    const checkoutUrls = this.resolveCheckoutUrls(params.gateway);
+
     const plan = await this.pricingPlanRepo.findOneBy({
       id: params.planId,
       isActive: true,
@@ -49,7 +70,7 @@ export class CheckoutService {
     const adapter =
       params.gateway === 'MERCADO_PAGO' ? this.mpAdapter : this.stripeAdapter;
     const priceUsd = Number(plan.priceUsd);
-    let priceArs: number | undefined = undefined;
+    let priceArs: number | undefined;
 
     if (params.gateway === 'MERCADO_PAGO') {
       const exchangeRate = await this.exchangeRateService.getUsdToArsRate();
@@ -59,6 +80,7 @@ export class CheckoutService {
     const voucherBatch = this.voucherBatchRepo.create({
       ownerType: VoucherOwnerType.INSTITUTION,
       ownerInstitution: { id: params.institutionId },
+      ownerInstitutionId: params.institutionId,
       quantity: plan.voucherQuantity,
       totalPrice: String(
         params.gateway === 'MERCADO_PAGO' ? priceArs : priceUsd,
@@ -70,34 +92,161 @@ export class CheckoutService {
       ),
       paymentProvider: params.gateway,
       status: VoucherBatchStatus.PENDING,
+      idempotencyKey,
+      expectedAmountMinor: toMinorUnits(
+        String(params.gateway === 'MERCADO_PAGO' ? priceArs : priceUsd),
+        params.gateway === 'MERCADO_PAGO' ? 'ARS' : 'USD',
+      ).toString(),
       shortCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
     });
 
-    // Save batch first so we have an ID for the gateway
-    await this.voucherBatchRepo.save(voucherBatch);
+    // The unique institution/key index is the multi-instance authority. If a
+    // concurrent request won the insert, reuse its checkout instead of calling
+    // the gateway a second time.
+    try {
+      await this.voucherBatchRepo.save(voucherBatch);
+    } catch (error) {
+      const concurrentCheckout = await this.findExistingCheckout(
+        params.institutionId,
+        idempotencyKey,
+      );
+      if (concurrentCheckout?.checkoutUrl) {
+        return {
+          checkoutUrl: concurrentCheckout.checkoutUrl,
+          voucherBatchId: concurrentCheckout.id,
+        };
+      }
+      throw error;
+    }
 
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const notificationUrl = `${process.env.API_URL || 'http://localhost:3001'}/api/webhooks/payments/${params.gateway.toLowerCase()}`;
+    const { frontendOrigin, notificationUrl } = checkoutUrls;
 
-    const result = await adapter.createCheckout({
-      voucherBatchId: voucherBatch.id,
-      priceUsd,
-      priceArs,
-      successUrl:
-        params.successUrl ||
-        `${baseUrl}/billing/success?batchId=${voucherBatch.id}`,
-      failureUrl: params.failureUrl || `${baseUrl}/billing/failure`,
-      notificationUrl,
-      buyerEmail: params.buyerEmail,
-      description: `A.kit - Lote de ${plan.voucherQuantity} Vouchers (${plan.name})`,
-    });
+    try {
+      const result = await adapter.createCheckout({
+        voucherBatchId: voucherBatch.id,
+        priceUsd,
+        priceArs,
+        successUrl: this.safeRedirectUrl(
+          params.successUrl,
+          `${frontendOrigin}/billing/success?batchId=${voucherBatch.id}`,
+          frontendOrigin,
+        ),
+        failureUrl: this.safeRedirectUrl(
+          params.failureUrl,
+          `${frontendOrigin}/billing/failure`,
+          frontendOrigin,
+        ),
+        notificationUrl,
+        buyerEmail: params.buyerEmail,
+        description: `A.kit - Lote de ${plan.voucherQuantity} Vouchers (${plan.name})`,
+      });
 
-    voucherBatch.paymentReference = result.externalReference;
-    await this.voucherBatchRepo.save(voucherBatch);
+      voucherBatch.paymentReference = result.externalReference;
+      voucherBatch.checkoutUrl = result.checkoutUrl;
+      await this.voucherBatchRepo.save(voucherBatch);
+
+      return {
+        checkoutUrl: result.checkoutUrl,
+        voucherBatchId: voucherBatch.id,
+      };
+    } catch (error) {
+      voucherBatch.status = VoucherBatchStatus.FAILED;
+      await this.voucherBatchRepo.save(voucherBatch);
+      throw error;
+    }
+  }
+
+  private requireIdempotencyKey(value?: string): string {
+    const key = value?.trim();
+    if (!key || key.length > 128) {
+      throw new BadRequestException(
+        'X-Idempotency-Key is required and must be at most 128 characters',
+      );
+    }
+    return key;
+  }
+
+  private async findExistingCheckout(
+    institutionId: string,
+    idempotencyKey: string,
+  ): Promise<VoucherBatch | null> {
+    const repository = this.voucherBatchRepo as Repository<VoucherBatch> & {
+      findOneBy?: (
+        where: Partial<VoucherBatch>,
+      ) => Promise<VoucherBatch | null>;
+    };
+    return repository.findOneBy
+      ? repository.findOneBy({
+          ownerInstitutionId: institutionId,
+          idempotencyKey,
+        })
+      : null;
+  }
+
+  private configuredFrontendOrigin(value: string): string {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== 'https:' || url.username || url.password) {
+        throw new Error();
+      }
+      return url.origin;
+    } catch {
+      throw new BadRequestException(
+        'FRONTEND_URL must be a configured HTTPS origin',
+      );
+    }
+  }
+
+  private resolveCheckoutUrls(gateway: InitiateCheckoutParams['gateway']): {
+    frontendOrigin: string;
+    notificationUrl: string;
+  } {
+    const frontendUrl = process.env.FRONTEND_URL;
+    const apiUrl = process.env.API_URL;
+    if (!frontendUrl || !apiUrl) {
+      throw new BadRequestException('Payment checkout URLs must be configured');
+    }
 
     return {
-      checkoutUrl: result.checkoutUrl,
-      voucherBatchId: voucherBatch.id,
+      frontendOrigin: this.configuredFrontendOrigin(frontendUrl),
+      notificationUrl: `${this.configuredApiOrigin(apiUrl)}/api/v1/webhooks/payments/${gateway.toLowerCase()}`,
     };
+  }
+
+  private configuredApiOrigin(value: string): string {
+    try {
+      const url = new URL(value);
+      if (
+        url.protocol !== 'https:' ||
+        url.username ||
+        url.password ||
+        url.pathname !== '/' ||
+        url.search ||
+        url.hash
+      ) {
+        throw new Error();
+      }
+      return url.origin;
+    } catch {
+      throw new BadRequestException(
+        'API_URL must be a configured HTTPS origin',
+      );
+    }
+  }
+
+  private safeRedirectUrl(
+    candidate: string | undefined,
+    fallback: string,
+    configuredOrigin: string,
+  ): string {
+    if (!candidate) return fallback;
+    try {
+      const url = new URL(candidate);
+      return url.protocol === 'https:' && url.origin === configuredOrigin
+        ? url.toString()
+        : fallback;
+    } catch {
+      return fallback;
+    }
   }
 }
