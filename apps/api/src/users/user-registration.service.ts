@@ -5,12 +5,10 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User, UserRole } from './entities/user.entity.js';
 import { UsersService } from './users.service.js';
-import { Institution } from '../institutions/entities/institution.entity.js';
-import { AccountActivationNotifierService } from '../common/notifications/account-activation-notifier.service.js';
+import { AccountActivationRequestedEvent } from '../events/domain-events.js';
 import { CryptoService } from '../common/services/crypto.service.js';
 import { normalizeUserRole } from '../common/utils/role.utils.js';
 import { USER_ERROR_MESSAGES } from './users.constants.js';
@@ -25,9 +23,7 @@ export class UserRegistrationService {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
-    @InjectRepository(Institution)
-    private readonly institutionRepository: Repository<Institution>,
-    private readonly notifier: AccountActivationNotifierService,
+    private readonly eventEmitter: EventEmitter2,
     private readonly cryptoService: CryptoService,
   ) {}
 
@@ -38,21 +34,9 @@ export class UserRegistrationService {
     if (email) {
       const existingUser = await this.usersService.findByEmail(email);
       if (existingUser) {
-        if (normalizedRole === UserRole.PATIENT) {
-          if (
-            name &&
-            existingUser.name !== name &&
-            existingUser.role === UserRole.PATIENT
-          ) {
-            existingUser.name = name;
-            await this.usersService.register(existingUser);
-          }
-          return existingUser;
-        } else {
-          throw new BadRequestException(
-            'El correo electrónico ya está registrado por otro usuario.',
-          );
-        }
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado por otro usuario.',
+        );
       }
     }
 
@@ -78,24 +62,13 @@ export class UserRegistrationService {
         normalizedRole === UserRole.INSTITUTION_ADMIN) &&
       !user.institutionId
     ) {
-      const institution = this.institutionRepository.create({
-        name: `Consultorio ${user.name}`,
-        billingEmail: user.email?.trim() || null,
-        responsibleTherapistUserId: user.id,
-        isActive: true,
-      });
-      const savedInstitution =
-        await this.institutionRepository.save(institution);
-      user = await this.usersService.register({
-        ...user,
-        institutionId: savedInstitution.id,
-      });
+      await this.eventEmitter.emitAsync('user.registered', user);
+      user = (await this.usersService.findOne(user.id)) as User;
     }
 
-    // Patients are not web platform users — never send them the account activation email.
-    // They only receive report emails sent explicitly by a therapist.
+    // Patients are handled in a separate module now. Users registered here are web platform users
+    // who should receive an account activation email unless they have a synthetic local email.
     if (
-      normalizedRole !== UserRole.PATIENT &&
       user.passwordSetupToken &&
       user.email &&
       !user.email.endsWith('@akit.local')
@@ -103,11 +76,14 @@ export class UserRegistrationService {
       const activationLink = this.usersService.buildPasswordSetupLink(
         user.passwordSetupToken,
       );
-      await this.notifier.notifyAccountActivation(
-        user.email,
-        user.name,
-        activationLink,
-        user.institution?.name ?? null,
+      await this.eventEmitter.emitAsync(
+        'account.activation.requested',
+        new AccountActivationRequestedEvent(
+          user.email,
+          user.name,
+          activationLink,
+          user.institution?.name ?? null,
+        ),
       );
     }
 
@@ -128,19 +104,8 @@ export class UserRegistrationService {
       return user;
     }
 
-    const privateInstitution = this.institutionRepository.create({
-      name: `Consultorio ${user.name}`,
-      billingEmail: user.email?.trim() || null,
-      responsibleTherapistUserId: user.id,
-      isActive: true,
-    });
-    const savedInstitution =
-      await this.institutionRepository.save(privateInstitution);
-
-    return await this.usersService.register({
-      ...user,
-      institutionId: savedInstitution.id,
-    });
+    await this.eventEmitter.emitAsync('user.registered', user);
+    return (await this.usersService.findOne(user.id)) as User;
   }
 
   async refreshPasswordSetupToken(userId: string): Promise<User> {
@@ -170,11 +135,14 @@ export class UserRegistrationService {
       const activationLink = this.usersService.buildPasswordSetupLink(
         updatedUser.passwordSetupToken,
       );
-      await this.notifier.notifyAccountActivation(
-        updatedUser.email,
-        updatedUser.name,
-        activationLink,
-        updatedUser.institution?.name ?? null,
+      await this.eventEmitter.emitAsync(
+        'account.activation.requested',
+        new AccountActivationRequestedEvent(
+          updatedUser.email,
+          updatedUser.name,
+          activationLink,
+          updatedUser.institution?.name ?? null,
+        ),
       );
     }
 

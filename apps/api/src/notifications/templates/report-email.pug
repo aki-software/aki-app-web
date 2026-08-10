@@ -1,0 +1,53 @@
+extends ./base-email.pug
+
+block bodyContent
+  tr
+    td(style="padding:8px 40px;")
+      h1(style=`margin:0 0 4px 0;font-size:24px;font-weight:800;letter-spacing:-0.02em;line-height:1.3;color:${colors.primary.DEFAULT};text-transform:uppercase;`) #{patientName}
+      if patientEmail
+        p(style=`margin:0 0 24px 0;font-size:14px;color:${colors.outline.light};`) #{patientEmail}
+      p(style=`margin:0 0 16px 0;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Tu informe vocacional completo ya fue generado. En este correo te dejamos un resumen rápido y el acceso al PDF.
+
+  if summary
+    tr
+      td(style="padding:0 40px 24px;")
+        table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`background-color:${colors.surface.light};border:1px solid ${colors.surface.variantLight};border-radius:16px;`)
+          tr
+            td(style="padding:24px;")
+              p(style=`margin:0 0 12px 0;font-size:11px;font-weight:700;color:${colors.outline.light};text-transform:uppercase;letter-spacing:0.18em;`) Resumen rápido
+              p(style=`margin:0 0 12px 0;font-size:17px;font-weight:700;color:${colors.text.primary};`) Afinidad principal: #{summary.primaryTitle} (#{summary.primaryPercentage}%)
+              p(style=`margin:0 0 12px 0;font-size:14px;line-height:1.6;color:${colors.text.secondary};`) #{summary.profileStrength}
+              p(style=`margin:0;font-size:14px;line-height:1.6;color:${colors.text.secondary};`) #[strong(style=`color:${colors.text.primary}`) Sugerencia:] #{summary.recommendation}
+            
+            if summary.rankedAreas && summary.rankedAreas.length > 0
+              tr
+                td(style="padding:0 24px 24px;")
+                  p(style=`margin:16px 0 16px 0;font-size:11px;font-weight:700;color:${colors.outline.light};text-transform:uppercase;letter-spacing:0.18em;`) Ranking de afinidad
+                  table(role="presentation" width="100%" cellpadding="0" cellspacing="0")
+                    each area, index in summary.rankedAreas
+                      tr
+                        td(style="padding:8px 0;")
+                          table(role="presentation" width="100%" cellpadding="0" cellspacing="0")
+                            tr
+                              td(style=`width:28px;font-size:13px;font-weight:700;color:${colors.outline.light};`) #{index + 1}.
+                              td(style=`font-size:14px;color:${colors.text.primary};font-weight:700;`) #{area.title}
+                              td(style=`width:56px;font-size:13px;font-weight:600;color:${colors.outline.light};text-align:right;`) #{area.percentage}%
+                            tr
+                              td(colspan="3" style="padding-top:10px;")
+                                table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`height:6px;background-color:${colors.surface.variantLight};border-radius:999px;overflow:hidden;`)
+                                  tr
+                                    td(style=`width:${area.percentage}%;background-color:${colors.primary.DEFAULT};height:6px;`)
+
+  tr
+    td(style="padding:0 40px 32px;")
+      table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`background-color:${colors.background.light};border-radius:16px;border:1px solid ${colors.surface.variantLight};`)
+        tr
+          td(style="padding:24px;text-align:center;")
+            p(style=`margin:0 0 20px 0;font-size:15px;font-weight:700;color:${colors.text.primary};`) Descargar informe completo en PDF
+            if reportUrl
+              a(href=reportUrl style=`display:inline-block;padding:16px 32px;background-color:${colors.primary.DEFAULT};color:#ffffff;text-decoration:none;border-radius:999px;font-size:14px;font-weight:700;box-shadow:0 8px 16px rgba(15,107,104,0.16);`) Descargar PDF
+              
+              div(style="margin-top:24px;")
+                p(style=`margin:0;padding:16px;background-color:${colors.surface.light};border:1px dashed ${colors.surface.variantLight};border-radius:12px;font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:${colors.outline.light};word-break:break-all;text-align:left;`) #{reportUrl}
+            else
+              p(style=`margin:0;font-size:14px;line-height:1.6;color:${colors.text.secondary};`) El informe se adjunta en este mismo correo en formato PDF. Podés descargarlo desde los archivos adjuntos al final de este mensaje.

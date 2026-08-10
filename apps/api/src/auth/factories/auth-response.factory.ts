@@ -1,7 +1,8 @@
+import { UserRole } from '@akit/contracts';
 import { Injectable } from '@nestjs/common';
 import { AUTH_ADMIN } from '../auth.constants.js';
 import type { AuthLoginResponse, AuthUserSummary } from '@akit/contracts';
-import { User, UserRole } from '../../users/entities/user.entity.js';
+import { User } from '../../users/entities/user.entity.js';
 import { AuthTokenService } from '../services/auth-token.service.js';
 
 @Injectable()

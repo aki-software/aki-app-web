@@ -12,7 +12,7 @@ import {
   In,
   Between,
 } from 'typeorm';
-import { Voucher } from './entities/voucher.entity.js';
+import { createAvailableVoucher, Voucher } from './entities/voucher.entity.js';
 import { VoucherBatch } from './entities/voucher-batch.entity.js';
 import {
   VoucherBatchStatus,
@@ -198,9 +198,11 @@ export class VouchersService {
     },
     quantity: number,
   ): Promise<VoucherBatch> {
+    const shortCode = await this.codeGenerator.generateUniqueBatchCode();
     return await this.voucherBatchRepository.save(
       this.voucherBatchRepository.create({
         ...ownership,
+        shortCode,
         quantity,
         unitPrice: '0',
         totalPrice: '0',
@@ -231,15 +233,18 @@ export class VouchersService {
         : await this.codeGenerator.generateUniqueCode();
 
       vouchers.push(
-        this.voucherRepository.create({
-          ...ownership,
-          code,
-          batchId,
-          status: VoucherStatus.AVAILABLE,
-          assignedPatientName: patientName ?? null,
-          assignedPatientEmail: patientEmail ?? null,
-          expiresAt,
-        }),
+        this.voucherRepository.create(
+          createAvailableVoucher({
+            code,
+            batchId,
+            ownerType: ownership.ownerType,
+            ownerUserId: ownership.ownerUserId,
+            ownerInstitutionId: ownership.ownerInstitutionId,
+            assignedPatientName: patientName ?? null,
+            assignedPatientEmail: patientEmail ?? null,
+            expiresAt,
+          }),
+        ),
       );
     }
 

@@ -17,9 +17,18 @@ import { VoucherBatchStatus, VoucherOwnerType } from './voucher.enums.js';
   'status',
 ])
 @Index('IDX_voucher_batches_owner_institution_id', ['ownerInstitutionId'])
+@Index('IDX_voucher_batches_short_code', ['shortCode'], { unique: true })
+@Index(
+  'IDX_voucher_batches_institution_idempotency',
+  ['ownerInstitutionId', 'idempotencyKey'],
+  { unique: true },
+)
 export class VoucherBatch {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column({ name: 'short_code', type: 'varchar', length: 10, unique: true })
+  shortCode!: string;
 
   @Column({
     name: 'owner_type',
@@ -66,6 +75,23 @@ export class VoucherBatch {
   @Column({ type: 'varchar', length: 3, default: 'ARS' })
   currency!: string;
 
+  @Column({ name: 'expected_amount_minor', type: 'bigint', nullable: true })
+  expectedAmountMinor!: string | null;
+
+  @Column({
+    name: 'idempotency_key',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
+  idempotencyKey!: string | null;
+
+  @Column({ name: 'checkout_url', type: 'text', nullable: true })
+  checkoutUrl!: string | null;
+
+  @Column({ name: 'fulfilled_at', type: 'timestamptz', nullable: true })
+  fulfilledAt!: Date | null;
+
   @Column({
     name: 'payment_provider',
     type: 'varchar',
@@ -96,14 +122,12 @@ export class VoucherBatch {
   paidAt!: Date | null;
 
   // Domain Methods for Encapsulation
-  markAsPaid(paymentProvider: string, paymentReference: string) {
+  markAsPaid() {
     if (this.status === VoucherBatchStatus.CANCELLED) {
       throw new Error('Cannot pay for a cancelled batch.');
     }
     this.status = VoucherBatchStatus.PAID;
     this.paidAt = new Date();
-    this.paymentProvider = paymentProvider;
-    this.paymentReference = paymentReference;
   }
 
   cancel() {
@@ -111,5 +135,12 @@ export class VoucherBatch {
       throw new Error('Cannot cancel an already paid batch.');
     }
     this.status = VoucherBatchStatus.CANCELLED;
+  }
+
+  markAsFailed() {
+    if (this.status === VoucherBatchStatus.PAID) {
+      throw new Error('Cannot fail an already paid batch.');
+    }
+    this.status = VoucherBatchStatus.FAILED;
   }
 }

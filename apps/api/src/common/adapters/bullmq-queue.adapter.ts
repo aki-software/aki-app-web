@@ -1,32 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
 import { InMemoryQueueAdapter } from './in-memory-queue.adapter.js';
 import { applyQueueDefaults } from './queue-defaults.js';
-import { getRedisConnection } from '../utils/redis.utils.js';
 
 @Injectable()
 export class BullMQQueueAdapter implements QueueAdapter {
   private readonly logger = new Logger(BullMQQueueAdapter.name);
-  private readonly queue: Queue | null;
   readonly isEnabled: boolean;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly fallbackAdapter: InMemoryQueueAdapter,
+    @InjectQueue('email') private readonly emailQueue: Queue,
+    @InjectQueue('pdf') private readonly pdfQueue: Queue,
+    @InjectQueue('reports') private readonly reportsQueue: Queue,
   ) {
-    const connection = getRedisConnection(this.configService);
-    this.isEnabled = !!connection;
-
-    if (!connection) {
-      this.queue = null;
-      return;
-    }
-
-    this.queue = new Queue('akit-jobs', {
-      connection,
-    });
+    this.isEnabled = process.env.ENABLE_BULLMQ === 'true';
   }
 
   isConfigured(): boolean {
@@ -38,13 +30,27 @@ export class BullMQQueueAdapter implements QueueAdapter {
     payload: unknown,
     options?: QueueJobOptions,
   ): Promise<void> {
-    if (!this.queue) {
+    if (!this.isEnabled) {
       await this.fallbackAdapter.enqueue(jobName, payload, options);
       return;
     }
 
     const resolvedOptions = applyQueueDefaults(jobName, options);
-    await this.queue.add(jobName, payload, this.mapJobOptions(resolvedOptions));
+    const queueOptions = this.mapJobOptions(resolvedOptions);
+
+    switch (jobName) {
+      case 'send-email':
+        await this.emailQueue.add(jobName, payload, queueOptions);
+        break;
+      case 'generate-pdf':
+        await this.pdfQueue.add(jobName, payload, queueOptions);
+        break;
+      case 'send-report':
+        await this.reportsQueue.add(jobName, payload, queueOptions);
+        break;
+      default:
+        this.logger.warn(`Unknown job name: ${jobName}`);
+    }
   }
 
   private mapJobOptions(options?: QueueJobOptions) {

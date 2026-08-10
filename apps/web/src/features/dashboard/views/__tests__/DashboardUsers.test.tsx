@@ -106,7 +106,7 @@ describe("DashboardUsers", () => {
   it("defaults to 'Instituciones' tab showing institution content", async () => {
     renderWithRouter(<DashboardUsers />);
     expect(screen.getByText("Alta de instituciones y sus respectivas cuentas de acceso.")).toBeDefined();
-    expect(screen.getByText("Listado")).toBeDefined();
+    expect(screen.getByText("Instituciones Registradas")).toBeDefined();
     expect(screen.getByText("Test Institution A")).toBeDefined();
     expect(screen.getByText("Test Institution B")).toBeDefined();
   });
@@ -130,14 +130,14 @@ describe("DashboardUsers", () => {
     const profesionalesTab = screen.getByText("Profesionales");
     fireEvent.click(profesionalesTab);
     await waitFor(() => {
-      expect(screen.getByText("No hay profesionales registrados")).toBeDefined();
+      expect(screen.getByText("No se encontraron profesionales")).toBeDefined();
     });
   });
 
   it("preserves existing institution CRUD on first tab", async () => {
     renderWithRouter(<DashboardUsers />);
     expect(screen.getByText("Alta de instituciones y sus respectivas cuentas de acceso.")).toBeDefined();
-    expect(screen.getByText("Listado")).toBeDefined();
+    expect(screen.getByText("Instituciones Registradas")).toBeDefined();
     expect(screen.getByText("Test Institution A")).toBeDefined();
     expect(screen.getByText("Test Institution B")).toBeDefined();
   });

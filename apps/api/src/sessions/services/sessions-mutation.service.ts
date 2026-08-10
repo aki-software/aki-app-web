@@ -17,6 +17,8 @@ import { buildSyncKey } from '../utils/session-sync-key.util.js';
 import { SessionPaymentStatus } from '@akit/contracts';
 import { SessionsQueryService } from './sessions-query.service.js';
 
+const REPORT_UNLOCK_SKU = 'report_unlock_v2';
+
 @Injectable()
 export class SessionsMutationService {
   private readonly logger = new Logger(SessionsMutationService.name);
@@ -60,6 +62,7 @@ export class SessionsMutationService {
         const session = manager.create(Session, {
           ...sessionFields,
           syncKey: idempotencyKey ?? null,
+          expectedReportSku: REPORT_UNLOCK_SKU,
         });
         const inserted = await manager.save(Session, session);
 
@@ -185,5 +188,36 @@ export class SessionsMutationService {
       .execute();
 
     return this.sessionsQueryService.findOne(id);
+  }
+
+  async unlockReportEntitlement(
+    id: string,
+    purchaseToken: string,
+    metadata: { providerProductId: string; expectedSku: string },
+  ): Promise<void> {
+    if (metadata.providerProductId !== metadata.expectedSku) {
+      throw new ConflictException(
+        'Provider product does not match report expectation',
+      );
+    }
+    const result = await this.sessionRepository
+      .createQueryBuilder()
+      .update(Session)
+      .set({
+        reportUnlockedAt: new Date(),
+        reportUnlockPurchaseToken: purchaseToken,
+      })
+      .where('id = :id', { id })
+      .andWhere(
+        '(report_unlock_purchase_token IS NULL OR report_unlock_purchase_token = :purchaseToken)',
+        { purchaseToken },
+      )
+      .execute();
+
+    if (result.affected !== 1) {
+      throw new ConflictException(
+        'Purchase token is already associated with another report',
+      );
+    }
   }
 }
