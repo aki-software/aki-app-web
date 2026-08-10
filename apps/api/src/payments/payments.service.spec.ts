@@ -2,10 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsService } from './payments.service';
 import { SessionsQueryService } from '../sessions/services/sessions-query.service';
 import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
-import { ConfigService } from '@nestjs/config';
 import { SessionPaymentStatus } from '@akit/contracts';
-import { PaymentLockService } from './payment-lock.service';
 import { GooglePlayAdapter } from './google-play.adapter';
+import { getDataSourceToken } from '@nestjs/typeorm';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -25,19 +24,7 @@ describe('PaymentsService', () => {
           provide: SessionsMutationService,
           useValue: {
             updatePaymentStatus: jest.fn(),
-          },
-        },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn(),
-          },
-        },
-        {
-          provide: PaymentLockService,
-          useValue: {
-            acquireLock: jest.fn(),
-            releaseLock: jest.fn(),
+            unlockReportEntitlement: jest.fn(),
           },
         },
         {
@@ -45,6 +32,15 @@ describe('PaymentsService', () => {
           useValue: {
             getAndroidPublisher: jest.fn(),
             getPackageName: jest.fn(),
+          },
+        },
+        {
+          provide: getDataSourceToken(),
+          useValue: {
+            manager: {
+              find: jest.fn().mockResolvedValue([]),
+              count: jest.fn().mockResolvedValue(0),
+            },
           },
         },
       ],
@@ -100,7 +96,7 @@ describe('PaymentsService', () => {
       purchases: {
         products: {
           get: jest.fn().mockResolvedValue({
-            data: { purchaseState: 0 },
+            data: { purchaseState: 0, productId: 'report_unlock_v2' },
           }),
           consume: jest.fn(),
         },
@@ -111,7 +107,7 @@ describe('PaymentsService', () => {
       'sessionsMutationService'
     ] as jest.Mocked<SessionsMutationService>;
     (
-      mockSessionsMutationService.updatePaymentStatus as jest.Mock
+      mockSessionsMutationService.unlockReportEntitlement as jest.Mock
     ).mockResolvedValue({});
 
     const session = {

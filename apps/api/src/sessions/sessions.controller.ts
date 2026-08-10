@@ -7,9 +7,7 @@ import {
   Post,
   Query,
   Req,
-  Res,
   UseGuards,
-  Inject,
   InternalServerErrorException,
 } from '@nestjs/common';
 import type { Response } from 'express';
@@ -17,22 +15,18 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import type { AuthenticatedRequest } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
-import { UserRole } from '../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 import { CompleteSessionDto } from './dto/complete-session.dto.js';
 import { CreateSessionDto } from './dto/create-session.dto.js';
 import { SendReportDto } from './dto/send-report.dto.js';
 import { SessionDto, SessionDetailDto } from './dto/session.dto.js';
 import { ReportService } from './services/report.service.js';
-import { PDF_GENERATOR } from '../common/constants/adapters.constants.js';
-import type { PdfGenerator } from '../common/adapters/pdf-generator.adapter.js';
 import { SessionMetricsService } from './services/session-metrics.service.js';
 import { AdminDashboardService } from './services/admin-dashboard.service.js';
 import { SessionsQueryService } from './services/sessions-query.service.js';
 import { SessionsMutationService } from './services/sessions-mutation.service.js';
 import { SessionsOrchestratorService } from './services/sessions-orchestrator.service.js';
-import { ReportPdfService } from './services/report-pdf.service.js';
-
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Sessions')
@@ -69,9 +63,7 @@ export class SessionsController {
     private readonly sessionsOrchestratorService: SessionsOrchestratorService,
     private readonly sessionMetricsService: SessionMetricsService,
     private readonly reportService: ReportService,
-    @Inject(PDF_GENERATOR) private readonly pdfGenerator: PdfGenerator,
     private readonly adminDashboardService: AdminDashboardService,
-    private readonly reportPdfService: ReportPdfService,
   ) {}
 
   @ApiOperation({ summary: 'Create a new session' })
@@ -281,37 +273,5 @@ export class SessionsController {
         maxDuration,
       },
     );
-  }
-
-  @Get(':id/report/pdf')
-  @UseGuards(JwtAuthGuard)
-  async generateSessionPdf(
-    @Param('id') sessionId: string,
-    @Req() req: AuthenticatedRequest,
-    @Res() res: Response,
-  ) {
-    const session = await this.sessionsService.findOneForReport(
-      sessionId,
-      this.extractScope(req),
-    );
-
-    const reportData = await this.reportService.buildReportData(session);
-    const html = this.reportPdfService.renderHtml(reportData);
-    const pdfBuffer = await this.pdfGenerator.generateFromHtml(html);
-
-    const safeName = (
-      session.patientName ?? SESSION_CONSTANTS.REPORTS.DEFAULT_PDF_PREFIX
-    )
-      .replace(/[^a-z0-9\s-]/gi, '')
-      .trim()
-      .replace(/\s+/g, '-')
-      .toLowerCase();
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${SESSION_CONSTANTS.REPORTS.DEFAULT_PDF_PREFIX}-${safeName}-${sessionId}.pdf"`,
-    );
-    res.send(pdfBuffer);
   }
 }

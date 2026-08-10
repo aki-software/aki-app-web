@@ -1,5 +1,6 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class RequestLoggerMiddleware implements NestMiddleware {
@@ -7,26 +8,50 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     const start = Date.now();
-    const { method, originalUrl, body } = req;
+    const method = req.method;
+    const path = normalizePath(req.originalUrl);
+    const correlationId = correlationIdFrom(req);
 
-    this.logger.log(`>> [REQ] ${method} ${originalUrl} - IP: ${req.ip}`);
-    if (
-      originalUrl.includes('/vouchers/redeem') ||
-      originalUrl.includes('/sessions/complete')
-    ) {
-      this.logger.debug(
-        `>> [PAYLOAD] ${method} ${originalUrl} - Body: ${JSON.stringify(body)}`,
-      );
-    }
+    this.logger.log(
+      JSON.stringify({
+        event: 'http.request',
+        correlationId,
+        method,
+        path,
+      }),
+    );
 
     res.on('finish', () => {
       const { statusCode } = res;
       const duration = Date.now() - start;
       this.logger.log(
-        `<< [RES] ${method} ${originalUrl} - ${statusCode} - ${duration}ms`,
+        JSON.stringify({
+          event: 'http.response',
+          correlationId,
+          method,
+          path,
+          status: statusCode,
+          durationMs: duration,
+        }),
       );
     });
 
     next();
   }
+}
+
+function normalizePath(originalUrl: string): string {
+  const path = originalUrl.split('?')[0];
+  return path.replace(
+    /\/webhooks\/payments\/(stripe|mercado_pago)/i,
+    (_match, gateway: string) => `/webhooks/payments/${gateway.toLowerCase()}`,
+  );
+}
+
+function correlationIdFrom(req: Request): string {
+  const value = req.headers['x-request-id'];
+  const candidate = Array.isArray(value) ? value[0] : value;
+  return candidate && /^[A-Za-z0-9._-]{1,128}$/.test(candidate)
+    ? candidate
+    : randomUUID();
 }

@@ -70,7 +70,7 @@ describe('SessionsController (e2e)', () => {
       userRepo.create({
         email: `pa-${rnd}@test.com`,
         name: 'PA',
-        role: UserRole.PATIENT,
+        role: 'PATIENT' as any,
         passwordHash: 'hashedpwd',
       }),
     );
@@ -78,7 +78,7 @@ describe('SessionsController (e2e)', () => {
       userRepo.create({
         email: `pb-${rnd}@test.com`,
         name: 'PB',
-        role: UserRole.PATIENT,
+        role: 'PATIENT' as any,
         passwordHash: 'hashedpwd',
       }),
     );

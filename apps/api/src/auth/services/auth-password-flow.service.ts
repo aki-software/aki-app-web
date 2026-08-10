@@ -3,7 +3,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PasswordResetNotifierService } from '../../common/notifications/password-reset-notifier.service.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PasswordResetRequestedEvent } from '../../events/domain-events.js';
 import { User } from '../../users/entities/user.entity.js';
 import { UsersService } from '../../users/users.service.js';
 import { CryptoService } from '../../common/services/crypto.service.js';
@@ -22,7 +23,7 @@ export class AuthPasswordFlowService {
   constructor(
     private readonly usersService: UsersService,
     private readonly cryptoService: CryptoService,
-    private readonly passwordResetNotifier: PasswordResetNotifierService,
+    private readonly eventEmitter: EventEmitter2,
     private readonly authResponseFactory: AuthResponseFactory,
     private readonly authTokenService: AuthTokenService,
   ) {}
@@ -65,7 +66,7 @@ export class AuthPasswordFlowService {
     });
 
     // Invalidate any existing tokens for this user
-    this.authTokenService.invalidateToken(token);
+    await this.authTokenService.invalidateToken(token);
 
     return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
@@ -87,10 +88,13 @@ export class AuthPasswordFlowService {
     });
 
     const resetLink = this.usersService.buildPasswordResetLink(resetToken);
-    await this.passwordResetNotifier.notifyPasswordReset(
-      updatedUser.email,
-      updatedUser.name,
-      resetLink,
+    await this.eventEmitter.emitAsync(
+      'password.reset.requested',
+      new PasswordResetRequestedEvent(
+        updatedUser.email,
+        updatedUser.name,
+        resetLink,
+      ),
     );
 
     return {
@@ -137,7 +141,7 @@ export class AuthPasswordFlowService {
     });
 
     // Invalidate any existing tokens for this user
-    this.authTokenService.invalidateToken(token);
+    await this.authTokenService.invalidateToken(token);
 
     return this.authResponseFactory.buildUserLoginResponse(updatedUser);
   }
@@ -190,7 +194,7 @@ export class AuthPasswordFlowService {
     // Invalidate any existing tokens for this user.
     // Prefer the real JWT when the controller passed it through; fall back to
     // userId for backward compatibility (legacy callers / tests).
-    this.authTokenService.invalidateToken(token ?? userId ?? '');
+    await this.authTokenService.invalidateToken(token ?? userId ?? '');
 
     return { ok: true };
   }

@@ -1,4 +1,4 @@
-import { ChartPie, LayoutDashboard, Settings, Ticket, Users, type LucideIcon } from "lucide-react";
+import { ChartPie, LayoutDashboard, Settings, Ticket, Users, CreditCard, Tags, type LucideIcon } from "lucide-react";
 import { APP_ROUTES } from "../../../router/routes.constants";
 
 export interface NavItem {
@@ -31,6 +31,18 @@ export const DASHBOARD_NAV_ITEMS: NavItem[] = [
     name: "Instituciones y terapeutas",
     path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.USERS}`,
     icon: Users,
+    roles: ['ADMIN'],
+  },
+  {
+    name: "Saldo y Vouchers",
+    path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.BILLING}`,
+    icon: CreditCard,
+    roles: ['INSTITUTION'],
+  },
+  {
+    name: "Planes de Vouchers",
+    path: `${APP_ROUTES.DASHBOARD.ROOT}/${APP_ROUTES.DASHBOARD.PRICING_PLANS}`,
+    icon: Tags,
     roles: ['ADMIN'],
   },
   {

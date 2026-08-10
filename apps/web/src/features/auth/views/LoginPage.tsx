@@ -20,6 +20,9 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMsg] = useState<string | null>(
+    (location.state as { success?: string })?.success ?? null
+  );
   const [error, setError] = useState<string | null>(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -93,6 +96,7 @@ export function LoginPage() {
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
       </div>
+      <Alert type="success" message={successMsg || ""} />
       <Alert type="error" message={error || ""} />
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         <Input

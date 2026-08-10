@@ -13,7 +13,7 @@ import { SessionScope } from '../types/session-scope.type.js';
 import { VoucherScope } from '../../vouchers/types/voucher-query.types.js';
 import { SESSION_CONSTANTS } from '../constants/sessions.constants.js';
 import { TriageResponse } from '@akit/contracts';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 
 const UNAUTHORIZED_FALLBACK_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -45,7 +45,7 @@ export class SessionsQueryService {
       return where;
     }
 
-    if (role === UserRole.PATIENT) {
+    if (role === ('PATIENT' as any)) {
       where.patientId = scope.patientId;
       return where;
     }
@@ -96,6 +96,21 @@ export class SessionsQueryService {
       throw new NotFoundException('Sesión no encontrada');
     }
 
+    return session;
+  }
+
+  async findOneForPaymentUnlock(
+    id: string,
+    patientId: string,
+    institutionId: string,
+  ): Promise<Session> {
+    const session = await this.sessionRepository.findOne({
+      where: { id, patientId, institutionId },
+      relations: ['results'],
+    });
+    if (!session) {
+      throw new NotFoundException('Sesión no encontrada');
+    }
     return session;
   }
 
@@ -160,7 +175,7 @@ export class SessionsQueryService {
     if (scope) {
       const role = scope.role as UserRole;
       if (role !== UserRole.ADMIN) {
-        if (role === UserRole.PATIENT && scope.patientId) {
+        if (role === ('PATIENT' as any) && scope.patientId) {
           qb.andWhere('session.patientId = :patientId', {
             patientId: scope.patientId,
           });
@@ -176,14 +191,15 @@ export class SessionsQueryService {
       }
     }
 
-    qb.addOrderBy(
+    qb.addSelect(
       "CASE WHEN metrics.reliability_level = 'Baja' THEN 0 WHEN metrics.fatigue_detected = true THEN 1 WHEN metrics.rush_detected = true THEN 2 ELSE 3 END",
-      'ASC',
+      'sort_order',
     );
+    qb.addOrderBy('sort_order', 'ASC');
     qb.addOrderBy('session.session_date', 'DESC');
 
     const skip = (page - 1) * limit;
-    qb.skip(skip).take(limit);
+    qb.offset(skip).limit(limit);
 
     const [sessions, total] = await qb.getManyAndCount();
 
@@ -223,7 +239,10 @@ export class SessionsQueryService {
 
   async findByPaymentToken(token: string): Promise<Session | null> {
     return await this.sessionRepository.findOne({
-      where: { paymentReference: token },
+      where: [
+        { paymentReference: token },
+        { reportUnlockPurchaseToken: token },
+      ],
     });
   }
 

@@ -5,18 +5,14 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AUTH_JWT_MESSAGES } from '../auth.constants.js';
 import type { FirebaseJwtPayload, JwtPayload } from '@akit/contracts';
 import { AuthUserFactory } from '../factories/auth-user.factory.js';
-import { FirebaseClaimsValidatorService } from '../services/firebase-claims-validator.service.js';
-import { FirebaseCertService } from '../services/firebase-cert.service.js';
-import { JwtTokenDecoderService } from '../services/jwt-token-decoder.service.js';
+import { FirebaseTokenService } from '../services/firebase-token.service.js';
 import { UsersService } from '../../users/users.service.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
-    private readonly firebaseCertService: FirebaseCertService,
-    private readonly jwtTokenDecoder: JwtTokenDecoderService,
-    private readonly firebaseClaimsValidator: FirebaseClaimsValidatorService,
+    private readonly firebaseTokenService: FirebaseTokenService,
     private readonly authUserFactory: AuthUserFactory,
     private readonly usersService: UsersService,
   ) {
@@ -36,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload) {
     if (this.isFirebasePayload(payload)) {
-      this.firebaseClaimsValidator.assertFirebaseClaims(payload);
+      this.firebaseTokenService.assertFirebaseClaims(payload);
       const authUser = this.authUserFactory.buildUserFromPayload(payload, true);
 
       if (authUser.email) {
@@ -64,7 +60,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   private getFirebasePublicCertByKid(kid: string): Promise<string> {
-    return this.firebaseCertService.getCertByKid(kid);
+    return this.firebaseTokenService.getCertByKid(kid);
   }
 
   private resolveSigningKey(
@@ -73,7 +69,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     done: (err: Error | null, key?: string) => void,
   ) {
     try {
-      const payload = this.jwtTokenDecoder.decodePayload(
+      const payload = this.firebaseTokenService.decodePayload(
         rawJwtToken,
       ) as unknown as JwtPayload;
 
@@ -84,7 +80,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         return;
       }
 
-      const header = this.jwtTokenDecoder.decodeHeader(rawJwtToken);
+      const header = this.firebaseTokenService.decodeHeader(rawJwtToken);
       const keyId = typeof header.kid === 'string' ? header.kid : undefined;
       if (!keyId) {
         throw new UnauthorizedException(AUTH_JWT_MESSAGES.firebaseMissingKid);
