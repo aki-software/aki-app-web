@@ -13,6 +13,7 @@ export enum VoucherStatus {
 
 export enum VoucherBatchStatus {
   PENDING = 'PENDING',
+  FAILED = 'FAILED',
   PAID = 'PAID',
   CANCELLED = 'CANCELLED',
   REFUNDED = 'REFUNDED',

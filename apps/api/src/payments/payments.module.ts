@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentsController } from './payments.controller.js';
 import { WebhookController } from './webhook.controller.js';
@@ -9,41 +10,37 @@ import { WebhookProcessorService } from './services/webhook-processor.service.js
 import { ExchangeRateService } from './services/exchange-rate.service.js';
 import { SessionsModule } from '../sessions/sessions.module.js';
 import { VouchersModule } from '../vouchers/vouchers.module.js';
-import { PaymentLockService } from './payment-lock.service.js';
 import { GooglePlayAdapter } from './google-play.adapter.js';
-import { MercadoPagoAdapter } from './adapters/mercadopago.adapter.js';
-import { StripeAdapter } from './adapters/stripe.adapter.js';
 import { PricingPlan } from './entities/pricing-plan.entity.js';
 import { PaymentEvent } from './entities/payment-event.entity.js';
-import {
-  PAYMENT_GATEWAY_MP,
-  PAYMENT_GATEWAY_STRIPE,
-} from './interfaces/payment-gateway.adapter.js';
+import { PaymentFulfillmentOutbox } from './entities/payment-fulfillment-outbox.entity.js';
+import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
+import { PaymentGatewayModule } from './payment-gateway.module.js';
+import { VoucherFulfillmentDispatcherService } from './services/voucher-fulfillment-dispatcher.service.js';
+import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PricingPlan, PaymentEvent]),
+    TypeOrmModule.forFeature([
+      PricingPlan,
+      PaymentEvent,
+      VoucherBatch,
+      PaymentFulfillmentOutbox,
+    ]),
+    BullModule.registerQueue({ name: 'voucher-fulfillment' }),
     SessionsModule,
     VouchersModule,
+    PaymentGatewayModule,
   ],
   controllers: [PaymentsController, WebhookController, AdminPricingController],
   providers: [
     PaymentsService,
-    PaymentLockService,
     GooglePlayAdapter,
     CheckoutService,
     WebhookProcessorService,
+    VoucherFulfillmentDispatcherService,
+    VoucherFulfillmentProcessor,
     ExchangeRateService,
-    MercadoPagoAdapter,
-    StripeAdapter,
-    {
-      provide: PAYMENT_GATEWAY_MP,
-      useClass: MercadoPagoAdapter,
-    },
-    {
-      provide: PAYMENT_GATEWAY_STRIPE,
-      useClass: StripeAdapter,
-    },
   ],
 })
 export class PaymentsModule {}

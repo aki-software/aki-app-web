@@ -10,7 +10,10 @@ describe('PaymentNotificationHandler', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentNotificationHandler,
-        { provide: TemplateRendererService, useValue: { renderTemplate: jest.fn() } },
+        {
+          provide: TemplateRendererService,
+          useValue: { renderTemplate: jest.fn() },
+        },
         { provide: EmailService, useValue: { sendEmail: jest.fn() } },
       ],
     }).compile();

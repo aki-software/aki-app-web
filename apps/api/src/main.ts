@@ -8,7 +8,10 @@ async function bootstrap() {
   const start = Date.now();
   console.log(`[Bootstrap] Starting application...`);
 
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    rawBody: true,
+  });
   console.log(
     `[Bootstrap] NestFactory.create completed in ${Date.now() - start}ms`,
   );
@@ -33,7 +36,10 @@ async function bootstrap() {
     'http://localhost:5173',
   ];
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) => {
       if (
         !origin ||
         allowedOrigins.includes(origin) ||

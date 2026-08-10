@@ -9,11 +9,12 @@ describe('ReportOrchestratorService', () => {
   let service: ReportOrchestratorService;
   let reportsQueue: any;
   let sessionRepository: any;
+  let mockQueryBuilder: any;
 
   const sessionId = 'session-abc';
   const targetEmail = 'patient@example.com';
 
-  const mockSession = {
+  const mockSession: any = {
     id: sessionId,
     voucherId: 'voucher-1',
     paymentStatus: SessionPaymentStatus.PAID,
@@ -24,7 +25,7 @@ describe('ReportOrchestratorService', () => {
       add: jest.fn().mockResolvedValue(true),
     };
 
-    const mockQueryBuilder = {
+    mockQueryBuilder = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
@@ -71,5 +72,50 @@ describe('ReportOrchestratorService', () => {
       success: true,
       message: `Report generation queued for ${targetEmail}`,
     });
+  });
+
+  it('allows an owned completed Google-unlocked report even when payment status is not PAID', async () => {
+    mockQueryBuilder.getOne.mockResolvedValue({
+      id: sessionId,
+      patientId: 'patient-1',
+      results: [{}],
+      reportUnlockedAt: new Date(),
+      paymentStatus: 'PENDING',
+      voucherId: null,
+    });
+
+    await expect(
+      service.sendReport(sessionId, targetEmail, null, {
+        role: 'PATIENT',
+        patientId: 'patient-1',
+      } as never),
+    ).resolves.toEqual(expect.objectContaining({ success: true }));
+    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+      'session.patientId = :patientId',
+      { patientId: 'patient-1' },
+    );
+    expect(reportsQueue.add).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['locked', { results: [{}], reportUnlockedAt: null }],
+    ['incomplete', { results: [], reportUnlockedAt: new Date() }],
+    ['foreign', null],
+  ])('rejects %s patient report access', async (_case, session) => {
+    mockQueryBuilder.getOne.mockResolvedValue(
+      session && {
+        id: sessionId,
+        patientId: 'patient-1',
+        paymentStatus: 'PENDING',
+        ...session,
+      },
+    );
+    await expect(
+      service.sendReport(sessionId, targetEmail, null, {
+        role: 'PATIENT',
+        patientId: 'patient-1',
+      } as never),
+    ).rejects.toBeDefined();
+    expect(reportsQueue.add).not.toHaveBeenCalled();
   });
 });
