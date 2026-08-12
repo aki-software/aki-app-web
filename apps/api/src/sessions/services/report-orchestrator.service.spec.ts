@@ -58,7 +58,10 @@ describe('ReportOrchestratorService', () => {
       'voucher-1',
     );
 
-    expect(reportsService.requestGeneration).toHaveBeenCalledWith(sessionId);
+    expect(reportsService.requestGeneration).toHaveBeenCalledWith(
+      sessionId,
+      targetEmail,
+    );
 
     expect(result).toEqual({
       success: true,
@@ -86,7 +89,10 @@ describe('ReportOrchestratorService', () => {
       'session.patientId = :patientId',
       { patientId: 'patient-1' },
     );
-    expect(reportsService.requestGeneration).toHaveBeenCalledWith(sessionId);
+    expect(reportsService.requestGeneration).toHaveBeenCalledWith(
+      sessionId,
+      targetEmail,
+    );
   });
 
   it.each([

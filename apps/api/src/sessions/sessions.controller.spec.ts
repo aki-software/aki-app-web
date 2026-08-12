@@ -7,6 +7,9 @@ describe('SessionsController completion boundary', () => {
     };
     const controller = Object.create(SessionsController.prototype);
     controller.sessionsMutationService = mutation;
+    controller.sessionsQueryService = {
+      findOne: jest.fn().mockResolvedValue({ id: 'session-1' }),
+    };
     const payload = { voucherCode: 'AB12CD34' };
     const request = {
       user: {

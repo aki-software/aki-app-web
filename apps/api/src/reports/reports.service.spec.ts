@@ -119,7 +119,7 @@ describe('ReportsService', () => {
     );
     reports.findOne.mockResolvedValue(null);
     await expect(service.requestGeneration('session-1')).rejects.toThrow(
-      'proven',
+      'Session has not been paid or unlocked.',
     );
     expect(reports.save).not.toHaveBeenCalled();
     expect(queue.add).not.toHaveBeenCalled();

@@ -52,7 +52,6 @@ export class SessionsQueryService {
 
     if (scope.institutionId) {
       where.institutionId = scope.institutionId;
-      where.voucherId = Not(IsNull());
       return where;
     }
 

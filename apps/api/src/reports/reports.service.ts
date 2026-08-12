@@ -1,5 +1,9 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
@@ -20,6 +24,7 @@ export class ReportsService {
 
   async requestGeneration(
     sessionId: string,
+    targetEmail?: string,
   ): Promise<{ reportId: string; jobId: string }> {
     const session = await this.sessions.findOne({ where: { id: sessionId } });
     if (!session) throw new NotFoundException('Session not found.');
@@ -33,18 +38,26 @@ export class ReportsService {
       await this.reports.save(report);
       const job = await this.queue.getJob(jobId);
       if (job) await job.retry();
-      else await this.add(report, jobId);
+      else await this.add(report, jobId, targetEmail);
     } else if (report.status === ReportStatus.PENDING) {
-      await this.add(report, jobId);
+      await this.add(report, jobId, targetEmail);
+    } else if (report.status === ReportStatus.AVAILABLE && targetEmail) {
+      // Use a unique jobId so BullMQ doesn't deduplicate against the original completed job
+      const deliveryJobId = `report-${report.id}-deliver-${Date.now()}`;
+      await this.add(report, deliveryJobId, targetEmail);
+      return { reportId: report.id, jobId: deliveryJobId };
     }
     return { reportId: report.id, jobId };
   }
 
   private async create(session: Session): Promise<Report> {
     const entitlement = this.entitlement(session);
+    const entitledUserId = session.patientId || session.therapistUserId;
+    if (!entitledUserId) throw new Error('No entitled user found for session');
+
     const pending = Report.createPending({
       sessionId: session.id,
-      entitledUserId: session.patientId!,
+      entitledUserId: entitledUserId,
       entitlementSource: entitlement,
       voucherId:
         entitlement === ReportEntitlementSource.VOUCHER
@@ -65,15 +78,23 @@ export class ReportsService {
   }
 
   private entitlement(session: Session): ReportEntitlementSource {
-    if (!session.patientId)
-      throw new Error('Report provenance cannot be proven.');
+    if (!session.patientId && !session.therapistUserId)
+      throw new BadRequestException('Report provenance cannot be proven.');
     if (session.voucherId) return ReportEntitlementSource.VOUCHER;
     if (session.reportUnlockedAt && session.reportUnlockPurchaseToken)
       return ReportEntitlementSource.GOOGLE_PLAY;
-    throw new Error('Report provenance cannot be proven.');
+    throw new BadRequestException('Session has not been paid or unlocked.');
   }
 
-  private add(report: Report, jobId: string): Promise<unknown> {
-    return this.queue.add('generate', { reportId: report.id }, { jobId });
+  private add(
+    report: Report,
+    jobId: string,
+    targetEmail?: string,
+  ): Promise<unknown> {
+    return this.queue.add(
+      'generate',
+      { reportId: report.id, targetEmail },
+      { jobId },
+    );
   }
 }

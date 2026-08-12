@@ -20,7 +20,7 @@ import { calculateHollandPercentages } from '../utils/holland-calculator.util.js
 const AREA_BY_CATEGORY_ID: Record<string, string> = {
   ART: 'Artistico',
   HUM: 'Humanitario',
-  SERV: 'Servicios',
+  SERV: 'Servicios y Acomodación',
   PROT: 'Proteccion',
   PHYS: 'Desempeno fisico',
   IND: 'Industrial',
@@ -29,7 +29,7 @@ const AREA_BY_CATEGORY_ID: Record<string, string> = {
   LEAD: 'Liderazgo',
   SCI: 'Cientifico',
   SAL: 'Ventas',
-  BUS: 'Negocio',
+  BUS: 'Negocios y detalle',
 };
 
 const TOP_RESULTS_COUNT = 3;
@@ -157,8 +157,8 @@ export class ReportService {
       .map((result) => {
         const normalizedId = normalizeCategoryId(result.categoryId);
         return (
-          AREA_BY_CATEGORY_ID[normalizedId] ??
           categoriesById.get(normalizedId)?.title ??
+          AREA_BY_CATEGORY_ID[normalizedId] ??
           normalizedId
         );
       })

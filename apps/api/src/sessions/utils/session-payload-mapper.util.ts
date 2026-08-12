@@ -22,7 +22,7 @@ export function mapToCreateDto(
   const serverProfile = calculateHollandProfile(
     (payload.swipes || []).map((s) => ({
       categoryId: s.categoryId,
-      liked: s.liked,
+      liked: s.isLiked,
       timestamp: s.timestamp,
       cardId: s.cardId,
     })),
@@ -30,7 +30,7 @@ export function mapToCreateDto(
 
   // Conservamos suggestedCareers y materialSnippet del payload del cliente
   // ya que esos datos los gestiona la App (son contenido, no cálculo).
-  const enrichedResultsByCategory = indexResultsMetadata(payload.resultPayload);
+  const enrichedResultsByCategory = indexResultsMetadata(payload.results);
 
   return {
     id: payloadId || undefined,
@@ -78,7 +78,7 @@ export function mapToCreateDto(
     swipes: (payload.swipes || []).map((swipe) => ({
       cardId: swipe.cardId,
       categoryId: swipe.categoryId || 'unknown',
-      isLiked: swipe.liked,
+      isLiked: swipe.isLiked,
       timestamp: new Date(swipe.timestamp || new Date()),
     })),
   };
@@ -106,16 +106,13 @@ export function calculateDuration(start?: string, end?: string): number {
 }
 
 export function indexResultsMetadata(
-  payload: CompleteSessionDto['resultPayload'],
+  payload: CompleteSessionDto['results'],
 ): Map<string, { suggestedCareers?: string[]; materialSnippet?: string }> {
   const map = new Map<
     string,
     { suggestedCareers?: string[]; materialSnippet?: string }
   >();
-  const detailedResults = [
-    ...(payload?.top3 ?? []),
-    ...(payload?.bottom3 ?? []),
-  ];
+  const detailedResults = payload || [];
 
   for (const result of detailedResults) {
     const normalizedCategoryId = normalizeCategoryId(result?.categoryId);

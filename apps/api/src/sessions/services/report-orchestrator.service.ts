@@ -27,9 +27,8 @@ export class ReportOrchestratorService {
     scope?: SessionScope,
   ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(sessionId, scope);
-    void targetEmail;
     void voucherId;
-    await this.reportsService.requestGeneration(session.id);
+    await this.reportsService.requestGeneration(session.id, targetEmail);
 
     return {
       success: true,

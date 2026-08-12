@@ -34,10 +34,13 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 @Controller('sessions')
 export class SessionsController {
   private extractScope(req?: AuthenticatedRequest) {
+    const role = (req?.user?.role as string)?.toUpperCase() || 'PATIENT';
+    const isOwner = ['THERAPIST', 'ADMIN', 'INSTITUTION_ADMIN'].includes(role);
+
     return {
-      role: req?.user?.role,
-      therapistUserId: req?.user?.userId,
-      patientId: req?.user?.userId,
+      role: role as UserRole,
+      therapistUserId: isOwner ? req?.user?.userId : undefined,
+      patientId: !isOwner ? req?.user?.userId : undefined,
       institutionId: req?.user?.institutionId,
     };
   }
@@ -96,7 +99,11 @@ export class SessionsController {
         role: request.user?.role,
       },
     );
-    return result as SessionDetailDto;
+    const session = await this.sessionsQueryService.findOne(
+      result.id,
+      this.extractScope(request),
+    );
+    return session as SessionDetailDto;
   }
 
   @ApiOperation({ summary: 'List all sessions' })

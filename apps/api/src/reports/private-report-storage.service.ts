@@ -4,6 +4,7 @@ import {
   DeleteObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
+  GetObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
 
@@ -90,6 +91,19 @@ export class PrivateReportStorageService {
           )
         ).Metadata ?? null
       );
+    } catch (error) {
+      if (this.status(error) === 404 || this.name(error) === 'NoSuchKey')
+        return null;
+      throw this.failure();
+    }
+  }
+  async get(objectKey: string): Promise<Buffer | null> {
+    try {
+      const result = await this.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: objectKey }),
+      );
+      if (!result.Body) return null;
+      return Buffer.from(await result.Body.transformToByteArray());
     } catch (error) {
       if (this.status(error) === 404 || this.name(error) === 'NoSuchKey')
         return null;

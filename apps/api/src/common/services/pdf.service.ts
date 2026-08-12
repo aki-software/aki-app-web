@@ -10,7 +10,7 @@ import { PdfGenerator } from '../adapters/pdf-generator.adapter.js';
 export const DETERMINISTIC_PDF_OPTIONS = {
   format: 'A4' as const,
   printBackground: true,
-  margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
+  margin: { top: '35px', right: '35px', bottom: '40px', left: '35px' },
 };
 
 @Injectable()

@@ -10,6 +10,8 @@ import { PrivateReportStorageService } from './private-report-storage.service';
 import { ReportRendererService } from './report-renderer.service';
 import { ReportWorker } from './report.worker';
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
 describe('ReportsModule', () => {
   it('resolves ReportWorker from the SessionsModule report-data export', async () => {
     const exports = Reflect.getMetadata('exports', SessionsModule) as unknown[];
@@ -26,6 +28,7 @@ describe('ReportsModule', () => {
         { provide: getRepositoryToken(Session), useValue: {} },
         { provide: ReportRendererService, useValue: {} },
         { provide: PrivateReportStorageService, useValue: {} },
+        { provide: EventEmitter2, useValue: {} },
       ],
     }).compile();
 

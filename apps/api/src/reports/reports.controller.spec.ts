@@ -2,7 +2,9 @@ import { ReportsController } from './reports.controller';
 
 describe('ReportsController', () => {
   const access = {
-    status: jest.fn().mockResolvedValue({ id: 'report-1', status: 'AVAILABLE', version: 1 }),
+    status: jest
+      .fn()
+      .mockResolvedValue({ id: 'report-1', status: 'AVAILABLE', version: 1 }),
     issue: jest.fn(),
     renew: jest.fn(),
     consume: jest.fn(),

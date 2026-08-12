@@ -25,6 +25,7 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
       { name: 'email' },
       { name: 'pdf' },
       { name: 'reports' },
+      { name: 'metrics' },
     ),
   ],
   providers: [

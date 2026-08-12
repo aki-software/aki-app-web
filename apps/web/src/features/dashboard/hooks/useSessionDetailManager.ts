@@ -26,7 +26,7 @@ export const useSessionDetailManager = (id?: string) => {
     if (!m) return null;
     return {
       undosCount: m.revertedMatches ?? 0,
-      avgTime: m.avgTimeBetweenSwipesMs > 0 ? m.avgTimeBetweenSwipesMs : null,
+      avgTime: m.avgTimeBetweenSwipesMs != null ? m.avgTimeBetweenSwipesMs : null,
       reliabilityLevel: m.reliabilityLevel ?? "N/A",
       // Nuevos campos conductuales
       likeRatio: m.likeRatio,
