@@ -14,6 +14,7 @@ type RawTresAreasPayload = {
     tendencies: string[];
     possibleJobs: string;
     relatedProfessions: string;
+    keyInsight?: string;
   }>;
 };
 
@@ -24,6 +25,7 @@ type TresAreasRecord = {
   area3: string;
   combinationKey: string;
   narrative: string;
+  keyInsight?: string;
   tendencies: string[];
   possibleJobs: string;
   relatedProfessions: string;
@@ -87,13 +89,25 @@ async function loadTresAreasRecords(): Promise<TresAreasRecord[]> {
       );
     }
 
+    const rawNarrative = String(item.narrative ?? '').trim();
+    // Split narrative and keyInsight if embedded with the separator
+    const KEY_SEPARATOR = /\n\nLa clave en esta combinaci[oó]n es:/i;
+    const narrativeParts = rawNarrative.split(KEY_SEPARATOR);
+    const narrative = narrativeParts[0].trim();
+    const keyInsight = item.keyInsight
+      ? String(item.keyInsight).trim()
+      : narrativeParts[1]
+        ? narrativeParts[1].trim()
+        : undefined;
+
     return {
       title: String(item.title ?? '').trim(),
       area1,
       area2,
       area3,
       combinationKey: buildCombinationKey(categories),
-      narrative: String(item.narrative ?? '').trim(),
+      narrative,
+      keyInsight,
       tendencies: Array.isArray(item.tendencies)
         ? item.tendencies
             .map((itemValue) => String(itemValue).trim())
@@ -122,6 +136,7 @@ export async function upsertTresAreasCombinations(
       existing.area2 = record.area2;
       existing.area3 = record.area3;
       existing.narrative = record.narrative;
+      existing.keyInsight = record.keyInsight;
       existing.tendencies = record.tendencies;
       existing.possibleJobs = record.possibleJobs;
       existing.relatedProfessions = record.relatedProfessions;

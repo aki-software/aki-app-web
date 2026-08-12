@@ -364,6 +364,29 @@ html(lang="es")
         padding: 20px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
       }
+      .key-insight {
+        margin-top: 14px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: #{colors.primary.DEFAULT}0d;
+        border-left: 4px solid #{colors.primary.DEFAULT};
+      }
+      .key-insight-label {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #{colors.primary.DEFAULT};
+        margin-bottom: 4px;
+      }
+      .key-insight-text {
+        font-size: 12px;
+        line-height: 1.6;
+        color: #{colors.text.secondary};
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-weight: 400;
+        margin: 0;
+      }
       .final-disclaimer {
         margin-top: 32px;
         padding: 24px;
@@ -500,8 +523,13 @@ html(lang="es")
             if tripletInsight.narrative
               - var narrativeSentence = tripletInsight.narrative.charAt(0).toUpperCase() + tripletInsight.narrative.slice(1).toLowerCase()
               p.block-text(style="font-size:12px;line-height:1.65;color:#{colors.text.secondary};margin-bottom:12px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;font-weight:400;") #{narrativeSentence}
+            if tripletInsight.keyInsight
+              - var keyInsightSentence = tripletInsight.keyInsight.charAt(0).toUpperCase() + tripletInsight.keyInsight.slice(1).toLowerCase()
+              .key-insight
+                p.key-insight-label La clave en esta combinación
+                p.key-insight-text #{keyInsightSentence}
             if tripletInsight.tendencies && tripletInsight.tendencies.length > 0
-              p.block-title Tendencias observadas
+              p.block-title Las competencias más importantes para este tipo de perfil son
               ul
                 each tendency in tripletInsight.tendencies
                   li #{tendency}

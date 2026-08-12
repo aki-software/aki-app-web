@@ -26,6 +26,7 @@ export interface ReportSummary {
 export interface ReportTripletInsight {
   title: string;
   narrative: string;
+  keyInsight?: string;
   tendencies: string[];
   possibleJobs: string[];
   relatedProfessions: string[];
