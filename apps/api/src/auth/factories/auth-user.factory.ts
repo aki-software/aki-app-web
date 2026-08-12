@@ -4,6 +4,7 @@ import type { AuthUserPayload, JwtPayload } from '@akit/contracts';
 interface LocalFirebaseJwtPayload {
   role?: string;
   user_id?: string;
+  email_verified?: boolean;
 }
 
 @Injectable()
@@ -24,6 +25,8 @@ export class AuthUserFactory {
       email: payload.email,
       role,
       institutionId: payload.institutionId ?? null,
+      isFirebaseEmailVerified:
+        isFirebase && firebasePayload.email_verified === true,
     };
   }
 

@@ -1,28 +1,23 @@
 import {
   Injectable,
-  Logger,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
 import { Session } from '../entities/session.entity.js';
 import { SessionScope } from '../types/session-scope.type.js';
 import { UserRole } from '@akit/contracts';
+import { ReportsService } from '../../reports/reports.service.js';
 
 const PATIENT_ROLE = 'PATIENT';
 
 @Injectable()
 export class ReportOrchestratorService {
-  private readonly logger = new Logger(ReportOrchestratorService.name);
-
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-    @InjectQueue('reports')
-    private readonly reportsQueue: Queue,
+    private readonly reportsService: ReportsService,
   ) {}
 
   async sendReport(
@@ -32,15 +27,9 @@ export class ReportOrchestratorService {
     scope?: SessionScope,
   ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(sessionId, scope);
-    const voucherIdForLogging = voucherId ?? session.voucherId ?? undefined;
-
-    this.logger.debug(`Queuing report request for session: ${sessionId}`);
-
-    await this.reportsQueue.add('report.requested', {
-      sessionId,
-      requestedByEmail: targetEmail,
-      voucherId: voucherIdForLogging,
-    });
+    void targetEmail;
+    void voucherId;
+    await this.reportsService.requestGeneration(session.id);
 
     return {
       success: true,

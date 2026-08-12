@@ -1,4 +1,11 @@
-import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryFailedError, DataSource } from 'typeorm';
 import { CreateSessionDto } from '../dto/create-session.dto.js';
@@ -11,7 +18,7 @@ import { JobNames } from '../../common/jobs/job-names.js';
 import { SessionScope } from '../types/session-scope.type.js';
 import { CompleteSessionDto } from '../dto/complete-session.dto.js';
 import { SessionOwnerResolverService } from './session-owner-resolver.service.js';
-import { VouchersService } from '../../vouchers/vouchers.service.js';
+import { VoucherRedemptionService } from '../../vouchers/services/voucher-redemption.service.js';
 import { mapToCreateDto } from '../utils/session-payload-mapper.util.js';
 import { buildSyncKey } from '../utils/session-sync-key.util.js';
 import { SessionPaymentStatus } from '@akit/contracts';
@@ -30,7 +37,7 @@ export class SessionsMutationService {
     @Inject(QUEUE_ADAPTER)
     private readonly queueAdapter: QueueAdapter,
     private readonly ownerResolver: SessionOwnerResolverService,
-    private readonly vouchersService: VouchersService,
+    private readonly voucherRedemptionService: VoucherRedemptionService,
     private readonly sessionsQueryService: SessionsQueryService,
   ) {}
 
@@ -115,38 +122,129 @@ export class SessionsMutationService {
 
   async completeSession(
     payload: CompleteSessionDto,
+    identity?: {
+      userId?: string;
+      email?: string;
+      institutionId?: string;
+      role?: string;
+      isFirebaseEmailVerified?: boolean;
+    },
   ): Promise<{ id: string; duplicated: boolean }> {
-    const payloadUserId = payload.userId?.trim() || null;
-    const payloadTherapistUserId = payload.therapistUserId?.trim() || null;
-    const payloadInstitutionId = payload.institutionId?.trim() || null;
+    const authenticatedRole = identity?.role?.toUpperCase();
+    const authenticatedOwner = [
+      'THERAPIST',
+      'ADMIN',
+      'INSTITUTION_ADMIN',
+    ].includes(authenticatedRole ?? '');
+    const authenticatedPatient = authenticatedRole === 'PATIENT';
+    const isFirebaseIdentity = identity?.isFirebaseEmailVerified === true;
+    const anonymousPayload = !identity?.userId
+      ? {
+          ...payload,
+          userId: undefined,
+          patientId: undefined,
+          therapistUserId: undefined,
+          institutionId: undefined,
+        }
+      : payload;
     const payloadVoucherCode = payload.voucherCode?.trim() || null;
-    const payloadId = payload.id?.trim() || null;
+
+    if (payloadVoucherCode) {
+      if (
+        !identity?.userId ||
+        !identity.email ||
+        !identity.isFirebaseEmailVerified
+      ) {
+        throw new BadRequestException(
+          'Verified Firebase identity is required for voucher completion.',
+        );
+      }
+    }
+
+    const internalUser = isFirebaseIdentity
+      ? await this.resolveVerifiedFirebaseUser(identity)
+      : null;
+    const trustedPayload = authenticatedOwner
+      ? {
+          ...payload,
+          userId: internalUser?.id ?? identity?.userId,
+          therapistUserId: internalUser?.id ?? identity?.userId,
+          institutionId: internalUser?.institutionId ?? identity?.institutionId,
+        }
+      : authenticatedPatient
+        ? {
+            ...payload,
+            userId: internalUser?.id ?? identity?.userId,
+            patientId: internalUser?.id ?? identity?.userId,
+            therapistUserId: undefined,
+            institutionId: undefined,
+          }
+        : anonymousPayload;
+    const payloadUserId = trustedPayload.userId?.trim() || null;
+    const payloadTherapistUserId =
+      trustedPayload.therapistUserId?.trim() || null;
+    const payloadInstitutionId = trustedPayload.institutionId?.trim() || null;
+    const payloadId = trustedPayload.id?.trim() || null;
 
     const context = await this.ownerResolver.resolveContext(
       payloadUserId,
-      payloadVoucherCode,
+      null,
       payloadTherapistUserId,
       payloadInstitutionId,
-      payload.patientName,
+      trustedPayload.patientName,
     );
 
-    const createSessionDto = mapToCreateDto(payload, context);
+    const createSessionDto = mapToCreateDto(trustedPayload, context);
+    if (payloadVoucherCode) {
+      createSessionDto.paymentStatus = SessionPaymentStatus.PENDING;
+    }
 
     const syncKey = buildSyncKey(payloadId, payloadUserId, payload.startedAt);
+    if (payloadVoucherCode && !syncKey) {
+      throw new BadRequestException(
+        'Voucher completion requires an idempotency key.',
+      );
+    }
 
     const { session, duplicated } = await this.create(createSessionDto, {
       idempotencyKey: syncKey ?? undefined,
     });
 
-    if (context.voucher?.code) {
-      await this.vouchersService.attachVoucherToSession(
-        context.voucher.code,
+    if (payloadVoucherCode) {
+      await this.voucherRedemptionService.redeemVoucher(
+        payloadVoucherCode,
         session.id,
-        context.inferredPatientName,
+        {
+          userId: payloadUserId ?? undefined,
+          email: identity?.email,
+          isFirebaseEmailVerified: identity?.isFirebaseEmailVerified,
+        },
       );
     }
 
     return { id: session.id, duplicated };
+  }
+
+  private async resolveVerifiedFirebaseUser(identity: {
+    email?: string;
+    isFirebaseEmailVerified?: boolean;
+  }): Promise<{ id: string; institutionId?: string | null }> {
+    if (!identity.isFirebaseEmailVerified) {
+      throw new BadRequestException(
+        'Verified Firebase identity is required for authenticated completion.',
+      );
+    }
+
+    const internalUser = identity.email
+      ? await this.ownerResolver.resolveFirebaseUser(identity.email)
+      : null;
+    if (!internalUser) {
+      throw new UnauthorizedException(
+        'Verified Firebase identity is not linked to an internal user.',
+      );
+    }
+
+    return internalUser;
   }
 
   async update(

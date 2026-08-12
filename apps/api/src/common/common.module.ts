@@ -16,7 +16,6 @@ import { IdempotencyInterceptor } from './interceptors/idempotency.interceptor.j
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { SendEmailProcessor } from './jobs/handlers/send-email.processor.js';
 import { GeneratePdfProcessor } from './jobs/handlers/generate-pdf.processor.js';
-import { SendReportProcessor } from './jobs/handlers/send-report.processor.js';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
 
 @Global()
@@ -35,7 +34,6 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
     RateLimitService,
     SendEmailProcessor,
     GeneratePdfProcessor,
-    SendReportProcessor,
     InMemoryQueueAdapter,
     BullMQQueueAdapter,
     { provide: PDF_GENERATOR, useExisting: PdfService },

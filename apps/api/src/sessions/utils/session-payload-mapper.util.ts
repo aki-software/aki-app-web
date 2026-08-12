@@ -15,7 +15,6 @@ export function mapToCreateDto(
   const payloadInstitutionId = nullIfBlank(payload.institutionId);
   const payloadPatientId = nullIfBlank(payload.patientId);
   const payloadUserId = nullIfBlank(payload.userId);
-  const payloadVoucherId = nullIfBlank(payload.voucherId);
   const payloadId = nullIfBlank(payload.id);
 
   // Server-Authoritative: ignoramos el resultPayload enviado por la App.
@@ -58,10 +57,8 @@ export function mapToCreateDto(
     sessionDate: new Date(payload.startedAt || new Date()),
     hollandCode: serverProfile.hollandCode,
     totalTimeMs: calculateDuration(payload.startedAt, payload.finishedAt),
-    voucherId: voucher?.id || payloadVoucherId || undefined,
-    paymentStatus: voucher
-      ? SessionPaymentStatus.VOUCHER_REDEEMED
-      : normalizePaymentStatus(payload.paymentStatus),
+    voucherId: undefined,
+    paymentStatus: undefined,
     results: serverProfile.radar.map((item) => {
       const catId = item.categoryId;
       return {

@@ -354,27 +354,6 @@ export class VouchersService {
     return { voucher: savedVoucher, action: 'REDEEMED' };
   }
 
-  async attachVoucherToSession(
-    code: string,
-    sessionId: string,
-    patientName?: string | null,
-  ): Promise<Voucher> {
-    const voucher = await this.resolveAvailableVoucher(code);
-
-    try {
-      voucher.redeem(sessionId);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Error al adjuntar el voucher';
-      throw new BadRequestException(message);
-    }
-
-    if (patientName && !voucher.assignedPatientName) {
-      voucher.assignedPatientName = patientName;
-    }
-    return await this.voucherRepository.save(voucher);
-  }
-
   async findByCode(code: string, scope?: VoucherScope): Promise<Voucher> {
     const scopedWhere = this.queryService.buildScopedWhere(scope) ?? {};
     const voucher = await this.voucherRepository.findOne({

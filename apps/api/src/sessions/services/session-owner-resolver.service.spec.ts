@@ -62,6 +62,30 @@ describe('SessionOwnerResolverService', () => {
     );
   });
 
+  it('treats an institution administrator as an authenticated owner', async () => {
+    usersService.findOne.mockResolvedValue({
+      id: 'institution-admin',
+      role: UserRole.INSTITUTION_ADMIN,
+    });
+
+    const result = await service.resolveContext(
+      'institution-admin',
+      null,
+      'institution-admin',
+      'institution-1',
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        isTherapistUser: true,
+        fallbackOwner: null,
+      }),
+    );
+    expect(
+      userRegistrationService.getOrCreateIndividualTestsOwner,
+    ).not.toHaveBeenCalled();
+  });
+
   it('uses fallback owner for individual tests', async () => {
     const fallbackOwner = { id: 'owner-1' };
     userRegistrationService.getOrCreateIndividualTestsOwner.mockResolvedValue(

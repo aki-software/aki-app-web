@@ -15,6 +15,7 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import type { AuthenticatedRequest } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
 import { UserRole } from '@akit/contracts';
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 import { CompleteSessionDto } from './dto/complete-session.dto.js';
@@ -80,11 +81,21 @@ export class SessionsController {
   @ApiOperation({ summary: 'Complete an active session' })
   @ApiResponse({ status: 201, type: SessionDetailDto })
   @Post('complete')
+  @UseGuards(OptionalJwtAuthGuard)
   async complete(
     @Body() completeSessionDto: CompleteSessionDto,
+    @Req() request: AuthenticatedRequest,
   ): Promise<SessionDetailDto> {
-    const result =
-      await this.sessionsMutationService.completeSession(completeSessionDto);
+    const result = await this.sessionsMutationService.completeSession(
+      completeSessionDto,
+      {
+        userId: request.user?.userId,
+        email: request.user?.email,
+        isFirebaseEmailVerified: request.user?.isFirebaseEmailVerified,
+        institutionId: request.user?.institutionId,
+        role: request.user?.role,
+      },
+    );
     return result as SessionDetailDto;
   }
 

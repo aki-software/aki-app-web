@@ -1,24 +1,25 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const voucherStatusSchema = z.enum([
-  'AVAILABLE',
-  'SENT',
-  'USED',
-  'EXPIRED',
-  'REVOKED',
+  "AVAILABLE",
+  "SENT",
+  "USED",
+  "EXPIRED",
+  "REVOKED",
 ]);
 
-export const voucherOwnerTypeSchema = z.enum(['THERAPIST', 'INSTITUTION']);
+export const voucherOwnerTypeSchema = z.enum(["THERAPIST", "INSTITUTION"]);
 
 export const voucherExpirationFilterSchema = z.enum([
-  'ALL',
-  'EXPIRING_7D',
-  'NO_EXPIRATION',
+  "ALL",
+  "EXPIRING_7D",
+  "NO_EXPIRATION",
 ]);
 
 export interface VoucherScope {
   role?: string;
   email?: string;
+  isFirebaseEmailVerified?: boolean;
   ownerUserId?: string;
   ownerInstitutionId?: string | null;
 }
@@ -48,14 +49,29 @@ export const voucherBaseSchema = z.object({
   assignedPatientEmail: z.string().email().nullable().optional(),
   redeemedSessionId: z.string().uuid().nullable().optional(),
   createdAt: z.union([z.string(), z.instanceof(Date)]),
-  redeemedAt: z.union([z.string(), z.instanceof(Date)]).nullable().optional(),
-  expiresAt: z.union([z.string(), z.instanceof(Date)]).nullable().optional(),
-  ownerInstitution: z.object({ 
-    name: z.string().nullable().optional(),
-    deletedAt: z.union([z.string(), z.instanceof(Date)]).nullable().optional(),
-    isActive: z.boolean().nullable().optional()
-  }).nullable().optional(),
-  ownerUser: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
+  redeemedAt: z
+    .union([z.string(), z.instanceof(Date)])
+    .nullable()
+    .optional(),
+  expiresAt: z
+    .union([z.string(), z.instanceof(Date)])
+    .nullable()
+    .optional(),
+  ownerInstitution: z
+    .object({
+      name: z.string().nullable().optional(),
+      deletedAt: z
+        .union([z.string(), z.instanceof(Date)])
+        .nullable()
+        .optional(),
+      isActive: z.boolean().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  ownerUser: z
+    .object({ name: z.string().nullable().optional() })
+    .nullable()
+    .optional(),
 });
 
 export const voucherBatchSummarySchema = z.object({
@@ -131,19 +147,34 @@ export const voucherApiSchema = z.object({
   status: z.string(),
   ownerType: z.string(),
   ownerInstitutionId: z.string().uuid().nullable().optional(),
-  ownerInstitution: z.object({ 
-    name: z.string().nullable().optional(),
-    deletedAt: z.union([z.string(), z.instanceof(Date)]).nullable().optional(),
-    isActive: z.boolean().nullable().optional()
-  }).nullable().optional(),
+  ownerInstitution: z
+    .object({
+      name: z.string().nullable().optional(),
+      deletedAt: z
+        .union([z.string(), z.instanceof(Date)])
+        .nullable()
+        .optional(),
+      isActive: z.boolean().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
   ownerUserId: z.string().uuid().nullable().optional(),
-  ownerUser: z.object({ name: z.string().nullable().optional() }).nullable().optional(),
+  ownerUser: z
+    .object({ name: z.string().nullable().optional() })
+    .nullable()
+    .optional(),
   assignedPatientName: z.string().nullable().optional(),
   assignedPatientEmail: z.string().email().nullable().optional(),
   redeemedSessionId: z.string().uuid().nullable().optional(),
   createdAt: z.union([z.string(), z.instanceof(Date), z.number()]),
-  redeemedAt: z.union([z.string(), z.instanceof(Date), z.number()]).nullable().optional(),
-  expiresAt: z.union([z.string(), z.instanceof(Date), z.number()]).nullable().optional(),
+  redeemedAt: z
+    .union([z.string(), z.instanceof(Date), z.number()])
+    .nullable()
+    .optional(),
+  expiresAt: z
+    .union([z.string(), z.instanceof(Date), z.number()])
+    .nullable()
+    .optional(),
 });
 
 export type VoucherApi = z.infer<typeof voucherApiSchema>;
@@ -154,8 +185,8 @@ export const redeemVoucherRequestSchema = z.object({
 });
 
 export const redeemVoucherStatusSchema = z.enum([
-  'REDEEMED',
-  'ALREADY_REDEEMED_BY_THIS_SESSION',
+  "REDEEMED",
+  "ALREADY_REDEEMED_BY_THIS_SESSION",
 ]);
 
 export const redeemVoucherResponseSchema = z.object({
@@ -184,10 +215,14 @@ export const listVoucherBatchesQuerySchema = z.object({
 
 export type VoucherStatus = z.infer<typeof voucherStatusSchema>;
 export type VoucherOwnerType = z.infer<typeof voucherOwnerTypeSchema>;
-export type VoucherExpirationFilter = z.infer<typeof voucherExpirationFilterSchema>;
+export type VoucherExpirationFilter = z.infer<
+  typeof voucherExpirationFilterSchema
+>;
 export type VoucherData = z.infer<typeof voucherBaseSchema>;
 export type VoucherBatchSummary = z.infer<typeof voucherBatchSummarySchema>;
-export type VoucherBatchDetailItem = z.infer<typeof voucherBatchDetailItemSchema>;
+export type VoucherBatchDetailItem = z.infer<
+  typeof voucherBatchDetailItemSchema
+>;
 export type VoucherBatchDetailResponse = z.infer<
   typeof voucherBatchDetailResponseSchema
 >;
@@ -201,7 +236,9 @@ export type VoucherBatchCreateResult = z.infer<
 export type RedeemVoucherRequest = z.infer<typeof redeemVoucherRequestSchema>;
 export type RedeemVoucherResponse = z.infer<typeof redeemVoucherResponseSchema>;
 export type ListVouchersQuery = z.infer<typeof listVouchersQuerySchema>;
-export type ListVoucherBatchesQuery = z.infer<typeof listVoucherBatchesQuerySchema>;
+export type ListVoucherBatchesQuery = z.infer<
+  typeof listVoucherBatchesQuerySchema
+>;
 
 export interface VoucherStats {
   totalBatches: number;
@@ -241,5 +278,5 @@ export interface VoucherAlert {
   institutionName: string;
   availableCount: number;
   message: string;
-  severity: 'warning' | 'critical';
+  severity: "warning" | "critical";
 }
