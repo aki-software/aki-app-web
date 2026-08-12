@@ -28,6 +28,16 @@ describe('ReportWorker', () => {
         id: 'session-1',
         sessionDate: new Date('2026-01-01T00:00:00.000Z'),
       }),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue({
+          id: 'session-1',
+          sessionDate: new Date('2026-01-01T00:00:00.000Z'),
+          results: [],
+        }),
+      }),
     };
     const builder = {
       buildReportData: jest.fn().mockResolvedValue({ patientName: 'Ada' }),
@@ -70,6 +80,7 @@ describe('ReportWorker', () => {
     await expect(worker.process(job())).resolves.toEqual({
       inputHash: 'hash-1',
       byteLength: 3,
+      storageAvailable: true,
     });
     expect(renderer.render).toHaveBeenCalledWith(
       expect.objectContaining({

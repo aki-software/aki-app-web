@@ -130,7 +130,7 @@ export class SessionsMutationService {
       isFirebaseEmailVerified?: boolean;
     },
   ): Promise<{ id: string; duplicated: boolean }> {
-    const authenticatedRole = identity?.role?.toUpperCase();
+    const authenticatedRole = identity?.role?.toUpperCase() || 'PATIENT';
     const authenticatedOwner = [
       'THERAPIST',
       'ADMIN',

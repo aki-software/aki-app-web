@@ -7,8 +7,10 @@ export class UserRegisteredEvent {
 
 export class ReportGeneratedEvent {
   constructor(
-    public readonly reportUrl: string,
+    public readonly reportUrl: string | null,
     public readonly requestedByEmail: string,
+    public readonly pdfBuffer?: Buffer,
+    public readonly summary?: any,
   ) {}
 }
 

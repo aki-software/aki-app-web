@@ -18,6 +18,7 @@ interface VerifiedAndroidIdentity {
   userId?: string;
   email?: string;
   isFirebaseEmailVerified?: boolean;
+  role?: string;
 }
 
 const voucherErrorResponse = (
@@ -95,7 +96,12 @@ export class VoucherRedemptionService {
         );
       }
 
-      if (session.patientId !== identity.userId) {
+      const isAuthorizedOwner =
+        session.patientId === identity.userId ||
+        session.therapistUserId === identity.userId;
+      const isAdmin = identity.role === 'ADMIN';
+
+      if (!isAuthorizedOwner && !isAdmin) {
         throw new ConflictException(
           voucherErrorResponse(
             'SESSION_ACCESS_DENIED',
@@ -193,10 +199,10 @@ export class VoucherRedemptionService {
     session.reportUnlockedAt =
       session.reportUnlockedAt ?? voucher.redeemedAt ?? new Date();
 
-    if (voucher.ownerInstitutionId) {
+    if (voucher.ownerInstitutionId && !session.institutionId) {
       session.institutionId = voucher.ownerInstitutionId;
     }
-    if (voucher.ownerUserId) {
+    if (voucher.ownerUserId && !session.therapistUserId) {
       session.therapistUserId = voucher.ownerUserId;
     }
   }

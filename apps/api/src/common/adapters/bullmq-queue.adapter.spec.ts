@@ -29,6 +29,7 @@ describe('BullMQQueueAdapter', () => {
         { provide: getQueueToken('email'), useValue: emailQueue },
         { provide: getQueueToken('pdf'), useValue: pdfQueue },
         { provide: getQueueToken('reports'), useValue: reportsQueue },
+        { provide: getQueueToken('metrics'), useValue: { add: jest.fn() } },
       ],
     }).compile();
 

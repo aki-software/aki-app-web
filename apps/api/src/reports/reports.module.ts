@@ -47,7 +47,7 @@ import {
     ReportAccessService,
     {
       provide: REPORT_CONSENT_POLICY,
-      useValue: { permits: async () => false },
+      useValue: { permits: () => Promise.resolve(false) },
     },
     { provide: REPORT_TEMPLATE_RENDERER, useExisting: TemplateRendererService },
   ],

@@ -120,6 +120,7 @@ export class VouchersController {
         userId: scope.ownerUserId,
         email: scope.email,
         isFirebaseEmailVerified: scope.isFirebaseEmailVerified,
+        role: scope.role,
       },
     );
   }

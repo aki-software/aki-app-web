@@ -1,6 +1,7 @@
 export interface ParsedDescriptionBlock {
   subtitle?: string;
   content: string;
+  list?: string[];
 }
 
 export interface CategoryResult {

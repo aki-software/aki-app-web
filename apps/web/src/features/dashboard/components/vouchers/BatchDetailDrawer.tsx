@@ -26,7 +26,7 @@ export const BatchDetailDrawer = ({ batchId, detail, loading, error, isAdmin, cu
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-app-text-muted">Detalle de lote</p>
             <h3 className="mt-1 text-xl font-black text-app-text-main">
-              {`Lote ${detail?.shortCode || (detail?.batchId ?? batchId).slice(0, 8).toUpperCase()}`}
+              {detail?.name || `Lote ${detail?.shortCode || (detail?.batchId ?? batchId).slice(0, 8).toUpperCase()}`}
             </h3>
           </div>
           <button onClick={onClose} className="rounded-xl border border-app-border bg-app-bg p-2.5 text-app-text-muted hover:text-app-primary">
