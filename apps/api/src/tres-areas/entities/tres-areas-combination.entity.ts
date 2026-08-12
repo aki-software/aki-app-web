@@ -42,6 +42,9 @@ export class TresAreasCombination {
   @Column({ name: 'related_professions', type: 'text' })
   relatedProfessions!: string;
 
+  @Column({ name: 'key_insight', type: 'text', nullable: true })
+  keyInsight?: string;
+
   @Column({ name: 'custom_sections', type: 'jsonb', default: [] })
   customSections!: { title: string; items: string[] }[];
 

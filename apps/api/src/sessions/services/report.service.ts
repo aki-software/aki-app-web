@@ -182,6 +182,7 @@ export class ReportService {
     return {
       title: match.title,
       narrative: match.narrative,
+      keyInsight: match.keyInsight,
       tendencies: match.tendencies,
       possibleJobs: splitList(match.possibleJobs),
       relatedProfessions: splitList(match.relatedProfessions),

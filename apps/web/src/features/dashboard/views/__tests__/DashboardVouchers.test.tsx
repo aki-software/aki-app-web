@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
@@ -98,7 +98,7 @@ describe("DashboardVouchers", () => {
   });
 
   it("defaults to BATCHES view for admin users", async () => {
-    (useAuth as jest.Mock).mockReturnValue({ user: { role: "ADMIN" } });
+    (useAuth as Mock).mockReturnValue({ user: { role: "ADMIN" } });
     renderWithRouter(<DashboardVouchers />);
     
     await waitFor(() => {
@@ -108,7 +108,7 @@ describe("DashboardVouchers", () => {
   });
 
   it("defaults to BATCHES view for non-admin users", async () => {
-    (useAuth as jest.Mock).mockReturnValue({ user: { role: "USER" } });
+    (useAuth as Mock).mockReturnValue({ user: { role: "USER" } });
     renderWithRouter(<DashboardVouchers />);
     
     await waitFor(() => {

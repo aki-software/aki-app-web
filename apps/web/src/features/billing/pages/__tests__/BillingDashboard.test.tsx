@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 import { BillingDashboard } from "../BillingDashboard";
@@ -7,6 +7,7 @@ import { useBillingHistory, usePricingPlans } from "../../hooks/useBilling";
 vi.mock("../../hooks/useBilling", () => ({
   useBillingHistory: vi.fn(),
   usePricingPlans: vi.fn(),
+  useCheckout: vi.fn(() => ({ mutateAsync: vi.fn(), isMutating: false })),
 }));
 
 vi.mock("lucide-react", async (importOriginal) => {
@@ -28,8 +29,8 @@ describe("BillingDashboard", () => {
   });
 
   it("renders empty state correctly when there are no plans", () => {
-    (useBillingHistory as jest.Mock).mockReturnValue({ data: null, isLoading: false });
-    (usePricingPlans as jest.Mock).mockReturnValue({ data: [], isLoading: false });
+    (useBillingHistory as Mock).mockReturnValue({ data: null, isLoading: false });
+    (usePricingPlans as Mock).mockReturnValue({ data: [], isLoading: false });
 
     render(<BillingDashboard />);
 
@@ -37,8 +38,8 @@ describe("BillingDashboard", () => {
   });
 
   it("renders plans correctly", () => {
-    (useBillingHistory as jest.Mock).mockReturnValue({ data: null, isLoading: false });
-    (usePricingPlans as jest.Mock).mockReturnValue({
+    (useBillingHistory as Mock).mockReturnValue({ data: null, isLoading: false });
+    (usePricingPlans as Mock).mockReturnValue({
       data: [{ id: "plan-1", name: "Plan 10", voucherCount: 10, priceAmount: 1000, priceCurrency: "ARS", description: "Desc", isActive: true }],
       isLoading: false
     });
