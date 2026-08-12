@@ -17,6 +17,10 @@ export class SessionOwnerResolverService {
     private readonly vouchersService: VouchersService,
   ) {}
 
+  async resolveFirebaseUser(email: string): Promise<User | null> {
+    return this.usersService.findByEmail(email);
+  }
+
   async resolveContext(
     payloadUserId: string | null,
     payloadVoucherCode: string | null,
@@ -36,7 +40,9 @@ export class SessionOwnerResolverService {
       payloadPatientName || user?.name || DEFAULT_PATIENT_NAME;
 
     const isTherapistUser =
-      user?.role === UserRole.THERAPIST || user?.role === UserRole.ADMIN;
+      user?.role === UserRole.THERAPIST ||
+      user?.role === UserRole.ADMIN ||
+      user?.role === UserRole.INSTITUTION_ADMIN;
 
     const isPatientUser = user?.role === ('PATIENT' as any);
 

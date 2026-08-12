@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VouchersModule } from '../vouchers/vouchers.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
@@ -23,6 +23,7 @@ import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { AdminDashboardRepository } from './repositories/admin-dashboard.repository.js';
 import { TresAreasModule } from '../tres-areas/tres-areas.module.js';
 import { CalculateMetricsHandler } from './services/calculate-metrics.handler.js';
+import { ReportsModule } from '../reports/reports.module.js';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { CalculateMetricsHandler } from './services/calculate-metrics.handler.js
     UsersModule,
     TresAreasModule,
     VouchersModule,
+    forwardRef(() => ReportsModule),
   ],
   controllers: [SessionsController],
   providers: [
@@ -60,6 +62,7 @@ import { CalculateMetricsHandler } from './services/calculate-metrics.handler.js
     SessionsMutationService,
     SessionsOrchestratorService,
     SessionMetricsService,
+    ReportService,
   ],
 })
 export class SessionsModule {}

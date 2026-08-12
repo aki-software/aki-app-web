@@ -1,5 +1,4 @@
 import { Test } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { VoucherRedemptionService } from './voucher-redemption.service.js';
 import { Voucher } from '../entities/voucher.entity.js';
@@ -11,6 +10,11 @@ describe('VoucherRedemptionService', () => {
   let voucherRepository: { findOne: jest.Mock; save: jest.Mock };
   let sessionRepository: { findOne: jest.Mock; save: jest.Mock };
   let dataSource: { transaction: jest.Mock };
+  const verifiedPatient = {
+    userId: 'patient-1',
+    email: 'patient@example.com',
+    isFirebaseEmailVerified: true,
+  };
 
   const buildVoucher = (overrides: Partial<Voucher> = {}): Voucher =>
     ({
@@ -23,6 +27,18 @@ describe('VoucherRedemptionService', () => {
       ownerInstitutionId: null,
       ownerUserId: null,
       redeem: jest.fn(),
+      bindToAuthenticatedEmail: jest.fn(function (
+        this: Voucher,
+        email: string,
+      ) {
+        if (
+          this.assignedPatientEmail &&
+          this.assignedPatientEmail.toLowerCase() !== email.toLowerCase()
+        ) {
+          throw new Error('Voucher is bound to a different Android email.');
+        }
+        this.assignedPatientEmail ??= email;
+      }),
       ...overrides,
     }) as unknown as Voucher;
 
@@ -34,6 +50,7 @@ describe('VoucherRedemptionService', () => {
       reportUnlockedAt: null,
       institutionId: null,
       therapistUserId: null,
+      patientId: 'patient-1',
       ...overrides,
     }) as unknown as Session;
 
@@ -58,8 +75,6 @@ describe('VoucherRedemptionService', () => {
     const module = await Test.createTestingModule({
       providers: [
         VoucherRedemptionService,
-        { provide: getRepositoryToken(Voucher), useValue: voucherRepository },
-        { provide: getRepositoryToken(Session), useValue: sessionRepository },
         { provide: DataSource, useValue: dataSource },
       ],
     }).compile();
@@ -71,7 +86,7 @@ describe('VoucherRedemptionService', () => {
     voucherRepository.findOne.mockResolvedValueOnce(null);
 
     await expect(
-      service.redeemVoucher('bad-code', 'session-1'),
+      service.redeemVoucher('bad-code', 'session-1', verifiedPatient),
     ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'INVALID_CODE' }),
     });
@@ -81,7 +96,7 @@ describe('VoucherRedemptionService', () => {
     sessionRepository.findOne.mockResolvedValueOnce(buildSession());
 
     await expect(
-      service.redeemVoucher('AB12CD34', 'session-1'),
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
     ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'ALREADY_USED' }),
     });
@@ -93,7 +108,7 @@ describe('VoucherRedemptionService', () => {
     sessionRepository.findOne.mockResolvedValueOnce(null);
 
     await expect(
-      service.redeemVoucher('AB12CD34', 'missing-session'),
+      service.redeemVoucher('AB12CD34', 'missing-session', verifiedPatient),
     ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'SESSION_NOT_FOUND' }),
     });
@@ -105,7 +120,7 @@ describe('VoucherRedemptionService', () => {
     sessionRepository.findOne.mockResolvedValueOnce(buildSession());
 
     await expect(
-      service.redeemVoucher('AB12CD34', 'session-1'),
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
     ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'VOUCHER_EXPIRED' }),
     });
@@ -121,9 +136,123 @@ describe('VoucherRedemptionService', () => {
     sessionRepository.findOne.mockResolvedValueOnce(buildSession());
 
     await expect(
-      service.redeemVoucher('AB12CD34', 'session-1'),
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
     ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'SERVICE_UNAVAILABLE' }),
     });
+  });
+
+  it('requires the authenticated Android email before redeeming a voucher', async () => {
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', undefined),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({
+        code: 'ANDROID_IDENTITY_UNVERIFIED',
+      }),
+    });
+  });
+
+  it('rejects local or unverified identities before voucher lookup', async () => {
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', {
+        userId: 'patient-1',
+        email: 'patient@example.com',
+        isFirebaseEmailVerified: false,
+      }),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({
+        code: 'ANDROID_IDENTITY_UNVERIFIED',
+      }),
+    });
+    expect(voucherRepository.findOne).not.toHaveBeenCalled();
+  });
+
+  it('rejects a caller who does not own the target patient session', async () => {
+    const voucher = buildVoucher();
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(
+      buildSession({ patientId: 'another-patient' }),
+    );
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'SESSION_ACCESS_DENIED' }),
+    });
+  });
+
+  it('validates the bound email before returning idempotent success', async () => {
+    const voucher = buildVoucher({
+      redeemedSessionId: 'session-1',
+      assignedPatientEmail: 'bound@example.com',
+    });
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'VOUCHER_EMAIL_MISMATCH' }),
+    });
+  });
+
+  it('persists the first email binding for an idempotent legacy redemption', async () => {
+    const voucher = buildVoucher({
+      redeemedSessionId: 'session-1',
+      assignedPatientEmail: null,
+    });
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+
+    await service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient);
+
+    expect(voucher.assignedPatientEmail).toBe('patient@example.com');
+    expect(voucherRepository.save).toHaveBeenCalledWith(voucher);
+    expect(sessionRepository.save).toHaveBeenCalled();
+  });
+
+  it('binds an unassigned voucher to the first authenticated Android email', async () => {
+    const voucher = buildVoucher({ assignedPatientEmail: null });
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+
+    await service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient);
+
+    expect(voucher.assignedPatientEmail).toBe('patient@example.com');
+    expect(voucherRepository.findOne).toHaveBeenCalledWith({
+      where: { code: 'AB12CD34' },
+      lock: { mode: 'pessimistic_write' },
+    });
+    expect(voucherRepository.save).toHaveBeenCalledWith(voucher);
+  });
+
+  it('rejects an authenticated Android email that does not match an assigned voucher', async () => {
+    const voucher = buildVoucher({
+      assignedPatientEmail: 'bound@example.com',
+    });
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', {
+        ...verifiedPatient,
+        email: 'other@example.com',
+      }),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'VOUCHER_EMAIL_MISMATCH' }),
+    });
+  });
+
+  it('normalizes the first authenticated Android email before binding it', async () => {
+    const voucher = buildVoucher({ assignedPatientEmail: null });
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+
+    await service.redeemVoucher('AB12CD34', 'session-1', {
+      ...verifiedPatient,
+      email: ' Patient@Example.com ',
+    });
+
+    expect(voucher.assignedPatientEmail).toBe('patient@example.com');
   });
 });

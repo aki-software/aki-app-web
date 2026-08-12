@@ -1,55 +1,79 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from 'bullmq';
-import { Logger } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  ReportGeneratedEvent,
-  ReportFailedEvent,
-} from '../events/domain-events';
+import { Repository } from 'typeorm';
+import { Session } from '../sessions/entities/session.entity.js';
+import { ReportService } from '../sessions/services/report.service.js';
+import { Report, ReportStatus } from './entities/report.entity.js';
+import { PrivateReportStorageService } from './private-report-storage.service.js';
+import { ReportRendererService } from './report-renderer.service.js';
 
-@Processor('reports', {
-  concurrency: 1,
-})
+@Processor('reports', { concurrency: 1 })
 export class ReportWorker extends WorkerHost {
-  private readonly logger = new Logger(ReportWorker.name);
-
-  constructor(private readonly eventEmitter: EventEmitter2) {
+  constructor(
+    @InjectRepository(Report) private readonly reports: Repository<Report>,
+    @InjectRepository(Session) private readonly sessions: Repository<Session>,
+    private readonly data: ReportService,
+    private readonly renderer: ReportRendererService,
+    private readonly storage: PrivateReportStorageService,
+  ) {
     super();
   }
 
-  async process(job: Job<any, any, string>): Promise<any> {
-    this.logger.log(`Processing report job ${job.id} for data:`, job.data);
+  async process(job: Job<{ reportId: string }, unknown, string>) {
+    const report = await this.reports.findOne({
+      where: { id: job.data.reportId },
+    });
+    if (!report) throw new Error('Report not found.');
+    if (report.status === ReportStatus.AVAILABLE)
+      return { inputHash: report.contentHash, byteLength: 0 };
     try {
-      // Simulate report generation
-      // TODO: implement actual PDF generation
-      const reportUrl = `https://s3.bucket/reports/report-${job.id}.pdf`;
-
-      // Emit success event
-      await this.eventEmitter.emitAsync(
-        'report.generated',
-        new ReportGeneratedEvent(reportUrl, job.data.requestedByEmail),
-      );
-
-      this.logger.log(`Successfully generated report for job ${job.id}`);
-      return reportUrl;
+      if (report.status === ReportStatus.PENDING) {
+        report.markGenerating();
+        await this.reports.save(report);
+      }
+      const session = await this.sessions.findOne({
+        where: { id: report.sessionId },
+      });
+      if (!session) throw new Error('Report session not found.');
+      const rendered = await this.renderer.render({
+        locale: 'es-AR',
+        timeZone: 'America/Argentina/Buenos_Aires',
+        generatedAt: report.createdAt.toISOString(),
+        assessmentAt: session.sessionDate.toISOString(),
+        templateVersion: '1',
+        reportVersion: report.version,
+        data: await this.data.buildReportData(session),
+      });
+      const objectKey = `reports/${report.sessionId}/v${report.version}.pdf`;
+      const head = await this.storage.head(objectKey);
+      if (
+        head &&
+        (head.contentHash !== rendered.inputHash ||
+          head.version !== String(report.version))
+      )
+        throw new Error('Immutable report object collision.');
+      if (!head)
+        await this.storage.put(objectKey, rendered.pdf, {
+          contentHash: rendered.inputHash,
+          version: report.version,
+        });
+      report.markAvailable({
+        objectKey,
+        contentHash: rendered.inputHash,
+        generatedAt: report.createdAt,
+      });
+      await this.reports.save(report);
+      return {
+        inputHash: rendered.inputHash,
+        byteLength: rendered.pdf.byteLength,
+      };
     } catch (error) {
-      this.logger.error(`Error processing report job ${job.id}`, error);
-      throw error; // Let BullMQ handle retries
-    }
-  }
-
-  // Hook into failure after retries are exhausted to emit DLQ event
-  @OnWorkerEvent('failed')
-  onFailed(job: Job, error: Error) {
-    // If attemptsMade >= opts.attempts, it will go to DLQ (or is permanently failed)
-    if (job.attemptsMade >= (job.opts.attempts || 3)) {
-      this.logger.error(
-        `Job ${job.id} has permanently failed after ${job.attemptsMade} attempts. Emitting report.failed`,
-      );
-      this.eventEmitter.emit(
-        'report.failed',
-        new ReportFailedEvent(job.id!, error.message),
-      );
+      if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
+        report.markFailed();
+        await this.reports.save(report);
+      }
+      throw error;
     }
   }
 }

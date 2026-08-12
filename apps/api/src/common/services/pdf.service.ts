@@ -7,6 +7,12 @@ import {
 import type { Browser, Page } from 'puppeteer-core';
 import { PdfGenerator } from '../adapters/pdf-generator.adapter.js';
 
+export const DETERMINISTIC_PDF_OPTIONS = {
+  format: 'A4' as const,
+  printBackground: true,
+  margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
+};
+
 @Injectable()
 export class PdfService implements PdfGenerator, OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
@@ -22,29 +28,41 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
     }
 
     let page: Page | undefined;
+    let requestHandler:
+      | ((request: {
+          url(): string;
+          continue(): Promise<void>;
+          abort(): Promise<void>;
+        }) => void)
+      | undefined;
     try {
       page = await this.acquirePage();
+      await page.setRequestInterception(true);
+      requestHandler = (request: {
+        url(): string;
+        continue(): Promise<void>;
+        abort(): Promise<void>;
+      }) => {
+        const url = request.url();
+        if (url.startsWith('data:') || url === 'about:blank') {
+          void request.continue();
+          return;
+        }
+        void request.abort();
+      };
+      page.on('request', requestHandler);
 
       if (signal?.aborted) {
         throw new Error('PDF generation aborted');
       }
 
-      await page.setContent(html, { waitUntil: 'networkidle2' });
+      await page.setContent(html, { waitUntil: 'load' });
 
       if (signal?.aborted) {
         throw new Error('PDF generation aborted');
       }
 
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20px',
-          right: '20px',
-          bottom: '20px',
-          left: '20px',
-        },
-      });
+      const pdfBuffer = await page.pdf(DETERMINISTIC_PDF_OPTIONS);
 
       return Buffer.from(pdfBuffer);
     } catch (error) {
@@ -73,6 +91,8 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
       );
     } finally {
       if (page) {
+        if (requestHandler) page.off('request', requestHandler);
+        await page.setRequestInterception(false).catch(() => {});
         await this.releasePage(page);
       }
     }
@@ -155,10 +175,16 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
     }
 
     const puppeteer = await import('puppeteer-core');
+    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    if (!executablePath) {
+      throw new Error(
+        'PUPPETEER_EXECUTABLE_PATH is required for the pinned Chrome-for-Testing binary.',
+      );
+    }
 
     this.browserLaunching = puppeteer
       .launch({
-        channel: 'chrome',
+        executablePath,
         headless: true,
         args: [
           '--no-sandbox',

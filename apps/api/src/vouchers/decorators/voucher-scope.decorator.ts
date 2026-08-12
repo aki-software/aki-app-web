@@ -10,6 +10,7 @@ export const CurrentVoucherScope = createParamDecorator(
     if (!user) {
       return {
         role: undefined,
+        email: undefined,
         ownerUserId: undefined,
         ownerInstitutionId: undefined,
       };
@@ -25,6 +26,8 @@ export const CurrentVoucherScope = createParamDecorator(
 
     return {
       role: user.role,
+      email: user.email,
+      isFirebaseEmailVerified: user.isFirebaseEmailVerified,
       ownerUserId: user.userId,
       ownerInstitutionId: isAdmin ? resolvedClientId : user.institutionId,
     };

@@ -14,6 +14,7 @@ export { SessionPaymentStatus };
 import type { SessionResult } from './session-result.entity.js';
 import type { SessionSwipe } from './session-swipe.entity.js';
 import type { SessionMetrics } from './session-metrics.entity.js';
+import type { Report } from '../../reports/entities/report.entity.js';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
 import { User } from '../../users/entities/user.entity.js';
 import { Institution } from '../../institutions/entities/institution.entity.js';
@@ -136,4 +137,7 @@ export class Session {
     cascade: true,
   })
   metrics?: SessionMetrics;
+
+  @OneToMany('Report', 'session')
+  reports!: Report[];
 }
