@@ -3,6 +3,7 @@ dist
 .env
 .env.*
 
+.claude
 # Keystore - NO versionar nunca
 *.jks
 *.keystore
@@ -19,6 +20,6 @@ build
 *.log
 pnpm-debug.log*
 tmp/
-openspec
+/openspec
 # Local Pi runtime state
 .atl/
