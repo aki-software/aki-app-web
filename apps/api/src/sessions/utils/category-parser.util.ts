@@ -1,5 +1,5 @@
 const markerRegex =
-  /(descripci[oó]n\s+breve|algunas\s+ocupaciones\s+(?:que\s+se\s+vincula[rn]|vinculadas)\s+al\s+[aá]rea|tambi[eé]n\s+puede\s+incluir\s+profesiones\s+m[aá]s\s+t[eé]cnicas\s+o\s+formales\s+como|competencias\s+importantes(?:\s+para\s+desempe[nñ]arse\s+en\s+el\s+[aá]rea)?)\s*:\s*/gi;
+  /(descripci[oó]n\s+breve|algunas\s+ocupaciones\s*(?:u\s+oficios\s+)?(?:que\s+se\s+vincula[rn]|vinculadas)\s+al\s+[aá]rea|tambi[eé]n\s+puede\s+incluir\s+profesiones\s+m[aá]s\s+t[eé]cnicas\s+o\s+formales\s+como|competencias\s+importantes(?:\s+para\s+desempe[nñ]arse\s+en\s+el\s+[aá]rea)?)\s*:\s*/gi;
 
 export function normalizeCategoryId(value: string): string {
   return value?.trim().toUpperCase() ?? '';
@@ -55,29 +55,10 @@ export function parseCategoryDescription(
     // Fix lowercase starting letters (Requirement 1)
     segment = segment.charAt(0).toUpperCase() + segment.slice(1);
 
-    const isListSubtitle =
-      current.label.includes('ocupaciones') ||
-      current.label.includes('profesiones') ||
-      current.label.includes('Competencias');
-
-    if (isListSubtitle) {
-      const list = segment
-        .split(/[,;.]| y /i)
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0)
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1));
-
-      blocks.push({
-        subtitle: current.label,
-        content: segment, // Keep content just in case other parts of the app use it
-        list,
-      });
-    } else {
-      blocks.push({
-        subtitle: current.label,
-        content: segment,
-      });
-    }
+    blocks.push({
+      subtitle: current.label,
+      content: segment,
+    });
   }
 
   return blocks.length > 0 ? blocks : [{ content: cleanDesc }];
