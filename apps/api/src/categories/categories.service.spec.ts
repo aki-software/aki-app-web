@@ -14,7 +14,7 @@ describe('CategoriesService', () => {
   it('updates only supplied structured fields and returns them', async () => {
     const repo = {
       findOne: jest.fn().mockResolvedValue({ ...category }),
-      save: jest.fn().mockImplementation(async (value) => value),
+      save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
     };
     const service = new CategoriesService(repo as never);
 

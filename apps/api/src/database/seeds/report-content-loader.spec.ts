@@ -50,17 +50,29 @@ function canonicalSource() {
 
 describe('report-content-loader', () => {
   it('splits reviewed comma- and period-delimited lists without truncating abbreviations', () => {
-    expect(splitReviewedList('ARTISTA, LIC. EN PSICOLOGÍA. PC. OPERADOR', 'competencias', 0)).toEqual([
-      'ARTISTA',
-      'LIC. EN PSICOLOGÍA',
-      'PC. OPERADOR',
-    ]);
+    expect(
+      splitReviewedList(
+        'ARTISTA, LIC. EN PSICOLOGÍA. PC. OPERADOR',
+        'competencias',
+        0,
+      ),
+    ).toEqual(['ARTISTA', 'LIC. EN PSICOLOGÍA', 'PC. OPERADOR']);
   });
 
   it('rejects empty, contaminated, and ambiguous reviewed lists', () => {
-    expect(() => splitReviewedList('ARTISTA,, DISEÑADOR', 'competencias', 0)).toThrow('empty item');
-    expect(() => splitReviewedList('ARTISTA *ALGUNAS PROFESIONES VINCULADAS:*', 'competencias', 0)).toThrow('contamination');
-    expect(() => splitReviewedList('LIC.', 'competencias', 0)).toThrow('ambiguous');
+    expect(() =>
+      splitReviewedList('ARTISTA,, DISEÑADOR', 'competencias', 0),
+    ).toThrow('empty item');
+    expect(() =>
+      splitReviewedList(
+        'ARTISTA *ALGUNAS PROFESIONES VINCULADAS:*',
+        'competencias',
+        0,
+      ),
+    ).toThrow('contamination');
+    expect(() => splitReviewedList('LIC.', 'competencias', 0)).toThrow(
+      'ambiguous',
+    );
   });
 
   it('loads the complete canonical 12-category and 220-combination source', async () => {
@@ -87,34 +99,60 @@ describe('report-content-loader', () => {
         expect.objectContaining({ title: 'Humanitario', categoryId: 'HUM' }),
       ]),
     );
-    expect(new Set(content.combinations.map((item) => item.combinationKey)).size).toBe(220);
+    expect(
+      new Set(content.combinations.map((item) => item.combinationKey)).size,
+    ).toBe(220);
   });
 
   it('rejects invalid source identities and area triples', () => {
     const { categories, combinations } = canonicalSource();
     categories[1].id = categories[0].id;
-    expect(() => validateReportContent(categories, combinations)).toThrow('duplicate category source id');
+    expect(() => validateReportContent(categories, combinations)).toThrow(
+      'duplicate category source id',
+    );
 
     const duplicateCombinationId = canonicalSource();
-    duplicateCombinationId.combinations[1].id = duplicateCombinationId.combinations[0].id;
-    expect(() => validateReportContent(duplicateCombinationId.categories, duplicateCombinationId.combinations)).toThrow('duplicate combination source id');
+    duplicateCombinationId.combinations[1].id =
+      duplicateCombinationId.combinations[0].id;
+    expect(() =>
+      validateReportContent(
+        duplicateCombinationId.categories,
+        duplicateCombinationId.combinations,
+      ),
+    ).toThrow('duplicate combination source id');
 
     const duplicateArea = canonicalSource();
     duplicateArea.combinations[0].area_3 = duplicateArea.combinations[0].area_1;
-    expect(() => validateReportContent(duplicateArea.categories, duplicateArea.combinations)).toThrow('three distinct areas');
+    expect(() =>
+      validateReportContent(
+        duplicateArea.categories,
+        duplicateArea.combinations,
+      ),
+    ).toThrow('three distinct areas');
   });
 
   it('rejects unknown areas, mismatched titles, and possible-job contamination', () => {
     const unknownArea = canonicalSource();
     unknownArea.categories[0].area = 'Unknown';
-    expect(() => validateReportContent(unknownArea.categories, unknownArea.combinations)).toThrow('unknown category area');
+    expect(() =>
+      validateReportContent(unknownArea.categories, unknownArea.combinations),
+    ).toThrow('unknown category area');
 
     const mismatchedTitle = canonicalSource();
-    mismatchedTitle.combinations[0].combinacion = 'Artístico + Humanitario + Ventas';
-    expect(() => validateReportContent(mismatchedTitle.categories, mismatchedTitle.combinations)).toThrow('does not match its areas');
+    mismatchedTitle.combinations[0].combinacion =
+      'Artístico + Humanitario + Ventas';
+    expect(() =>
+      validateReportContent(
+        mismatchedTitle.categories,
+        mismatchedTitle.combinations,
+      ),
+    ).toThrow('does not match its areas');
 
     const contaminated = canonicalSource();
-    contaminated.combinations[0].ambitos_trabajo = '*ALGUNAS PROFESIONES VINCULADAS:*';
-    expect(() => validateReportContent(contaminated.categories, contaminated.combinations)).toThrow('contamination');
+    contaminated.combinations[0].ambitos_trabajo =
+      '*ALGUNAS PROFESIONES VINCULADAS:*';
+    expect(() =>
+      validateReportContent(contaminated.categories, contaminated.combinations),
+    ).toThrow('contamination');
   });
 });

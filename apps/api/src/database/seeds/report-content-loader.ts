@@ -79,7 +79,9 @@ function normalize(value: string): string {
 
 function requiredString(value: unknown, field: string, index: number): string {
   if (typeof value !== 'string' || !value.trim()) {
-    throw new Error(`Invalid report content at index ${index}: ${field} is required`);
+    throw new Error(
+      `Invalid report content at index ${index}: ${field} is required`,
+    );
   }
   return value.trim();
 }
@@ -95,7 +97,9 @@ function isStandaloneListAbbreviation(value: string): boolean {
 }
 
 function listError(field: string, index: number, reason: string): Error {
-  return new Error(`Invalid report content at index ${index}: ${field} ${reason}`);
+  return new Error(
+    `Invalid report content at index ${index}: ${field} ${reason}`,
+  );
 }
 
 /**
@@ -120,7 +124,11 @@ export function splitReviewedList(
     if (item.endsWith('.')) {
       const withoutPeriod = item.slice(0, -1).trim();
       if (isStandaloneListAbbreviation(withoutPeriod)) {
-        throw listError(field, index, 'is ambiguous after a terminal abbreviation');
+        throw listError(
+          field,
+          index,
+          'is ambiguous after a terminal abbreviation',
+        );
       }
       item = withoutPeriod;
     }
@@ -155,7 +163,10 @@ export function splitReviewedList(
 }
 
 function buildCombinationKey(areas: string[]): string {
-  return areas.map(normalize).sort((a, b) => a.localeCompare(b, 'es')).join('|');
+  return areas
+    .map(normalize)
+    .sort((a, b) => a.localeCompare(b, 'es'))
+    .join('|');
 }
 
 function assertUniqueSourceId(
@@ -168,7 +179,9 @@ function assertUniqueSourceId(
     throw new Error(`Invalid ${type} at index ${index}: id is required`);
   }
   if (ids.has(id)) {
-    throw new Error(`Invalid report content: duplicate ${type} source id ${id}`);
+    throw new Error(
+      `Invalid report content: duplicate ${type} source id ${id}`,
+    );
   }
   ids.add(id);
 }
@@ -178,9 +191,17 @@ function assertCombinationTitle(
   areas: string[],
   index: number,
 ): void {
-  const titleAreas = title.split('+').map((area) => area.trim()).filter(Boolean);
-  if (titleAreas.length !== 3 || buildCombinationKey(titleAreas) !== buildCombinationKey(areas)) {
-    throw new Error(`Invalid combination at index ${index}: combinacion does not match its areas`);
+  const titleAreas = title
+    .split('+')
+    .map((area) => area.trim())
+    .filter(Boolean);
+  if (
+    titleAreas.length !== 3 ||
+    buildCombinationKey(titleAreas) !== buildCombinationKey(areas)
+  ) {
+    throw new Error(
+      `Invalid combination at index ${index}: combinacion does not match its areas`,
+    );
   }
 }
 
@@ -192,13 +213,16 @@ export function validateReportContent(
     throw new Error('Invalid report content: expected exactly 12 categories');
   }
   if (!Array.isArray(rawCombinations) || rawCombinations.length !== 220) {
-    throw new Error('Invalid report content: expected exactly 220 combinations');
+    throw new Error(
+      'Invalid report content: expected exactly 220 combinations',
+    );
   }
 
   const categoryKeys = new Set<string>();
   const categorySourceIds = new Set<number>();
   const categories = rawCategories.map((raw, index) => {
-    if (!raw || typeof raw !== 'object') throw new Error(`Invalid category at index ${index}`);
+    if (!raw || typeof raw !== 'object')
+      throw new Error(`Invalid category at index ${index}`);
     const item = raw as RawCategory;
     assertUniqueSourceId(categorySourceIds, item.id, 'category', index);
     const title = requiredString(item.area, 'area', index);
@@ -208,7 +232,9 @@ export function validateReportContent(
       throw new Error(`Invalid report content: unknown category area ${title}`);
     }
     if (categoryKeys.has(key)) {
-      throw new Error(`Invalid report content: duplicate normalized category key ${title}`);
+      throw new Error(
+        `Invalid report content: duplicate normalized category key ${title}`,
+      );
     }
     categoryKeys.add(key);
 
@@ -216,16 +242,33 @@ export function validateReportContent(
       categoryId,
       title,
       description: requiredString(item.descripcion, 'descripcion', index),
-      occupations: splitReviewedList(requiredString(item.ocupaciones_oficios, 'ocupaciones_oficios', index), 'ocupaciones_oficios', index),
-      formalProfessions: splitReviewedList(requiredString(item.profesiones_tecnicas_formales, 'profesiones_tecnicas_formales', index), 'profesiones_tecnicas_formales', index),
-      competencies: splitReviewedList(requiredString(item.competencias, 'competencias', index), 'competencias', index),
+      occupations: splitReviewedList(
+        requiredString(item.ocupaciones_oficios, 'ocupaciones_oficios', index),
+        'ocupaciones_oficios',
+        index,
+      ),
+      formalProfessions: splitReviewedList(
+        requiredString(
+          item.profesiones_tecnicas_formales,
+          'profesiones_tecnicas_formales',
+          index,
+        ),
+        'profesiones_tecnicas_formales',
+        index,
+      ),
+      competencies: splitReviewedList(
+        requiredString(item.competencias, 'competencias', index),
+        'competencias',
+        index,
+      ),
     };
   });
 
   const combinationKeys = new Set<string>();
   const combinationSourceIds = new Set<number>();
   const combinations = rawCombinations.map((raw, index) => {
-    if (!raw || typeof raw !== 'object') throw new Error(`Invalid combination at index ${index}`);
+    if (!raw || typeof raw !== 'object')
+      throw new Error(`Invalid combination at index ${index}`);
     const item = raw as RawCombination;
     assertUniqueSourceId(combinationSourceIds, item.id, 'combination', index);
     const area1 = requiredString(item.area_1, 'area_1', index);
@@ -234,22 +277,34 @@ export function validateReportContent(
     const areas = [area1, area2, area3];
     const normalizedAreas = areas.map(normalize);
     if (new Set(normalizedAreas).size !== 3) {
-      throw new Error(`Invalid combination at index ${index}: expected three distinct areas`);
+      throw new Error(
+        `Invalid combination at index ${index}: expected three distinct areas`,
+      );
     }
     if (normalizedAreas.some((area) => !categoryKeys.has(area))) {
-      throw new Error(`Invalid combination at index ${index}: area is not in the category set`);
+      throw new Error(
+        `Invalid combination at index ${index}: area is not in the category set`,
+      );
     }
     const title = requiredString(item.combinacion, 'combinacion', index);
     assertCombinationTitle(title, areas, index);
     const combinationKey = buildCombinationKey(areas);
     if (combinationKeys.has(combinationKey)) {
-      throw new Error(`Invalid report content: duplicate normalized combination key ${combinationKey}`);
+      throw new Error(
+        `Invalid report content: duplicate normalized combination key ${combinationKey}`,
+      );
     }
     combinationKeys.add(combinationKey);
 
-    const possibleJobs = requiredString(item.ambitos_trabajo, 'ambitos_trabajo', index);
+    const possibleJobs = requiredString(
+      item.ambitos_trabajo,
+      'ambitos_trabajo',
+      index,
+    );
     if (possibleJobs.toUpperCase().includes(CONTAMINATION_MARKER)) {
-      throw new Error(`Invalid report content at index ${index}: possible jobs contain professions contamination`);
+      throw new Error(
+        `Invalid report content at index ${index}: possible jobs contain professions contamination`,
+      );
     }
 
     return {
@@ -260,31 +315,60 @@ export function validateReportContent(
       combinationKey,
       narrative: requiredString(item.descripcion, 'descripcion', index),
       keyInsight: requiredString(item.clave, 'clave', index),
-      competencies: splitReviewedList(requiredString(item.competencias, 'competencias', index), 'competencias', index),
+      competencies: splitReviewedList(
+        requiredString(item.competencias, 'competencias', index),
+        'competencias',
+        index,
+      ),
       possibleJobs: splitReviewedList(possibleJobs, 'ambitos_trabajo', index),
-      relatedProfessions: splitReviewedList(requiredString(item.profesiones_vinculadas, 'profesiones_vinculadas', index), 'profesiones_vinculadas', index),
+      relatedProfessions: splitReviewedList(
+        requiredString(
+          item.profesiones_vinculadas,
+          'profesiones_vinculadas',
+          index,
+        ),
+        'profesiones_vinculadas',
+        index,
+      ),
     };
   });
 
   return { categories, combinations };
 }
 
-export function getReportContentPaths(): { materialPath: string; combinationsPath: string } {
+export function getReportContentPaths(): {
+  materialPath: string;
+  combinationsPath: string;
+} {
   const materialPath = process.env.SEED_MATERIAL_TEORICO_PATH?.trim();
   const combinationsPath = process.env.SEED_TRES_AREAS_PATH?.trim();
   if (materialPath || combinationsPath) {
     if (!materialPath || !combinationsPath) {
-      throw new Error('Both SEED_MATERIAL_TEORICO_PATH and SEED_TRES_AREAS_PATH must be set together.');
+      throw new Error(
+        'Both SEED_MATERIAL_TEORICO_PATH and SEED_TRES_AREAS_PATH must be set together.',
+      );
     }
-    return { materialPath: resolve(materialPath), combinationsPath: resolve(combinationsPath) };
+    return {
+      materialPath: resolve(materialPath),
+      combinationsPath: resolve(combinationsPath),
+    };
   }
 
-  const docsRoots = [resolve(process.cwd(), 'docs'), resolve(process.cwd(), '..', '..', 'docs')];
+  const docsRoots = [
+    resolve(process.cwd(), 'docs'),
+    resolve(process.cwd(), '..', '..', 'docs'),
+  ];
   for (const docsRoot of docsRoots) {
     const resolvedMaterialPath = resolve(docsRoot, MATERIAL_FILE);
     const resolvedCombinationsPath = resolve(docsRoot, COMBINATIONS_FILE);
-    if (existsSync(resolvedMaterialPath) && existsSync(resolvedCombinationsPath)) {
-      return { materialPath: resolvedMaterialPath, combinationsPath: resolvedCombinationsPath };
+    if (
+      existsSync(resolvedMaterialPath) &&
+      existsSync(resolvedCombinationsPath)
+    ) {
+      return {
+        materialPath: resolvedMaterialPath,
+        combinationsPath: resolvedCombinationsPath,
+      };
     }
   }
 
@@ -301,11 +385,16 @@ export async function loadReportContent(): Promise<ReportContent> {
       readFile(paths.materialPath, 'utf8'),
       readFile(paths.combinationsPath, 'utf8'),
     ]);
-    return validateReportContent(JSON.parse(materialRaw), JSON.parse(combinationsRaw));
+    return validateReportContent(
+      JSON.parse(materialRaw),
+      JSON.parse(combinationsRaw),
+    );
   } catch (error) {
     const sourcePaths = paths
       ? `${paths.materialPath}, ${paths.combinationsPath}`
       : 'unresolved paths';
-    throw new Error(`Unable to load canonical report content (${sourcePaths}): ${(error as Error).message}`);
+    throw new Error(
+      `Unable to load canonical report content (${sourcePaths}): ${(error as Error).message}`,
+    );
   }
 }

@@ -27,7 +27,9 @@ describe('SendReportProcessor', () => {
   });
 
   it('should consume only the dedicated send-report queue', () => {
-    expect(Reflect.getMetadata(PROCESSOR_METADATA, SendReportProcessor)).toEqual({
+    expect(
+      Reflect.getMetadata(PROCESSOR_METADATA, SendReportProcessor),
+    ).toEqual({
       name: 'send-report',
     });
   });

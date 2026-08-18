@@ -44,10 +44,7 @@ export class ReportsService {
       where: { sessionId, version: 1 },
     });
     if (!report) report = await this.create(session);
-    if (
-      report.status !== ReportStatus.AVAILABLE &&
-      !report.inputSnapshot
-    ) {
+    if (report.status !== ReportStatus.AVAILABLE && !report.inputSnapshot) {
       throw new BadRequestException(
         'Legacy report cannot be generated because its immutable input snapshot is unavailable.',
       );
@@ -100,7 +97,9 @@ export class ReportsService {
   private async create(session: Session): Promise<Report> {
     const entitlement = this.entitlement(session);
     const entitledPatientId = session.patientId ?? null;
-    const entitledUserId = entitledPatientId ? null : session.therapistUserId ?? null;
+    const entitledUserId = entitledPatientId
+      ? null
+      : (session.therapistUserId ?? null);
     if (!entitledPatientId && !entitledUserId) {
       throw new Error('No entitled principal found for session');
     }

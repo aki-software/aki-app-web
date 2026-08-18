@@ -11,7 +11,10 @@ describe('typeOrmConfig', () => {
   });
 
   it.each([
-    ['DATABASE_URL configuration', 'postgres://test:test@localhost:5432/akit_test'],
+    [
+      'DATABASE_URL configuration',
+      'postgres://test:test@localhost:5432/akit_test',
+    ],
     ['host configuration', undefined],
   ])('runs migrations individually for %s', async (_name, databaseUrl) => {
     if (databaseUrl === undefined) {

@@ -73,15 +73,22 @@ describe('ReportsService', () => {
 
   it('enqueues a delivery job once for an authorized historical report recipient', async () => {
     const { service, queue, delivery } = setup();
-    await expect(service.enqueueDelivery('report-1', 'ada@example.com')).resolves.toEqual({
+    await expect(
+      service.enqueueDelivery('report-1', 'ada@example.com'),
+    ).resolves.toEqual({
       queued: true,
       idempotent: false,
     });
-    expect(delivery.request).toHaveBeenCalledWith('report-1', 'ada@example.com');
+    expect(delivery.request).toHaveBeenCalledWith(
+      'report-1',
+      'ada@example.com',
+    );
     expect(queue.add).toHaveBeenCalledWith(
       'deliver',
       { reportId: 'report-1', targetEmail: 'ada@example.com' },
-      expect.objectContaining({ jobId: expect.stringContaining('report-1-deliver-') }),
+      expect.objectContaining({
+        jobId: expect.stringContaining('report-1-deliver-'),
+      }),
     );
   });
 
@@ -92,10 +99,12 @@ describe('ReportsService', () => {
       .mockResolvedValueOnce({ queued: true, idempotent: false })
       .mockResolvedValueOnce({ queued: true, idempotent: true });
 
-    await expect(service.enqueueDelivery('report-1', 'ada@example.com')).rejects.toThrow(
-      'Redis unavailable',
-    );
-    await expect(service.enqueueDelivery('report-1', 'ada@example.com')).resolves.toEqual({
+    await expect(
+      service.enqueueDelivery('report-1', 'ada@example.com'),
+    ).rejects.toThrow('Redis unavailable');
+    await expect(
+      service.enqueueDelivery('report-1', 'ada@example.com'),
+    ).resolves.toEqual({
       queued: true,
       idempotent: true,
     });
@@ -108,7 +117,9 @@ describe('ReportsService', () => {
     const { service, queue, delivery } = setup();
     delivery.request.mockResolvedValue({ queued: false, idempotent: true });
 
-    await expect(service.enqueueDelivery('report-1', 'ada@example.com')).resolves.toEqual({
+    await expect(
+      service.enqueueDelivery('report-1', 'ada@example.com'),
+    ).resolves.toEqual({
       queued: false,
       idempotent: true,
     });
@@ -119,7 +130,10 @@ describe('ReportsService', () => {
 
   it('does not duplicate an existing pending delivery job', async () => {
     const { service, queue, delivery } = setup();
-    const job = { getState: jest.fn().mockResolvedValue('waiting'), retry: jest.fn() };
+    const job = {
+      getState: jest.fn().mockResolvedValue('waiting'),
+      retry: jest.fn(),
+    };
     delivery.request.mockResolvedValue({ queued: true, idempotent: true });
     queue.getJob.mockResolvedValue(job);
 
@@ -131,7 +145,10 @@ describe('ReportsService', () => {
 
   it('retries an existing failed delivery job', async () => {
     const { service, queue, delivery } = setup();
-    const job = { getState: jest.fn().mockResolvedValue('failed'), retry: jest.fn() };
+    const job = {
+      getState: jest.fn().mockResolvedValue('failed'),
+      retry: jest.fn(),
+    };
     delivery.request.mockResolvedValue({ queued: true, idempotent: true });
     queue.getJob.mockResolvedValue(job);
 
@@ -158,13 +175,17 @@ describe('ReportsService', () => {
       const { service, reports, sessions, queue } = setup();
       sessions.findOne.mockResolvedValue(source);
       reports.findOne.mockResolvedValue(null);
-      reports.save.mockImplementation((value) => Promise.resolve({ ...value, id: 'report-1' }));
+      reports.save.mockImplementation((value) =>
+        Promise.resolve({ ...value, id: 'report-1' }),
+      );
 
       await expect(service.requestGeneration('session-1')).resolves.toEqual({
         reportId: 'report-1',
         jobId: 'report-report-1-v1',
       });
-      expect(reports.save).toHaveBeenCalledWith(expect.objectContaining({ entitlementSource }));
+      expect(reports.save).toHaveBeenCalledWith(
+        expect.objectContaining({ entitlementSource }),
+      );
       expect(queue.add).toHaveBeenCalledWith(
         'generate',
         { reportId: 'report-1', targetEmail: undefined },
@@ -177,7 +198,9 @@ describe('ReportsService', () => {
     const { service, reports, sessions } = setup();
     sessions.findOne.mockResolvedValue(session());
     reports.findOne.mockResolvedValue(null);
-    reports.save.mockImplementation((value) => Promise.resolve({ ...value, id: 'report-1' }));
+    reports.save.mockImplementation((value) =>
+      Promise.resolve({ ...value, id: 'report-1' }),
+    );
 
     await service.requestGeneration('session-1');
 
@@ -195,7 +218,9 @@ describe('ReportsService', () => {
       session({ patientId: null, therapistUserId: 'therapist-1' }),
     );
     reports.findOne.mockResolvedValue(null);
-    reports.save.mockImplementation((value) => Promise.resolve({ ...value, id: 'report-1' }));
+    reports.save.mockImplementation((value) =>
+      Promise.resolve({ ...value, id: 'report-1' }),
+    );
 
     await service.requestGeneration('session-1');
 
@@ -212,7 +237,9 @@ describe('ReportsService', () => {
     const source = session();
     sessions.findOne.mockResolvedValue(source);
     reports.findOne.mockResolvedValue(null);
-    reports.save.mockImplementation((value) => Promise.resolve({ ...value, id: 'report-1' }));
+    reports.save.mockImplementation((value) =>
+      Promise.resolve({ ...value, id: 'report-1' }),
+    );
 
     await service.requestGeneration('session-1');
     source.patientName = 'Changed later';
@@ -232,13 +259,16 @@ describe('ReportsService', () => {
     ['pending', ReportStatus.PENDING, true],
     ['generating', ReportStatus.GENERATING, false],
     ['available', ReportStatus.AVAILABLE, false],
-  ])('handles duplicate %s reports without a second artifact', async (_case, status, queues) => {
-    const { service, reports, sessions, queue } = setup();
-    sessions.findOne.mockResolvedValue(session());
-    reports.findOne.mockResolvedValue(report(status));
-    await service.requestGeneration('session-1');
-    expect(queue.add).toHaveBeenCalledTimes(queues ? 1 : 0);
-  });
+  ])(
+    'handles duplicate %s reports without a second artifact',
+    async (_case, status, queues) => {
+      const { service, reports, sessions, queue } = setup();
+      sessions.findOne.mockResolvedValue(session());
+      reports.findOne.mockResolvedValue(report(status));
+      await service.requestGeneration('session-1');
+      expect(queue.add).toHaveBeenCalledTimes(queues ? 1 : 0);
+    },
+  );
 
   it('rejects a legacy non-available report without an immutable snapshot', async () => {
     const { service, reports, sessions, queue } = setup();
@@ -307,12 +337,16 @@ describe('ReportsService', () => {
     queue.getJob.mockResolvedValue({ retry: jest.fn() });
     await service.requestGeneration('session-1');
     expect(queue.getJob).toHaveBeenCalledWith('report-report-1-v1');
-    expect(reports.save).toHaveBeenLastCalledWith(expect.objectContaining({ status: ReportStatus.PENDING }));
+    expect(reports.save).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: ReportStatus.PENDING }),
+    );
   });
 
   it('fails closed when provenance cannot be proven and treats legacy URLs only as eligibility', async () => {
     const { service, reports, sessions, queue } = setup();
-    sessions.findOne.mockResolvedValue(session({ voucherId: null, reportUrl: 'https://legacy/report.pdf' }));
+    sessions.findOne.mockResolvedValue(
+      session({ voucherId: null, reportUrl: 'https://legacy/report.pdf' }),
+    );
     reports.findOne.mockResolvedValue(null);
     await expect(service.requestGeneration('session-1')).rejects.toThrow(
       'Session has not been paid or unlocked.',

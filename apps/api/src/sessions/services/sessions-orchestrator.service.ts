@@ -22,7 +22,10 @@ export class SessionsOrchestratorService {
     force?: boolean,
   ): Promise<{ success: boolean; message: string }> {
     const normalizedScope = await this.normalizeFirebasePatientScope(scope);
-    const session = await this.sessionsQueryService.findOne(id, normalizedScope);
+    const session = await this.sessionsQueryService.findOne(
+      id,
+      normalizedScope,
+    );
     const result = await this.reportOrchestratorService.sendReport(
       session.id,
       email,

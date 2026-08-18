@@ -10,22 +10,24 @@ describe('ReportDeliveryService', () => {
       attempts: number;
     }> = [];
     const repository = {
-      findOne: jest.fn(async ({ where }) =>
-        deliveries.find(
-          (delivery) =>
-            delivery.reportId === where.reportId &&
-            delivery.recipientEmail === where.recipientEmail,
+      findOne: jest.fn(({ where }) =>
+        Promise.resolve(
+          deliveries.find(
+            (delivery) =>
+              delivery.reportId === where.reportId &&
+              delivery.recipientEmail === where.recipientEmail,
+          ),
         ),
       ),
       create: jest.fn((input) => input),
-      save: jest.fn(async (delivery) => {
+      save: jest.fn((delivery) => {
         const existing = deliveries.find(
           (candidate) =>
             candidate.reportId === delivery.reportId &&
             candidate.recipientEmail === delivery.recipientEmail,
         );
         if (!existing) deliveries.push(delivery);
-        return delivery;
+        return Promise.resolve(delivery);
       }),
     };
     return {
@@ -37,11 +39,15 @@ describe('ReportDeliveryService', () => {
   it('returns an idempotent result for the same alternate recipient', async () => {
     const { service } = setup();
 
-    await expect((service as any).request('report-1', 'Ada@Example.com')).resolves.toEqual({
+    await expect(
+      (service as any).request('report-1', 'Ada@Example.com'),
+    ).resolves.toEqual({
       queued: true,
       idempotent: false,
     });
-    await expect((service as any).request('report-1', 'ada@example.com')).resolves.toEqual({
+    await expect(
+      (service as any).request('report-1', 'ada@example.com'),
+    ).resolves.toEqual({
       queued: true,
       idempotent: true,
     });
@@ -53,7 +59,9 @@ describe('ReportDeliveryService', () => {
     const delivery = await service.claim('report-1', 'Ada@Example.com');
     await service.markDelivered(delivery!);
 
-    await expect(service.claim('report-1', 'ada@example.com')).resolves.toBeNull();
+    await expect(
+      service.claim('report-1', 'ada@example.com'),
+    ).resolves.toBeNull();
   });
 
   it('retains failed delivery records so BullMQ retries can claim them', async () => {
@@ -63,7 +71,10 @@ describe('ReportDeliveryService', () => {
     await service.markFailed(delivery!);
 
     await expect(service.claim('report-1', 'ada@example.com')).resolves.toEqual(
-      expect.objectContaining({ status: ReportDeliveryStatus.PENDING, attempts: 2 }),
+      expect.objectContaining({
+        status: ReportDeliveryStatus.PENDING,
+        attempts: 2,
+      }),
     );
   });
 });

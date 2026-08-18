@@ -72,8 +72,8 @@ export class SessionOwnerResolverService {
       if (!this.isUniqueViolation(error)) throw error;
 
       const concurrentPatient = firebaseIdentity.uid
-        ? (await this.findPatient({ firebaseUid: firebaseIdentity.uid })) ??
-          (await this.findPatient({ email: firebaseIdentity.email }))
+        ? ((await this.findPatient({ firebaseUid: firebaseIdentity.uid })) ??
+          (await this.findPatient({ email: firebaseIdentity.email })))
         : await this.findPatient({ email: firebaseIdentity.email });
       if (concurrentPatient) {
         await this.linkFirebaseUid(concurrentPatient, firebaseIdentity.uid);
@@ -128,7 +128,9 @@ export class SessionOwnerResolverService {
     };
   }
 
-  private normalizeFirebaseIdentity(identity: FirebaseIdentity | string): FirebaseIdentity {
+  private normalizeFirebaseIdentity(
+    identity: FirebaseIdentity | string,
+  ): FirebaseIdentity {
     if (typeof identity === 'string') {
       return { email: identity.trim().toLowerCase() };
     }
@@ -174,7 +176,8 @@ export class SessionOwnerResolverService {
       typeof error === 'object' &&
       error !== null &&
       'driverError' in error &&
-      (error as { driverError?: { code?: string } }).driverError?.code === '23505'
+      (error as { driverError?: { code?: string } }).driverError?.code ===
+        '23505'
     );
   }
 

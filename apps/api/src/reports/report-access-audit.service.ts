@@ -33,7 +33,8 @@ export class ReportAccessAuditService {
     const audit = await repository.findOne({
       where: { operationKey: input.operationKey },
     });
-    if (!audit) throw new Error('Report access audit insert was not persisted.');
+    if (!audit)
+      throw new Error('Report access audit insert was not persisted.');
     if (!this.matches(audit, input)) throw new ReportAccessAuditConflictError();
     return audit;
   }

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ReportDeliveryAuthorization1787000000007
-  implements MigrationInterface
-{
+export class ReportDeliveryAuthorization1787000000007 implements MigrationInterface {
   name = 'ReportDeliveryAuthorization1787000000007';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -17,7 +15,9 @@ export class ReportDeliveryAuthorization1787000000007
     );
   }
 
-  async down(): Promise<void> {
-    throw new Error('Report delivery authorization audit fields are irreversible.');
+  down(): Promise<void> {
+    return Promise.reject(
+      new Error('Report delivery authorization audit fields are irreversible.'),
+    );
   }
 }

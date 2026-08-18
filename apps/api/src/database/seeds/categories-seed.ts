@@ -19,7 +19,8 @@ export async function upsertVocationalCategories(
     const existing = await categoryRepo.findOne({
       where: { categoryId: category.categoryId },
     });
-    const record = existing ?? categoryRepo.create({ categoryId: category.categoryId });
+    const record =
+      existing ?? categoryRepo.create({ categoryId: category.categoryId });
     record.title = category.title;
     record.description = category.description;
     record.occupations = category.occupations;
@@ -35,7 +36,9 @@ async function seedCategoriesCli() {
   const dataSource = new DataSource({ ...typeOrmConfig, migrations: [] });
   try {
     await dataSource.initialize();
-    await dataSource.transaction((manager) => upsertVocationalCategories(manager));
+    await dataSource.transaction((manager) =>
+      upsertVocationalCategories(manager),
+    );
   } catch (error) {
     console.error('Error seeding canonical categories:', error);
     process.exitCode = 1;

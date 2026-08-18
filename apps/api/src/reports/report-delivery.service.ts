@@ -99,7 +99,8 @@ export class ReportDeliveryService {
 
       const concurrentDelivery = await this.find(reportId, normalizedEmail);
       if (!concurrentDelivery) throw error;
-      if (concurrentDelivery.status === ReportDeliveryStatus.DELIVERED) return null;
+      if (concurrentDelivery.status === ReportDeliveryStatus.DELIVERED)
+        return null;
       concurrentDelivery.status = ReportDeliveryStatus.PENDING;
       concurrentDelivery.attempts += 1;
       return this.deliveries.save(concurrentDelivery);

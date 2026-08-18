@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddCanonicalReportContentFields1787000000010
-  implements MigrationInterface
-{
+export class AddCanonicalReportContentFields1787000000010 implements MigrationInterface {
   name = 'AddCanonicalReportContentFields1787000000010';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

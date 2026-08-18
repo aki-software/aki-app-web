@@ -44,12 +44,24 @@ export async function verifyReportContent(
   ]);
 
   const categoryMismatches: string[] = [];
-  const categoriesById = new Map(categories.map((item) => [item.categoryId, item]));
+  const categoriesById = new Map(
+    categories.map((item) => [item.categoryId, item]),
+  );
   for (const expected of content.categories) {
-    compareRecord('category', expected.categoryId, expected, categoriesById.get(expected.categoryId), categoryMismatches);
+    compareRecord(
+      'category',
+      expected.categoryId,
+      expected,
+      categoriesById.get(expected.categoryId),
+      categoryMismatches,
+    );
   }
   for (const actual of categories) {
-    if (!content.categories.some((expected) => expected.categoryId === actual.categoryId)) {
+    if (
+      !content.categories.some(
+        (expected) => expected.categoryId === actual.categoryId,
+      )
+    ) {
       categoryMismatches.push(`Unexpected category ${actual.categoryId}`);
     }
   }
@@ -73,8 +85,14 @@ export async function verifyReportContent(
     );
   }
   for (const actual of combinations) {
-    if (!content.combinations.some((expected) => expected.combinationKey === actual.combinationKey)) {
-      combinationMismatches.push(`Unexpected combination ${actual.combinationKey}`);
+    if (
+      !content.combinations.some(
+        (expected) => expected.combinationKey === actual.combinationKey,
+      )
+    ) {
+      combinationMismatches.push(
+        `Unexpected combination ${actual.combinationKey}`,
+      );
     }
   }
 

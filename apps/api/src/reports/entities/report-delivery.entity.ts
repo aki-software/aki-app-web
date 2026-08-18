@@ -14,9 +14,13 @@ export enum ReportDeliveryStatus {
 }
 
 @Entity('report_deliveries')
-@Index('UQ_report_deliveries_report_recipient', ['reportId', 'recipientEmail'], {
-  unique: true,
-})
+@Index(
+  'UQ_report_deliveries_report_recipient',
+  ['reportId', 'recipientEmail'],
+  {
+    unique: true,
+  },
+)
 export class ReportDelivery {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

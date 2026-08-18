@@ -71,17 +71,19 @@ export class ReportService {
         : res.materialSnippet || 'Información no disponible.';
       const parsedBlocks = this.buildCategoryBlocks(catInfo, description);
       const canonicalCompetencies = this.canonicalCompetencies(catInfo);
-      const blockSkills = canonicalCompetencies ?? parsedBlocks
-        .filter(
-          (block) =>
-            block.subtitle?.toLowerCase().includes('competencias') &&
-            block.content,
-        )
-        .flatMap((block) => block.content.split(/[.;•-]/))
-        .map((s) => s.trim())
-        .filter(
-          (s) => s.length > MIN_SKILL_LENGTH && s.length < MAX_SKILL_LENGTH,
-        );
+      const blockSkills =
+        canonicalCompetencies ??
+        parsedBlocks
+          .filter(
+            (block) =>
+              block.subtitle?.toLowerCase().includes('competencias') &&
+              block.content,
+          )
+          .flatMap((block) => block.content.split(/[.;•-]/))
+          .map((s) => s.trim())
+          .filter(
+            (s) => s.length > MIN_SKILL_LENGTH && s.length < MAX_SKILL_LENGTH,
+          );
 
       strengths.push(...blockSkills);
 
@@ -146,9 +148,14 @@ export class ReportService {
     description: string,
   ): ParsedDescriptionBlock[] {
     const occupations = category?.occupations?.filter(Boolean) ?? [];
-    const formalProfessions = category?.formalProfessions?.filter(Boolean) ?? [];
+    const formalProfessions =
+      category?.formalProfessions?.filter(Boolean) ?? [];
     const competencies = category?.competencies?.filter(Boolean) ?? [];
-    if (!occupations.length || !formalProfessions.length || !competencies.length) {
+    if (
+      !occupations.length ||
+      !formalProfessions.length ||
+      !competencies.length
+    ) {
       return parseCategoryDescription(description);
     }
 

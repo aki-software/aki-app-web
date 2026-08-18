@@ -13,7 +13,9 @@ const logoDataUri = `data:image/png;base64,${readFileSync(
 const fontFaceCss = [400, 500, 600, 700]
   .map((weight) => {
     const font = readFileSync(
-      require.resolve(`@fontsource/inter/files/inter-latin-${weight}-normal.woff2`),
+      require.resolve(
+        `@fontsource/inter/files/inter-latin-${weight}-normal.woff2`,
+      ),
     ).toString('base64');
     return `@font-face { font-family: 'Inter'; font-style: normal; font-weight: ${weight}; src: url(data:font/woff2;base64,${font}) format('woff2'); }`;
   })

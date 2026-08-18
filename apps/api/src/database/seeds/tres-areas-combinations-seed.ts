@@ -19,7 +19,8 @@ export async function upsertTresAreasCombinations(
     const existing = await repo.findOne({
       where: { combinationKey: combination.combinationKey },
     });
-    const record = existing ?? repo.create({ combinationKey: combination.combinationKey });
+    const record =
+      existing ?? repo.create({ combinationKey: combination.combinationKey });
     record.title = combination.title;
     record.area1 = combination.area1;
     record.area2 = combination.area2;
@@ -40,7 +41,9 @@ async function seedTresAreasCli() {
   const dataSource = new DataSource({ ...typeOrmConfig, migrations: [] });
   try {
     await dataSource.initialize();
-    await dataSource.transaction((manager) => upsertTresAreasCombinations(manager));
+    await dataSource.transaction((manager) =>
+      upsertTresAreasCombinations(manager),
+    );
   } catch (error) {
     console.error('Error seeding canonical tres areas combinations:', error);
     process.exitCode = 1;
