@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import type { ReportData } from '../../common/types/report.types.js';
 import type { Session } from '../../sessions/entities/session.entity.js';
 
 export enum ReportEntitlementSource {
@@ -22,13 +23,22 @@ export enum ReportStatus {
   AVAILABLE = 'AVAILABLE',
   EXPIRED = 'EXPIRED',
   FAILED = 'FAILED',
+  STORAGE_PENDING = 'STORAGE_PENDING',
+}
+
+export interface ReportInputSnapshot {
+  generatedAt: string;
+  assessmentAt: string;
+  data: ReportData;
 }
 
 export interface CreatePendingReportInput {
   sessionId: string;
   entitlementSource: ReportEntitlementSource;
-  entitledUserId: string;
+  entitledUserId?: string | null;
+  entitledPatientId?: string | null;
   generatedAt: Date;
+  inputSnapshot?: ReportInputSnapshot;
   voucherId?: string | null;
 }
 
@@ -43,11 +53,16 @@ export interface AvailableReportObject {
   unique: true,
 })
 @Index('IDX_reports_entitled_user_id_status', ['entitledUserId', 'status'])
+@Index('IDX_reports_entitled_patient_id_status', ['entitledPatientId', 'status'])
 @Index('IDX_reports_available_until', ['availableUntil'])
 @Index('IDX_reports_voucher_id', ['voucherId'])
 @Check(
   'CHK_reports_entitlement_voucher',
   `("entitlement_source" = 'VOUCHER' AND "voucher_id" IS NOT NULL) OR ("entitlement_source" = 'GOOGLE_PLAY' AND "voucher_id" IS NULL)`,
+)
+@Check(
+  'CHK_reports_entitled_principal',
+  `("entitled_user_id" IS NULL) <> ("entitled_patient_id" IS NULL)`,
 )
 export class Report {
   @PrimaryGeneratedColumn('uuid')
@@ -67,8 +82,15 @@ export class Report {
   })
   entitlementSource!: ReportEntitlementSource;
 
-  @Column({ name: 'entitled_user_id', type: 'uuid' })
-  entitledUserId!: string;
+  @Column({ name: 'entitled_user_id', type: 'uuid', nullable: true })
+  entitledUserId!: string | null;
+
+  @Column({ name: 'entitled_patient_id', type: 'uuid', nullable: true })
+  entitledPatientId!: string | null;
+
+  @ManyToOne('Patient', { onDelete: 'RESTRICT', nullable: true })
+  @JoinColumn({ name: 'entitled_patient_id' })
+  entitledPatient?: unknown;
 
   @Column({ name: 'voucher_id', type: 'uuid', nullable: true })
   voucherId!: string | null;
@@ -78,6 +100,9 @@ export class Report {
 
   @Column({ type: 'integer', default: 1 })
   version: number = 1;
+
+  @Column({ name: 'input_snapshot', type: 'jsonb', nullable: true })
+  inputSnapshot!: ReportInputSnapshot | null;
 
   @Column({ name: 'object_key', type: 'text', nullable: true })
   objectKey!: string | null;
@@ -110,11 +135,18 @@ export class Report {
     ) {
       throw new Error('Invalid report voucher provenance.');
     }
+    const entitledUserId = input.entitledUserId ?? null;
+    const entitledPatientId = input.entitledPatientId ?? null;
+    if ((entitledUserId === null) === (entitledPatientId === null)) {
+      throw new Error('Report requires exactly one entitled principal.');
+    }
     const report = new Report();
     report.sessionId = input.sessionId;
     report.entitlementSource = input.entitlementSource;
-    report.entitledUserId = input.entitledUserId;
+    report.entitledUserId = entitledUserId;
+    report.entitledPatientId = entitledPatientId;
     report.voucherId = voucherId;
+    report.inputSnapshot = input.inputSnapshot ?? null;
     report.generatedAt = null;
     report.objectKey = null;
     report.contentHash = null;
@@ -146,6 +178,14 @@ export class Report {
       ),
     );
     this.status = ReportStatus.AVAILABLE;
+  }
+
+  markStoragePending(): void {
+    if (this.status === ReportStatus.STORAGE_PENDING) return;
+    if (this.status !== ReportStatus.GENERATING) {
+      throw new Error('Only generating reports can await storage.');
+    }
+    this.status = ReportStatus.STORAGE_PENDING;
   }
 
   markGenerating(): void {

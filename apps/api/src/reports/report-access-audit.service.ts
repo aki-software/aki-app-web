@@ -16,7 +16,7 @@ export class ReportAccessAuditService {
     input: CreateReportAccessAuditInput,
   ): Promise<ReportAccessAudit> {
     await manager.query(
-      `INSERT INTO "report_access_audits" ("report_id", "grant_id", "actor_user_id", "event_type", "scope", "operation_key", "occurred_at") VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT ("operation_key") DO NOTHING RETURNING "id"`,
+      `INSERT INTO "report_access_audits" ("report_id", "grant_id", "actor_user_id", "event_type", "scope", "operation_key", "occurred_at", "recipient_email", "outcome") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT ("operation_key") DO NOTHING RETURNING "id"`,
       [
         input.reportId,
         input.grantId,
@@ -25,14 +25,15 @@ export class ReportAccessAuditService {
         input.scope,
         input.operationKey,
         input.occurredAt,
+        input.recipientEmail ?? null,
+        input.outcome ?? null,
       ],
     );
     const repository = manager.getRepository(ReportAccessAudit);
     const audit = await repository.findOne({
       where: { operationKey: input.operationKey },
     });
-    if (!audit)
-      throw new Error('Report access audit insert was not persisted.');
+    if (!audit) throw new Error('Report access audit insert was not persisted.');
     if (!this.matches(audit, input)) throw new ReportAccessAuditConflictError();
     return audit;
   }
@@ -47,7 +48,9 @@ export class ReportAccessAuditService {
       audit.grantId === input.grantId &&
       audit.actorUserId === input.actorUserId &&
       audit.scope === input.scope &&
-      new Date(audit.occurredAt).getTime() === input.occurredAt.getTime()
+      new Date(audit.occurredAt).getTime() === input.occurredAt.getTime() &&
+      (audit.recipientEmail ?? null) === (input.recipientEmail ?? null) &&
+      (audit.outcome ?? null) === (input.outcome ?? null)
     );
   }
 }

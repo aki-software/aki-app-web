@@ -31,8 +31,19 @@ export class CategoriesService {
       );
     }
 
-    category.title = updateData.title;
-    category.description = updateData.description;
+    if (updateData.title !== undefined) category.title = updateData.title;
+    if (updateData.description !== undefined) {
+      category.description = updateData.description;
+    }
+    if (updateData.occupations !== undefined) {
+      category.occupations = updateData.occupations;
+    }
+    if (updateData.formalProfessions !== undefined) {
+      category.formalProfessions = updateData.formalProfessions;
+    }
+    if (updateData.competencies !== undefined) {
+      category.competencies = updateData.competencies;
+    }
 
     const savedCategory = await this.categoryRepo.save(category);
     return this.toCategoryResponse(savedCategory);
@@ -43,6 +54,9 @@ export class CategoriesService {
       categoryId: category.categoryId,
       title: category.title,
       description: category.description,
+      occupations: category.occupations,
+      formalProfessions: category.formalProfessions,
+      competencies: category.competencies,
     };
   }
 }

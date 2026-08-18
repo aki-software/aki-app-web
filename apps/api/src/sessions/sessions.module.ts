@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VouchersModule } from '../vouchers/vouchers.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
 import { VocationalCategory } from '../categories/entities/vocational-category.entity.js';
+import { Patient } from '../patients/entities/patient.entity.js';
 import { BullModule } from '@nestjs/bullmq';
 import { UsersModule } from '../users/users.module.js';
 import { SessionResult } from './entities/session-result.entity.js';
@@ -33,6 +34,7 @@ import { ReportsModule } from '../reports/reports.module.js';
       SessionSwipe,
       SessionMetrics,
       VocationalCategory,
+      Patient,
     ]),
     CategoriesModule,
     BullModule.registerQueue({ name: 'reports' }),
@@ -62,6 +64,7 @@ import { ReportsModule } from '../reports/reports.module.js';
     SessionsMutationService,
     SessionsOrchestratorService,
     SessionMetricsService,
+    SessionOwnerResolverService,
     ReportService,
   ],
 })

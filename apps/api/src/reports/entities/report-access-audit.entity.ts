@@ -12,6 +12,7 @@ export enum ReportAccessAuditEvent {
   GRANT_RENEWED = 'REPORT_GRANT_RENEWED',
   GRANT_CONSUMED = 'REPORT_GRANT_CONSUMED',
   DOWNLOAD_ACCESSED = 'REPORT_DOWNLOAD_ACCESSED',
+  DELIVERY_AUTHORIZED = 'REPORT_DELIVERY_AUTHORIZED',
 }
 
 export interface CreateReportAccessAuditInput {
@@ -22,6 +23,8 @@ export interface CreateReportAccessAuditInput {
   scope: ReportGrantScope;
   operationKey: string;
   occurredAt: Date;
+  recipientEmail?: string | null;
+  outcome?: string | null;
 }
 
 @Entity('report_access_audits')
@@ -45,6 +48,9 @@ export class ReportAccessAudit {
   @Column({ type: 'text' }) scope!: ReportGrantScope;
   @Column({ name: 'operation_key', type: 'text' }) operationKey!: string;
   @Column({ name: 'occurred_at', type: 'timestamptz' }) occurredAt!: Date;
+  @Column({ name: 'recipient_email', type: 'text', nullable: true })
+  recipientEmail!: string | null;
+  @Column({ type: 'text', nullable: true }) outcome!: string | null;
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

@@ -42,6 +42,7 @@ export class SessionsController {
       therapistUserId: isOwner ? req?.user?.userId : undefined,
       patientId: !isOwner ? req?.user?.userId : undefined,
       institutionId: req?.user?.institutionId,
+      email: req?.user?.email,
     };
   }
 
@@ -99,10 +100,7 @@ export class SessionsController {
         role: request.user?.role,
       },
     );
-    const session = await this.sessionsQueryService.findOne(
-      result.id,
-      this.extractScope(request),
-    );
+    const session = await this.sessionsQueryService.findOne(result.id);
     return session as SessionDetailDto;
   }
 

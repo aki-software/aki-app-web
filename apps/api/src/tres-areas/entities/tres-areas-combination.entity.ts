@@ -36,6 +36,9 @@ export class TresAreasCombination {
   @Column({ name: 'tendencies', type: 'text', array: true, default: '{}' })
   tendencies!: string[];
 
+  @Column({ name: 'competencies', type: 'text', array: true, default: '{}' })
+  competencies!: string[];
+
   @Column({ name: 'possible_jobs', type: 'text' })
   possibleJobs!: string;
 
