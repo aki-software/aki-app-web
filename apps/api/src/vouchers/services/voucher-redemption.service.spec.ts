@@ -3,12 +3,14 @@ import { DataSource } from 'typeorm';
 import { VoucherRedemptionService } from './voucher-redemption.service.js';
 import { Voucher } from '../entities/voucher.entity.js';
 import { Session } from '../../sessions/entities/session.entity.js';
+import { Patient } from '../../patients/entities/patient.entity.js';
 import { VoucherStatus } from '../entities/voucher.enums.js';
 
 describe('VoucherRedemptionService', () => {
   let service: VoucherRedemptionService;
   let voucherRepository: { findOne: jest.Mock; save: jest.Mock };
   let sessionRepository: { findOne: jest.Mock; save: jest.Mock };
+  let patientRepository: { findOne: jest.Mock };
   let dataSource: { transaction: jest.Mock };
   const verifiedPatient = {
     userId: 'patient-1',
@@ -63,11 +65,18 @@ describe('VoucherRedemptionService', () => {
       findOne: jest.fn(),
       save: jest.fn(),
     };
+    patientRepository = {
+      findOne: jest.fn().mockResolvedValue({ id: 'patient-1' }),
+    };
     dataSource = {
       transaction: jest.fn((callback: any) =>
         callback({
-          getRepository: (entity: unknown) =>
-            entity === Voucher ? voucherRepository : sessionRepository,
+          getRepository: (entity: unknown) => {
+            if (entity === Voucher) return voucherRepository;
+            if (entity === Session) return sessionRepository;
+            if (entity === Patient) return patientRepository;
+            throw new Error('Unexpected repository');
+          },
         }),
       ),
     };
@@ -165,6 +174,97 @@ describe('VoucherRedemptionService', () => {
       }),
     });
     expect(voucherRepository.findOne).not.toHaveBeenCalled();
+  });
+
+  it('authorizes an auto-provisioned Firebase patient by firebase UID', async () => {
+    const voucher = buildVoucher();
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(
+      buildSession({ patientId: 'internal-patient-uuid' }),
+    );
+    patientRepository.findOne.mockResolvedValueOnce({
+      id: 'internal-patient-uuid',
+    });
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
+    ).resolves.toMatchObject({ status: 'REDEEMED' });
+    expect(patientRepository.findOne).toHaveBeenCalledWith({
+      where: { firebaseUid: 'patient-1' },
+    });
+  });
+
+  it('falls back to normalized email when no Firebase UID mapping exists', async () => {
+    const voucher = buildVoucher();
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(
+      buildSession({ patientId: 'internal-patient-uuid' }),
+    );
+    patientRepository.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'internal-patient-uuid' });
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', {
+        ...verifiedPatient,
+        email: ' Patient@Example.com ',
+      }),
+    ).resolves.toMatchObject({ status: 'REDEEMED' });
+    expect(patientRepository.findOne).toHaveBeenNthCalledWith(2, {
+      where: { email: 'patient@example.com' },
+    });
+  });
+
+  it('denies an unmapped Firebase patient', async () => {
+    const voucher = buildVoucher();
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+    patientRepository.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ code: 'SESSION_ACCESS_DENIED' }),
+    });
+  });
+
+  it('preserves therapist authorization with the internal user ID', async () => {
+    const voucher = buildVoucher();
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(
+      buildSession({ therapistUserId: 'therapist-1' }),
+    );
+    patientRepository.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', {
+        userId: 'therapist-1',
+        email: 'therapist@example.com',
+        isFirebaseEmailVerified: true,
+      }),
+    ).resolves.toMatchObject({ status: 'REDEEMED' });
+  });
+
+  it('preserves admin authorization without a patient mapping', async () => {
+    const voucher = buildVoucher();
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+    patientRepository.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', {
+        userId: 'admin-1',
+        email: 'admin@example.com',
+        isFirebaseEmailVerified: true,
+        role: 'ADMIN',
+      }),
+    ).resolves.toMatchObject({ status: 'REDEEMED' });
   });
 
   it('rejects a caller who does not own the target patient session', async () => {

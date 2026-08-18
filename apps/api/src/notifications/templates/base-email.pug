@@ -13,10 +13,10 @@ html(lang="es")
         font-family: 'Lexend', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
       }
   body.bg-body(style=`margin:0;padding:0;background:${colors.background.light};font-family:'Lexend',system-ui,-apple-system,sans-serif;color:${colors.text.primary};`)
-    table.bg-body(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`padding:40px 0;background:${colors.background.light};`)
+    table.bg-body(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`padding:24px 0;background:${colors.background.light};`)
       tr
         td(align="center")
-          table.bg-surface(role="presentation" width="620" cellpadding="0" cellspacing="0" style=`width:620px;max-width:620px;background:${colors.surface.light};border:1px solid ${colors.surface.variantLight};border-radius:24px;overflow:hidden;box-shadow:0 24px 48px rgba(15,107,104,0.06), 0 8px 16px rgba(15,107,104,0.04);`)
+          table.bg-surface(role="presentation" width="620" cellpadding="0" cellspacing="0" style=`width:100%;max-width:620px;background:${colors.surface.light};border:1px solid ${colors.surface.variantLight};border-radius:8px;overflow:hidden;`)
             tr
               td
                 include partials/email-header.pug

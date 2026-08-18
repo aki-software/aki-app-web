@@ -13,7 +13,7 @@ export class ReportGeneratedHandler {
     private readonly emailService: EmailService,
   ) {}
 
-  @OnEvent('report.generated')
+  @OnEvent('report.generated', { suppressErrors: false })
   async handleReportGeneratedEvent(event: ReportGeneratedEvent) {
     this.logger.log(
       `Handling report.generated event for ${event.requestedByEmail}, url: ${event.reportUrl}`,
@@ -47,6 +47,7 @@ export class ReportGeneratedHandler {
         `Failed to send report email to ${event.requestedByEmail}`,
         error,
       );
+      throw error;
     }
   }
 }

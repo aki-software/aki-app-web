@@ -5,6 +5,7 @@ import { VocationalCategory } from '../../categories/entities/vocational-categor
 import { TresAreasService } from '../../tres-areas/tres-areas.service.js';
 import {
   CategoryResult,
+  ParsedDescriptionBlock,
   ReportData,
   ReportSummary,
   ReportTripletInsight,
@@ -68,10 +69,9 @@ export class ReportService {
       const description = catInfo
         ? catInfo.description
         : res.materialSnippet || 'Información no disponible.';
-
-      const parsedBlocks = parseCategoryDescription(description);
-
-      const blockSkills = parsedBlocks
+      const parsedBlocks = this.buildCategoryBlocks(catInfo, description);
+      const canonicalCompetencies = this.canonicalCompetencies(catInfo);
+      const blockSkills = canonicalCompetencies ?? parsedBlocks
         .filter(
           (block) =>
             block.subtitle?.toLowerCase().includes('competencias') &&
@@ -141,6 +141,38 @@ export class ReportService {
     };
   }
 
+  private buildCategoryBlocks(
+    category: VocationalCategory | undefined,
+    description: string,
+  ): ParsedDescriptionBlock[] {
+    const occupations = category?.occupations?.filter(Boolean) ?? [];
+    const formalProfessions = category?.formalProfessions?.filter(Boolean) ?? [];
+    const competencies = category?.competencies?.filter(Boolean) ?? [];
+    if (!occupations.length || !formalProfessions.length || !competencies.length) {
+      return parseCategoryDescription(description);
+    }
+
+    return [
+      { subtitle: 'Descripción breve', content: description },
+      { subtitle: 'Ocupaciones y oficios', content: '', list: occupations },
+      {
+        subtitle: 'Profesiones técnicas o formales',
+        content: '',
+        list: formalProfessions,
+      },
+      { subtitle: 'Competencias importantes', content: '', list: competencies },
+    ];
+  }
+
+  private canonicalCompetencies(
+    category: VocationalCategory | undefined,
+  ): string[] | null {
+    const competencies = category?.competencies
+      ?.map((item) => item.trim())
+      .filter(Boolean);
+    return competencies?.length ? competencies : null;
+  }
+
   private async buildTripletInsight(
     topResults: Array<{ categoryId: string }>,
     categoriesById: Map<
@@ -183,6 +215,9 @@ export class ReportService {
       title: match.title,
       narrative: match.narrative,
       keyInsight: match.keyInsight,
+      competencies: match.competencies?.length
+        ? match.competencies
+        : match.tendencies,
       tendencies: match.tendencies,
       possibleJobs: splitList(match.possibleJobs),
       relatedProfessions: splitList(match.relatedProfessions),

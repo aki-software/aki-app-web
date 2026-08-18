@@ -12,6 +12,7 @@ import {
   Session,
   SessionPaymentStatus,
 } from '../../sessions/entities/session.entity.js';
+import { Patient } from '../../patients/entities/patient.entity.js';
 import { VoucherStatus } from '../entities/voucher.enums.js';
 
 interface VerifiedAndroidIdentity {
@@ -66,6 +67,7 @@ export class VoucherRedemptionService {
 
       const voucherRepo = manager.getRepository(Voucher);
       const sessionRepo = manager.getRepository(Session);
+      const patientRepo = manager.getRepository(Patient);
 
       const voucher = await voucherRepo.findOne({
         where: { code: normalizedCode },
@@ -96,8 +98,17 @@ export class VoucherRedemptionService {
         );
       }
 
+      const patient =
+        (identity.userId
+          ? await patientRepo.findOne({
+              where: { firebaseUid: identity.userId },
+            })
+          : null) ??
+        (await patientRepo.findOne({
+          where: { email: normalizedEmail },
+        }));
       const isAuthorizedOwner =
-        session.patientId === identity.userId ||
+        session.patientId === patient?.id ||
         session.therapistUserId === identity.userId;
       const isAdmin = identity.role === 'ADMIN';
 

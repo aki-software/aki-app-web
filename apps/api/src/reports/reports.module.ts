@@ -9,6 +9,8 @@ import { REPORT_TEMPLATE_RENDERER } from './report-renderer.service.js';
 import { PrivateReportStorageService } from './private-report-storage.service.js';
 import { ReportsService } from './reports.service.js';
 import { Report } from './entities/report.entity.js';
+import { ReportDelivery } from './entities/report-delivery.entity.js';
+import { ReportDeliveryService } from './report-delivery.service.js';
 import { Session } from '../sessions/entities/session.entity.js';
 import { SessionsModule } from '../sessions/sessions.module.js';
 import { ReportAccessAudit } from './entities/report-access-audit.entity.js';
@@ -23,7 +25,12 @@ import {
   controllers: [ReportsController],
   imports: [
     NotificationsModule,
-    TypeOrmModule.forFeature([Report, Session, ReportAccessAudit]),
+    TypeOrmModule.forFeature([
+      Report,
+      ReportDelivery,
+      Session,
+      ReportAccessAudit,
+    ]),
     forwardRef(() => SessionsModule),
     BullModule.registerQueue({
       name: 'reports',
@@ -40,6 +47,7 @@ import {
   ],
   providers: [
     ReportWorker,
+    ReportDeliveryService,
     ReportRendererService,
     PrivateReportStorageService,
     ReportsService,

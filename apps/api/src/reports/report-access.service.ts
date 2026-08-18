@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import {
   ForbiddenException,
   Inject,
@@ -14,6 +14,7 @@ import { ReportAccessAuditService } from './report-access-audit.service.js';
 export interface ReportAccessScope {
   role: string;
   userId?: string;
+  email?: string;
   institutionId?: string;
 }
 export interface ConsentPolicyPort {
@@ -33,6 +34,60 @@ export class ReportAccessService {
     return this.data.transaction(async (manager) =>
       this.authorize(manager, reportId, scope),
     );
+  }
+
+  async download(reportId: string, scope: ReportAccessScope): Promise<Report> {
+    return this.data.transaction(async (manager) => {
+      const report = await this.authorize(manager, reportId, scope);
+      if (!report.availableUntil || report.availableUntil <= new Date())
+        throw new ForbiddenException('Report is unavailable.');
+      if (!report.objectKey) throw new NotFoundException('Report not found.');
+      return report;
+    });
+  }
+
+  async authorizeDelivery(
+    reportId: string,
+    scope: ReportAccessScope,
+    recipientEmail: string,
+    operationKey: string,
+  ): Promise<Report> {
+    return this.data.transaction(async (manager) => {
+      const report = await this.authorize(manager, reportId, scope);
+      if (!report.availableUntil || report.availableUntil <= new Date())
+        throw new ForbiddenException('Report is unavailable.');
+      if (!report.objectKey) throw new NotFoundException('Report not found.');
+      await this.audit.append(manager, {
+        eventType: ReportAccessAuditEvent.DELIVERY_AUTHORIZED,
+        reportId: report.id,
+        grantId: null,
+        actorUserId: scope.userId ?? null,
+        scope: scope.role as any,
+        operationKey,
+        occurredAt: new Date(),
+        recipientEmail: recipientEmail.trim().toLowerCase(),
+        outcome: 'AUTHORIZED',
+      });
+      return report;
+    });
+  }
+
+  async recordDownload(report: Report, scope: ReportAccessScope): Promise<void> {
+    await this.data.transaction(async (manager) => {
+      const occurredAt = new Date();
+      await manager.getRepository(Report).update(report.id, {
+        lastAccessedAt: occurredAt,
+      });
+      await this.audit.append(manager, {
+        eventType: ReportAccessAuditEvent.DOWNLOAD_ACCESSED,
+        reportId: report.id,
+        grantId: null,
+        actorUserId: scope.userId ?? null,
+        scope: scope.role as any,
+        operationKey: randomUUID(),
+        occurredAt,
+      });
+    });
   }
 
   async issue(
@@ -134,22 +189,43 @@ export class ReportAccessService {
     manager: EntityManager,
     reportId: string,
     scope: ReportAccessScope,
-  ): Promise<any> {
+  ): Promise<Report> {
     const report = await manager
       .getRepository(Report)
       .findOne({ where: { id: reportId } });
     if (!report || report.status !== ReportStatus.AVAILABLE)
       throw new NotFoundException('Report not found.');
-    if (
-      scope.role === 'ADMIN' ||
-      (scope.role === 'PATIENT' && report.entitledUserId === scope.userId)
-    )
-      return report;
+    if (scope.role === 'ADMIN') return report;
+    if (scope.role === 'PATIENT') {
+      const patientId = await this.resolvePatientId(manager, scope);
+      if (patientId && report.entitledPatientId === patientId) return report;
+    }
     if (
       (scope.role === 'THERAPIST' || scope.role === 'INSTITUTION') &&
       (await this.consent.permits(scope, reportId))
     )
       return report;
     throw new ForbiddenException('Report access is not permitted.');
+  }
+
+  private async resolvePatientId(
+    manager: EntityManager,
+    scope: ReportAccessScope,
+  ): Promise<string | null> {
+    if (scope.userId) {
+      const patients = await manager.query(
+        `SELECT "id" FROM "patients" WHERE "firebase_uid" = $1 LIMIT 1`,
+        [scope.userId],
+      );
+      if (patients[0]?.id) return patients[0].id;
+    }
+    if (scope.email) {
+      const patients = await manager.query(
+        `SELECT "id" FROM "patients" WHERE "email" = $1 LIMIT 1`,
+        [scope.email.trim().toLowerCase()],
+      );
+      if (patients[0]?.id) return patients[0].id;
+    }
+    return null;
   }
 }

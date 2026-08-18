@@ -51,6 +51,37 @@ describe('Report', () => {
     ).not.toThrow();
   });
 
+  it.each([
+    [{}, 'exactly one entitled principal'],
+    [
+      { entitledUserId: 'user-1', entitledPatientId: 'patient-1' },
+      'exactly one entitled principal',
+    ],
+  ])('rejects report creation without exactly one entitlement principal', (entitlement, message) => {
+    expect(() =>
+      Report.createPending({
+        sessionId: 'session-entitlement',
+        entitlementSource: ReportEntitlementSource.GOOGLE_PLAY,
+        generatedAt: new Date(),
+        ...entitlement,
+      }),
+    ).toThrow(message);
+  });
+
+  it('records a patient entitlement independently from a user entitlement', () => {
+    const report = Report.createPending({
+      sessionId: 'session-patient',
+      entitlementSource: ReportEntitlementSource.GOOGLE_PLAY,
+      entitledPatientId: 'patient-1',
+      generatedAt: new Date(),
+    });
+
+    expect(report).toMatchObject({
+      entitledUserId: null,
+      entitledPatientId: 'patient-1',
+    });
+  });
+
   it('records immutable object metadata when generation succeeds', () => {
     const report = Report.createPending({
       sessionId: 'session-2',

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { InjectQueue } from '@nestjs/bullmq';
 import {
   Injectable,
@@ -8,11 +9,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { Session } from '../sessions/entities/session.entity.js';
+import { ReportService } from '../sessions/services/report.service.js';
 import {
   Report,
   ReportEntitlementSource,
   ReportStatus,
 } from './entities/report.entity.js';
+import { ReportDeliveryService } from './report-delivery.service.js';
 
 @Injectable()
 export class ReportsService {
@@ -20,18 +23,35 @@ export class ReportsService {
     @InjectRepository(Report) private readonly reports: Repository<Report>,
     @InjectRepository(Session) private readonly sessions: Repository<Session>,
     @InjectQueue('reports') private readonly queue: Queue,
+    private readonly reportData: ReportService,
+    private readonly delivery: ReportDeliveryService,
   ) {}
 
   async requestGeneration(
     sessionId: string,
     targetEmail?: string,
   ): Promise<{ reportId: string; jobId: string }> {
-    const session = await this.sessions.findOne({ where: { id: sessionId } });
+    const session = await this.sessions
+      .createQueryBuilder('session')
+      .leftJoinAndSelect('session.results', 'results')
+      .where('session.id = :id', { id: sessionId })
+      .addOrderBy('results.percentage', 'DESC')
+      .addOrderBy('results.weightedScore', 'DESC')
+      .addOrderBy('results.categoryId', 'ASC')
+      .getOne();
     if (!session) throw new NotFoundException('Session not found.');
     let report = await this.reports.findOne({
       where: { sessionId, version: 1 },
     });
     if (!report) report = await this.create(session);
+    if (
+      report.status !== ReportStatus.AVAILABLE &&
+      !report.inputSnapshot
+    ) {
+      throw new BadRequestException(
+        'Legacy report cannot be generated because its immutable input snapshot is unavailable.',
+      );
+    }
     const jobId = `report-${report.id}-v${report.version}`;
     if (report.status === ReportStatus.FAILED) {
       report.retry();
@@ -41,8 +61,11 @@ export class ReportsService {
       else await this.add(report, jobId, targetEmail);
     } else if (report.status === ReportStatus.PENDING) {
       await this.add(report, jobId, targetEmail);
+    } else if (report.status === ReportStatus.STORAGE_PENDING) {
+      const job = await this.queue.getJob(jobId);
+      if (job) await job.retry();
+      else await this.add(report, jobId, targetEmail);
     } else if (report.status === ReportStatus.AVAILABLE && targetEmail) {
-      // Use a unique jobId so BullMQ doesn't deduplicate against the original completed job
       const deliveryJobId = `report-${report.id}-deliver-${Date.now()}`;
       await this.add(report, deliveryJobId, targetEmail);
       return { reportId: report.id, jobId: deliveryJobId };
@@ -50,20 +73,54 @@ export class ReportsService {
     return { reportId: report.id, jobId };
   }
 
+  async enqueueDelivery(
+    reportId: string,
+    recipientEmail: string,
+  ): Promise<{ queued: boolean; idempotent: boolean }> {
+    const result = await this.delivery.request(reportId, recipientEmail);
+    if (!result.queued) return result;
+    const recipientHash = createHash('sha256')
+      .update(recipientEmail.trim().toLowerCase())
+      .digest('hex')
+      .slice(0, 16);
+    const jobId = `report-${reportId}-deliver-${recipientHash}`;
+    const job = await this.queue.getJob(jobId);
+    if (job) {
+      if ((await job.getState()) === 'failed') await job.retry();
+      return result;
+    }
+    await this.queue.add(
+      'deliver',
+      { reportId, targetEmail: recipientEmail.trim().toLowerCase() },
+      { jobId },
+    );
+    return result;
+  }
+
   private async create(session: Session): Promise<Report> {
     const entitlement = this.entitlement(session);
-    const entitledUserId = session.patientId || session.therapistUserId;
-    if (!entitledUserId) throw new Error('No entitled user found for session');
+    const entitledPatientId = session.patientId ?? null;
+    const entitledUserId = entitledPatientId ? null : session.therapistUserId ?? null;
+    if (!entitledPatientId && !entitledUserId) {
+      throw new Error('No entitled principal found for session');
+    }
 
+    const generatedAt = new Date();
     const pending = Report.createPending({
       sessionId: session.id,
-      entitledUserId: entitledUserId,
+      entitledUserId,
+      entitledPatientId,
       entitlementSource: entitlement,
       voucherId:
         entitlement === ReportEntitlementSource.VOUCHER
           ? session.voucherId
           : null,
-      generatedAt: session.createdAt,
+      generatedAt,
+      inputSnapshot: {
+        generatedAt: generatedAt.toISOString(),
+        assessmentAt: session.sessionDate.toISOString(),
+        data: await this.reportData.buildReportData(session),
+      },
     });
     try {
       return await this.reports.save(pending);

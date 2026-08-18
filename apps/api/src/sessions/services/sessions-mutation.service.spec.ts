@@ -197,6 +197,42 @@ describe('SessionsMutationService completion boundary', () => {
     },
   );
 
+  it.each(['THERAPIST', 'ADMIN', 'INSTITUTION_ADMIN'])(
+    'rejects an unmapped verified Firebase %s without provisioning a patient',
+    async (role) => {
+      const resolver = {
+        resolveFirebaseUser: jest.fn().mockResolvedValue(null),
+        resolveContext: jest.fn(),
+      };
+      const service = Object.create(SessionsMutationService.prototype);
+      service.ownerResolver = resolver;
+      service.create = jest.fn();
+
+      await expect(
+        service.completeSession(
+          { startedAt: new Date().toISOString(), swipes: [], resultPayload: {} },
+          {
+            userId: 'firebase-non-uuid-owner-id',
+            email: 'owner@example.com',
+            isFirebaseEmailVerified: true,
+            role,
+          },
+        ),
+      ).rejects.toThrow('not linked to an internal user');
+
+      expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
+        {
+          uid: 'firebase-non-uuid-owner-id',
+          email: 'owner@example.com',
+          displayName: undefined,
+        },
+        false,
+      );
+      expect(service.create).not.toHaveBeenCalled();
+      expect(resolver.resolveContext).not.toHaveBeenCalled();
+    },
+  );
+
   it('persists authenticated patient and fallback owner despite conflicting client IDs', async () => {
     const resolver = {
       resolveContext: jest.fn().mockResolvedValue({
@@ -241,7 +277,12 @@ describe('SessionsMutationService completion boundary', () => {
       expect.anything(),
     );
     expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
-      'patient@example.com',
+      {
+        uid: 'firebase-non-uuid-user-id',
+        email: 'patient@example.com',
+        displayName: undefined,
+      },
+      true,
     );
   });
 

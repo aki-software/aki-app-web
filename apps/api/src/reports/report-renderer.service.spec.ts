@@ -24,9 +24,41 @@ describe('ReportRendererService', () => {
     expect(templates.renderTemplate).toHaveBeenCalledWith(
       'report-pdf.pug',
       expect.objectContaining({
-        logoDataUri: '',
+        logoDataUri: expect.stringMatching(/^data:image\/png;base64,.+$/),
         locale: 'es-AR',
         timeZone: 'UTC',
+      }),
+    );
+  });
+
+  it('embeds the required Inter font weights as local data URIs', async () => {
+    const templates = { renderTemplate: jest.fn().mockReturnValue('<html />') };
+    const pdfGenerator = {
+      generateFromHtml: jest.fn().mockResolvedValue(Buffer.from('pdf')),
+    };
+    const service = new ReportRendererService(pdfGenerator, templates as any);
+    const input = {
+      locale: 'es-AR',
+      timeZone: 'UTC',
+      generatedAt: '2026-01-01T00:00:00.000Z',
+      assessmentAt: '2025-12-01T00:00:00.000Z',
+      templateVersion: 'v1',
+      reportVersion: 1,
+      data: {},
+    };
+
+    await service.render(input);
+
+    const { fontFaceCss } = templates.renderTemplate.mock.calls[0][1];
+    const fontDataUris = fontFaceCss.match(/data:font\/woff2;base64,[^;]+/g);
+    expect(fontDataUris).toHaveLength(4);
+    fontDataUris.forEach((uri: string) => {
+      expect(uri).toMatch(/^data:font\/woff2;base64,.+$/);
+    });
+    expect(templates.renderTemplate).toHaveBeenCalledWith(
+      'report-pdf.pug',
+      expect.objectContaining({
+        fontFaceCss: expect.stringContaining('@font-face'),
       }),
     );
   });

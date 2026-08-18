@@ -24,7 +24,7 @@ export class ReportAccessAuditSchema1787000000004 implements MigrationInterface 
       'CREATE INDEX "IDX_report_access_audits_report_id_occurred_at" ON "report_access_audits" ("report_id", "occurred_at")',
     );
     await queryRunner.query(
-      `CREATE FUNCTION "prevent_report_access_audit_mutation"() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'report access audits are append-only'; END; $$ LANGUAGE plpgsql`,
+      `CREATE OR REPLACE FUNCTION "prevent_report_access_audit_mutation"() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'report access audits are append-only'; END; $$ LANGUAGE plpgsql`,
     );
     await queryRunner.query(
       `CREATE TRIGGER "TRG_report_access_audits_append_only" BEFORE UPDATE OR DELETE ON "report_access_audits" FOR EACH ROW EXECUTE FUNCTION "prevent_report_access_audit_mutation"()`,

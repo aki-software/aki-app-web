@@ -22,6 +22,24 @@ export class UpdateTresAreasDto {
   tendencies?: string[];
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value.map((v) => (typeof v === 'string' ? sanitizeHtml(v) : v));
+    }
+    return value;
+  })
+  competencies?: string[];
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? sanitizeHtml(value) : value,
+  )
+  keyInsight?: string;
+
+  @IsOptional()
   @IsString()
   @Transform(({ value }) =>
     typeof value === 'string' ? sanitizeHtml(value) : value,

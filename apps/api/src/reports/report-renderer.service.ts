@@ -1,8 +1,23 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import * as path from 'node:path';
 import { Inject, Injectable } from '@nestjs/common';
 import { PDF_GENERATOR } from '../common/constants/adapters.constants.js';
 import type { PdfGenerator } from '../common/adapters/pdf-generator.adapter.js';
 export const REPORT_TEMPLATE_RENDERER = 'REPORT_TEMPLATE_RENDERER';
+
+const logoDataUri = `data:image/png;base64,${readFileSync(
+  path.resolve(__dirname, '../common/assets/logo.png'),
+).toString('base64')}`;
+
+const fontFaceCss = [400, 500, 600, 700]
+  .map((weight) => {
+    const font = readFileSync(
+      require.resolve(`@fontsource/inter/files/inter-latin-${weight}-normal.woff2`),
+    ).toString('base64');
+    return `@font-face { font-family: 'Inter'; font-style: normal; font-weight: ${weight}; src: url(data:font/woff2;base64,${font}) format('woff2'); }`;
+  })
+  .join('\n');
 
 interface ReportTemplateRenderer {
   renderTemplate(name: string, payload: Record<string, unknown>): string;
@@ -39,7 +54,8 @@ export class ReportRendererService {
       assessmentAt: input.assessmentAt,
       reportVersion: input.reportVersion,
       templateVersion: input.templateVersion,
-      logoDataUri: '',
+      logoDataUri,
+      fontFaceCss,
     });
     return { pdf: await this.pdfGenerator.generateFromHtml(html), inputHash };
   }

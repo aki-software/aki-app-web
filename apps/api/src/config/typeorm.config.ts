@@ -18,6 +18,8 @@ import { PaymentFulfillmentOutbox } from '../payments/entities/payment-fulfillme
 import { Report } from '../reports/entities/report.entity.js';
 import { ReportGrant } from '../reports/entities/report-grant.entity.js';
 import { ReportAccessAudit } from '../reports/entities/report-access-audit.entity.js';
+import { ReportDelivery } from '../reports/entities/report-delivery.entity.js';
+import { Patient } from '../patients/entities/patient.entity.js';
 
 dotenv.config();
 
@@ -38,6 +40,7 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         SessionMetrics,
         VocationalCategory,
         User,
+        Patient,
         Institution,
         Voucher,
         VoucherBatch,
@@ -48,8 +51,10 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         Report,
         ReportGrant,
         ReportAccessAudit,
+        ReportDelivery,
       ],
       migrations: ['dist/migrations/[0-9]*.js'],
+      migrationsTransactionMode: 'each',
       synchronize: false,
       ssl: isLocalDatabaseUrl ? false : { rejectUnauthorized: false },
     }
@@ -67,6 +72,7 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         SessionMetrics,
         VocationalCategory,
         User,
+        Patient,
         Institution,
         Voucher,
         VoucherBatch,
@@ -77,8 +83,10 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         Report,
         ReportGrant,
         ReportAccessAudit,
+        ReportDelivery,
       ],
       migrations: ['dist/migrations/[0-9]*.js'],
+      migrationsTransactionMode: 'each',
       synchronize: false,
       ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
     };

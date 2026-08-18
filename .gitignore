@@ -23,3 +23,7 @@ tmp/
 /openspec
 # Local Pi runtime state
 .atl/
+.pi
+.codegraph
+/docs
+

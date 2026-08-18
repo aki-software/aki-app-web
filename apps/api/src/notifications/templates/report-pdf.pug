@@ -1,4 +1,31 @@
 doctype html
+-
+  function immutableSubtitle(subtitle) {
+    var normalized = String(subtitle || '').trim().toUpperCase();
+    if (
+      normalized === 'COMPETENCIAS IMPORTANTES' ||
+      normalized === 'COMPETENCIAS IMPORTANTES PARA DESEMPEÑARSE EN EL ÁREA' ||
+      normalized === 'LAS COMPETENCIAS MÁS IMPORTANTES PARA ESTE TIPO DE PERFIL SON'
+    ) {
+      return 'COMPETENCIAS IMPORTANTES PARA DESEMPEÑARSE EN EL ÁREA';
+    }
+    if (
+      normalized === 'PROFESIONES TÉCNICAS O FORMALES' ||
+      normalized === 'ALGUNAS PROFESIONES VINCULADAS' ||
+      normalized === 'PUEDE INCLUIR PROFESIONES TÉCNICAS Y FORMALES' ||
+      normalized === 'TAMBIÉN PUEDE INCLUIR PROFESIONES MÁS TÉCNICAS O FORMALES COMO'
+    ) {
+      return 'TAMBIÉN PUEDE INCLUIR PROFESIONES MÁS TÉCNICAS O FORMALES COMO';
+    }
+    if (
+      normalized === 'OCUPACIONES Y OFICIOS' ||
+      normalized === 'POSIBLES ÁMBITOS DE TRABAJO' ||
+      normalized === 'ALGUNAS OCUPACIONES QUE SE VINCULAR AL ÁREA'
+    ) {
+      return 'ALGUNAS OCUPACIONES QUE SE VINCULAR AL ÁREA';
+    }
+    return String(subtitle || '').toUpperCase();
+  }
 mixin categoryIcon(categoryId)
   -
     var ICONS = {
@@ -24,17 +51,19 @@ html(lang="es")
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title Informe Vocacional - Orient A.ki
+    style(type='text/css')!= fontFaceCss
     style.
 
       * { box-sizing: border-box; }
       body {
         margin: 0;
         padding: 0;
-        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-family: 'Inter';
         color: #{colors.text.secondary};
         background: #{colors.background.light};
-        font-size: 12px;
+        font-size: 13px;
         line-height: 1.5;
+        text-transform: uppercase;
       }
       h1, h2, h3, h4 {
         letter-spacing: -0.02em;
@@ -51,19 +80,20 @@ html(lang="es")
       }
       .header {
         text-align: center;
-        padding: 10px 0 15px;
+        padding: 4px 0 12px;
+        border-bottom: 1px solid #{colors.surface.variantLight};
       }
       .logo-lg {
-        width: 120px;
+        width: 100px;
         height: auto;
         display: inline-block;
       }
       .intro {
         text-align: center;
-        margin-bottom: 24px;
+        margin: 16px 0 14px;
       }
       .patient-name {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 900;
         color: #{colors.text.primary};
         margin: 4px 0 2px;
@@ -78,22 +108,20 @@ html(lang="es")
         opacity: 0.8;
       }
       .greeting {
-        font-size: 16px;
+        font-size: 14px;
         color: #{colors.primary.DEFAULT};
         margin: 0;
         font-weight: 800;
       }
       .disclaimer {
-        margin: 10px 0 20px;
-        padding: 12px 16px;
-        border-radius: 12px;
-        background: #ffffff;
-        border-left: 4px solid #{colors.primary.DEFAULT};
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        margin: 8px 0 14px;
+        padding: 10px 14px;
+        border-left: 3px solid #{colors.primary.DEFAULT};
+        background: #{colors.surface.light};
       }
       .disclaimer p {
         font-size: 11px;
-        line-height: 1.5;
+        line-height: 1.45;
         color: #{colors.text.secondary};
         margin: 0;
       }
@@ -106,25 +134,28 @@ html(lang="es")
         margin-bottom: 2px;
       }
       .hero {
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 20px;
-        background: linear-gradient(135deg, #{colors.primary.DEFAULT} 0%, #2d8a87 60%, #4E7F52 100%);
-        padding: 20px;
-        box-shadow: 0 8px 20px rgba(15, 107, 104, 0.12);
+        border-left: 5px solid #{colors.actions.confirm.DEFAULT};
+        background: #{colors.primary.DEFAULT};
+        padding: 16px 18px;
         color: white;
       }
       .hero-title {
-        font-size: 18px;
+        font-size: 17px;
         margin: 0 0 4px;
         font-weight: 900;
         color: white;
       }
       .hero-sub {
-        font-size: 12px;
+        font-size: 11px;
         margin: 0;
         opacity: 0.95;
         line-height: 1.5;
         color: white;
+      }
+      .strengths-description {
+        color: #{colors.text.primary};
+        font-size: 12px;
+        line-height: 1.5;
       }
       .pill {
         display: inline-block;
@@ -138,7 +169,7 @@ html(lang="es")
         margin-top: 12px;
       }
       .meta-row {
-        margin-top: 20px;
+        margin-top: 14px;
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
@@ -154,13 +185,13 @@ html(lang="es")
         font-size: 9px;
       }
       .holland-bars {
-        margin-top: 16px;
+        margin-top: 12px;
       }
       .holland-bar-item {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         font-size: 11px;
         color: white;
       }
@@ -215,13 +246,13 @@ html(lang="es")
         stroke-linejoin: round;
       }
       .section {
-        margin-top: 24px;
+        margin-top: 28px;
       }
       .section-title {
         font-size: 12px;
         font-weight: 800;
         text-transform: uppercase;
-        color: #{colors.outline.light};
+        color: #{colors.primary.DEFAULT};
         letter-spacing: 0.1em;
         margin-bottom: 12px;
         break-after: avoid;
@@ -229,28 +260,31 @@ html(lang="es")
       }
       .card {
         border: 1px solid #{colors.surface.variantLight};
-        border-radius: 16px;
+        border-radius: 8px;
         background: #ffffff;
-        padding: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding: 12px 16px;
+        box-shadow: 0 2px 6px rgba(31, 37, 35, 0.05);
       }
       .area-card {
-        margin-bottom: 16px;
+        margin-bottom: 20px;
         border: 1px solid #{colors.surface.variantLight};
-        border-radius: 12px;
+        border-radius: 8px;
         background: #ffffff;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        overflow: visible;
+        break-inside: auto;
+        page-break-inside: auto;
       }
       .area-head {
         padding: 12px 16px;
-        background: #fdfdfd;
+        background: #{colors.surface.light};
         border-bottom: 1px solid #{colors.surface.variantLight};
         display: flex;
         justify-content: space-between;
         align-items: center;
         break-after: avoid;
         page-break-after: avoid;
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
       .area-head h3 {
         font-size: 14px;
@@ -258,8 +292,8 @@ html(lang="es")
         color: #{colors.text.primary};
       }
       .badge {
-        padding: 4px 10px;
-        border-radius: 8px;
+        padding: 3px 8px;
+        border-radius: 999px;
         background: #{colors.primary.DEFAULT}15;
         color: #{colors.primary.DEFAULT};
         font-size: 12px;
@@ -268,8 +302,15 @@ html(lang="es")
       .area-content {
         padding: 16px;
       }
+      .content-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .content-block + .content-block {
+        margin-top: 12px;
+      }
       .block-title {
-        font-size: 11px;
+        font-size: 13px;
         color: #{colors.primary.DEFAULT};
         text-transform: uppercase;
         letter-spacing: .05em;
@@ -277,11 +318,6 @@ html(lang="es")
         margin-bottom: 6px;
         break-after: avoid;
         page-break-after: avoid;
-      }
-      .block-text + .block-title,
-      ul + .block-title,
-      .careers-card + .block-title {
-        margin-top: 12px;
       }
       .area-content ul, .triplet ul, .custom-html-content ul {
         padding-left: 20px;
@@ -301,9 +337,13 @@ html(lang="es")
       .ranking-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 6px 0;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #{colors.surface.variantLight};
         page-break-inside: avoid;
+      }
+      .ranking-item:last-child {
+        border-bottom: 0;
       }
       .ranking-label {
         font-size: 12px;
@@ -312,15 +352,17 @@ html(lang="es")
         min-width: 140px;
       }
       .ranking-bar {
-        height: 8px;
-        background: #{colors.surface.variantLight};
+        height: 10px;
+        background: #ded8cc;
+        border: 1px solid #d2cabb;
         border-radius: 999px;
         overflow: hidden;
         flex: 1;
       }
       .ranking-bar-fill {
+        display: block;
         height: 100%;
-        background: #{colors.actions.confirm.DEFAULT};
+        background: #{colors.primary.DEFAULT};
         border-radius: 999px;
       }
       .ranking-value {
@@ -335,7 +377,7 @@ html(lang="es")
         line-height: 1.6;
         color: #{colors.text.secondary};
         margin-bottom: 12px;
-        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-family: 'Inter';
         font-weight: 400;
       }
       .careers-card {
@@ -358,55 +400,65 @@ html(lang="es")
         margin-bottom: 0;
       }
       .triplet {
+        margin-top: 16px;
         border: 1px solid #{colors.surface.variantLight};
-        border-radius: 12px;
-        background: #fdfdfd;
+        border-top: 4px solid #{colors.primary.DEFAULT};
+        border-radius: 8px;
+        background: #ffffff;
         padding: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 2px 6px rgba(31, 37, 35, 0.05);
+        page-break-inside: auto;
       }
-      .key-insight {
-        margin-top: 14px;
-        padding: 12px 16px;
-        border-radius: 10px;
-        background: #{colors.primary.DEFAULT}0d;
-        border-left: 4px solid #{colors.primary.DEFAULT};
-      }
-      .key-insight-label {
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #{colors.primary.DEFAULT};
-        margin-bottom: 4px;
-      }
-      .key-insight-text {
+      .triplet-intro {
         font-size: 12px;
         line-height: 1.6;
         color: #{colors.text.secondary};
-        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-        font-weight: 400;
+        margin: 0 0 16px;
+      }
+      .key-insight {
+        margin-top: 18px;
+        padding: 18px 20px;
+        background: #{colors.primary.DEFAULT}18;
+        border-left: 5px solid #{colors.primary.DEFAULT};
+        page-break-inside: avoid;
+      }
+      .key-insight-label {
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #{colors.primary.DEFAULT};
+        margin-bottom: 6px;
+      }
+      .key-insight-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #{colors.text.primary};
+        font-family: 'Inter';
+        font-weight: 600;
         margin: 0;
       }
       .final-disclaimer {
         margin-top: 32px;
         padding: 24px;
         background: #ffffff;
-        border-radius: 16px;
         border: 1px solid #{colors.primary.DEFAULT};
+        border-top: 4px solid #{colors.primary.DEFAULT};
         text-align: center;
         page-break-inside: avoid;
       }
       .final-disclaimer h4 {
         color: #{colors.primary.DEFAULT};
-        font-size: 14px;
-        font-weight: 800;
-        letter-spacing: 0.05em;
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
         margin-bottom: 12px;
       }
       .final-disclaimer p {
-        font-size: 12px;
+        font-size: 14px;
         line-height: 1.6;
-        color: #{colors.text.secondary};
+        color: #{colors.text.primary};
+        font-weight: 500;
         margin-bottom: 8px;
       }
       .triplet h3 {
@@ -459,17 +511,6 @@ html(lang="es")
           .meta-chip #{brandDomain}
 
 
-      if strengths && strengths.length > 0
-        .section
-          p.section-title Tus Fortalezas Vocacionales
-          p.hero-sub(style="color:#{colors.text.secondary};") Competencias clave identificadas a partir de tus intereses y preferencias.
-          .strengths-row
-            each strength in strengths
-              .strength-badge
-                svg(width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round")
-                  polyline(points="20 6 9 17 4 12")
-                span #{strength}
-
       if bottomAreas && bottomAreas.length > 0
         .section
           p.section-title Áreas menos seleccionadas
@@ -496,57 +537,53 @@ html(lang="es")
             .area-content
               if res.parsedBlocks && res.parsedBlocks.length > 0
                 each block in res.parsedBlocks
-                  if block.subtitle
-                    p.block-title #{block.subtitle}
-                  if block.list
-                    ul
-                      each item in block.list
-                        li #{item}
-                  else if block.content
-                    p.block-text #{block.content}
+                  .content-block
+                    if block.subtitle
+                      p.block-title #{immutableSubtitle(block.subtitle)}
+                    if block.list
+                      ul
+                        each item in block.list
+                          li #{item}
+                    else if block.content
+                      p.block-text #{block.content}
               else
-                p.block-text #{res.description}
-
-              if res.suggestedCareers && res.suggestedCareers.length > 0
-                .careers-card
-                  h4 Carreras sugeridas
-                  ul
-                    each career in res.suggestedCareers
-                      li #{career}
+                .content-block
+                  p.block-text #{res.description}
 
       if tripletInsight
         .section
           p.section-title ¿Qué significa la combinación de estas áreas?
-          p.block-text(style="margin-bottom: 16px; break-after: avoid; page-break-after: avoid;") Lo más importante no es cada área por separado, sino cómo se combinan entre sí. En tu caso, la combinación:
           .triplet
+            p.triplet-intro Lo más importante no es cada área por separado, sino cómo se combinan entre sí. En tu caso, la combinación:
             h3 #{tripletInsight.title || 'Combinación de intereses'}
             if tripletInsight.narrative
-              - var narrativeSentence = tripletInsight.narrative.charAt(0).toUpperCase() + tripletInsight.narrative.slice(1).toLowerCase()
-              p.block-text(style="font-size:12px;line-height:1.65;color:#{colors.text.secondary};margin-bottom:12px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;font-weight:400;") #{narrativeSentence}
-            if tripletInsight.keyInsight
-              - var keyInsightSentence = tripletInsight.keyInsight.charAt(0).toUpperCase() + tripletInsight.keyInsight.slice(1).toLowerCase()
-              .key-insight
-                p.key-insight-label La clave en esta combinación
-                p.key-insight-text #{keyInsightSentence}
-            if tripletInsight.tendencies && tripletInsight.tendencies.length > 0
-              p.block-title Las competencias más importantes para este tipo de perfil son
+              - var narrativeSentence = tripletInsight.narrative.toUpperCase()
+              p.block-text(style="font-size:12px;line-height:1.65;color:#{colors.text.secondary};margin-bottom:12px;font-family:'Inter';font-weight:400;") #{narrativeSentence}
+            - var competencies = tripletInsight.competencies && tripletInsight.competencies.length > 0 ? tripletInsight.competencies : tripletInsight.tendencies
+            if competencies && competencies.length > 0
+              p.block-title COMPETENCIAS IMPORTANTES PARA DESEMPEÑARSE EN EL ÁREA
               ul
-                each tendency in tripletInsight.tendencies
-                  li #{tendency}
+                each competency in competencies
+                  li #{competency}
             if tripletInsight.possibleJobs && tripletInsight.possibleJobs.length > 0
-              p.block-title Posibles ámbitos de trabajo
+              p.block-title ALGUNAS OCUPACIONES QUE SE VINCULAR AL ÁREA
               ul
                 each job in tripletInsight.possibleJobs
                   li #{job}
             if tripletInsight.relatedProfessions && tripletInsight.relatedProfessions.length > 0
-              p.block-title Algunas profesiones vinculadas
+              p.block-title TAMBIÉN PUEDE INCLUIR PROFESIONES MÁS TÉCNICAS O FORMALES COMO
               ul
                 each profession in tripletInsight.relatedProfessions
                   li #{profession}
+            if tripletInsight.keyInsight
+              - var keyInsightSentence = tripletInsight.keyInsight.toUpperCase()
+              .key-insight
+                p.key-insight-label La clave en esta combinación
+                p.key-insight-text #{keyInsightSentence}
             if tripletInsight.customSections && tripletInsight.customSections.length > 0
               each section in tripletInsight.customSections
                 if section.title
-                  p.block-title #{section.title}
+                  p.block-title #{immutableSubtitle(section.title)}
                 if section.items && section.items.length > 0
                   ul
                     each item in section.items
