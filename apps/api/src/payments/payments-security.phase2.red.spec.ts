@@ -448,6 +448,9 @@ function createPlayFixture(
       findByPaymentToken: jest.fn().mockResolvedValue(existingSession),
     } as never,
     {
+      resolveFirebaseUser: jest.fn().mockResolvedValue({ id: PATIENT_ID }),
+    } as never,
+    {
       ...mutations,
       unlockReportEntitlement: jest.fn().mockResolvedValue(undefined),
     } as never,

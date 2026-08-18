@@ -12,9 +12,11 @@ export class ReportInputSnapshotAndStoragePending1787000000005 implements Migrat
     );
   }
 
-  async down(): Promise<void> {
-    throw new Error(
-      'Report input snapshots and enum values are intentionally irreversible.',
+  down(): Promise<void> {
+    return Promise.reject(
+      new Error(
+        'Report input snapshots and enum values are intentionally irreversible.',
+      ),
     );
   }
 }

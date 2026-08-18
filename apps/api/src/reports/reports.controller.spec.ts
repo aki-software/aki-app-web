@@ -59,11 +59,16 @@ describe('ReportsController', () => {
         req(),
       ),
     ).resolves.toEqual({ consumed: true });
-    expect(JSON.stringify(access.consume.mock.calls)).not.toContain('objectKey');
+    expect(JSON.stringify(access.consume.mock.calls)).not.toContain(
+      'objectKey',
+    );
   });
 
   it('streams an authorized private PDF with attachment headers', async () => {
-    const report = { id: 'report-1', objectKey: 'private/reports/report-1.pdf' };
+    const report = {
+      id: 'report-1',
+      objectKey: 'private/reports/report-1.pdf',
+    };
     access.download.mockResolvedValue(report);
     storage.get.mockResolvedValue(Buffer.from('pdf'));
     const res = response();
@@ -98,7 +103,10 @@ describe('ReportsController', () => {
     'authorizes %s to queue an alternate recipient without exposing storage',
     async (role) => {
       access.authorizeDelivery.mockResolvedValue({ id: 'report-1' });
-      reports.enqueueDelivery.mockResolvedValue({ queued: true, idempotent: false });
+      reports.enqueueDelivery.mockResolvedValue({
+        queued: true,
+        idempotent: false,
+      });
 
       await expect(
         (controller as any).requestDelivery(
@@ -122,11 +130,13 @@ describe('ReportsController', () => {
   );
 
   it('does not fetch storage when access is denied', async () => {
-    access.download.mockRejectedValue(new Error('Report access is not permitted.'));
-
-    await expect(controller.download('report-1', req(), response())).rejects.toThrow(
-      'not permitted',
+    access.download.mockRejectedValue(
+      new Error('Report access is not permitted.'),
     );
+
+    await expect(
+      controller.download('report-1', req(), response()),
+    ).rejects.toThrow('not permitted');
     expect(storage.get).not.toHaveBeenCalled();
     expect(access.recordDownload).not.toHaveBeenCalled();
   });
@@ -138,9 +148,9 @@ describe('ReportsController', () => {
     });
     storage.get.mockResolvedValue(null);
 
-    await expect(controller.download('report-1', req(), response())).rejects.toThrow(
-      'Report file not found.',
-    );
+    await expect(
+      controller.download('report-1', req(), response()),
+    ).rejects.toThrow('Report file not found.');
     expect(access.recordDownload).not.toHaveBeenCalled();
   });
 });

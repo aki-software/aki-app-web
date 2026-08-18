@@ -48,7 +48,11 @@ describe('SessionsController send-report scope', () => {
       },
     };
 
-    await controller.sendReport('session-id', { email: 'patient@example.com' }, request);
+    await controller.sendReport(
+      'session-id',
+      { email: 'patient@example.com' },
+      request,
+    );
 
     expect(orchestrator.sendReport).toHaveBeenCalledWith(
       'session-id',

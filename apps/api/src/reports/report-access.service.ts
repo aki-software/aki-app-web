@@ -72,7 +72,10 @@ export class ReportAccessService {
     });
   }
 
-  async recordDownload(report: Report, scope: ReportAccessScope): Promise<void> {
+  async recordDownload(
+    report: Report,
+    scope: ReportAccessScope,
+  ): Promise<void> {
     await this.data.transaction(async (manager) => {
       const occurredAt = new Date();
       await manager.getRepository(Report).update(report.id, {

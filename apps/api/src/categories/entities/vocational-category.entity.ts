@@ -23,7 +23,12 @@ export class VocationalCategory {
   @Column({ name: 'occupations', type: 'text', array: true, default: '{}' })
   occupations!: string[];
 
-  @Column({ name: 'formal_professions', type: 'text', array: true, default: '{}' })
+  @Column({
+    name: 'formal_professions',
+    type: 'text',
+    array: true,
+    default: '{}',
+  })
   formalProfessions!: string[];
 
   @Column({ name: 'competencies', type: 'text', array: true, default: '{}' })

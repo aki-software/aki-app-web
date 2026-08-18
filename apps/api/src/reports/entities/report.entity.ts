@@ -53,7 +53,10 @@ export interface AvailableReportObject {
   unique: true,
 })
 @Index('IDX_reports_entitled_user_id_status', ['entitledUserId', 'status'])
-@Index('IDX_reports_entitled_patient_id_status', ['entitledPatientId', 'status'])
+@Index('IDX_reports_entitled_patient_id_status', [
+  'entitledPatientId',
+  'status',
+])
 @Index('IDX_reports_available_until', ['availableUntil'])
 @Index('IDX_reports_voucher_id', ['voucherId'])
 @Check(

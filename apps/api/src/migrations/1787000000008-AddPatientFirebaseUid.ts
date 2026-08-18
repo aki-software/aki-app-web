@@ -16,6 +16,8 @@ export class AddPatientFirebaseUid1787000000008 implements MigrationInterface {
     await queryRunner.query(
       'ALTER TABLE "patients" DROP CONSTRAINT "UQ_patients_firebase_uid"',
     );
-    await queryRunner.query('ALTER TABLE "patients" DROP COLUMN "firebase_uid"');
+    await queryRunner.query(
+      'ALTER TABLE "patients" DROP COLUMN "firebase_uid"',
+    );
   }
 }

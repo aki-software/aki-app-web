@@ -10,7 +10,11 @@ describe('ReportAccessService', () => {
     version: 1,
     availableUntil: new Date('2027-01-01'),
   } as any;
-  const scope = (role: string, userId = 'firebase-patient-1', email = 'ada@example.com') => ({
+  const scope = (
+    role: string,
+    userId = 'firebase-patient-1',
+    email = 'ada@example.com',
+  ) => ({
     role,
     userId,
     email,
@@ -32,7 +36,11 @@ describe('ReportAccessService', () => {
     const audit = { append: jest.fn().mockResolvedValue({}) };
     const consent = { permits: jest.fn().mockResolvedValue(false) };
     return {
-      service: new ReportAccessService(data as any, audit as any, consent as any),
+      service: new ReportAccessService(
+        data as any,
+        audit as any,
+        consent as any,
+      ),
       manager,
       audit,
       consent,
@@ -178,9 +186,9 @@ describe('ReportAccessService', () => {
 
   it('rejects an unauthorized download before it can reach storage', async () => {
     const { service } = setup();
-    await expect(service.download('report-1', scope('THERAPIST'))).rejects.toThrow(
-      'not permitted',
-    );
+    await expect(
+      service.download('report-1', scope('THERAPIST')),
+    ).rejects.toThrow('not permitted');
   });
 
   it('rejects expired or incomplete report objects', async () => {
@@ -191,18 +199,21 @@ describe('ReportAccessService', () => {
       objectKey: 'private/reports/report-1.pdf',
       availableUntil: new Date('2020-01-01'),
     });
-    await expect(service.download('report-1', scope('PATIENT'))).rejects.toThrow(
-      'unavailable',
-    );
+    await expect(
+      service.download('report-1', scope('PATIENT')),
+    ).rejects.toThrow('unavailable');
     findOne.mockResolvedValueOnce({ ...report, objectKey: null });
-    await expect(service.download('report-1', scope('PATIENT'))).rejects.toThrow(
-      'not found',
-    );
+    await expect(
+      service.download('report-1', scope('PATIENT')),
+    ).rejects.toThrow('not found');
   });
 
   it('records a successful download with the existing audit seam', async () => {
     const { service, manager, audit } = setup();
-    const downloadable = { ...report, objectKey: 'private/reports/report-1.pdf' };
+    const downloadable = {
+      ...report,
+      objectKey: 'private/reports/report-1.pdf',
+    };
     await service.recordDownload(downloadable, scope('PATIENT'));
     expect(manager.getRepository().update).toHaveBeenCalledWith(
       'report-1',

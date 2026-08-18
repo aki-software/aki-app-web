@@ -210,7 +210,11 @@ describe('SessionsMutationService completion boundary', () => {
 
       await expect(
         service.completeSession(
-          { startedAt: new Date().toISOString(), swipes: [], resultPayload: {} },
+          {
+            startedAt: new Date().toISOString(),
+            swipes: [],
+            resultPayload: {},
+          },
           {
             userId: 'firebase-non-uuid-owner-id',
             email: 'owner@example.com',

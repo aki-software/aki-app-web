@@ -49,15 +49,18 @@ describe('SessionsOrchestratorService', () => {
       reportOrchestratorService,
       sessionOwnerResolverService,
     } = createService();
-    const scope = { role: 'PATIENT', patientId: firebaseUid, email } as SessionScope;
+    const scope = {
+      role: 'PATIENT',
+      patientId: firebaseUid,
+      email,
+    } as SessionScope;
 
     await service.sendReport('session-id', email, null, scope);
 
     const normalizedScope = { ...scope, patientId };
-    expect(sessionOwnerResolverService.resolveFirebaseUser).toHaveBeenCalledWith(
-      { uid: firebaseUid, email },
-      false,
-    );
+    expect(
+      sessionOwnerResolverService.resolveFirebaseUser,
+    ).toHaveBeenCalledWith({ uid: firebaseUid, email }, false);
     expect(sessionsQueryService.findOne).toHaveBeenCalledWith(
       'session-id',
       normalizedScope,
@@ -77,7 +80,11 @@ describe('SessionsOrchestratorService', () => {
       reportOrchestratorService,
       sessionOwnerResolverService,
     } = createService();
-    const scope = { role: 'PATIENT', patientId: firebaseUid, email } as SessionScope;
+    const scope = {
+      role: 'PATIENT',
+      patientId: firebaseUid,
+      email,
+    } as SessionScope;
     sessionOwnerResolverService.resolveFirebaseUser.mockRejectedValueOnce(
       new NotFoundException('Firebase patient identity is not mapped'),
     );
@@ -104,8 +111,13 @@ describe('SessionsOrchestratorService', () => {
 
     await service.sendReport('session-id', email, null, scope);
 
-    expect(sessionOwnerResolverService.resolveFirebaseUser).not.toHaveBeenCalled();
-    expect(sessionsQueryService.findOne).toHaveBeenCalledWith('session-id', scope);
+    expect(
+      sessionOwnerResolverService.resolveFirebaseUser,
+    ).not.toHaveBeenCalled();
+    expect(sessionsQueryService.findOne).toHaveBeenCalledWith(
+      'session-id',
+      scope,
+    );
     expect(reportOrchestratorService.sendReport).toHaveBeenCalledWith(
       'session-id',
       email,

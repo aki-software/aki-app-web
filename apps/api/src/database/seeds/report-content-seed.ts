@@ -2,15 +2,23 @@ import { DataSource } from 'typeorm';
 import { typeOrmConfig } from '../../config/typeorm.config.js';
 import { upsertVocationalCategories } from './categories-seed.js';
 import { upsertTresAreasCombinations } from './tres-areas-combinations-seed.js';
-import { getReportContentPaths, loadReportContent } from './report-content-loader.js';
+import {
+  getReportContentPaths,
+  loadReportContent,
+} from './report-content-loader.js';
 
 async function runReportContentSeed(): Promise<void> {
   const content = await loadReportContent();
   const paths = getReportContentPaths();
-  const checkOnly = process.argv.includes('--check') || process.argv.includes('--dry-run');
+  const checkOnly =
+    process.argv.includes('--check') || process.argv.includes('--dry-run');
 
-  console.log(`Validated ${content.categories.length} categories and ${content.combinations.length} combinations.`);
-  console.log(`Canonical files: ${paths.materialPath}, ${paths.combinationsPath}`);
+  console.log(
+    `Validated ${content.categories.length} categories and ${content.combinations.length} combinations.`,
+  );
+  console.log(
+    `Canonical files: ${paths.materialPath}, ${paths.combinationsPath}`,
+  );
   if (checkOnly) return;
 
   const dataSource = new DataSource({ ...typeOrmConfig, migrations: [] });

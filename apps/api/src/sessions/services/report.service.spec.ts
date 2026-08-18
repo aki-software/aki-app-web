@@ -85,9 +85,18 @@ describe('ReportService', () => {
 
     expect(reportData.topResults[0].parsedBlocks).toEqual([
       { subtitle: 'Descripción breve', content: 'canonical description' },
-      expect.objectContaining({ subtitle: 'Ocupaciones y oficios', list: ['Illustrator'] }),
-      expect.objectContaining({ subtitle: 'Profesiones técnicas o formales', list: ['Fine arts degree'] }),
-      expect.objectContaining({ subtitle: 'Competencias importantes', list: ['Visual communication'] }),
+      expect.objectContaining({
+        subtitle: 'Ocupaciones y oficios',
+        list: ['Illustrator'],
+      }),
+      expect.objectContaining({
+        subtitle: 'Profesiones técnicas o formales',
+        list: ['Fine arts degree'],
+      }),
+      expect.objectContaining({
+        subtitle: 'Competencias importantes',
+        list: ['Visual communication'],
+      }),
     ]);
     expect(reportData.strengths).toEqual(['Visual communication']);
   });
@@ -113,7 +122,10 @@ describe('ReportService', () => {
     } as unknown as Session);
 
     expect(reportData.topResults[0].parsedBlocks).toEqual([
-      { subtitle: 'Competencias importantes para desempeñarse en el área', content: 'Legacy competency' },
+      {
+        subtitle: 'Competencias importantes para desempeñarse en el área',
+        content: 'Legacy competency',
+      },
     ]);
     expect(reportData.strengths).toEqual(['Legacy competency']);
   });

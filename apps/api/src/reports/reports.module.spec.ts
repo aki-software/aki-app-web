@@ -1,16 +1,17 @@
 jest.mock('@akit/design-tokens', () => ({ colors: {} }), { virtual: true });
 
 import { Test } from '@nestjs/testing';
+import { getQueueToken } from '@nestjs/bullmq';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Session } from '../sessions/entities/session.entity';
 import { SessionsModule } from '../sessions/sessions.module';
 import { ReportService } from '../sessions/services/report.service';
 import { Report } from './entities/report.entity';
 import { PrivateReportStorageService } from './private-report-storage.service';
+import { ReportDeliveryService } from './report-delivery.service';
 import { ReportRendererService } from './report-renderer.service';
 import { ReportWorker } from './report.worker';
-
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 describe('ReportsModule', () => {
   it('resolves ReportWorker from the SessionsModule report-data export', async () => {
@@ -28,6 +29,8 @@ describe('ReportsModule', () => {
         { provide: getRepositoryToken(Session), useValue: {} },
         { provide: ReportRendererService, useValue: {} },
         { provide: PrivateReportStorageService, useValue: {} },
+        { provide: ReportDeliveryService, useValue: {} },
+        { provide: getQueueToken('reports'), useValue: {} },
         { provide: EventEmitter2, useValue: {} },
       ],
     }).compile();

@@ -79,11 +79,13 @@ export class TresAreasService {
       combination.tendencies = dto.competencies;
     }
     if (dto.keyInsight !== undefined) combination.keyInsight = dto.keyInsight;
-    if (dto.possibleJobs !== undefined) combination.possibleJobs = dto.possibleJobs;
+    if (dto.possibleJobs !== undefined)
+      combination.possibleJobs = dto.possibleJobs;
     if (dto.relatedProfessions !== undefined) {
       combination.relatedProfessions = dto.relatedProfessions;
     }
-    if (dto.customSections !== undefined) combination.customSections = dto.customSections;
+    if (dto.customSections !== undefined)
+      combination.customSections = dto.customSections;
 
     return this.tresAreasRepo.save(combination);
   }

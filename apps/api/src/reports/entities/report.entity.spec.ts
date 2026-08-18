@@ -57,16 +57,19 @@ describe('Report', () => {
       { entitledUserId: 'user-1', entitledPatientId: 'patient-1' },
       'exactly one entitled principal',
     ],
-  ])('rejects report creation without exactly one entitlement principal', (entitlement, message) => {
-    expect(() =>
-      Report.createPending({
-        sessionId: 'session-entitlement',
-        entitlementSource: ReportEntitlementSource.GOOGLE_PLAY,
-        generatedAt: new Date(),
-        ...entitlement,
-      }),
-    ).toThrow(message);
-  });
+  ])(
+    'rejects report creation without exactly one entitlement principal',
+    (entitlement, message) => {
+      expect(() =>
+        Report.createPending({
+          sessionId: 'session-entitlement',
+          entitlementSource: ReportEntitlementSource.GOOGLE_PLAY,
+          generatedAt: new Date(),
+          ...entitlement,
+        }),
+      ).toThrow(message);
+    },
+  );
 
   it('records a patient entitlement independently from a user entitlement', () => {
     const report = Report.createPending({

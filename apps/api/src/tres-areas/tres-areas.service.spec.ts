@@ -15,7 +15,7 @@ describe('TresAreasService', () => {
   it('uses canonical competencies when both canonical and legacy fields are supplied', async () => {
     const repo = {
       findOne: jest.fn().mockResolvedValue({ ...combination }),
-      save: jest.fn().mockImplementation(async (value) => value),
+      save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
     };
     const service = new TresAreasService(repo as never);
 
@@ -35,7 +35,7 @@ describe('TresAreasService', () => {
   it('maps legacy tendencies to canonical competencies for backwards compatibility', async () => {
     const repo = {
       findOne: jest.fn().mockResolvedValue({ ...combination }),
-      save: jest.fn().mockImplementation(async (value) => value),
+      save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
     };
     const service = new TresAreasService(repo as never);
 
