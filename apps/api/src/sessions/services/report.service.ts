@@ -5,6 +5,7 @@ import { VocationalCategory } from '../../categories/entities/vocational-categor
 import { TresAreasService } from '../../tres-areas/tres-areas.service.js';
 import {
   CategoryResult,
+  ParsedDescriptionBlock,
   ReportData,
   ReportSummary,
   ReportTripletInsight,
@@ -20,7 +21,7 @@ import { calculateHollandPercentages } from '../utils/holland-calculator.util.js
 const AREA_BY_CATEGORY_ID: Record<string, string> = {
   ART: 'Artistico',
   HUM: 'Humanitario',
-  SERV: 'Servicios',
+  SERV: 'Servicios y Acomodación',
   PROT: 'Proteccion',
   PHYS: 'Desempeno fisico',
   IND: 'Industrial',
@@ -29,7 +30,7 @@ const AREA_BY_CATEGORY_ID: Record<string, string> = {
   LEAD: 'Liderazgo',
   SCI: 'Cientifico',
   SAL: 'Ventas',
-  BUS: 'Negocio',
+  BUS: 'Negocios y detalle',
 };
 
 const TOP_RESULTS_COUNT = 3;
@@ -68,20 +69,21 @@ export class ReportService {
       const description = catInfo
         ? catInfo.description
         : res.materialSnippet || 'Información no disponible.';
-
-      const parsedBlocks = parseCategoryDescription(description);
-
-      const blockSkills = parsedBlocks
-        .filter(
-          (block) =>
-            block.subtitle?.toLowerCase().includes('competencias') &&
-            block.content,
-        )
-        .flatMap((block) => block.content.split(/[.;•-]/))
-        .map((s) => s.trim())
-        .filter(
-          (s) => s.length > MIN_SKILL_LENGTH && s.length < MAX_SKILL_LENGTH,
-        );
+      const parsedBlocks = this.buildCategoryBlocks(catInfo, description);
+      const canonicalCompetencies = this.canonicalCompetencies(catInfo);
+      const blockSkills =
+        canonicalCompetencies ??
+        parsedBlocks
+          .filter(
+            (block) =>
+              block.subtitle?.toLowerCase().includes('competencias') &&
+              block.content,
+          )
+          .flatMap((block) => block.content.split(/[.;•-]/))
+          .map((s) => s.trim())
+          .filter(
+            (s) => s.length > MIN_SKILL_LENGTH && s.length < MAX_SKILL_LENGTH,
+          );
 
       strengths.push(...blockSkills);
 
@@ -141,6 +143,43 @@ export class ReportService {
     };
   }
 
+  private buildCategoryBlocks(
+    category: VocationalCategory | undefined,
+    description: string,
+  ): ParsedDescriptionBlock[] {
+    const occupations = category?.occupations?.filter(Boolean) ?? [];
+    const formalProfessions =
+      category?.formalProfessions?.filter(Boolean) ?? [];
+    const competencies = category?.competencies?.filter(Boolean) ?? [];
+    if (
+      !occupations.length ||
+      !formalProfessions.length ||
+      !competencies.length
+    ) {
+      return parseCategoryDescription(description);
+    }
+
+    return [
+      { subtitle: 'Descripción breve', content: description },
+      { subtitle: 'Ocupaciones y oficios', content: '', list: occupations },
+      {
+        subtitle: 'Profesiones técnicas o formales',
+        content: '',
+        list: formalProfessions,
+      },
+      { subtitle: 'Competencias importantes', content: '', list: competencies },
+    ];
+  }
+
+  private canonicalCompetencies(
+    category: VocationalCategory | undefined,
+  ): string[] | null {
+    const competencies = category?.competencies
+      ?.map((item) => item.trim())
+      .filter(Boolean);
+    return competencies?.length ? competencies : null;
+  }
+
   private async buildTripletInsight(
     topResults: Array<{ categoryId: string }>,
     categoriesById: Map<
@@ -157,8 +196,8 @@ export class ReportService {
       .map((result) => {
         const normalizedId = normalizeCategoryId(result.categoryId);
         return (
-          AREA_BY_CATEGORY_ID[normalizedId] ??
           categoriesById.get(normalizedId)?.title ??
+          AREA_BY_CATEGORY_ID[normalizedId] ??
           normalizedId
         );
       })
@@ -182,6 +221,10 @@ export class ReportService {
     return {
       title: match.title,
       narrative: match.narrative,
+      keyInsight: match.keyInsight,
+      competencies: match.competencies?.length
+        ? match.competencies
+        : match.tendencies,
       tendencies: match.tendencies,
       possibleJobs: splitList(match.possibleJobs),
       relatedProfessions: splitList(match.relatedProfessions),

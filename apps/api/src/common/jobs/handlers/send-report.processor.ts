@@ -5,7 +5,7 @@ import { ModuleRef } from '@nestjs/core';
 import { SendReportJobPayload } from '../send-report.job.js';
 import { ReportOrchestratorService } from '../../../sessions/services/report-orchestrator.service.js';
 
-@Processor('reports')
+@Processor('send-report')
 export class SendReportProcessor extends WorkerHost {
   private readonly logger = new Logger(SendReportProcessor.name);
 

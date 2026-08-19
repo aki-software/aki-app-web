@@ -22,16 +22,12 @@ export class TemplateRendererService {
     );
 
     return pug.renderFile(templatePath, {
-      ...payload,
       colors,
-      logoDataUri: this.getLogoDataUri(),
+      logoDataUri: '',
       brandDomain: this.brandDomain,
       supportEmail: this.supportEmail,
+      ...payload,
     });
-  }
-
-  private getLogoDataUri(): string {
-    return `https://${this.brandDomain}/logo.png`;
   }
 
   getBrandDomain(): string {

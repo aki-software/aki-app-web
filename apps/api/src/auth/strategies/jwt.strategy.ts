@@ -33,15 +33,24 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload) {
     if (this.isFirebasePayload(payload)) {
       this.firebaseTokenService.assertFirebaseClaims(payload);
+      if (payload.email_verified !== true) {
+        throw new UnauthorizedException('Firebase email must be verified.');
+      }
       const authUser = this.authUserFactory.buildUserFromPayload(payload, true);
 
-      if (authUser.email) {
-        const internalUser = await this.usersService.findByEmail(
-          authUser.email,
-        );
-        if (internalUser) {
-          authUser.userId = internalUser.id;
-        }
+      if (!authUser.email) {
+        throw new UnauthorizedException('Firebase user is not registered.');
+      }
+      const internalUser = await this.usersService.findByEmail(authUser.email);
+      if (!internalUser) {
+        // Option 1: Allow un-registered Firebase users as PATIENT
+        authUser.userId = payload.user_id || payload.sub;
+        authUser.role = 'PATIENT';
+        authUser.institutionId = null;
+      } else {
+        authUser.userId = internalUser.id;
+        authUser.role = internalUser.role;
+        authUser.institutionId = internalUser.institutionId;
       }
 
       return authUser;

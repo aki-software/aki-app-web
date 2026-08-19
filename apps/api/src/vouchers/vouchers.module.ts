@@ -36,6 +36,11 @@ import { VoucherAccessGuard } from './guards/voucher-access.guard.js';
     VoucherRedemptionService,
     VoucherAccessGuard,
   ],
-  exports: [VouchersService, VoucherCodeGenerator, TypeOrmModule],
+  exports: [
+    VouchersService,
+    VoucherCodeGenerator,
+    VoucherRedemptionService,
+    TypeOrmModule,
+  ],
 })
 export class VouchersModule {}

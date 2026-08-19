@@ -13,7 +13,7 @@ export class ReportGeneratedHandler {
     private readonly emailService: EmailService,
   ) {}
 
-  @OnEvent('report.generated')
+  @OnEvent('report.generated', { suppressErrors: false })
   async handleReportGeneratedEvent(event: ReportGeneratedEvent) {
     this.logger.log(
       `Handling report.generated event for ${event.requestedByEmail}, url: ${event.reportUrl}`,
@@ -23,12 +23,23 @@ export class ReportGeneratedHandler {
         patientName: null,
         patientEmail: event.requestedByEmail,
         reportUrl: event.reportUrl,
-        summary: null,
+        summary: event.summary,
       });
+
+      const attachments = event.pdfBuffer
+        ? [
+            {
+              filename: 'Informe_Vocacional.pdf',
+              content: event.pdfBuffer,
+              contentType: 'application/pdf',
+            },
+          ]
+        : undefined;
       await this.emailService.sendEmail(
         event.requestedByEmail,
         'Tu informe vocacional está listo - Orient A.ki',
         html,
+        attachments,
       );
       this.logger.log(`Report email sent to ${event.requestedByEmail}`);
     } catch (error) {
@@ -36,6 +47,7 @@ export class ReportGeneratedHandler {
         `Failed to send report email to ${event.requestedByEmail}`,
         error,
       );
+      throw error;
     }
   }
 }

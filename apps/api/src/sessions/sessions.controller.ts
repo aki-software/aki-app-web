@@ -15,6 +15,7 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import type { AuthenticatedRequest } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
 import { UserRole } from '@akit/contracts';
 import { SESSION_CONSTANTS } from './constants/sessions.constants.js';
 import { CompleteSessionDto } from './dto/complete-session.dto.js';
@@ -33,11 +34,15 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 @Controller('sessions')
 export class SessionsController {
   private extractScope(req?: AuthenticatedRequest) {
+    const role = (req?.user?.role as string)?.toUpperCase() || 'PATIENT';
+    const isOwner = ['THERAPIST', 'ADMIN', 'INSTITUTION_ADMIN'].includes(role);
+
     return {
-      role: req?.user?.role,
-      therapistUserId: req?.user?.userId,
-      patientId: req?.user?.userId,
+      role: role as UserRole,
+      therapistUserId: isOwner ? req?.user?.userId : undefined,
+      patientId: !isOwner ? req?.user?.userId : undefined,
       institutionId: req?.user?.institutionId,
+      email: req?.user?.email,
     };
   }
 
@@ -80,12 +85,23 @@ export class SessionsController {
   @ApiOperation({ summary: 'Complete an active session' })
   @ApiResponse({ status: 201, type: SessionDetailDto })
   @Post('complete')
+  @UseGuards(OptionalJwtAuthGuard)
   async complete(
     @Body() completeSessionDto: CompleteSessionDto,
+    @Req() request: AuthenticatedRequest,
   ): Promise<SessionDetailDto> {
-    const result =
-      await this.sessionsMutationService.completeSession(completeSessionDto);
-    return result as SessionDetailDto;
+    const result = await this.sessionsMutationService.completeSession(
+      completeSessionDto,
+      {
+        userId: request.user?.userId,
+        email: request.user?.email,
+        isFirebaseEmailVerified: request.user?.isFirebaseEmailVerified,
+        institutionId: request.user?.institutionId,
+        role: request.user?.role,
+      },
+    );
+    const session = await this.sessionsQueryService.findOne(result.id);
+    return session as SessionDetailDto;
   }
 
   @ApiOperation({ summary: 'List all sessions' })

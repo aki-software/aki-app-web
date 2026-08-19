@@ -16,7 +16,8 @@ export class BullMQQueueAdapter implements QueueAdapter {
     private readonly fallbackAdapter: InMemoryQueueAdapter,
     @InjectQueue('email') private readonly emailQueue: Queue,
     @InjectQueue('pdf') private readonly pdfQueue: Queue,
-    @InjectQueue('reports') private readonly reportsQueue: Queue,
+    @InjectQueue('send-report') private readonly sendReportQueue: Queue,
+    @InjectQueue('metrics') private readonly metricsQueue: Queue,
   ) {
     this.isEnabled = process.env.ENABLE_BULLMQ === 'true';
   }
@@ -46,7 +47,10 @@ export class BullMQQueueAdapter implements QueueAdapter {
         await this.pdfQueue.add(jobName, payload, queueOptions);
         break;
       case 'send-report':
-        await this.reportsQueue.add(jobName, payload, queueOptions);
+        await this.sendReportQueue.add(jobName, payload, queueOptions);
+        break;
+      case 'calculate_metrics':
+        await this.metricsQueue.add(jobName, payload, queueOptions);
         break;
       default:
         this.logger.warn(`Unknown job name: ${jobName}`);

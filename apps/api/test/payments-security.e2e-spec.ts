@@ -1384,6 +1384,11 @@ async function loadPaymentSecurityMigrations(): Promise<
     import('../src/migrations/1787000000000-SecurePaymentSettlement.js'),
     import('../src/migrations/1787000000001-CheckoutFailureAndReportUnlock.js'),
     import('../src/migrations/1787000000002-SessionReportSkuExpectation.js'),
+    import('../src/migrations/1787000000003-ReportLifecycleSchema.js'),
+    import('../src/migrations/1787000000004-ReportAccessAuditSchema.js'),
+    import('../src/migrations/1787000000005-ReportInputSnapshotAndStoragePending.js'),
+    import('../src/migrations/1787000000006-ReportDelivery.js'),
+    import('../src/migrations/1787000000007-ReportDeliveryAuthorization.js'),
   ]);
   return modules.flatMap((module) =>
     Object.values(module).filter(

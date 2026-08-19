@@ -23,6 +23,14 @@ export class Patient {
   @Column({ unique: true })
   email!: string;
 
+  @Column({
+    name: 'firebase_uid',
+    type: 'varchar',
+    unique: true,
+    nullable: true,
+  })
+  firebaseUid!: string | null;
+
   @Column({ name: 'password_hash' })
   passwordHash!: string;
 

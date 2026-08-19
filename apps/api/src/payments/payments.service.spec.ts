@@ -5,6 +5,7 @@ import { SessionsMutationService } from '../sessions/services/sessions-mutation.
 import { SessionPaymentStatus } from '@akit/contracts';
 import { GooglePlayAdapter } from './google-play.adapter';
 import { getDataSourceToken } from '@nestjs/typeorm';
+import { SessionOwnerResolverService } from '../sessions/services/session-owner-resolver.service';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -17,7 +18,14 @@ describe('PaymentsService', () => {
           provide: SessionsQueryService,
           useValue: {
             findOne: jest.fn(),
+            findOneForPaymentUnlock: jest.fn(),
             findByPaymentToken: jest.fn(),
+          },
+        },
+        {
+          provide: SessionOwnerResolverService,
+          useValue: {
+            resolveFirebaseUser: jest.fn(),
           },
         },
         {
@@ -51,6 +59,110 @@ describe('PaymentsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('resolves a Firebase patient UID to the internal patient ID before querying the session', async () => {
+    const resolver = (service as any)
+      .sessionOwnerResolverService as jest.Mocked<SessionOwnerResolverService>;
+    resolver.resolveFirebaseUser.mockResolvedValue({
+      id: 'patient-uuid',
+      institutionId: 'institution-123',
+    });
+
+    const queryService = (service as any)
+      .sessionsQueryService as jest.Mocked<SessionsQueryService>;
+    queryService.findOneForPaymentUnlock = jest.fn().mockResolvedValue({
+      id: 'session-123',
+      results: [{}],
+      reportUnlockedAt: new Date(),
+      reportUnlockPurchaseToken: 'token-abc',
+    });
+
+    await service.verifyGooglePlayPurchase(
+      {
+        sessionId: 'session-123',
+        productId: 'report_unlock_v2',
+        purchaseToken: 'token-abc',
+      },
+      {
+        userId: 'firebase-uid',
+        email: 'patient@example.com',
+        institutionId: 'institution-123',
+      },
+    );
+
+    expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
+      { uid: 'firebase-uid', email: 'patient@example.com' },
+      false,
+    );
+    expect(queryService.findOneForPaymentUnlock).toHaveBeenCalledWith(
+      'session-123',
+      'patient-uuid',
+      'institution-123',
+    );
+  });
+
+  it('fails closed when a Firebase patient has no internal patient mapping', async () => {
+    const resolver = (service as any)
+      .sessionOwnerResolverService as jest.Mocked<SessionOwnerResolverService>;
+    resolver.resolveFirebaseUser.mockResolvedValue(null);
+
+    const queryService = (service as any)
+      .sessionsQueryService as jest.Mocked<SessionsQueryService>;
+
+    await expect(
+      service.verifyGooglePlayPurchase(
+        {
+          sessionId: 'session-123',
+          productId: 'report_unlock_v2',
+          purchaseToken: 'token-abc',
+        },
+        {
+          userId: 'firebase-uid',
+          email: 'patient@example.com',
+          institutionId: 'institution-123',
+        },
+      ),
+    ).rejects.toThrow('Unable to resolve payment patient');
+
+    expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
+      { uid: 'firebase-uid', email: 'patient@example.com' },
+      false,
+    );
+    expect(queryService.findOneForPaymentUnlock).not.toHaveBeenCalled();
+  });
+
+  it('keeps an internal UUID principal as the payment owner', async () => {
+    const resolver = (service as any)
+      .sessionOwnerResolverService as jest.Mocked<SessionOwnerResolverService>;
+    const queryService = (service as any)
+      .sessionsQueryService as jest.Mocked<SessionsQueryService>;
+    queryService.findOneForPaymentUnlock = jest.fn().mockResolvedValue({
+      id: 'session-123',
+      results: [{}],
+      reportUnlockedAt: new Date(),
+      reportUnlockPurchaseToken: 'token-abc',
+    });
+
+    await service.verifyGooglePlayPurchase(
+      {
+        sessionId: 'session-123',
+        productId: 'report_unlock_v2',
+        purchaseToken: 'token-abc',
+      },
+      {
+        userId: 'b3d6d89b-8f58-4fb1-aef5-3f0196c6c936',
+        email: 'patient@example.com',
+        institutionId: 'institution-123',
+      },
+    );
+
+    expect(resolver.resolveFirebaseUser).not.toHaveBeenCalled();
+    expect(queryService.findOneForPaymentUnlock).toHaveBeenCalledWith(
+      'session-123',
+      'b3d6d89b-8f58-4fb1-aef5-3f0196c6c936',
+      'institution-123',
+    );
   });
 
   // Pending implementation of Google API
