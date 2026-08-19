@@ -9,6 +9,7 @@ import { Spinner } from "../../../components/atoms/Spinner";
 import { Alert } from "../../../components/atoms/Alert";
 import { AuthLayout } from "./AuthLayout";
 import { useAuth } from "../hooks/useAuth";
+import { clearStoredAuth } from "../../../utils/storage";
 
 export function SetupPasswordPage() {
   const { logout, isAuthenticated } = useAuth();
@@ -29,6 +30,7 @@ export function SetupPasswordPage() {
   } | null>(null);
 
   useEffect(() => {
+    clearStoredAuth();
     if (isAuthenticated) {
       logout().catch(console.error);
     }

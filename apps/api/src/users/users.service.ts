@@ -64,19 +64,30 @@ export class UsersService {
   }
 
   buildPasswordSetupLink(token: string): string {
-    const baseUrl =
+    const rawBaseUrl =
       this.configService.get<string>('WEB_APP_URL') ||
       this.configService.get<string>('FRONTEND_URL') ||
       'http://localhost:5173';
-    return `${baseUrl.replace(/\/$/, '')}/setup-password?token=${token}`;
+    const baseUrl = this.cleanBaseUrl(rawBaseUrl);
+    return `${baseUrl}/setup-password?token=${token}`;
   }
 
   buildPasswordResetLink(token: string): string {
-    const baseUrl =
+    const rawBaseUrl =
       this.configService.get<string>('WEB_APP_URL') ||
       this.configService.get<string>('FRONTEND_URL') ||
       'http://localhost:5173';
-    return `${baseUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
+    const baseUrl = this.cleanBaseUrl(rawBaseUrl);
+    return `${baseUrl}/reset-password?token=${token}`;
+  }
+
+  private cleanBaseUrl(url: string): string {
+    try {
+      const parsed = new URL(url);
+      return `${parsed.protocol}//${parsed.host}`;
+    } catch {
+      return url.replace(/\/dashboard\/?$/, '').replace(/\/$/, '');
+    }
   }
 
   hasPasswordConfigured(user: User): boolean {

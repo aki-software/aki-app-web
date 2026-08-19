@@ -38,11 +38,14 @@ const handlers = [
           'MAIL_TRANSPORT_TYPE',
           'smtp',
         );
-        if (transportType === 'resend') {
-          return new ResendTransportService(
-            configService.get<string>('MAIL_PRO_PASS', ''),
-          );
+
+        if (transportType === 'resend' || transportType === 'pro') {
+          const resendApiKey =
+            configService.get<string>('RESEND_API_KEY') ||
+            configService.get<string>('MAIL_PRO_PASS', '');
+          return new ResendTransportService(resendApiKey);
         }
+
         return new SmtpTransportService(
           configService.get<string>('SMTP_HOST', 'sandbox.smtp.mailtrap.io'),
           configService.get<number>('SMTP_PORT', 2525),

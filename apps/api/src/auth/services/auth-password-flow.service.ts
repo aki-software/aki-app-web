@@ -4,7 +4,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PasswordResetRequestedEvent } from '../../events/domain-events.js';
+import {
+  AccountActivationRequestedEvent,
+  PasswordResetRequestedEvent,
+} from '../../events/domain-events.js';
 import { User } from '../../users/entities/user.entity.js';
 import { UsersService } from '../../users/users.service.js';
 import { CryptoService } from '../../common/services/crypto.service.js';
@@ -73,7 +76,34 @@ export class AuthPasswordFlowService {
 
   async requestPasswordReset(email: string): Promise<AuthInfoResponse> {
     const user = await this.usersService.findByEmail(email.trim());
-    if (!user || !this.usersService.hasPasswordConfigured(user)) {
+    if (!user) {
+      return { ok: true, message: AUTH_INFO_MESSAGES.passwordReset };
+    }
+
+    if (!this.usersService.hasPasswordConfigured(user)) {
+      if (user.email && !user.email.endsWith('@akit.local')) {
+        const passwordSetupToken = this.cryptoService.generateToken(24);
+        const passwordSetupExpiresAt = new Date();
+        passwordSetupExpiresAt.setDate(passwordSetupExpiresAt.getDate() + 1);
+
+        const updatedUser = await this.usersService.register({
+          ...user,
+          passwordSetupToken,
+          passwordSetupExpiresAt,
+        });
+
+        const activationLink =
+          this.usersService.buildPasswordSetupLink(passwordSetupToken);
+        await this.eventEmitter.emitAsync(
+          'account.activation.requested',
+          new AccountActivationRequestedEvent(
+            updatedUser.email,
+            updatedUser.name,
+            activationLink,
+            updatedUser.institution?.name ?? null,
+          ),
+        );
+      }
       return { ok: true, message: AUTH_INFO_MESSAGES.passwordReset };
     }
 

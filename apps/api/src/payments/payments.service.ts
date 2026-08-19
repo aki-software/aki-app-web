@@ -245,7 +245,14 @@ export class PaymentsService {
       throw error;
     }
 
-    if (purchase.purchaseState !== 0 || purchase.productId !== expectedSku) {
+    // purchaseState: 0 = purchased, 1 = cancelled, 2 = pending.
+    // Note: purchase.productId can be null/undefined for test purchases (License Testers)
+    // via the Google Play Developer API. The productId was already validated against
+    // expectedSku at the controller level, so we only hard-block on purchaseState here.
+    if (purchase.purchaseState !== 0) {
+      return { success: false, valid: false, reason: 'PURCHASE_NOT_VALID' };
+    }
+    if (purchase.productId != null && purchase.productId !== expectedSku) {
       return { success: false, valid: false, reason: 'PURCHASE_NOT_VALID' };
     }
 
