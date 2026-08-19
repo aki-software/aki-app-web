@@ -46,6 +46,34 @@ void _migrations;
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        const redisUrl =
+          configService.get<string>('REDIS_URL') ||
+          configService.get<string>('QUEUE_REDIS_URL');
+        if (redisUrl) {
+          try {
+            const parsed = new URL(redisUrl);
+            const tlsEnabled =
+              parsed.protocol === 'rediss:' ||
+              configService.get('REDIS_TLS') === 'true';
+            return {
+              connection: {
+                host: parsed.hostname,
+                port: Number(parsed.port || 6379),
+                username: parsed.username || undefined,
+                password: parsed.password || undefined,
+                db:
+                  parsed.pathname && parsed.pathname.length > 1
+                    ? Number(parsed.pathname.slice(1))
+                    : Number(configService.get('REDIS_DB', 0)),
+                ...(tlsEnabled ? { tls: {} } : {}),
+                connectTimeout: 10_000,
+                maxRetriesPerRequest: null,
+              },
+            };
+          } catch {
+            // fallback to host/port
+          }
+        }
         const tlsEnabled = configService.get('REDIS_TLS') === 'true';
         return {
           connection: {

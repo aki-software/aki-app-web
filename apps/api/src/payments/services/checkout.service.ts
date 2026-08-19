@@ -201,7 +201,7 @@ export class CheckoutService {
     frontendOrigin: string;
     notificationUrl: string;
   } {
-    const frontendUrl = process.env.FRONTEND_URL;
+    const frontendUrl = process.env.WEB_APP_URL || process.env.FRONTEND_URL;
     const apiUrl = process.env.API_URL;
     if (!frontendUrl || !apiUrl) {
       throw new BadRequestException('Payment checkout URLs must be configured');

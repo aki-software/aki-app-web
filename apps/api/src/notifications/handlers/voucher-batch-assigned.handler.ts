@@ -29,10 +29,10 @@ export class VoucherBatchAssignedHandler {
           }).format(event.expiresAt)
         : null;
 
-      const dashboardUrl = this.configService.get<string>(
-        'WEB_APP_URL',
-        'https://app.akituespacio.com.ar',
-      );
+      const dashboardUrl =
+        this.configService.get<string>('WEB_APP_URL') ||
+        this.configService.get<string>('FRONTEND_URL') ||
+        'https://app.akituespacio.com.ar';
 
       const html = this.templateRenderer.renderTemplate(
         'voucher-batch-assignment.pug',
