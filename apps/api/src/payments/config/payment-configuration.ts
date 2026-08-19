@@ -10,9 +10,7 @@ export interface PaymentConfiguration {
 }
 
 const productionRequiredKeys = [
-  'FRONTEND_URL',
   'API_URL',
-  'REDIS_HOST',
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'MP_ACCESS_TOKEN',
@@ -21,6 +19,34 @@ const productionRequiredKeys = [
   'GOOGLE_PLAY_REPORT_SKU',
   'GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64',
 ] as const;
+
+function getEffectiveFrontendUrl(environment: NodeJS.ProcessEnv): {
+  url?: string;
+  key: string;
+} {
+  const webAppUrl = environment.WEB_APP_URL?.trim();
+  const frontendUrl = environment.FRONTEND_URL?.trim();
+
+  if (webAppUrl && frontendUrl) {
+    if (environment.NODE_ENV === 'production') {
+      if (webAppUrl.startsWith('https://')) {
+        return { url: webAppUrl, key: 'WEB_APP_URL' };
+      }
+      if (frontendUrl.startsWith('https://')) {
+        return { url: frontendUrl, key: 'FRONTEND_URL' };
+      }
+    }
+    return { url: webAppUrl, key: 'WEB_APP_URL' };
+  }
+
+  if (webAppUrl) {
+    return { url: webAppUrl, key: 'WEB_APP_URL' };
+  }
+  if (frontendUrl) {
+    return { url: frontendUrl, key: 'FRONTEND_URL' };
+  }
+  return { url: undefined, key: 'WEB_APP_URL' };
+}
 
 export function resolvePaymentConfiguration(
   environment: NodeJS.ProcessEnv,
@@ -40,7 +66,22 @@ export function resolvePaymentConfiguration(
   }
 
   if (isProduction) {
-    const missing = productionRequiredKeys.filter((key) => !environment[key]);
+    const missing: string[] = productionRequiredKeys.filter(
+      (key) => !environment[key],
+    );
+    const { url: effectiveFrontendUrl, key: frontendKey } =
+      getEffectiveFrontendUrl(environment);
+    if (!effectiveFrontendUrl) {
+      missing.unshift(frontendKey);
+    }
+    const hasRedis = Boolean(
+      environment.REDIS_HOST ||
+      environment.REDIS_URL ||
+      environment.QUEUE_REDIS_URL,
+    );
+    if (!hasRedis) {
+      missing.push('REDIS_HOST');
+    }
     if (missing.length > 0) {
       throw new PaymentConfigurationError(
         `Missing required production payment configuration: ${missing.join(', ')}`,
@@ -55,7 +96,9 @@ export function resolvePaymentConfiguration(
 function validateProductionPaymentConfiguration(
   environment: NodeJS.ProcessEnv,
 ): void {
-  validatePublicHttpsUrl(environment.FRONTEND_URL!, 'FRONTEND_URL');
+  const { url: effectiveFrontendUrl, key: frontendKey } =
+    getEffectiveFrontendUrl(environment);
+  validatePublicHttpsUrl(effectiveFrontendUrl!, frontendKey);
   validatePublicHttpsUrl(environment.API_URL!, 'API_URL');
   validateCredential(
     environment.STRIPE_SECRET_KEY!,
