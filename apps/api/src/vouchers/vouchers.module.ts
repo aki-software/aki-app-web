@@ -6,7 +6,7 @@ import { Session } from '../sessions/entities/session.entity.js';
 import { VouchersController } from './vouchers.controller.js';
 import { VouchersService } from './vouchers.service.js';
 import { UsersModule } from '../users/users.module.js';
-import { MailModule } from '../mail/mail.module.js';
+
 import { InstitutionsModule } from '../institutions/institutions.module.js';
 
 import { VoucherNotifierService } from './voucher-notifier.service.js';
@@ -22,7 +22,6 @@ import { VoucherAccessGuard } from './guards/voucher-access.guard.js';
   imports: [
     TypeOrmModule.forFeature([Voucher, VoucherBatch, Session]),
     UsersModule,
-    MailModule,
     InstitutionsModule,
   ],
   controllers: [VouchersController],
@@ -37,6 +36,11 @@ import { VoucherAccessGuard } from './guards/voucher-access.guard.js';
     VoucherRedemptionService,
     VoucherAccessGuard,
   ],
-  exports: [VouchersService, TypeOrmModule],
+  exports: [
+    VouchersService,
+    VoucherCodeGenerator,
+    VoucherRedemptionService,
+    TypeOrmModule,
+  ],
 })
 export class VouchersModule {}

@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
-import { UserRole } from '../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 import {
   CreateVoucherDto,
   ListVoucherBatchesDto,
@@ -116,6 +116,12 @@ export class VouchersController {
     return await this.voucherRedemptionService.redeemVoucher(
       redeemVoucherDto.code,
       redeemVoucherDto.sessionId,
+      {
+        userId: scope.ownerUserId,
+        email: scope.email,
+        isFirebaseEmailVerified: scope.isFirebaseEmailVerified,
+        role: scope.role,
+      },
     );
   }
 

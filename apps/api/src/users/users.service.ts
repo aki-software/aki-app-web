@@ -65,13 +65,17 @@ export class UsersService {
 
   buildPasswordSetupLink(token: string): string {
     const baseUrl =
-      this.configService.get<string>('WEB_APP_URL') || 'http://localhost:5173';
+      this.configService.get<string>('WEB_APP_URL') ||
+      this.configService.get<string>('FRONTEND_URL') ||
+      'http://localhost:5173';
     return `${baseUrl.replace(/\/$/, '')}/setup-password?token=${token}`;
   }
 
   buildPasswordResetLink(token: string): string {
     const baseUrl =
-      this.configService.get<string>('WEB_APP_URL') || 'http://localhost:5173';
+      this.configService.get<string>('WEB_APP_URL') ||
+      this.configService.get<string>('FRONTEND_URL') ||
+      'http://localhost:5173';
     return `${baseUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
   }
 

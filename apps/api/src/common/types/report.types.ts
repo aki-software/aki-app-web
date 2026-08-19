@@ -1,6 +1,7 @@
 export interface ParsedDescriptionBlock {
   subtitle?: string;
   content: string;
+  list?: string[];
 }
 
 export interface CategoryResult {
@@ -25,6 +26,8 @@ export interface ReportSummary {
 export interface ReportTripletInsight {
   title: string;
   narrative: string;
+  keyInsight?: string;
+  competencies: string[];
   tendencies: string[];
   possibleJobs: string[];
   relatedProfessions: string[];

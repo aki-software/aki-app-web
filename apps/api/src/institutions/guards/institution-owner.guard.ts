@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../../auth/auth.types.js';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 
 @Injectable()
 export class InstitutionOwnerGuard implements CanActivate {

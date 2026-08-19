@@ -134,7 +134,7 @@ export function SessionDetailPage() {
 
               {/* Reverted Direction */}
               {metrics.revertedDirection && (
-                <div className="app-card shadow-2xl h-full flex flex-col">
+                <div className="app-card shadow-2xl h-full flex flex-col relative z-10 hover:z-50">
                   <div className="flex items-center gap-6 mb-8">
                     <div className="rounded-2xl bg-app-bg p-4 border border-app-border shadow-md">
                       <ArrowUpDown className="h-8 w-8 text-app-primary" />
@@ -147,14 +147,19 @@ export function SessionDetailPage() {
 
                   <div className="grid grid-cols-2 gap-6 flex-1">
                     {/* Disliked → Liked */}
-                    <div className="rounded-2xl bg-status-success/5 border border-status-success/20 p-6 flex flex-col items-center text-center">
-                      <ThumbsUp className="h-8 w-8 text-status-success mb-3" />
+                    <div className="group relative z-10 hover:z-[60] rounded-2xl bg-status-success/5 border border-status-success/20 p-6 flex flex-col items-center text-center cursor-help transition-colors hover:bg-status-success/10">
+                      <ThumbsUp className="h-8 w-8 text-status-success mb-3 transition-transform group-hover:scale-110" />
                       <span className="text-3xl font-black text-status-success">
                         {metrics.revertedDirection.dislikedToLiked}
                       </span>
                       <span className="text-xs font-medium text-app-text-muted mt-2">
                         Rechazo → Aceptación
                       </span>
+                      {metrics.revertedDirection.dislikedToLiked > 0 && (
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-status-success/60 mt-4 border-b border-status-success/30 pb-0.5">
+                          Ver detalle
+                        </span>
+                      )}
                       {(() => {
                         if (!metrics.revertedDirection.details) return null;
                         const filtered = metrics.revertedDirection.details.filter(d => d.type === 'dislikedToLiked');
@@ -164,26 +169,36 @@ export function SessionDetailPage() {
                         filtered.forEach(d => counts.set(d.categoryId, (counts.get(d.categoryId) || 0) + 1));
                         
                         return (
-                          <div className="mt-3 flex flex-wrap gap-1.5 justify-center w-full">
-                            {Array.from(counts.entries()).map(([categoryId, count]) => (
-                              <span key={categoryId} className="text-[10px] font-bold uppercase tracking-wide text-status-success bg-status-success/10 border border-status-success/20 rounded-md px-2 py-1">
-                                {categoriesMap[categoryId.toUpperCase()]?.title ?? categoryId} {count > 1 ? `(${count})` : ''}
-                              </span>
-                            ))}
+                          <div className="absolute top-[90%] left-1/2 -translate-x-1/2 mt-3 w-64 p-4 rounded-xl bg-app-bg shadow-2xl border border-app-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform translate-y-2 group-hover:translate-y-0 pointer-events-none">
+                            <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest mb-3 border-b border-app-border pb-2 text-left">
+                              Categorías revertidas
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {Array.from(counts.entries()).map(([categoryId, count]) => (
+                                <span key={categoryId} className="text-[10px] font-bold uppercase tracking-wide text-status-success bg-status-success/10 border border-status-success/20 rounded-md px-2 py-1">
+                                  {categoriesMap[categoryId.toUpperCase()]?.title ?? categoryId} {count > 1 ? `(${count})` : ''}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         );
                       })()}
                     </div>
 
                     {/* Liked → Disliked */}
-                    <div className="rounded-2xl bg-status-error/5 border border-status-error/20 p-6 flex flex-col items-center text-center">
-                      <ThumbsDown className="h-8 w-8 text-status-error mb-3" />
+                    <div className="group relative z-10 hover:z-[60] rounded-2xl bg-status-error/5 border border-status-error/20 p-6 flex flex-col items-center text-center cursor-help transition-colors hover:bg-status-error/10">
+                      <ThumbsDown className="h-8 w-8 text-status-error mb-3 transition-transform group-hover:scale-110" />
                       <span className="text-3xl font-black text-status-error">
                         {metrics.revertedDirection.likedToDisliked}
                       </span>
                       <span className="text-xs font-medium text-app-text-muted mt-2">
                         Aceptación → Rechazo
                       </span>
+                      {metrics.revertedDirection.likedToDisliked > 0 && (
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-status-error/60 mt-4 border-b border-status-error/30 pb-0.5">
+                          Ver detalle
+                        </span>
+                      )}
                       {(() => {
                         if (!metrics.revertedDirection.details) return null;
                         const filtered = metrics.revertedDirection.details.filter(d => d.type === 'likedToDisliked');
@@ -193,12 +208,17 @@ export function SessionDetailPage() {
                         filtered.forEach(d => counts.set(d.categoryId, (counts.get(d.categoryId) || 0) + 1));
                         
                         return (
-                          <div className="mt-3 flex flex-wrap gap-1.5 justify-center w-full">
-                            {Array.from(counts.entries()).map(([categoryId, count]) => (
-                              <span key={categoryId} className="text-[10px] font-bold uppercase tracking-wide text-status-error bg-status-error/10 border border-status-error/20 rounded-md px-2 py-1">
-                                {categoriesMap[categoryId.toUpperCase()]?.title ?? categoryId} {count > 1 ? `(${count})` : ''}
-                              </span>
-                            ))}
+                          <div className="absolute top-[90%] left-1/2 -translate-x-1/2 mt-3 w-64 p-4 rounded-xl bg-app-bg shadow-2xl border border-app-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform translate-y-2 group-hover:translate-y-0 pointer-events-none">
+                            <p className="text-[10px] font-bold text-app-text-muted uppercase tracking-widest mb-3 border-b border-app-border pb-2 text-left">
+                              Categorías revertidas
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {Array.from(counts.entries()).map(([categoryId, count]) => (
+                                <span key={categoryId} className="text-[10px] font-bold uppercase tracking-wide text-status-error bg-status-error/10 border border-status-error/20 rounded-md px-2 py-1">
+                                  {categoriesMap[categoryId.toUpperCase()]?.title ?? categoryId} {count > 1 ? `(${count})` : ''}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         );
                       })()}

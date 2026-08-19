@@ -1,0 +1,28 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    meta(name="color-scheme" content="light only")
+    meta(name="supported-color-schemes" content="light only")
+    title= titleText || 'A.ki'
+    style.
+      @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800&display=swap');
+      
+      body {
+        font-family: 'Lexend', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+      }
+  body.bg-body(style=`margin:0;padding:0;background:${colors.background.light};font-family:'Lexend',system-ui,-apple-system,sans-serif;color:${colors.text.primary};`)
+    table.bg-body(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`padding:24px 0;background:${colors.background.light};`)
+      tr
+        td(align="center")
+          table.bg-surface(role="presentation" width="620" cellpadding="0" cellspacing="0" style=`width:100%;max-width:620px;background:${colors.surface.light};border:1px solid ${colors.surface.variantLight};border-radius:8px;overflow:hidden;`)
+            tr
+              td
+                include partials/email-header.pug
+
+            block bodyContent
+
+            tr
+              td.bg-body.border-surface(style=`padding:32px 40px;background:${colors.background.light};border-top:1px solid ${colors.surface.variantLight};`)
+                include partials/email-footer.pug

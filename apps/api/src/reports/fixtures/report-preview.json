@@ -1,0 +1,90 @@
+{
+  "locale": "es-AR",
+  "timeZone": "America/Argentina/Buenos_Aires",
+  "generatedAt": "2026-03-25T15:00:00.000Z",
+  "assessmentAt": "2026-03-24T18:30:00.000Z",
+  "templateVersion": "report-pdf-v1",
+  "reportVersion": 1,
+  "data": {
+    "patientName": "Lucía Fernández",
+    "patientEmail": "lucia.fernandez@example.com",
+    "topResults": [
+      {
+        "categoryId": "ART",
+        "title": "Arte y diseño",
+        "percentage": 92,
+        "description": "Te interesa crear, comunicar ideas y transformar conceptos en experiencias visuales.",
+        "parsedBlocks": [
+          {
+            "subtitle": "Cómo se expresa esta afinidad",
+            "content": "Disfrutás imaginar propuestas originales y darles una forma concreta."
+          },
+          {
+            "subtitle": "Actividades que pueden interesarte",
+            "content": "",
+            "list": [
+              "Diseñar piezas visuales",
+              "Crear contenidos audiovisuales",
+              "Resolver problemas con creatividad"
+            ]
+          }
+        ]
+      },
+      {
+        "categoryId": "HUM",
+        "title": "Humanidades y comunicación",
+        "percentage": 86,
+        "description": "Valorás comprender a las personas, escuchar y expresar ideas con claridad.",
+        "parsedBlocks": [
+          {
+            "subtitle": "Fortalezas observadas",
+            "content": "Tu perfil combina sensibilidad social con facilidad para comunicar."
+          }
+        ]
+      },
+      {
+        "categoryId": "LEAD",
+        "title": "Liderazgo y gestión",
+        "percentage": 79,
+        "description": "Te motiva organizar proyectos y acompañar a otros para alcanzar objetivos compartidos."
+      }
+    ],
+    "bottomAreas": [
+      { "title": "Ciencias naturales", "percentage": 38 },
+      { "title": "Mecánica y tecnología", "percentage": 31 }
+    ],
+    "summary": {
+      "primaryTitle": "Arte y diseño",
+      "primaryPercentage": 92,
+      "profileStrength": "Creatividad comunicativa",
+      "recommendation": "Explorar experiencias que combinen diseño, comunicación y trabajo con personas.",
+      "rankedAreas": [
+        { "title": "Arte y diseño", "percentage": 92 },
+        { "title": "Humanidades y comunicación", "percentage": 86 },
+        { "title": "Liderazgo y gestión", "percentage": 79 }
+      ]
+    },
+    "tripletInsight": {
+      "title": "Creatividad, comunicación y liderazgo",
+      "narrative": "Esta combinación sugiere que podés destacarte cuando convertís ideas en proyectos y los compartís con otras personas.",
+      "competencies": [
+        "Comunicación clara",
+        "Pensamiento creativo",
+        "Organización de proyectos"
+      ],
+      "tendencies": ["Curiosidad", "Iniciativa"],
+      "possibleJobs": [
+        "Diseñadora gráfica",
+        "Creadora de contenidos",
+        "Coordinadora de proyectos culturales"
+      ],
+      "relatedProfessions": [
+        "Diseño multimedia",
+        "Comunicación social",
+        "Gestión cultural"
+      ],
+      "keyInsight": "Tu diferencial aparece cuando unís tu mirada creativa con la capacidad de comunicar y coordinar personas."
+    },
+    "strengths": ["Creatividad", "Empatía", "Comunicación"]
+  }
+}

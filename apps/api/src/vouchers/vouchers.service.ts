@@ -12,7 +12,7 @@ import {
   In,
   Between,
 } from 'typeorm';
-import { Voucher } from './entities/voucher.entity.js';
+import { createAvailableVoucher, Voucher } from './entities/voucher.entity.js';
 import { VoucherBatch } from './entities/voucher-batch.entity.js';
 import {
   VoucherBatchStatus,
@@ -198,9 +198,11 @@ export class VouchersService {
     },
     quantity: number,
   ): Promise<VoucherBatch> {
+    const shortCode = await this.codeGenerator.generateUniqueBatchCode();
     return await this.voucherBatchRepository.save(
       this.voucherBatchRepository.create({
         ...ownership,
+        shortCode,
         quantity,
         unitPrice: '0',
         totalPrice: '0',
@@ -231,15 +233,18 @@ export class VouchersService {
         : await this.codeGenerator.generateUniqueCode();
 
       vouchers.push(
-        this.voucherRepository.create({
-          ...ownership,
-          code,
-          batchId,
-          status: VoucherStatus.AVAILABLE,
-          assignedPatientName: patientName ?? null,
-          assignedPatientEmail: patientEmail ?? null,
-          expiresAt,
-        }),
+        this.voucherRepository.create(
+          createAvailableVoucher({
+            code,
+            batchId,
+            ownerType: ownership.ownerType,
+            ownerUserId: ownership.ownerUserId,
+            ownerInstitutionId: ownership.ownerInstitutionId,
+            assignedPatientName: patientName ?? null,
+            assignedPatientEmail: patientEmail ?? null,
+            expiresAt,
+          }),
+        ),
       );
     }
 
@@ -347,27 +352,6 @@ export class VouchersService {
 
     const savedVoucher = await voucherRepository.save(voucher);
     return { voucher: savedVoucher, action: 'REDEEMED' };
-  }
-
-  async attachVoucherToSession(
-    code: string,
-    sessionId: string,
-    patientName?: string | null,
-  ): Promise<Voucher> {
-    const voucher = await this.resolveAvailableVoucher(code);
-
-    try {
-      voucher.redeem(sessionId);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Error al adjuntar el voucher';
-      throw new BadRequestException(message);
-    }
-
-    if (patientName && !voucher.assignedPatientName) {
-      voucher.assignedPatientName = patientName;
-    }
-    return await this.voucherRepository.save(voucher);
   }
 
   async findByCode(code: string, scope?: VoucherScope): Promise<Voucher> {

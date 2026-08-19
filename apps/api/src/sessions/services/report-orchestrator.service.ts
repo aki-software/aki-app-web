@@ -1,35 +1,23 @@
 import {
   Injectable,
-  Logger,
   NotFoundException,
   BadRequestException,
-  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
-import { ReportService } from './report.service.js';
-import type { IReportCacheService } from '../interfaces/report-cache.interface.js';
-import { ReportPdfService } from './report-pdf.service.js';
-import { ReportDeliveryService } from './report-delivery.service.js';
 import { SessionScope } from '../types/session-scope.type.js';
-import type { ReportData } from '../../common/types/report.types.js';
-import { SessionPaymentStatus } from '@akit/contracts';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
+import { ReportsService } from '../../reports/reports.service.js';
 
-const DELIVERY_CACHE_TTL_MS = 10 * 60 * 1000;
+const PATIENT_ROLE = 'PATIENT';
+
 @Injectable()
 export class ReportOrchestratorService {
-  private readonly logger = new Logger(ReportOrchestratorService.name);
-
   constructor(
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-    private readonly reportService: ReportService,
-    @Inject('IReportCacheService')
-    private readonly reportCacheService: IReportCacheService,
-    private readonly reportPdfService: ReportPdfService,
-    private readonly reportDeliveryService: ReportDeliveryService,
+    private readonly reportsService: ReportsService,
   ) {}
 
   async sendReport(
@@ -37,74 +25,15 @@ export class ReportOrchestratorService {
     targetEmail: string,
     voucherId?: string | null,
     scope?: SessionScope,
-    force?: boolean,
   ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(sessionId, scope);
-    const voucherIdForLogging = voucherId ?? session.voucherId ?? undefined;
-    const cacheKey = `report:${sessionId}:${targetEmail}`;
+    void voucherId;
+    await this.reportsService.requestGeneration(session.id, targetEmail);
 
-    const cached: {
-      reportData: ReportData;
-      pdfBuffer?: Buffer;
-    } = await this.reportCacheService.getOrCreate(cacheKey, async () => {
-      this.logger.debug(`Generating report for session: ${sessionId}`);
-
-      const reportData = await this.reportService.buildReportData(
-        session,
-        targetEmail,
-      );
-
-      const pdfBuffer =
-        await this.reportPdfService.generatePdfBuffer(reportData);
-
-      return { reportData, pdfBuffer };
-    });
-
-    this.logger.debug(`Sending report for session: ${sessionId}`);
-
-    const deliveryCacheKey = `delivery:${sessionId}:${targetEmail}`;
-    const deliveryLockKey = `lock:${deliveryCacheKey}`;
-    const previousResult = this.reportCacheService.get<{
-      success: boolean;
-      message: string;
-    }>(deliveryCacheKey);
-    if (previousResult && !force) {
-      this.logger.debug(
-        `Delivery already completed for session: ${sessionId}, returning cached result`,
-      );
-      return previousResult;
-    }
-
-    return await this.reportCacheService.withLock(deliveryLockKey, async () => {
-      const cachedDelivery = this.reportCacheService.get<{
-        success: boolean;
-        message: string;
-      }>(deliveryCacheKey);
-      if (cachedDelivery && !force) {
-        this.logger.debug(
-          `Delivery already completed (post-lock check) for session: ${sessionId}`,
-        );
-        return cachedDelivery;
-      }
-
-      const result = await this.reportDeliveryService.deliverReport(
-        targetEmail,
-        sessionId,
-        voucherIdForLogging,
-        cached.reportData,
-        cached.pdfBuffer,
-      );
-
-      if (result.success) {
-        this.reportCacheService.set(
-          deliveryCacheKey,
-          result,
-          DELIVERY_CACHE_TTL_MS,
-        );
-      }
-
-      return result;
-    });
+    return {
+      success: true,
+      message: `Report generation queued for ${targetEmail}`,
+    };
   }
 
   private async findOne(id: string, scope?: SessionScope): Promise<Session> {
@@ -130,9 +59,8 @@ export class ReportOrchestratorService {
     }
 
     if (
-      scope?.role === UserRole.PATIENT &&
-      session.paymentStatus !== SessionPaymentStatus.PAID &&
-      session.paymentStatus !== SessionPaymentStatus.VOUCHER_REDEEMED
+      scope?.role === PATIENT_ROLE &&
+      (!session.reportUnlockedAt || !session.results?.length)
     ) {
       throw new BadRequestException(
         'Cannot generate report for a pending payment session',
@@ -156,7 +84,11 @@ export class ReportOrchestratorService {
     if (role === UserRole.ADMIN) {
       return;
     }
-    if (role === UserRole.PATIENT) {
+    if (scope.role === PATIENT_ROLE && scope.patientId) {
+      query.andWhere('session.patientId = :patientId', {
+        patientId: scope.patientId,
+      });
+      query.andWhere('session.reportUnlockedAt IS NOT NULL');
       return;
     }
     if (scope.institutionId) {

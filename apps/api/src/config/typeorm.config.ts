@@ -12,15 +12,27 @@ import { Institution } from '../institutions/entities/institution.entity.js';
 import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
 import { TresAreasCombination } from '../tres-areas/entities/tres-areas-combination.entity.js';
+import { PricingPlan } from '../payments/entities/pricing-plan.entity.js';
+import { PaymentEvent } from '../payments/entities/payment-event.entity.js';
+import { PaymentFulfillmentOutbox } from '../payments/entities/payment-fulfillment-outbox.entity.js';
+import { Report } from '../reports/entities/report.entity.js';
+import { ReportGrant } from '../reports/entities/report-grant.entity.js';
+import { ReportAccessAudit } from '../reports/entities/report-access-audit.entity.js';
+import { ReportDelivery } from '../reports/entities/report-delivery.entity.js';
+import { Patient } from '../patients/entities/patient.entity.js';
 
 dotenv.config();
 
 const databaseHost = process.env.DATABASE_HOST || 'localhost';
+const databaseUrl = process.env.DATABASE_URL;
+const isLocalDatabaseUrl = databaseUrl
+  ? ['localhost', '127.0.0.1', '::1'].includes(new URL(databaseUrl).hostname)
+  : false;
 
-export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
+export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
   ? {
       type: 'postgres',
-      url: process.env.DATABASE_URL,
+      url: databaseUrl,
       entities: [
         Session,
         SessionResult,
@@ -28,14 +40,23 @@ export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
         SessionMetrics,
         VocationalCategory,
         User,
+        Patient,
         Institution,
         Voucher,
         VoucherBatch,
         TresAreasCombination,
+        PricingPlan,
+        PaymentEvent,
+        PaymentFulfillmentOutbox,
+        Report,
+        ReportGrant,
+        ReportAccessAudit,
+        ReportDelivery,
       ],
-      migrations: ['dist/migrations/*.js'],
+      migrations: ['dist/migrations/[0-9]*.js'],
+      migrationsTransactionMode: 'each',
       synchronize: false,
-      ssl: { rejectUnauthorized: false },
+      ssl: isLocalDatabaseUrl ? false : { rejectUnauthorized: false },
     }
   : {
       type: 'postgres',
@@ -51,12 +72,21 @@ export const typeOrmConfig: PostgresConnectionOptions = process.env.DATABASE_URL
         SessionMetrics,
         VocationalCategory,
         User,
+        Patient,
         Institution,
         Voucher,
         VoucherBatch,
         TresAreasCombination,
+        PricingPlan,
+        PaymentEvent,
+        PaymentFulfillmentOutbox,
+        Report,
+        ReportGrant,
+        ReportAccessAudit,
+        ReportDelivery,
       ],
-      migrations: ['dist/migrations/*.js'],
+      migrations: ['dist/migrations/[0-9]*.js'],
+      migrationsTransactionMode: 'each',
       synchronize: false,
       ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
     };

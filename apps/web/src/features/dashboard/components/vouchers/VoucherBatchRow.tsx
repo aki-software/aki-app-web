@@ -24,12 +24,12 @@ export function VoucherBatchRow({ batch, onOpenDetail }: Props) {
     <div className="app-card group flex h-full min-w-0 flex-col border-app-border !p-5 shadow-xl transition-all duration-300 hover:border-app-primary/30">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex rounded-lg border border-app-primary/20 bg-app-primary/10 p-1.5 text-app-primary">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-app-surface-hover text-app-text-dim/80 ring-1 ring-inset ring-app-border">
               <Layers3 className="h-4 w-4" />
             </span>
             <h3 className="min-w-0 truncate text-base font-black tracking-tight text-app-text-main">
-              Lote {batch.batchId.slice(0, 8).toUpperCase()}
+              {batch.name || `Lote ${batch.shortCode || batch.batchId.slice(0, 8).toUpperCase()}`}
             </h3>
           </div>
 

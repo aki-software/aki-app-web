@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 import { UserRegistrationService } from '../../users/user-registration.service.js';
 import { UsersService } from '../../users/users.service.js';
 import { CreateInstitutionDto } from '../dto/create-institution.dto.js';
@@ -51,7 +51,7 @@ export class InstitutionOperationalAccountService {
 
     const responsibleUser = await this.userRegistrationService.register({
       name: payload.email.trim(),
-      role: UserRole.THERAPIST,
+      role: UserRole.INSTITUTION_ADMIN,
       email: payload.email.trim(),
       institutionId: institution.id,
     });
@@ -90,7 +90,7 @@ export class InstitutionOperationalAccountService {
 
     const responsibleUser = await this.userRegistrationService.register({
       name: normalizedEmail,
-      role: UserRole.THERAPIST,
+      role: UserRole.INSTITUTION_ADMIN,
       email: normalizedEmail,
       institutionId: existingInstitution.id,
     });

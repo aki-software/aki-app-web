@@ -1,4 +1,9 @@
-import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleDestroy,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -13,24 +18,38 @@ export class RateLimitService implements OnModuleDestroy {
   private readonly logger = new Logger(RateLimitService.name);
   private redis: Redis | null = null;
   private useRedis = false;
+  private readonly allowMemoryFallback: boolean;
   private memoryStore = new Map<string, { count: number; resetAt: number }>();
   private readonly cleanupInterval: NodeJS.Timeout;
 
   constructor(private readonly configService: ConfigService) {
+    const environment = this.configService.get<string>('NODE_ENV');
+    this.allowMemoryFallback =
+      (environment === 'development' || environment === 'test') &&
+      this.configService.get<string>('RATE_LIMIT_MEMORY_FALLBACK') === 'true';
     const redisUrl = this.configService.get<string>('REDIS_URL');
+    const redisHost = this.configService.get<string>('REDIS_HOST');
 
-    if (redisUrl) {
+    if (redisUrl || redisHost) {
       try {
-        this.redis = new Redis(redisUrl, {
-          maxRetriesPerRequest: 1,
-          lazyConnect: true,
-          connectTimeout: 5000,
-        });
+        this.redis = redisUrl
+          ? new Redis(redisUrl, {
+              maxRetriesPerRequest: 1,
+              lazyConnect: true,
+              connectTimeout: 5000,
+            })
+          : new Redis({
+              host: redisHost,
+              port: this.configService.get<number>('REDIS_PORT', 6379),
+              password:
+                this.configService.get<string>('REDIS_PASSWORD') || undefined,
+              maxRetriesPerRequest: 1,
+              lazyConnect: true,
+              connectTimeout: 5000,
+            });
 
-        this.redis.on('error', (error) => {
-          this.logger.warn(
-            `Redis connection error, falling back to memory: ${error.message}`,
-          );
+        this.redis.on('error', () => {
+          this.logger.warn('Redis rate-limit connection error');
           this.useRedis = false;
         });
 
@@ -41,16 +60,12 @@ export class RateLimitService implements OnModuleDestroy {
 
         this.useRedis = true;
         this.logger.log('Initializing Redis backend');
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        this.logger.warn(
-          `Failed to initialize Redis, falling back to memory: ${errorMessage}`,
-        );
+      } catch {
+        this.logger.warn('Failed to initialize Redis rate-limit backend');
         this.useRedis = false;
       }
     } else {
-      this.logger.log('REDIS_URL not set, using memory backend');
+      this.logger.log('Redis rate-limit configuration not set');
       this.useRedis = false;
     }
 
@@ -70,7 +85,11 @@ export class RateLimitService implements OnModuleDestroy {
       return this.checkRedis(key, limit, windowSec, now);
     }
 
-    return this.checkMemory(key, limit, windowMs, now);
+    if (this.allowMemoryFallback) {
+      return this.checkMemory(key, limit, windowMs, now);
+    }
+
+    throw this.redisUnavailable();
   }
 
   private async checkRedis(
@@ -80,7 +99,7 @@ export class RateLimitService implements OnModuleDestroy {
     now: number,
   ): Promise<RateLimitResult> {
     if (!this.redis) {
-      return this.checkMemory(key, limit, windowSec * 1000, now);
+      throw this.redisUnavailable();
     }
 
     try {
@@ -100,11 +119,9 @@ export class RateLimitService implements OnModuleDestroy {
         remaining,
         resetAt,
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      this.logger.error(`Redis error, falling back to memory: ${errorMessage}`);
-      return this.checkMemory(key, limit, windowSec * 1000, now);
+    } catch {
+      this.logger.error('Redis rate-limit operation failed');
+      throw this.redisUnavailable();
     }
   }
 
@@ -150,6 +167,15 @@ export class RateLimitService implements OnModuleDestroy {
         this.memoryStore.delete(key);
       }
     }
+  }
+
+  private redisUnavailable(): ServiceUnavailableException {
+    return new ServiceUnavailableException({
+      statusCode: 503,
+      error: 'Service Unavailable',
+      code: 'RATE_LIMIT_BACKEND_UNAVAILABLE',
+      message: 'Rate limiting is temporarily unavailable',
+    });
   }
 
   onModuleDestroy() {

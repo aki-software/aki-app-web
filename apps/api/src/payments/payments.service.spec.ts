@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsService } from './payments.service';
-import { SessionsService } from '../sessions/sessions.service';
-import { ConfigService } from '@nestjs/config';
+import { SessionsQueryService } from '../sessions/services/sessions-query.service';
+import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
 import { SessionPaymentStatus } from '@akit/contracts';
-import { PaymentLockService } from './payment-lock.service';
 import { GooglePlayAdapter } from './google-play.adapter';
+import { getDataSourceToken } from '@nestjs/typeorm';
+import { SessionOwnerResolverService } from '../sessions/services/session-owner-resolver.service';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -14,23 +15,24 @@ describe('PaymentsService', () => {
       providers: [
         PaymentsService,
         {
-          provide: SessionsService,
+          provide: SessionsQueryService,
           useValue: {
             findOne: jest.fn(),
+            findOneForPaymentUnlock: jest.fn(),
+            findByPaymentToken: jest.fn(),
+          },
+        },
+        {
+          provide: SessionOwnerResolverService,
+          useValue: {
+            resolveFirebaseUser: jest.fn(),
+          },
+        },
+        {
+          provide: SessionsMutationService,
+          useValue: {
             updatePaymentStatus: jest.fn(),
-          },
-        },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn(),
-          },
-        },
-        {
-          provide: PaymentLockService,
-          useValue: {
-            acquireLock: jest.fn(),
-            releaseLock: jest.fn(),
+            unlockReportEntitlement: jest.fn(),
           },
         },
         {
@@ -38,6 +40,15 @@ describe('PaymentsService', () => {
           useValue: {
             getAndroidPublisher: jest.fn(),
             getPackageName: jest.fn(),
+          },
+        },
+        {
+          provide: getDataSourceToken(),
+          useValue: {
+            manager: {
+              find: jest.fn().mockResolvedValue([]),
+              count: jest.fn().mockResolvedValue(0),
+            },
           },
         },
       ],
@@ -48,6 +59,110 @@ describe('PaymentsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('resolves a Firebase patient UID to the internal patient ID before querying the session', async () => {
+    const resolver = (service as any)
+      .sessionOwnerResolverService as jest.Mocked<SessionOwnerResolverService>;
+    resolver.resolveFirebaseUser.mockResolvedValue({
+      id: 'patient-uuid',
+      institutionId: 'institution-123',
+    });
+
+    const queryService = (service as any)
+      .sessionsQueryService as jest.Mocked<SessionsQueryService>;
+    queryService.findOneForPaymentUnlock = jest.fn().mockResolvedValue({
+      id: 'session-123',
+      results: [{}],
+      reportUnlockedAt: new Date(),
+      reportUnlockPurchaseToken: 'token-abc',
+    });
+
+    await service.verifyGooglePlayPurchase(
+      {
+        sessionId: 'session-123',
+        productId: 'report_unlock_v2',
+        purchaseToken: 'token-abc',
+      },
+      {
+        userId: 'firebase-uid',
+        email: 'patient@example.com',
+        institutionId: 'institution-123',
+      },
+    );
+
+    expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
+      { uid: 'firebase-uid', email: 'patient@example.com' },
+      false,
+    );
+    expect(queryService.findOneForPaymentUnlock).toHaveBeenCalledWith(
+      'session-123',
+      'patient-uuid',
+      'institution-123',
+    );
+  });
+
+  it('fails closed when a Firebase patient has no internal patient mapping', async () => {
+    const resolver = (service as any)
+      .sessionOwnerResolverService as jest.Mocked<SessionOwnerResolverService>;
+    resolver.resolveFirebaseUser.mockResolvedValue(null);
+
+    const queryService = (service as any)
+      .sessionsQueryService as jest.Mocked<SessionsQueryService>;
+
+    await expect(
+      service.verifyGooglePlayPurchase(
+        {
+          sessionId: 'session-123',
+          productId: 'report_unlock_v2',
+          purchaseToken: 'token-abc',
+        },
+        {
+          userId: 'firebase-uid',
+          email: 'patient@example.com',
+          institutionId: 'institution-123',
+        },
+      ),
+    ).rejects.toThrow('Unable to resolve payment patient');
+
+    expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
+      { uid: 'firebase-uid', email: 'patient@example.com' },
+      false,
+    );
+    expect(queryService.findOneForPaymentUnlock).not.toHaveBeenCalled();
+  });
+
+  it('keeps an internal UUID principal as the payment owner', async () => {
+    const resolver = (service as any)
+      .sessionOwnerResolverService as jest.Mocked<SessionOwnerResolverService>;
+    const queryService = (service as any)
+      .sessionsQueryService as jest.Mocked<SessionsQueryService>;
+    queryService.findOneForPaymentUnlock = jest.fn().mockResolvedValue({
+      id: 'session-123',
+      results: [{}],
+      reportUnlockedAt: new Date(),
+      reportUnlockPurchaseToken: 'token-abc',
+    });
+
+    await service.verifyGooglePlayPurchase(
+      {
+        sessionId: 'session-123',
+        productId: 'report_unlock_v2',
+        purchaseToken: 'token-abc',
+      },
+      {
+        userId: 'b3d6d89b-8f58-4fb1-aef5-3f0196c6c936',
+        email: 'patient@example.com',
+        institutionId: 'institution-123',
+      },
+    );
+
+    expect(resolver.resolveFirebaseUser).not.toHaveBeenCalled();
+    expect(queryService.findOneForPaymentUnlock).toHaveBeenCalledWith(
+      'session-123',
+      'b3d6d89b-8f58-4fb1-aef5-3f0196c6c936',
+      'institution-123',
+    );
   });
 
   // Pending implementation of Google API
@@ -93,19 +208,19 @@ describe('PaymentsService', () => {
       purchases: {
         products: {
           get: jest.fn().mockResolvedValue({
-            data: { purchaseState: 0 },
+            data: { purchaseState: 0, productId: 'report_unlock_v2' },
           }),
           consume: jest.fn(),
         },
       },
     } as any;
 
-    const mockSessionsService = service[
-      'sessionsService'
-    ] as jest.Mocked<SessionsService>;
-    (mockSessionsService.updatePaymentStatus as jest.Mock).mockResolvedValue(
-      {},
-    );
+    const mockSessionsMutationService = service[
+      'sessionsMutationService'
+    ] as jest.Mocked<SessionsMutationService>;
+    (
+      mockSessionsMutationService.unlockReportEntitlement as jest.Mock
+    ).mockResolvedValue({});
 
     const session = {
       id: 'session-2',

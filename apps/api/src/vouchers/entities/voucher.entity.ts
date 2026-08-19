@@ -13,6 +13,23 @@ import { Session } from '../../sessions/entities/session.entity.js';
 import { VoucherBatch } from './voucher-batch.entity.js';
 import { VoucherOwnerType, VoucherStatus } from './voucher.enums.js';
 
+export interface CreateAvailableVoucherInput {
+  batchId: string;
+  code: string;
+  ownerType: VoucherOwnerType;
+  ownerUserId: string | null;
+  ownerInstitutionId: string | null;
+  expiresAt: Date | null;
+  assignedPatientName: string | null;
+  assignedPatientEmail: string | null;
+}
+
+export function createAvailableVoucher(
+  input: CreateAvailableVoucherInput,
+): CreateAvailableVoucherInput & { status: VoucherStatus } {
+  return { ...input, status: VoucherStatus.AVAILABLE };
+}
+
 @Entity('vouchers')
 @Index('IDX_vouchers_owner_institution_id_status', [
   'ownerInstitutionId',
@@ -125,6 +142,22 @@ export class Voucher {
     this.status = VoucherStatus.USED;
     this.redeemedSessionId = sessionId;
     this.redeemedAt = new Date();
+  }
+
+  bindToAuthenticatedEmail(email: string): void {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      throw new Error('A verified Android email is required.');
+    }
+
+    if (
+      this.assignedPatientEmail &&
+      this.assignedPatientEmail.toLowerCase() !== normalizedEmail
+    ) {
+      throw new Error('Voucher is bound to a different Android email.');
+    }
+
+    this.assignedPatientEmail ??= normalizedEmail;
   }
 
   markAsSent(customEmail?: string) {

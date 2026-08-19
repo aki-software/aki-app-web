@@ -6,7 +6,7 @@ import { InstitutionAnalyticsService } from './services/institution-analytics.se
 import { InstitutionOperationalAccountService } from './services/institution-operational-account.service.js';
 import { InstitutionPresenterService } from './services/institution-presenter.service.js';
 import { InstitutionOwnerGuard } from './guards/institution-owner.guard.js';
-import { UserRole } from '../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 
 describe('InstitutionsController & InstitutionOwnerGuard', () => {
   let controller: InstitutionsController;

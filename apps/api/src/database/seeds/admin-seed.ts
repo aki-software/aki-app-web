@@ -1,6 +1,7 @@
+import { UserRole } from '@akit/contracts';
 import { DataSource, EntityManager } from 'typeorm';
 import { typeOrmConfig } from '../../config/typeorm.config.js';
-import { User, UserRole } from '../../users/entities/user.entity.js';
+import { User } from '../../users/entities/user.entity.js';
 import { buildSeedPasswordHash } from './seed-password.js';
 
 type RepoProvider = Pick<DataSource, 'getRepository'> | EntityManager;

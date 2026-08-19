@@ -36,11 +36,17 @@ export class TresAreasCombination {
   @Column({ name: 'tendencies', type: 'text', array: true, default: '{}' })
   tendencies!: string[];
 
+  @Column({ name: 'competencies', type: 'text', array: true, default: '{}' })
+  competencies!: string[];
+
   @Column({ name: 'possible_jobs', type: 'text' })
   possibleJobs!: string;
 
   @Column({ name: 'related_professions', type: 'text' })
   relatedProfessions!: string;
+
+  @Column({ name: 'key_insight', type: 'text', nullable: true })
+  keyInsight?: string;
 
   @Column({ name: 'custom_sections', type: 'jsonb', default: [] })
   customSections!: { title: string; items: string[] }[];

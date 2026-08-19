@@ -1,5 +1,5 @@
 import { DashboardChannelBreakdown } from "@akit/contracts";
-import { ArrowRight, Target, TrendingUp } from "lucide-react";
+import { Target, TrendingUp } from "lucide-react";
 import { StatCard } from "../../../../components/atoms/StatCard";
 
 interface Props {
@@ -61,40 +61,53 @@ export function OverviewHighlights({
             </p>
           </div>
 
-          <div className="rounded-3xl border border-app-primary/15 bg-app-surface/75 p-5 sm:p-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="app-label opacity-50">KPI DEL PERIODO</p>
-                  <p className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-app-text-main">
-                    {voucherRedemptionRatePeriod}%
-                  </p>
+          {/* Metáfora visual de Embudo (Funnel) para el Flujo Operativo */}
+          <div className="rounded-3xl border border-app-primary/15 bg-app-surface/75 p-5 sm:p-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-app-primary/10 via-transparent to-transparent opacity-50" />
+            <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-center relative z-10">
+              <div className="flex-1 flex flex-col gap-4 w-full">
+                {/* Generados */}
+                <div className="flex items-center gap-4 group">
+                  <div className="flex-1 h-12 rounded-xl bg-app-primary/20 border border-app-primary/30 flex items-center px-4 relative overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 bg-app-primary/20 w-full rounded-xl transition-all duration-1000" />
+                    <span className="relative z-10 text-sm font-semibold text-app-primary">Generados</span>
+                    <span className="relative z-10 ml-auto font-black text-lg text-app-text-main">{vouchersGeneratedPeriod}</span>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-app-primary/20 bg-app-primary/5 px-4 py-3 text-right">
-                  <p className="app-label opacity-50">TASA DE CANJE</p>
-                  <p className="mt-1 text-sm font-semibold text-app-text-muted">
-                    canjeados / generados
-                  </p>
+                {/* Canjeados */}
+                <div className="flex items-center gap-4 group px-4">
+                  <div className="flex-1 h-12 rounded-xl bg-app-primary/40 border border-app-primary/50 flex items-center px-4 relative overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 bg-app-primary/30 w-full rounded-xl transition-all duration-1000" />
+                    <span className="relative z-10 text-sm font-semibold text-app-primary">Canjeados</span>
+                    <span className="relative z-10 ml-auto font-black text-lg text-app-text-main">{vouchersRedeemedPeriod}</span>
+                  </div>
+                </div>
+                {/* Completados */}
+                <div className="flex items-center gap-4 group px-8">
+                  <div className="flex-1 h-12 rounded-xl bg-app-primary/60 border border-app-primary/70 flex items-center px-4 relative overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 bg-app-primary/40 w-full rounded-xl transition-all duration-1000" />
+                    <span className="relative z-10 text-sm font-semibold text-white">Completados</span>
+                    <span className="relative z-10 ml-auto font-black text-lg text-white">{testsCompletedPeriod}</span>
+                  </div>
+                </div>
+                {/* Informes */}
+                <div className="flex items-center gap-4 group px-12">
+                  <div className="flex-1 h-12 rounded-xl bg-app-primary border border-app-primary flex items-center px-4 relative overflow-hidden shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]">
+                    <span className="relative z-10 text-sm font-semibold text-white">Informes</span>
+                    <span className="relative z-10 ml-auto font-black text-lg text-white">{reportsUnlockedPeriod}</span>
+                  </div>
                 </div>
               </div>
-
-              {/* Cinta de progresión */}
-              <div className="flex flex-wrap items-center gap-3 text-app-text-main">
-                <span className="rounded-2xl border border-app-border/70 bg-app-surface/60 px-4 py-3 text-sm font-semibold">
-                  {vouchersGeneratedPeriod} generados
-                </span>
-                <ArrowRight className="h-4 w-4 text-app-text-muted/50" />
-                <span className="rounded-2xl border border-app-border/70 bg-app-surface/60 px-4 py-3 text-sm font-semibold">
-                  {vouchersRedeemedPeriod} canjeados
-                </span>
-                <ArrowRight className="h-4 w-4 text-app-text-muted/50" />
-                <span className="rounded-2xl border border-app-border/70 bg-app-surface/60 px-4 py-3 text-sm font-semibold">
-                  {testsCompletedPeriod} tests
-                </span>
-                <ArrowRight className="h-4 w-4 text-app-text-muted/50" />
-                <span className="rounded-2xl border border-app-border/70 bg-app-surface/60 px-4 py-3 text-sm font-semibold">
-                  {reportsUnlockedPeriod} informes
-                </span>
+              
+              <div className="md:w-48 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-app-primary/20 pt-6 md:pt-0 md:pl-8">
+                <p className="app-label opacity-50 mb-2">TASA DE CANJE</p>
+                <div className="relative flex items-center justify-center w-32 h-32">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="64" cy="64" r="56" fill="none" className="stroke-app-primary/10" strokeWidth="12" />
+                    <circle cx="64" cy="64" r="56" fill="none" className="stroke-app-primary" strokeWidth="12" strokeDasharray="351.85" strokeDashoffset={351.85 - (351.85 * voucherRedemptionRatePeriod) / 100} strokeLinecap="round" />
+                  </svg>
+                  <span className="absolute text-3xl font-black text-app-text-main">{voucherRedemptionRatePeriod}%</span>
+                </div>
               </div>
             </div>
           </div>

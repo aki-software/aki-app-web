@@ -1,17 +1,14 @@
-import { Check, Pencil, Search } from "lucide-react";
+import { Check, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
-import { fetchCategories, updateCategory, type CategoryData } from "../api/dashboard";
+import { fetchCategories, type CategoryData } from "../api/dashboard";
 import {
   fetchCombinations,
-  updateCombination,
   type TresAreasCombinationItem,
 } from "../api/combinations.api";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { SecuritySettings } from "../components/settings/SecuritySettings";
-import { CategoryEditModal } from "../components/settings/CategoryEditModal";
 import { CategoryCard } from "../components/settings/CategoryCard";
-import { CombinationEditModal } from "../components/CombinationEditModal";
 
 type ActiveTab = "settings" | "combinations";
 
@@ -50,7 +47,6 @@ export function DashboardSettings() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
-  const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
 
   // --- Combinations tab state ---
   const [combinations, setCombinations] = useState<TresAreasCombinationItem[]>([]);
@@ -58,7 +54,6 @@ export function DashboardSettings() {
   const [combLoaded, setCombLoaded] = useState(false);
   const [combSearch, setCombSearch] = useState("");
   const [combPage, setCombPage] = useState(1);
-  const [editingCombination, setEditingCombination] = useState<TresAreasCombinationItem | null>(null);
 
   // --- Toast ---
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -96,20 +91,6 @@ export function DashboardSettings() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const handleSaveCategory = async (
-    id: string,
-    form: { title: string; description: string },
-  ) => {
-    const ok = await updateCategory(id, form);
-    if (ok) {
-      setCategories((prev) =>
-        prev.map((c) => (c.categoryId === id ? { ...c, ...form } : c)),
-      );
-      setEditingCategory(null);
-    }
-    return ok;
-  };
-
   // Client-side search and sort for combinations
   const filteredCombinations = useMemo(() => {
     let result = combinations;
@@ -139,32 +120,6 @@ export function DashboardSettings() {
     setCombPage(1);
   };
 
-  const handleSaveCombination = async (
-    id: string,
-    payload: {
-      narrative: string;
-      tendencies: string[];
-      possibleJobs: string;
-      relatedProfessions: string;
-      customSections: { title: string; items: string[] }[];
-    },
-  ) => {
-    if (!editingCombination) return;
-
-    const ok = await updateCombination(id, payload);
-    if (ok) {
-      setCombinations((prev) =>
-        prev.map((c) =>
-          c.id === id ? { ...c, ...payload } : c,
-        ),
-      );
-      showToast("Combination updated successfully.", "success");
-    } else {
-      showToast("Failed to save. Please try again.", "error");
-    }
-    setEditingCombination(null);
-  };
-
   // --- Loading state ---
   if (loading) {
     return (
@@ -184,10 +139,10 @@ export function DashboardSettings() {
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-display font-bold tracking-tight text-app-text-main">
-            Material Teórico (CMS)
+            Contenido de reportes (solo lectura)
           </h2>
           <p className="mt-1 text-app-text-muted">
-            Configura las dimensiones devueltas al paciente al finalizar el test.
+            Consulta las dimensiones de referencia incluidas en los reportes de pacientes. Este contenido no se edita desde el panel.
           </p>
         </div>
         <div className="inline-flex items-center rounded-full border border-status-success/30 bg-status-success/10 px-3 py-1 text-sm text-status-success">
@@ -209,7 +164,7 @@ export function DashboardSettings() {
                 : "border-transparent text-app-text-muted hover:text-app-text-main"
             }`}
           >
-            Settings ({categories.length})
+            Referencia ({categories.length})
           </button>
           <button
             id="tab-combinations"
@@ -222,7 +177,7 @@ export function DashboardSettings() {
                 : "border-transparent text-app-text-muted hover:text-app-text-main"
             }`}
           >
-            Combinations {combLoaded ? `(${filteredCombinations.length})` : ""}
+            Combinaciones {combLoaded ? `(${filteredCombinations.length})` : ""}
           </button>
         </nav>
       </div>
@@ -245,18 +200,10 @@ export function DashboardSettings() {
                     [cat.categoryId]: !prev[cat.categoryId],
                   }))
                 }
-                onEdit={() => setEditingCategory(cat)}
               />
             ))}
           </div>
 
-          {editingCategory && (
-            <CategoryEditModal
-              category={editingCategory}
-              onClose={() => setEditingCategory(null)}
-              onSave={handleSaveCategory}
-            />
-          )}
         </>
       )}
 
@@ -296,16 +243,13 @@ export function DashboardSettings() {
                       <th className="px-4 md:px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-app-text-muted/80 hidden md:table-cell">
                         Áreas (Triada)
                       </th>
-                      <th className="px-4 md:px-6 py-4 text-right text-[10px] font-black uppercase tracking-[0.2em] text-app-text-muted/80">
-                        Acciones
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-app-border/20">
                     {paginatedCombinations.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={3}
+                          colSpan={2}
                           className="px-8 py-16 text-center text-sm font-medium text-app-text-muted"
                         >
                           No se encontraron combinaciones.
@@ -337,17 +281,6 @@ export function DashboardSettings() {
                                 </span>
                               ))}
                             </div>
-                          </td>
-                          <td className="px-4 md:px-6 py-4 text-right">
-                            <button
-                              id={`edit-comb-${comb.id}`}
-                              type="button"
-                              onClick={() => setEditingCombination(comb)}
-                              className="inline-flex items-center gap-2 rounded-xl bg-app-bg border border-app-border/60 px-4 py-2 text-xs font-bold text-app-text-main shadow-sm hover:bg-app-primary hover:text-white hover:border-transparent hover:shadow-[0_8px_16px_-4px_rgba(var(--color-primary),0.4)] transition-all duration-300 hover:-translate-y-0.5"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                              Editar
-                            </button>
                           </td>
                         </tr>
                       ))
@@ -387,16 +320,6 @@ export function DashboardSettings() {
             </>
           )}
         </div>
-      )}
-
-      {/* Rich Text Editor Modal */}
-      {editingCombination && (
-        <CombinationEditModal
-          isOpen={true}
-          onClose={() => setEditingCombination(null)}
-          combination={editingCombination}
-          onSave={handleSaveCombination}
-        />
       )}
 
       {/* Toast Notification */}

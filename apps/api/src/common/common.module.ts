@@ -1,5 +1,5 @@
 import { Module, Global } from '@nestjs/common';
-import { MailModule } from '../mail/mail.module.js';
+import { BullModule } from '@nestjs/bullmq';
 import { PdfService } from './services/pdf.service.js';
 import { StorageService } from './services/storage.service.js';
 import { CryptoService } from './services/crypto.service.js';
@@ -8,39 +8,40 @@ import {
   PDF_GENERATOR,
   STORAGE_ADAPTER,
   QUEUE_ADAPTER,
-  MAIL_ADAPTER,
 } from './constants/adapters.constants.js';
 import { InMemoryQueueAdapter } from './adapters/in-memory-queue.adapter.js';
 import { BullMQQueueAdapter } from './adapters/bullmq-queue.adapter.js';
-import { BullMQWorkerService } from './services/bullmq-worker.service.js';
-import { JobDispatcherService } from './services/job-dispatcher.service.js';
 import { IdempotencyService } from './services/idempotency.service.js';
 import { IdempotencyInterceptor } from './interceptors/idempotency.interceptor.js';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
-import { SendEmailHandler } from './jobs/handlers/send-email.handler.js';
-import { GeneratePdfHandler } from './jobs/handlers/generate-pdf.handler.js';
-import { SendReportHandler } from './jobs/handlers/send-report.handler.js';
-import { MailService } from '../mail/mail.service.js';
+import { SendEmailProcessor } from './jobs/handlers/send-email.processor.js';
+import { GeneratePdfProcessor } from './jobs/handlers/generate-pdf.processor.js';
+import { SendReportProcessor } from './jobs/handlers/send-report.processor.js';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
 
 @Global()
 @Module({
-  imports: [MailModule],
+  imports: [
+    BullModule.registerQueue(
+      { name: 'email' },
+      { name: 'pdf' },
+      { name: 'reports' },
+      { name: 'send-report' },
+      { name: 'metrics' },
+    ),
+  ],
   providers: [
     PdfService,
     StorageService,
     CryptoService,
     RateLimitService,
-    JobDispatcherService,
-    BullMQWorkerService,
-    SendEmailHandler,
-    GeneratePdfHandler,
-    SendReportHandler,
+    SendEmailProcessor,
+    GeneratePdfProcessor,
+    SendReportProcessor,
     InMemoryQueueAdapter,
     BullMQQueueAdapter,
     { provide: PDF_GENERATOR, useExisting: PdfService },
     { provide: STORAGE_ADAPTER, useExisting: StorageService },
-    { provide: MAIL_ADAPTER, useExisting: MailService },
     {
       provide: QUEUE_ADAPTER,
       useFactory: (
@@ -69,11 +70,9 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
     StorageService,
     CryptoService,
     RateLimitService,
-    JobDispatcherService,
     PDF_GENERATOR,
     STORAGE_ADAPTER,
     QUEUE_ADAPTER,
-    MAIL_ADAPTER,
     IdempotencyService,
   ],
 })

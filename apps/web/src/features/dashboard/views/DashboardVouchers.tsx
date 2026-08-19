@@ -49,7 +49,7 @@ export function DashboardVouchers() {
   );
 
   // 4. List & Filters State
-  const [viewMode, setViewMode] = useState<"BATCHES" | "INDIVIDUAL">(isAdmin ? "BATCHES" : "INDIVIDUAL");
+  const [viewMode, setViewMode] = useState<"BATCHES" | "INDIVIDUAL">("BATCHES");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "AVAILABLE" | "USED" | "EXPIRED">("ALL");
   const [expirationFilter, setExpirationFilter] = useState<"ALL" | "EXPIRING_7D" | "NO_EXPIRATION">("ALL");

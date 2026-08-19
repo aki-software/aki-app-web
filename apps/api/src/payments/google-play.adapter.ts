@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   Logger,
   InternalServerErrorException,
@@ -36,15 +37,27 @@ export class GooglePlayAdapter {
     return google.androidpublisher({ version: 'v3', auth });
   }
 
-  // Comentario para forzar recarga de .env
   getPackageName(): string {
-    const packageName = this.configService.get<string>('ANDROID_PACKAGE_NAME');
+    const packageName = this.configService.get<string>(
+      'GOOGLE_PLAY_PACKAGE_NAME',
+    );
 
-    if (!packageName) {
+    if (
+      !packageName ||
+      !/^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$/.test(packageName)
+    ) {
       this.logger.error('Android package name configuration is missing');
-      throw new InternalServerErrorException('Payment configuration error');
+      throw new BadRequestException('Payment configuration error');
     }
 
     return packageName;
+  }
+
+  getReportUnlockSku(): string {
+    const sku = this.configService.get<string>('GOOGLE_PLAY_REPORT_SKU');
+    if (sku !== 'report_unlock_v2') {
+      throw new InternalServerErrorException('Payment configuration error');
+    }
+    return sku;
   }
 }

@@ -11,9 +11,10 @@ import {
 } from 'typeorm';
 import { SessionPaymentStatus } from '@akit/contracts';
 export { SessionPaymentStatus };
-import { SessionResult } from './session-result.entity.js';
-import { SessionSwipe } from './session-swipe.entity.js';
+import type { SessionResult } from './session-result.entity.js';
+import type { SessionSwipe } from './session-swipe.entity.js';
 import type { SessionMetrics } from './session-metrics.entity.js';
+import type { Report } from '../../reports/entities/report.entity.js';
 import { Voucher } from '../../vouchers/entities/voucher.entity.js';
 import { User } from '../../users/entities/user.entity.js';
 import { Institution } from '../../institutions/entities/institution.entity.js';
@@ -95,6 +96,22 @@ export class Session {
   @Column({ name: 'report_unlocked_at', type: 'timestamptz', nullable: true })
   reportUnlockedAt!: Date | null;
 
+  @Column({
+    name: 'report_unlock_purchase_token',
+    type: 'varchar',
+    length: 2048,
+    nullable: true,
+  })
+  reportUnlockPurchaseToken!: string | null;
+
+  @Column({
+    name: 'expected_report_sku',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
+  expectedReportSku!: string | null;
+
   @Column({ name: 'paid_at', type: 'timestamptz', nullable: true })
   paidAt!: Date | null;
 
@@ -106,16 +123,21 @@ export class Session {
   })
   paymentReference!: string | null;
 
-  @OneToMany('SessionResult', (result: any) => result.session, {
+  @OneToMany('SessionResult', 'session', {
     cascade: true,
   })
   results!: SessionResult[];
 
-  @OneToMany('SessionSwipe', (swipe: any) => swipe.session, { cascade: true })
+  @OneToMany('SessionSwipe', 'session', {
+    cascade: true,
+  })
   swipes!: SessionSwipe[];
 
   @OneToOne('SessionMetrics', 'session', {
     cascade: true,
   })
   metrics?: SessionMetrics;
+
+  @OneToMany('Report', 'session')
+  reports!: Report[];
 }

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { VoucherAccessGuard } from './voucher-access.guard.js';
 import { VouchersService } from '../vouchers.service.js';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
 import { VoucherScope } from '@akit/contracts';
 
 describe('VoucherAccessGuard', () => {

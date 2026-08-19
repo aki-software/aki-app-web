@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserRole } from '../../users/entities/user.entity.js';
+import { UserRole } from '@akit/contracts';
+import { ConfigService } from '@nestjs/config';
+import { Redis } from 'ioredis';
 
 type AuthAccessTokenPayload = {
   email: string;
@@ -10,37 +12,36 @@ type AuthAccessTokenPayload = {
 };
 
 @Injectable()
-export class AuthTokenService {
-  private readonly invalidatedTokens = new Map<string, number>();
+export class AuthTokenService implements OnModuleDestroy {
+  private readonly redis: Redis;
   private readonly TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private redisClosed = false;
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {
+    const redisUrl =
+      this.configService.get<string>('REDIS_URL') || 'redis://localhost:6379';
+    this.redis = new Redis(redisUrl);
+  }
 
   signAccessToken(payload: AuthAccessTokenPayload): string {
     return this.jwtService.sign(payload);
   }
 
-  invalidateToken(token: string): void {
-    this.invalidatedTokens.set(token, Date.now() + this.TOKEN_TTL_MS);
-    this.cleanupExpiredTokens();
+  async invalidateToken(token: string): Promise<void> {
+    await this.redis.set(`blacklist:${token}`, '1', 'PX', this.TOKEN_TTL_MS);
   }
 
-  isTokenInvalidated(token: string): boolean {
-    const expiry = this.invalidatedTokens.get(token);
-    if (!expiry) return false;
-    if (Date.now() > expiry) {
-      this.invalidatedTokens.delete(token);
-      return false;
-    }
-    return true;
+  async isTokenInvalidated(token: string): Promise<boolean> {
+    const result = await this.redis.get(`blacklist:${token}`);
+    return result !== null;
   }
 
-  private cleanupExpiredTokens(): void {
-    const now = Date.now();
-    for (const [token, expiry] of this.invalidatedTokens) {
-      if (now > expiry) {
-        this.invalidatedTokens.delete(token);
-      }
-    }
+  async onModuleDestroy(): Promise<void> {
+    if (this.redisClosed) return;
+    this.redisClosed = true;
+    await this.redis.quit();
   }
 }
