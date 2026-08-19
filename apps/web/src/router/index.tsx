@@ -56,11 +56,19 @@ export const router = createBrowserRouter([
     element: <SuspenseWrapper><SetupPasswordPage /></SuspenseWrapper>,
   },
   {
+    path: "/dashboard/setup-password",
+    element: <SuspenseWrapper><SetupPasswordPage /></SuspenseWrapper>,
+  },
+  {
     path: APP_ROUTES.AUTH.FORGOT_PASSWORD,
     element: <SuspenseWrapper><ForgotPasswordPage /></SuspenseWrapper>,
   },
   {
     path: APP_ROUTES.AUTH.RESET_PASSWORD,
+    element: <SuspenseWrapper><ResetPasswordPage /></SuspenseWrapper>,
+  },
+  {
+    path: "/dashboard/reset-password",
     element: <SuspenseWrapper><ResetPasswordPage /></SuspenseWrapper>,
   },
   {
