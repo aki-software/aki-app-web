@@ -67,6 +67,7 @@ export class PaymentsController {
   ) {
     return this.paymentsService.verifyGooglePlayPurchase(verifyDto, {
       userId: req.user.userId,
+      email: req.user.email,
       institutionId: req.user.institutionId,
     });
   }

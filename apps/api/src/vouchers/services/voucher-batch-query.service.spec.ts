@@ -95,6 +95,7 @@ describe('VoucherBatchQueryService', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(20);
       expect(result.count).toBe(1);
+      expect(result.name).toBe('Compra del 15/05/2026');
       expect(Array.isArray(result.data)).toBe(true);
       expect(result.data).toHaveLength(1);
     });

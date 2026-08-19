@@ -7,5 +7,6 @@ export type AuthenticatedRequest = Request & {
     email?: string;
     role?: string;
     institutionId?: string;
+    isFirebaseEmailVerified?: boolean;
   };
 };

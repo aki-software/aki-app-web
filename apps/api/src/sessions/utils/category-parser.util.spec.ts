@@ -21,9 +21,11 @@ describe('category-parser.util', () => {
     const parsed = parseCategoryDescription(desc);
 
     expect(parsed.length).toBe(2);
-    expect(parsed[0].subtitle).toBe('Descripcion breve');
+    expect(parsed[0].subtitle).toBe('Descripción breve');
     expect(parsed[0].content).toBe('Hola mundo.');
-    expect(parsed[1].subtitle).toBe('Competencias importantes');
+    expect(parsed[1].subtitle).toBe(
+      'Competencias importantes para desempeñarse en el área',
+    );
     expect(parsed[1].content).toBe('Saber mucho.');
   });
 });

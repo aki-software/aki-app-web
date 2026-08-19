@@ -1,7 +1,7 @@
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  THERAPIST = 'THERAPIST',
-  INSTITUTION_ADMIN = 'INSTITUTION_ADMIN',
+  ADMIN = "ADMIN",
+  THERAPIST = "THERAPIST",
+  INSTITUTION_ADMIN = "INSTITUTION_ADMIN",
 }
 
 export interface AuthUser {
@@ -26,6 +26,7 @@ export interface JwtPayload {
 
 export interface FirebaseJwtPayload extends JwtPayload {
   user_id?: string;
+  email_verified?: boolean;
 }
 
 export interface AuthTokens {
@@ -63,4 +64,5 @@ export type AuthUserPayload = {
   email?: string;
   role: string;
   institutionId: string | null;
+  isFirebaseEmailVerified?: boolean;
 };

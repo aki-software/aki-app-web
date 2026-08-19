@@ -2,6 +2,7 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AUTH_JWT_MESSAGES, FIREBASE_CERTS_URL } from '../auth.constants.js';
 import type { FirebaseJwtPayload } from '@akit/contracts';
+import { requireFirebaseProjectId } from '../config/firebase-project-id.js';
 
 @Injectable()
 export class FirebaseTokenService {
@@ -10,11 +11,12 @@ export class FirebaseTokenService {
     expiresAt: number;
     certsByKid: Record<string, string>;
   } | null = null;
-  private readonly firebaseProjectId?: string;
+  private readonly firebaseProjectId: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.firebaseProjectId =
-      configService.get<string>('FIREBASE_PROJECT_ID')?.trim() || undefined;
+    this.firebaseProjectId = requireFirebaseProjectId({
+      FIREBASE_PROJECT_ID: configService.get<string>('FIREBASE_PROJECT_ID'),
+    });
   }
 
   async getCertByKid(kid: string): Promise<string> {
@@ -53,30 +55,16 @@ export class FirebaseTokenService {
   }
 
   assertFirebaseClaims(payload: FirebaseJwtPayload) {
-    const expectedProjectId =
-      this.firebaseProjectId || this.extractProjectIdFromIss(payload.iss);
-    if (!expectedProjectId) {
-      throw new UnauthorizedException(
-        AUTH_JWT_MESSAGES.firebaseProjectIdMissing,
-      );
-    }
-
-    const expectedIssuer = `https://securetoken.google.com/${expectedProjectId}`;
+    const expectedIssuer = `https://securetoken.google.com/${this.firebaseProjectId}`;
     if (payload.iss !== expectedIssuer) {
       throw new UnauthorizedException(AUTH_JWT_MESSAGES.firebaseIssuerInvalid);
     }
 
-    if (payload.aud !== expectedProjectId) {
+    if (payload.aud !== this.firebaseProjectId) {
       throw new UnauthorizedException(
         AUTH_JWT_MESSAGES.firebaseAudienceInvalid,
       );
     }
-  }
-
-  private extractProjectIdFromIss(iss?: string): string | undefined {
-    if (!iss) return undefined;
-    const parts = iss.split('/');
-    return parts[parts.length - 1] || undefined;
   }
 
   decodeHeader(rawJwtToken: string): Record<string, unknown> {

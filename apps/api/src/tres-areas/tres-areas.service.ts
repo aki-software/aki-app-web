@@ -9,6 +9,8 @@ export type TresAreasCombination = {
   title: string;
   categories: string[];
   narrative: string;
+  keyInsight?: string;
+  competencies: string[];
   tendencies: string[];
   possibleJobs: string;
   relatedProfessions: string;
@@ -29,14 +31,9 @@ export class TresAreasService {
   async findByCategories(
     categories: string[],
   ): Promise<TresAreasCombination | null> {
-    if (!Array.isArray(categories) || categories.length < 3) {
-      return null;
-    }
-
+    if (!Array.isArray(categories) || categories.length < 3) return null;
     await this.ensureCache();
-
-    const key = this.buildKey(categories);
-    return this.combinationsByKey.get(key) ?? null;
+    return this.combinationsByKey.get(this.buildKey(categories)) ?? null;
   }
 
   async findAll(
@@ -45,7 +42,6 @@ export class TresAreasService {
     search: string = '',
   ): Promise<{ data: TresAreasCombinationEntity[]; total: number }> {
     const skip = (page - 1) * limit;
-
     const where = search
       ? [
           { title: ILike(`%${search}%`) },
@@ -55,14 +51,12 @@ export class TresAreasService {
           { area3: ILike(`%${search}%`) },
         ]
       : {};
-
     const [data, total] = await this.tresAreasRepo.findAndCount({
       where,
       order: { title: 'ASC' },
       skip,
       take: limit,
     });
-
     return { data, total };
   }
 
@@ -71,17 +65,25 @@ export class TresAreasService {
     dto: UpdateTresAreasDto,
   ): Promise<TresAreasCombinationEntity> {
     const combination = await this.tresAreasRepo.findOne({ where: { id } });
-
     if (!combination) {
       throw new NotFoundException(`Combination with id ${id} not found`);
     }
 
     if (dto.narrative !== undefined) combination.narrative = dto.narrative;
-    if (dto.tendencies !== undefined) combination.tendencies = dto.tendencies;
+    if (dto.tendencies !== undefined) {
+      combination.tendencies = dto.tendencies;
+      combination.competencies = dto.tendencies;
+    }
+    if (dto.competencies !== undefined) {
+      combination.competencies = dto.competencies;
+      combination.tendencies = dto.competencies;
+    }
+    if (dto.keyInsight !== undefined) combination.keyInsight = dto.keyInsight;
     if (dto.possibleJobs !== undefined)
       combination.possibleJobs = dto.possibleJobs;
-    if (dto.relatedProfessions !== undefined)
+    if (dto.relatedProfessions !== undefined) {
       combination.relatedProfessions = dto.relatedProfessions;
+    }
     if (dto.customSections !== undefined)
       combination.customSections = dto.customSections;
 
@@ -95,10 +97,7 @@ export class TresAreasService {
   }
 
   private async ensureCache(): Promise<void> {
-    if (this.cacheReady) {
-      return;
-    }
-
+    if (this.cacheReady) return;
     await this.loadContentFromDatabase();
     this.cacheReady = true;
   }
@@ -107,25 +106,24 @@ export class TresAreasService {
     try {
       const combinations = await this.tresAreasRepo.find();
       this.combinationsByKey.clear();
-
       for (const item of combinations) {
         const categories = [item.area1, item.area2, item.area3].filter(Boolean);
-        if (categories.length < 3) {
-          continue;
-        }
-
+        if (categories.length < 3) continue;
         this.combinationsByKey.set(item.combinationKey, {
           id: item.id,
           title: item.title,
           categories,
           narrative: item.narrative,
+          keyInsight: item.keyInsight,
+          competencies: item.competencies?.length
+            ? item.competencies
+            : item.tendencies,
           tendencies: item.tendencies,
           possibleJobs: item.possibleJobs,
           relatedProfessions: item.relatedProfessions,
           customSections: item.customSections,
         });
       }
-
       this.logger.log(
         `Tres areas content loaded from DB: ${this.combinationsByKey.size} combinations`,
       );

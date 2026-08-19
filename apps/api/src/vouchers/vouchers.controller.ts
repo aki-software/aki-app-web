@@ -116,6 +116,12 @@ export class VouchersController {
     return await this.voucherRedemptionService.redeemVoucher(
       redeemVoucherDto.code,
       redeemVoucherDto.sessionId,
+      {
+        userId: scope.ownerUserId,
+        email: scope.email,
+        isFirebaseEmailVerified: scope.isFirebaseEmailVerified,
+        role: scope.role,
+      },
     );
   }
 

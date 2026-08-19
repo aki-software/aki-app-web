@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SendReportProcessor } from './send-report.processor.js';
 import { ModuleRef } from '@nestjs/core';
+import { MODULE_METADATA } from '@nestjs/common/constants.js';
 import { ReportOrchestratorService } from '../../../sessions/services/report-orchestrator.service.js';
 import { Job } from 'bullmq';
+import { PROCESSOR_METADATA } from '@nestjs/bullmq/dist/bull.constants.js';
+import { CommonModule } from '../../common.module.js';
 
 describe('SendReportProcessor', () => {
   let processor: SendReportProcessor;
@@ -21,6 +24,20 @@ describe('SendReportProcessor', () => {
     }).compile();
 
     processor = module.get<SendReportProcessor>(SendReportProcessor);
+  });
+
+  it('should consume only the dedicated send-report queue', () => {
+    expect(
+      Reflect.getMetadata(PROCESSOR_METADATA, SendReportProcessor),
+    ).toEqual({
+      name: 'send-report',
+    });
+  });
+
+  it('should register the processor in CommonModule', () => {
+    expect(
+      Reflect.getMetadata(MODULE_METADATA.PROVIDERS, CommonModule),
+    ).toContain(SendReportProcessor);
   });
 
   it('should process job and call sendReport', async () => {

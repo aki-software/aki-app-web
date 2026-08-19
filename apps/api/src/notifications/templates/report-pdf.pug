@@ -1,4 +1,31 @@
 doctype html
+-
+  function immutableSubtitle(subtitle) {
+    var normalized = String(subtitle || '').trim().toUpperCase();
+    if (
+      normalized === 'COMPETENCIAS IMPORTANTES' ||
+      normalized === 'COMPETENCIAS IMPORTANTES PARA DESEMPEÑARSE EN EL ÁREA' ||
+      normalized === 'LAS COMPETENCIAS MÁS IMPORTANTES PARA ESTE TIPO DE PERFIL SON'
+    ) {
+      return 'COMPETENCIAS IMPORTANTES PARA DESEMPEÑARSE EN EL ÁREA';
+    }
+    if (
+      normalized === 'PROFESIONES TÉCNICAS O FORMALES' ||
+      normalized === 'ALGUNAS PROFESIONES VINCULADAS' ||
+      normalized === 'PUEDE INCLUIR PROFESIONES TÉCNICAS Y FORMALES' ||
+      normalized === 'TAMBIÉN PUEDE INCLUIR PROFESIONES MÁS TÉCNICAS O FORMALES COMO'
+    ) {
+      return 'TAMBIÉN PUEDE INCLUIR PROFESIONES MÁS TÉCNICAS O FORMALES COMO';
+    }
+    if (
+      normalized === 'OCUPACIONES Y OFICIOS' ||
+      normalized === 'POSIBLES ÁMBITOS DE TRABAJO' ||
+      normalized === 'ALGUNAS OCUPACIONES QUE SE VINCULAR AL ÁREA'
+    ) {
+      return 'ALGUNAS OCUPACIONES QUE SE VINCULAR AL ÁREA';
+    }
+    return String(subtitle || '').toUpperCase();
+  }
 mixin categoryIcon(categoryId)
   -
     var ICONS = {
@@ -24,40 +51,49 @@ html(lang="es")
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title Informe Vocacional - Orient A.ki
+    style(type='text/css')!= fontFaceCss
     style.
-      @page { margin: 0; }
+
       * { box-sizing: border-box; }
       body {
         margin: 0;
         padding: 0;
-        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-family: 'Inter';
         color: #{colors.text.secondary};
         background: #{colors.background.light};
+        font-size: 13px;
+        line-height: 1.5;
+        text-transform: uppercase;
       }
       h1, h2, h3, h4 {
         letter-spacing: -0.02em;
         color: #{colors.text.primary};
+        margin: 0;
+      }
+      ul, ol, p {
+        margin: 0 0 8px 0;
       }
       .page {
         max-width: 850px;
         margin: 0 auto;
-        padding: 10px 12px;
+        padding: 0;
       }
       .header {
         text-align: center;
-        padding: 20px 0 30px;
+        padding: 4px 0 12px;
+        border-bottom: 1px solid #{colors.surface.variantLight};
       }
       .logo-lg {
-        width: 120px;
+        width: 100px;
         height: auto;
         display: inline-block;
       }
       .intro {
         text-align: center;
-        margin-bottom: 40px;
+        margin: 16px 0 14px;
       }
       .patient-name {
-        font-size: 32px;
+        font-size: 22px;
         font-weight: 900;
         color: #{colors.text.primary};
         margin: 4px 0 2px;
@@ -72,24 +108,22 @@ html(lang="es")
         opacity: 0.8;
       }
       .greeting {
-        font-size: 20px;
+        font-size: 14px;
         color: #{colors.primary.DEFAULT};
         margin: 0;
         font-weight: 800;
       }
       .disclaimer {
-        margin: 15px 0 25px;
-        padding: 16px;
-        border-radius: 12px;
-        background: #ffffff;
-        border-left: 4px solid #{colors.primary.DEFAULT};
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        margin: 8px 0 14px;
+        padding: 10px 14px;
+        border-left: 3px solid #{colors.primary.DEFAULT};
+        background: #{colors.surface.light};
       }
       .disclaimer p {
-        margin: 0;
-        font-size: 12px;
-        line-height: 1.5;
+        font-size: 11px;
+        line-height: 1.45;
         color: #{colors.text.secondary};
+        margin: 0;
       }
       .disclaimer strong {
         color: #{colors.primary.DEFAULT};
@@ -100,25 +134,28 @@ html(lang="es")
         margin-bottom: 2px;
       }
       .hero {
-        border: 1px solid #{colors.surface.variantLight};
-        border-radius: 24px;
-        background: linear-gradient(135deg, #{colors.primary.DEFAULT} 0%, #2d8a87 60%, #4E7F52 100%);
-        padding: 24px;
-        box-shadow: 0 10px 25px rgba(15, 107, 104, 0.12);
+        border-left: 5px solid #{colors.actions.confirm.DEFAULT};
+        background: #{colors.primary.DEFAULT};
+        padding: 16px 18px;
         color: white;
       }
       .hero-title {
-        font-size: 24px;
+        font-size: 17px;
         margin: 0 0 4px;
         font-weight: 900;
         color: white;
       }
       .hero-sub {
-        font-size: 13px;
+        font-size: 11px;
         margin: 0;
         opacity: 0.95;
         line-height: 1.5;
         color: white;
+      }
+      .strengths-description {
+        color: #{colors.text.primary};
+        font-size: 12px;
+        line-height: 1.5;
       }
       .pill {
         display: inline-block;
@@ -132,7 +169,7 @@ html(lang="es")
         margin-top: 12px;
       }
       .meta-row {
-        margin-top: 8px;
+        margin-top: 14px;
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
@@ -147,20 +184,19 @@ html(lang="es")
         letter-spacing: 0.06em;
         font-size: 9px;
       }
-      /* Barras de Holland (reemplazan SVG) */
       .holland-bars {
-        margin-top: 10px;
+        margin-top: 12px;
       }
       .holland-bar-item {
         display: flex;
         align-items: center;
         gap: 8px;
         margin-bottom: 4px;
-        font-size: 10px;
+        font-size: 11px;
         color: white;
       }
       .holland-label {
-        width: 80px;
+        width: 120px;
         text-align: right;
         font-weight: 700;
       }
@@ -177,7 +213,7 @@ html(lang="es")
         border-radius: 999px;
       }
       .holland-pct {
-        width: 30px;
+        width: 35px;
         text-align: right;
         font-weight: 700;
         color: white;
@@ -186,15 +222,15 @@ html(lang="es")
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
-        margin-top: 10px;
+        margin-top: 8px;
       }
       .strength-badge {
-        padding: 5px 10px;
+        padding: 4px 8px;
         background: #f5f5f4;
         border: 1px solid #{colors.surface.variantLight};
         border-radius: 6px;
         color: #{colors.primary.DEFAULT};
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         display: flex;
         align-items: center;
@@ -209,99 +245,34 @@ html(lang="es")
         stroke-linecap: round;
         stroke-linejoin: round;
       }
-      .timeline {
-        margin-top: 20px;
-        position: relative;
-        padding-left: 30px;
-      }
-      .timeline::before {
-        content: '';
-        position: absolute;
-        left: 11px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #{colors.surface.variantLight};
-      }
-      .timeline-step {
-        position: relative;
-        margin-bottom: 12px;
-      }
-      .timeline-step::before {
-        content: '';
-        position: absolute;
-        left: -24px;
-        top: 4px;
-        width: 10px;
-        height: 10px;
-        background: #{colors.primary.DEFAULT};
-        border-radius: 50%;
-        border: 3px solid #ffffff;
-        box-shadow: 0 0 0 2px #{colors.surface.variantLight};
-      }
-      .step-title {
-        font-size: 12px;
-        font-weight: 700;
-        color: #{colors.text.primary};
-        margin-bottom: 0px;
-      }
-      .step-desc {
-        font-size: 11px;
-        color: #{colors.text.secondary};
-      }
       .section {
-        margin-top: 24px;
-        page-break-inside: avoid;
-        break-inside: avoid;
+        margin-top: 28px;
       }
       .section-title {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 800;
         text-transform: uppercase;
-        color: #{colors.outline.light};
+        color: #{colors.primary.DEFAULT};
         letter-spacing: 0.1em;
         margin-bottom: 12px;
+        break-after: avoid;
+        page-break-after: avoid;
       }
       .card {
         border: 1px solid #{colors.surface.variantLight};
-        border-radius: 16px;
+        border-radius: 8px;
         background: #ffffff;
-        padding: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      }
-      .summary-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .summary-metric {
-        border: 1px solid #{colors.surface.variantLight};
-        border-radius: 12px;
-        background: #{colors.surface.light};
-        padding: 10px 12px;
-      }
-      .summary-metric h4 {
-        margin: 0 0 4px;
-        font-size: 9px;
-        color: #{colors.outline.light};
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-      .summary-metric p {
-        margin: 0;
-        font-size: 12px;
-        line-height: 1.5;
-        color: #{colors.text.secondary};
+        padding: 12px 16px;
+        box-shadow: 0 2px 6px rgba(31, 37, 35, 0.05);
       }
       .area-card {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         border: 1px solid #{colors.surface.variantLight};
-        border-radius: 16px;
+        border-radius: 8px;
         background: #ffffff;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        page-break-inside: avoid;
-        break-inside: avoid;
+        overflow: visible;
+        break-inside: auto;
+        page-break-inside: auto;
       }
       .area-head {
         padding: 12px 16px;
@@ -310,34 +281,53 @@ html(lang="es")
         display: flex;
         justify-content: space-between;
         align-items: center;
+        break-after: avoid;
+        page-break-after: avoid;
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
       .area-head h3 {
-        margin: 0;
-        font-size: 16px;
+        font-size: 14px;
+        font-weight: 800;
         color: #{colors.text.primary};
       }
       .badge {
-        padding: 4px 10px;
-        border-radius: 8px;
-        background: #{colors.actions.confirm.DEFAULT};
-        color: #fff;
-        font-size: 11px;
-        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #{colors.primary.DEFAULT}15;
+        color: #{colors.primary.DEFAULT};
+        font-size: 12px;
+        font-weight: 800;
       }
       .area-content {
-        padding: 14px 16px 10px;
+        padding: 16px;
+      }
+      .content-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .content-block + .content-block {
+        margin-top: 12px;
       }
       .block-title {
-        margin: 0 0 4px;
-        font-size: 11px;
+        font-size: 13px;
         color: #{colors.primary.DEFAULT};
         text-transform: uppercase;
         letter-spacing: .05em;
         font-weight: 800;
+        margin-bottom: 6px;
+        break-after: avoid;
+        page-break-after: avoid;
       }
-      .block-text + .block-title,
-      .block-text + ul {
-        margin-top: 10px;
+      .area-content ul, .triplet ul, .custom-html-content ul {
+        padding-left: 20px;
+        font-size: 12px;
+        line-height: 1.6;
+        color: #{colors.text.secondary};
+        margin-bottom: 12px;
+      }
+      .area-content li, .triplet li, .custom-html-content li {
+        margin-bottom: 4px;
       }
       .ranking-list {
         margin: 0;
@@ -347,26 +337,32 @@ html(lang="es")
       .ranking-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 4px 0;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #{colors.surface.variantLight};
         page-break-inside: avoid;
+      }
+      .ranking-item:last-child {
+        border-bottom: 0;
       }
       .ranking-label {
         font-size: 12px;
         font-weight: 700;
         color: #1d1914;
-        min-width: 120px;
+        min-width: 140px;
       }
       .ranking-bar {
-        height: 8px;
-        background: #{colors.surface.variantLight};
+        height: 10px;
+        background: #ded8cc;
+        border: 1px solid #d2cabb;
         border-radius: 999px;
         overflow: hidden;
         flex: 1;
       }
       .ranking-bar-fill {
+        display: block;
         height: 100%;
-        background: #{colors.actions.confirm.DEFAULT};
+        background: #{colors.primary.DEFAULT};
         border-radius: 999px;
       }
       .ranking-value {
@@ -376,112 +372,111 @@ html(lang="es")
         min-width: 40px;
         text-align: right;
       }
-      .avoid-break {
-        page-break-inside: avoid;
-        break-inside: avoid;
-      }
-      .block-text {
-        margin: 0 0 10px;
-        font-size: 13px;
+      .block-text, .custom-html-content p, .custom-html-content, .custom-html-content div, .custom-html-content span {
+        font-size: 12px;
         line-height: 1.6;
         color: #{colors.text.secondary};
-      }
-      .custom-html-content p {
-        margin: 0 0 10px;
-        font-size: 13px;
-        line-height: 1.6;
-        color: #{colors.text.secondary};
-      }
-      .custom-html-content ul {
-        margin: 0 0 10px;
-        padding-left: 18px;
-        font-size: 13px;
-        line-height: 1.6;
-        color: #{colors.text.secondary};
-      }
-      .custom-html-content li {
-        margin: 0 0 4px;
-      }
-      .custom-html-content ol {
-        margin: 0 0 10px;
-        padding-left: 18px;
-        font-size: 13px;
-        line-height: 1.6;
-        color: #{colors.text.secondary};
+        margin-bottom: 12px;
+        font-family: 'Inter';
+        font-weight: 400;
       }
       .careers-card {
-        margin-top: 8px;
+        margin-top: 12px;
         border: 1px solid #{colors.surface.variantLight};
         border-radius: 10px;
         background: #{colors.surface.light};
-        padding: 10px 14px;
+        padding: 12px 16px;
       }
       .careers-card h4 {
-        margin: 0 0 6px;
         color: #{colors.actions.confirm.DEFAULT};
-        font-size: 9px;
+        font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.08em;
+        margin-bottom: 8px;
+        break-after: avoid;
+        page-break-after: avoid;
       }
-      .careers-card ul,
-      .triplet ul {
-        margin: 0;
-        padding-left: 18px;
-      }
-      .careers-card li,
-      .triplet li {
-        margin: 0 0 3px;
-        font-size: 12px;
-        line-height: 1.4;
+      .careers-card ul {
+        margin-bottom: 0;
       }
       .triplet {
+        margin-top: 16px;
         border: 1px solid #{colors.surface.variantLight};
-        border-radius: 16px;
+        border-top: 4px solid #{colors.primary.DEFAULT};
+        border-radius: 8px;
         background: #ffffff;
-        padding: 16px;
-        box-shadow: 0 6px 15px rgba(15, 107, 104, 0.08);
-        page-break-inside: avoid;
-        break-inside: avoid;
-      }
-      .final-disclaimer {
-        margin-top: 25px;
         padding: 20px;
-        background: #ffffff;
-        border-radius: 16px;
-        border: 1px solid #{colors.primary.DEFAULT};
-        text-align: center;
-        page-break-before: avoid;
+        box-shadow: 0 2px 6px rgba(31, 37, 35, 0.05);
+        page-break-inside: auto;
       }
-      .final-disclaimer h4 {
-        margin: 0 0 8px;
-        color: #{colors.primary.DEFAULT};
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: 0.05em;
-      }
-      .final-disclaimer p {
-        margin: 0 0 8px;
+      .triplet-intro {
         font-size: 12px;
         line-height: 1.6;
         color: #{colors.text.secondary};
+        margin: 0 0 16px;
+      }
+      .key-insight {
+        margin-top: 18px;
+        padding: 18px 20px;
+        background: #{colors.primary.DEFAULT}18;
+        border-left: 5px solid #{colors.primary.DEFAULT};
+        page-break-inside: avoid;
+      }
+      .key-insight-label {
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #{colors.primary.DEFAULT};
+        margin-bottom: 6px;
+      }
+      .key-insight-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #{colors.text.primary};
+        font-family: 'Inter';
+        font-weight: 600;
+        margin: 0;
+      }
+      .final-disclaimer {
+        margin-top: 32px;
+        padding: 24px;
+        background: #ffffff;
+        border: 1px solid #{colors.primary.DEFAULT};
+        border-top: 4px solid #{colors.primary.DEFAULT};
+        text-align: center;
+        page-break-inside: avoid;
+      }
+      .final-disclaimer h4 {
+        color: #{colors.primary.DEFAULT};
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+      }
+      .final-disclaimer p {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #{colors.text.primary};
+        font-weight: 500;
+        margin-bottom: 8px;
       }
       .triplet h3 {
-        margin: 0 0 8px;
         color: #{colors.actions.confirm.DEFAULT};
-        font-size: 16px;
-      }
-      .triplet p {
-        margin: 0 0 10px;
-        font-size: 13px;
-        line-height: 1.6;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        margin-bottom: 12px;
+        break-after: avoid;
+        page-break-after: avoid;
       }
       .footer {
-        margin-top: 30px;
-        padding: 10px 8px;
+        margin-top: 40px;
+        padding: 16px 8px;
         border-top: 1px solid #{colors.surface.variantLight};
         text-align: center;
         color: #{colors.outline.light};
-        font-size: 9px;
+        font-size: 10px;
       }
   body
     .page
@@ -516,21 +511,10 @@ html(lang="es")
           .meta-chip #{brandDomain}
 
 
-      if strengths && strengths.length > 0
-        .section
-          p.section-title Tus Fortalezas Vocacionales
-          p.hero-sub(style="color:#{colors.text.secondary};") Competencias clave identificadas a partir de tus intereses y preferencias.
-          .strengths-row
-            each strength in strengths
-              .strength-badge
-                svg(width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round")
-                  polyline(points="20 6 9 17 4 12")
-                span #{strength}
-
       if bottomAreas && bottomAreas.length > 0
-        .section.avoid-break
+        .section
           p.section-title Áreas menos seleccionadas
-          .card.avoid-break
+          .card
             ul.ranking-list
               each area in bottomAreas
                 li.ranking-item
@@ -543,7 +527,7 @@ html(lang="es")
       .section
         p.section-title Análisis de áreas de afinidad
         each res in topResults
-          .area-card.avoid-break
+          .area-card
             .area-head
               div(style="display: flex; align-items: center; gap: 10px;")
                 +categoryIcon(res.categoryId)
@@ -553,50 +537,53 @@ html(lang="es")
             .area-content
               if res.parsedBlocks && res.parsedBlocks.length > 0
                 each block in res.parsedBlocks
-                  if block.subtitle
-                    p.block-title #{block.subtitle}
-                  if block.list
-                    ul
-                      each item in block.list
-                        li #{item}
-                  else if block.content
-                    p.block-text #{block.content}
+                  .content-block
+                    if block.subtitle
+                      p.block-title #{immutableSubtitle(block.subtitle)}
+                    if block.list
+                      ul
+                        each item in block.list
+                          li #{item}
+                    else if block.content
+                      p.block-text #{block.content}
               else
-                p.block-text #{res.description}
-
-              if res.suggestedCareers && res.suggestedCareers.length > 0
-                .careers-card
-                  h4 Carreras sugeridas
-                  ul
-                    each career in res.suggestedCareers
-                      li #{career}
+                .content-block
+                  p.block-text #{res.description}
 
       if tripletInsight
-        .section.avoid-break
+        .section
           p.section-title ¿Qué significa la combinación de estas áreas?
-          p.block-text(style="margin-bottom: 16px;") Lo más importante no es cada área por separado, sino cómo se combinan entre sí. En tu caso, la combinación:
           .triplet
+            p.triplet-intro Lo más importante no es cada área por separado, sino cómo se combinan entre sí. En tu caso, la combinación:
             h3 #{tripletInsight.title || 'Combinación de intereses'}
-            .custom-html-content !{tripletInsight.narrative || '<p>Tus áreas de interés se complementan en roles que requieren la integración de habilidades técnicas, comerciales y de organización.</p>'}
-            if tripletInsight.tendencies && tripletInsight.tendencies.length > 0
-              p.block-title Tendencias observadas
+            if tripletInsight.narrative
+              - var narrativeSentence = tripletInsight.narrative.toUpperCase()
+              p.block-text(style="font-size:12px;line-height:1.65;color:#{colors.text.secondary};margin-bottom:12px;font-family:'Inter';font-weight:400;") #{narrativeSentence}
+            - var competencies = tripletInsight.competencies && tripletInsight.competencies.length > 0 ? tripletInsight.competencies : tripletInsight.tendencies
+            if competencies && competencies.length > 0
+              p.block-title COMPETENCIAS IMPORTANTES PARA DESEMPEÑARSE EN EL ÁREA
               ul
-                each tendency in tripletInsight.tendencies
-                  li #{tendency}
+                each competency in competencies
+                  li #{competency}
             if tripletInsight.possibleJobs && tripletInsight.possibleJobs.length > 0
-              p.block-title Posibles ámbitos de trabajo
+              p.block-title ALGUNAS OCUPACIONES QUE SE VINCULAR AL ÁREA
               ul
                 each job in tripletInsight.possibleJobs
                   li #{job}
             if tripletInsight.relatedProfessions && tripletInsight.relatedProfessions.length > 0
-              p.block-title Algunas profesiones vinculadas
+              p.block-title TAMBIÉN PUEDE INCLUIR PROFESIONES MÁS TÉCNICAS O FORMALES COMO
               ul
                 each profession in tripletInsight.relatedProfessions
                   li #{profession}
+            if tripletInsight.keyInsight
+              - var keyInsightSentence = tripletInsight.keyInsight.toUpperCase()
+              .key-insight
+                p.key-insight-label La clave en esta combinación
+                p.key-insight-text #{keyInsightSentence}
             if tripletInsight.customSections && tripletInsight.customSections.length > 0
               each section in tripletInsight.customSections
                 if section.title
-                  p.block-title #{section.title}
+                  p.block-title #{immutableSubtitle(section.title)}
                 if section.items && section.items.length > 0
                   ul
                     each item in section.items
@@ -604,7 +591,7 @@ html(lang="es")
 
 
 
-      .final-disclaimer.avoid-break
+      .final-disclaimer
         h4 Orient A.ki
         p Tomar una decisión es un proceso de elegir una opción entre varias. Orient A.ki te presenta posibilidades para andamiar esa decisión.
         p Si deseas realizar el proceso Ocupacional y ampliar la información, comunícate con Orient A.ki y te brindaremos apoyo profesional.

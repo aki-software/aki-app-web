@@ -6,14 +6,21 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, EntityManager, DataSource } from 'typeorm';
+import { EntityManager, DataSource } from 'typeorm';
 import { Voucher } from '../entities/voucher.entity.js';
 import {
   Session,
   SessionPaymentStatus,
 } from '../../sessions/entities/session.entity.js';
+import { Patient } from '../../patients/entities/patient.entity.js';
 import { VoucherStatus } from '../entities/voucher.enums.js';
+
+interface VerifiedAndroidIdentity {
+  userId?: string;
+  email?: string;
+  isFirebaseEmailVerified?: boolean;
+  role?: string;
+}
 
 const voucherErrorResponse = (
   code:
@@ -21,6 +28,10 @@ const voucherErrorResponse = (
     | 'ALREADY_USED'
     | 'SESSION_NOT_FOUND'
     | 'VOUCHER_EXPIRED'
+    | 'ANDROID_EMAIL_REQUIRED'
+    | 'VOUCHER_EMAIL_MISMATCH'
+    | 'ANDROID_IDENTITY_UNVERIFIED'
+    | 'SESSION_ACCESS_DENIED'
     | 'SERVICE_UNAVAILABLE',
   statusCode: number,
   message: string,
@@ -28,17 +39,12 @@ const voucherErrorResponse = (
 
 @Injectable()
 export class VoucherRedemptionService {
-  constructor(
-    @InjectRepository(Voucher)
-    private readonly voucherRepository: Repository<Voucher>,
-    @InjectRepository(Session)
-    private readonly sessionRepository: Repository<Session>,
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   async redeemVoucher(
     code: string,
     sessionId: string,
+    identity?: VerifiedAndroidIdentity,
   ): Promise<{
     success: boolean;
     status: 'REDEEMED' | 'ALREADY_REDEEMED_BY_THIS_SESSION';
@@ -47,11 +53,25 @@ export class VoucherRedemptionService {
   }> {
     return await this.dataSource.transaction(async (manager: EntityManager) => {
       const normalizedCode = code.trim().toUpperCase();
+      const normalizedEmail = identity?.email?.trim().toLowerCase();
+
+      if (!normalizedEmail || !identity?.isFirebaseEmailVerified) {
+        throw new BadRequestException(
+          voucherErrorResponse(
+            'ANDROID_IDENTITY_UNVERIFIED',
+            HttpStatus.BAD_REQUEST,
+            'A verified Android email is required',
+          ),
+        );
+      }
+
       const voucherRepo = manager.getRepository(Voucher);
       const sessionRepo = manager.getRepository(Session);
+      const patientRepo = manager.getRepository(Patient);
 
       const voucher = await voucherRepo.findOne({
         where: { code: normalizedCode },
+        lock: { mode: 'pessimistic_write' },
       });
 
       if (!voucher) {
@@ -78,6 +98,30 @@ export class VoucherRedemptionService {
         );
       }
 
+      const patient =
+        (identity.userId
+          ? await patientRepo.findOne({
+              where: { firebaseUid: identity.userId },
+            })
+          : null) ??
+        (await patientRepo.findOne({
+          where: { email: normalizedEmail },
+        }));
+      const isAuthorizedOwner =
+        session.patientId === patient?.id ||
+        session.therapistUserId === identity.userId;
+      const isAdmin = identity.role === 'ADMIN';
+
+      if (!isAuthorizedOwner && !isAdmin) {
+        throw new ConflictException(
+          voucherErrorResponse(
+            'SESSION_ACCESS_DENIED',
+            HttpStatus.CONFLICT,
+            'Caller is not authorized for this patient session',
+          ),
+        );
+      }
+
       if (voucher.expiresAt && voucher.expiresAt.getTime() < Date.now()) {
         throw new HttpException(
           voucherErrorResponse(
@@ -90,7 +134,19 @@ export class VoucherRedemptionService {
       }
 
       if (voucher.redeemedSessionId === sessionId) {
+        try {
+          voucher.bindToAuthenticatedEmail(normalizedEmail);
+        } catch {
+          throw new ConflictException(
+            voucherErrorResponse(
+              'VOUCHER_EMAIL_MISMATCH',
+              HttpStatus.CONFLICT,
+              'Voucher is bound to a different Android email',
+            ),
+          );
+        }
         this.applyVoucherToSession(session, voucher);
+        await voucherRepo.save(voucher);
         await sessionRepo.save(session);
         return {
           success: true,
@@ -106,6 +162,18 @@ export class VoucherRedemptionService {
             'ALREADY_USED',
             HttpStatus.CONFLICT,
             'Voucher already used',
+          ),
+        );
+      }
+
+      try {
+        voucher.bindToAuthenticatedEmail(normalizedEmail);
+      } catch {
+        throw new ConflictException(
+          voucherErrorResponse(
+            'VOUCHER_EMAIL_MISMATCH',
+            HttpStatus.CONFLICT,
+            'Voucher is bound to a different Android email',
           ),
         );
       }
@@ -142,46 +210,11 @@ export class VoucherRedemptionService {
     session.reportUnlockedAt =
       session.reportUnlockedAt ?? voucher.redeemedAt ?? new Date();
 
-    if (voucher.ownerInstitutionId) {
+    if (voucher.ownerInstitutionId && !session.institutionId) {
       session.institutionId = voucher.ownerInstitutionId;
     }
-    if (voucher.ownerUserId) {
+    if (voucher.ownerUserId && !session.therapistUserId) {
       session.therapistUserId = voucher.ownerUserId;
     }
-  }
-
-  async attachVoucherToSession(
-    code: string,
-    sessionId: string,
-    patientName?: string | null,
-  ): Promise<Voucher> {
-    const normalizedCode = code.trim().toUpperCase();
-    const voucher = await this.voucherRepository.findOne({
-      where: { code: normalizedCode },
-    });
-
-    if (!voucher) {
-      throw new NotFoundException('Voucher no encontrado');
-    }
-
-    if (voucher.status !== VoucherStatus.AVAILABLE) {
-      throw new BadRequestException('Voucher no disponible');
-    }
-    if (voucher.expiresAt && voucher.expiresAt.getTime() < Date.now()) {
-      throw new BadRequestException('Voucher expirado');
-    }
-
-    try {
-      voucher.redeem(sessionId);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Error al adjuntar el voucher';
-      throw new BadRequestException(message);
-    }
-
-    if (patientName && !voucher.assignedPatientName) {
-      voucher.assignedPatientName = patientName;
-    }
-    return await this.voucherRepository.save(voucher);
   }
 }

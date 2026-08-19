@@ -6,6 +6,7 @@ import {
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { SessionsQueryService } from '../sessions/services/sessions-query.service';
 import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
+import { SessionOwnerResolverService } from '../sessions/services/session-owner-resolver.service';
 import { SessionPaymentStatus } from '@akit/contracts';
 import type { androidpublisher_v3 } from 'googleapis';
 import { GooglePlayAdapter } from './google-play.adapter.js';
@@ -34,6 +35,7 @@ export interface VerifyPurchaseResult {
 export class PaymentsService {
   constructor(
     private readonly sessionsQueryService: SessionsQueryService,
+    private readonly sessionOwnerResolverService: SessionOwnerResolverService,
     private readonly sessionsMutationService: SessionsMutationService,
     private readonly googlePlayAdapter: GooglePlayAdapter,
     @InjectDataSource() private dataSource: DataSource,
@@ -86,12 +88,13 @@ export class PaymentsService {
 
   async verifyGooglePlayPurchase(
     dto: VerifyPlayPurchaseDto,
-    principal: { userId: string; institutionId: string },
+    principal: { userId: string; email?: string; institutionId: string },
   ): Promise<VerifyPurchaseResult> {
     try {
+      const patientId = await this.resolvePaymentPatientId(principal);
       const session = await this.sessionsQueryService.findOneForPaymentUnlock(
         dto.sessionId,
-        principal.userId,
+        patientId,
         principal.institutionId,
       );
 
@@ -153,6 +156,33 @@ export class PaymentsService {
 
       throw new BadRequestException('Error verificando la compra');
     }
+  }
+
+  private async resolvePaymentPatientId(principal: {
+    userId: string;
+    email?: string;
+  }): Promise<string> {
+    if (this.isUuid(principal.userId)) return principal.userId;
+
+    if (!principal.email) {
+      throw new BadRequestException('Unable to resolve payment patient');
+    }
+
+    const owner = await this.sessionOwnerResolverService.resolveFirebaseUser(
+      { uid: principal.userId, email: principal.email },
+      false,
+    );
+    if (!owner) {
+      throw new BadRequestException('Unable to resolve payment patient');
+    }
+
+    return owner.id;
+  }
+
+  private isUuid(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    );
   }
 
   private isAlreadyProcessed(

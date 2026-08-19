@@ -20,6 +20,20 @@ export class VocationalCategory {
   @Column({ type: 'text' })
   description!: string; // Descripción breve levantada en el modal web o app
 
+  @Column({ name: 'occupations', type: 'text', array: true, default: '{}' })
+  occupations!: string[];
+
+  @Column({
+    name: 'formal_professions',
+    type: 'text',
+    array: true,
+    default: '{}',
+  })
+  formalProfessions!: string[];
+
+  @Column({ name: 'competencies', type: 'text', array: true, default: '{}' })
+  competencies!: string[];
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 

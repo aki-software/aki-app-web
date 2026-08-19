@@ -19,6 +19,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { RequestLoggerMiddleware } from './common/middlewares/request-logger.middleware.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { resolvePaymentConfiguration } from './payments/config/payment-configuration.js';
+import { requireFirebaseProjectId } from './auth/config/firebase-project-id.js';
 
 const { migrations: _migrations, ...applicationTypeOrmConfig } = typeOrmConfig;
 void _migrations;
@@ -37,6 +38,7 @@ void _migrations;
       isGlobal: true,
       validate: (environment) => {
         resolvePaymentConfiguration(environment);
+        requireFirebaseProjectId(environment);
         return environment;
       },
     }),

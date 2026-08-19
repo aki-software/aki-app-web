@@ -54,6 +54,9 @@ describe('Phase 2 review remediation', () => {
         }),
         findByPaymentToken: jest.fn(),
       } as never,
+      {
+        resolveFirebaseUser: jest.fn().mockResolvedValue({ id: 'patient-1' }),
+      } as never,
       { unlockReportEntitlement: jest.fn() } as never,
       {
         getReportUnlockSku: jest.fn().mockReturnValue('report_unlock_v2'),
@@ -70,7 +73,11 @@ describe('Phase 2 review remediation', () => {
           productId: 'report_unlock_v2',
           purchaseToken: 'new-token-1234',
         },
-        { userId: 'patient-1', institutionId: 'tenant-1' },
+        {
+          userId: 'patient-1',
+          email: 'patient@akit.example',
+          institutionId: 'tenant-1',
+        },
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
@@ -90,6 +97,9 @@ describe('Phase 2 review remediation', () => {
           paymentStatus: 'PENDING',
         }),
         findByPaymentToken: jest.fn().mockResolvedValue(null),
+      } as never,
+      {
+        resolveFirebaseUser: jest.fn().mockResolvedValue({ id: 'patient-1' }),
       } as never,
       { unlockReportEntitlement } as never,
       {
@@ -115,7 +125,11 @@ describe('Phase 2 review remediation', () => {
           productId: 'report_unlock_v2',
           purchaseToken: 'token-1234',
         },
-        { userId: 'patient-1', institutionId: 'tenant-1' },
+        {
+          userId: 'patient-1',
+          email: 'patient@akit.example',
+          institutionId: 'tenant-1',
+        },
       ),
     ).resolves.toEqual({
       success: false,
@@ -138,6 +152,9 @@ describe('Phase 2 review remediation', () => {
           paymentStatus: 'PENDING',
         }),
         findByPaymentToken: jest.fn().mockResolvedValue(null),
+      } as never,
+      {
+        resolveFirebaseUser: jest.fn().mockResolvedValue({ id: 'patient-1' }),
       } as never,
       { unlockReportEntitlement, updatePaymentStatus: jest.fn() } as never,
       {
@@ -163,7 +180,11 @@ describe('Phase 2 review remediation', () => {
           productId: 'report_unlock_v2',
           purchaseToken: 'provider-token-1234',
         },
-        { userId: 'patient-1', institutionId: 'tenant-1' },
+        {
+          userId: 'patient-1',
+          email: 'patient@akit.example',
+          institutionId: 'tenant-1',
+        },
       ),
     ).resolves.toEqual({ success: true, valid: true });
     expect(unlockReportEntitlement).toHaveBeenCalledTimes(1);

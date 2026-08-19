@@ -15,7 +15,6 @@ export function mapToCreateDto(
   const payloadInstitutionId = nullIfBlank(payload.institutionId);
   const payloadPatientId = nullIfBlank(payload.patientId);
   const payloadUserId = nullIfBlank(payload.userId);
-  const payloadVoucherId = nullIfBlank(payload.voucherId);
   const payloadId = nullIfBlank(payload.id);
 
   // Server-Authoritative: ignoramos el resultPayload enviado por la App.
@@ -23,7 +22,7 @@ export function mapToCreateDto(
   const serverProfile = calculateHollandProfile(
     (payload.swipes || []).map((s) => ({
       categoryId: s.categoryId,
-      liked: s.liked,
+      liked: s.isLiked,
       timestamp: s.timestamp,
       cardId: s.cardId,
     })),
@@ -31,7 +30,7 @@ export function mapToCreateDto(
 
   // Conservamos suggestedCareers y materialSnippet del payload del cliente
   // ya que esos datos los gestiona la App (son contenido, no cálculo).
-  const enrichedResultsByCategory = indexResultsMetadata(payload.resultPayload);
+  const enrichedResultsByCategory = indexResultsMetadata(payload.results);
 
   return {
     id: payloadId || undefined,
@@ -58,10 +57,8 @@ export function mapToCreateDto(
     sessionDate: new Date(payload.startedAt || new Date()),
     hollandCode: serverProfile.hollandCode,
     totalTimeMs: calculateDuration(payload.startedAt, payload.finishedAt),
-    voucherId: voucher?.id || payloadVoucherId || undefined,
-    paymentStatus: voucher
-      ? SessionPaymentStatus.VOUCHER_REDEEMED
-      : normalizePaymentStatus(payload.paymentStatus),
+    voucherId: undefined,
+    paymentStatus: undefined,
     results: serverProfile.radar.map((item) => {
       const catId = item.categoryId;
       return {
@@ -81,7 +78,7 @@ export function mapToCreateDto(
     swipes: (payload.swipes || []).map((swipe) => ({
       cardId: swipe.cardId,
       categoryId: swipe.categoryId || 'unknown',
-      isLiked: swipe.liked,
+      isLiked: swipe.isLiked,
       timestamp: new Date(swipe.timestamp || new Date()),
     })),
   };
@@ -109,16 +106,13 @@ export function calculateDuration(start?: string, end?: string): number {
 }
 
 export function indexResultsMetadata(
-  payload: CompleteSessionDto['resultPayload'],
+  payload: CompleteSessionDto['results'],
 ): Map<string, { suggestedCareers?: string[]; materialSnippet?: string }> {
   const map = new Map<
     string,
     { suggestedCareers?: string[]; materialSnippet?: string }
   >();
-  const detailedResults = [
-    ...(payload?.top3 ?? []),
-    ...(payload?.bottom3 ?? []),
-  ];
+  const detailedResults = payload || [];
 
   for (const result of detailedResults) {
     const normalizedCategoryId = normalizeCategoryId(result?.categoryId);

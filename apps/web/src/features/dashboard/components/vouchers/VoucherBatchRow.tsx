@@ -29,7 +29,7 @@ export function VoucherBatchRow({ batch, onOpenDetail }: Props) {
               <Layers3 className="h-4 w-4" />
             </span>
             <h3 className="min-w-0 truncate text-base font-black tracking-tight text-app-text-main">
-              Lote {batch.shortCode || batch.batchId.slice(0, 8).toUpperCase()}
+              {batch.name || `Lote ${batch.shortCode || batch.batchId.slice(0, 8).toUpperCase()}`}
             </h3>
           </div>
 

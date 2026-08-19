@@ -15,6 +15,11 @@ import { TresAreasCombination } from '../tres-areas/entities/tres-areas-combinat
 import { PricingPlan } from '../payments/entities/pricing-plan.entity.js';
 import { PaymentEvent } from '../payments/entities/payment-event.entity.js';
 import { PaymentFulfillmentOutbox } from '../payments/entities/payment-fulfillment-outbox.entity.js';
+import { Report } from '../reports/entities/report.entity.js';
+import { ReportGrant } from '../reports/entities/report-grant.entity.js';
+import { ReportAccessAudit } from '../reports/entities/report-access-audit.entity.js';
+import { ReportDelivery } from '../reports/entities/report-delivery.entity.js';
+import { Patient } from '../patients/entities/patient.entity.js';
 
 dotenv.config();
 
@@ -35,6 +40,7 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         SessionMetrics,
         VocationalCategory,
         User,
+        Patient,
         Institution,
         Voucher,
         VoucherBatch,
@@ -42,8 +48,13 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         PricingPlan,
         PaymentEvent,
         PaymentFulfillmentOutbox,
+        Report,
+        ReportGrant,
+        ReportAccessAudit,
+        ReportDelivery,
       ],
       migrations: ['dist/migrations/[0-9]*.js'],
+      migrationsTransactionMode: 'each',
       synchronize: false,
       ssl: isLocalDatabaseUrl ? false : { rejectUnauthorized: false },
     }
@@ -61,6 +72,7 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         SessionMetrics,
         VocationalCategory,
         User,
+        Patient,
         Institution,
         Voucher,
         VoucherBatch,
@@ -68,8 +80,13 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         PricingPlan,
         PaymentEvent,
         PaymentFulfillmentOutbox,
+        Report,
+        ReportGrant,
+        ReportAccessAudit,
+        ReportDelivery,
       ],
       migrations: ['dist/migrations/[0-9]*.js'],
+      migrationsTransactionMode: 'each',
       synchronize: false,
       ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
     };

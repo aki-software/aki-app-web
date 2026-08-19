@@ -2,6 +2,9 @@ export interface CategoryData {
   categoryId: string;
   title: string;
   description: string;
+  occupations: string[];
+  formalProfessions: string[];
+  competencies: string[];
 }
 
 export type CategoryResponse = CategoryData;
@@ -19,6 +22,9 @@ export interface CategoryMaterialListResponse {
 }
 
 export interface UpdateCategoryDto {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
+  occupations?: string[];
+  formalProfessions?: string[];
+  competencies?: string[];
 }

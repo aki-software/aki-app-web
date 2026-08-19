@@ -144,6 +144,22 @@ export class Voucher {
     this.redeemedAt = new Date();
   }
 
+  bindToAuthenticatedEmail(email: string): void {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      throw new Error('A verified Android email is required.');
+    }
+
+    if (
+      this.assignedPatientEmail &&
+      this.assignedPatientEmail.toLowerCase() !== normalizedEmail
+    ) {
+      throw new Error('Voucher is bound to a different Android email.');
+    }
+
+    this.assignedPatientEmail ??= normalizedEmail;
+  }
+
   markAsSent(customEmail?: string) {
     if (
       this.status !== VoucherStatus.AVAILABLE &&

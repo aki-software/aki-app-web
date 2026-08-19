@@ -10,6 +10,7 @@ describe('BullMQQueueAdapter', () => {
   let emailQueue: jest.Mocked<Queue>;
   let pdfQueue: jest.Mocked<Queue>;
   let reportsQueue: jest.Mocked<Queue>;
+  let sendReportQueue: jest.Mocked<Queue>;
   let fallbackAdapter: jest.Mocked<InMemoryQueueAdapter>;
   let configService: jest.Mocked<ConfigService>;
 
@@ -17,6 +18,7 @@ describe('BullMQQueueAdapter', () => {
     emailQueue = { add: jest.fn() } as any;
     pdfQueue = { add: jest.fn() } as any;
     reportsQueue = { add: jest.fn() } as any;
+    sendReportQueue = { add: jest.fn() } as any;
     fallbackAdapter = { enqueue: jest.fn() } as any;
     configService = { get: jest.fn() } as any;
     process.env.ENABLE_BULLMQ = 'true';
@@ -29,6 +31,8 @@ describe('BullMQQueueAdapter', () => {
         { provide: getQueueToken('email'), useValue: emailQueue },
         { provide: getQueueToken('pdf'), useValue: pdfQueue },
         { provide: getQueueToken('reports'), useValue: reportsQueue },
+        { provide: getQueueToken('send-report'), useValue: sendReportQueue },
+        { provide: getQueueToken('metrics'), useValue: { add: jest.fn() } },
       ],
     }).compile();
 
@@ -64,13 +68,14 @@ describe('BullMQQueueAdapter', () => {
     );
   });
 
-  it('should route send-report to reports queue', async () => {
+  it('should route send-report to its dedicated queue', async () => {
     await adapter.enqueue('send-report', { rep: 2 });
-    expect(reportsQueue.add).toHaveBeenCalledWith(
+    expect(sendReportQueue.add).toHaveBeenCalledWith(
       'send-report',
       { rep: 2 },
       undefined,
     );
+    expect(reportsQueue.add).not.toHaveBeenCalled();
   });
 
   it('should fallback to in-memory adapter if bullmq is disabled', async () => {
@@ -80,7 +85,8 @@ describe('BullMQQueueAdapter', () => {
       fallbackAdapter as any,
       emailQueue,
       pdfQueue,
-      reportsQueue,
+      sendReportQueue,
+      { add: jest.fn() } as Queue,
     );
 
     await disabledAdapter.enqueue('send-email', { data: 1 });

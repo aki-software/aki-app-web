@@ -64,12 +64,17 @@ describe('PaymentsController', () => {
         .mockResolvedValue(expectedResult);
 
       const request = {
-        user: { userId: 'patient-123', institutionId: 'institution-123' },
+        user: {
+          userId: 'patient-123',
+          email: 'patient@example.com',
+          institutionId: 'institution-123',
+        },
       };
       const result = await controller.verifyGooglePlay(dto, request as never);
 
       expect(service.verifyGooglePlayPurchase).toHaveBeenCalledWith(dto, {
         userId: 'patient-123',
+        email: 'patient@example.com',
         institutionId: 'institution-123',
       });
       expect(result).toEqual(expectedResult);

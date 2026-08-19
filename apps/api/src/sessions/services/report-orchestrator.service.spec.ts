@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { getQueueToken } from '@nestjs/bullmq';
 import { ReportOrchestratorService } from './report-orchestrator.service.js';
 import { Session } from '../entities/session.entity.js';
 import { SessionPaymentStatus } from '@akit/contracts';
+import { ReportsService } from '../../reports/reports.service.js';
 
 describe('ReportOrchestratorService', () => {
   let service: ReportOrchestratorService;
-  let reportsQueue: any;
+  let reportsService: any;
   let sessionRepository: any;
   let mockQueryBuilder: any;
 
@@ -21,8 +21,8 @@ describe('ReportOrchestratorService', () => {
   };
 
   beforeEach(async () => {
-    reportsQueue = {
-      add: jest.fn().mockResolvedValue(true),
+    reportsService = {
+      requestGeneration: jest.fn().mockResolvedValue({ reportId: 'report-1' }),
     };
 
     mockQueryBuilder = {
@@ -44,29 +44,24 @@ describe('ReportOrchestratorService', () => {
           provide: getRepositoryToken(Session),
           useValue: sessionRepository,
         },
-        {
-          provide: getQueueToken('reports'),
-          useValue: reportsQueue,
-        },
+        { provide: ReportsService, useValue: reportsService },
       ],
     }).compile();
 
     service = module.get<ReportOrchestratorService>(ReportOrchestratorService);
   });
 
-  it('debería encolar el trabajo de generación de reporte (job: report.requested)', async () => {
+  it('delegates authorized generation to the report producer', async () => {
     const result = await service.sendReport(
       sessionId,
       targetEmail,
       'voucher-1',
     );
 
-    expect(reportsQueue.add).toHaveBeenCalledTimes(1);
-    expect(reportsQueue.add).toHaveBeenCalledWith('report.requested', {
+    expect(reportsService.requestGeneration).toHaveBeenCalledWith(
       sessionId,
-      requestedByEmail: targetEmail,
-      voucherId: 'voucher-1',
-    });
+      targetEmail,
+    );
 
     expect(result).toEqual({
       success: true,
@@ -94,7 +89,10 @@ describe('ReportOrchestratorService', () => {
       'session.patientId = :patientId',
       { patientId: 'patient-1' },
     );
-    expect(reportsQueue.add).toHaveBeenCalledTimes(1);
+    expect(reportsService.requestGeneration).toHaveBeenCalledWith(
+      sessionId,
+      targetEmail,
+    );
   });
 
   it.each([
@@ -116,6 +114,6 @@ describe('ReportOrchestratorService', () => {
         patientId: 'patient-1',
       } as never),
     ).rejects.toBeDefined();
-    expect(reportsQueue.add).not.toHaveBeenCalled();
+    expect(reportsService.requestGeneration).not.toHaveBeenCalled();
   });
 });

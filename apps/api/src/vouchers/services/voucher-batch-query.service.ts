@@ -105,9 +105,16 @@ export class VoucherBatchQueryService {
       else if (r.status === VoucherStatus.EXPIRED) expired = Number(r.cnt);
     }
 
+    const metaCreatedDate = new Date(meta.createdAt);
+    const dd = String(metaCreatedDate.getDate()).padStart(2, '0');
+    const mm = String(metaCreatedDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = metaCreatedDate.getFullYear();
+    const name = `Compra del ${dd}/${mm}/${yyyy}`;
+
     return {
       batchId,
       shortCode: meta.batch?.shortCode,
+      name,
       ownerInstitutionName: meta.ownerInstitution
         ? meta.ownerInstitution.deletedAt ||
           meta.ownerInstitution.isActive === false
@@ -206,18 +213,27 @@ export class VoucherBatchQueryService {
   private mapBatchRowsToSummary(
     rows: RawVoucherBatchSummaryRow[],
   ): VoucherBatchSummary[] {
-    return rows.map((row) => ({
-      batchId: row.batch_id,
-      shortCode: row.shortCode,
-      ownerInstitutionName: row.ownerInstitutionName,
-      ownerUserName: row.ownerUserName,
-      createdAt: row.batchCreatedAt,
-      expiresAt: row.batchExpiresAt,
-      total: Number.parseInt(row.total ?? '0', 10),
-      available: Number.parseInt(row.available ?? '0', 10),
-      used: Number.parseInt(row.used ?? '0', 10),
-      pending: Number.parseInt(row.pending ?? '0', 10),
-    }));
+    return rows.map((row) => {
+      const createdDate = new Date(row.batchCreatedAt);
+      const dd = String(createdDate.getDate()).padStart(2, '0');
+      const mm = String(createdDate.getMonth() + 1).padStart(2, '0');
+      const yyyy = createdDate.getFullYear();
+      const name = `Compra del ${dd}/${mm}/${yyyy}`;
+
+      return {
+        batchId: row.batch_id,
+        shortCode: row.shortCode,
+        name,
+        ownerInstitutionName: row.ownerInstitutionName,
+        ownerUserName: row.ownerUserName,
+        createdAt: row.batchCreatedAt,
+        expiresAt: row.batchExpiresAt,
+        total: Number.parseInt(row.total ?? '0', 10),
+        available: Number.parseInt(row.available ?? '0', 10),
+        used: Number.parseInt(row.used ?? '0', 10),
+        pending: Number.parseInt(row.pending ?? '0', 10),
+      };
+    });
   }
 
   // mapVouchersToBatchDetail removed — replaced by inlined paginated logic in findBatchDetail()
