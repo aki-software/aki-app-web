@@ -23,6 +23,9 @@ describe('JwtStrategy Firebase identity hydration', () => {
         institutionId: '92177e63-49f2-46f8-a76f-406fd8f8b438',
       }),
     };
+    (strategy as any).patientRepository = {
+      findOne: jest.fn().mockResolvedValue(null),
+    };
 
     const result = await strategy.validate({
       iss: 'https://securetoken.google.com/akit-production',
