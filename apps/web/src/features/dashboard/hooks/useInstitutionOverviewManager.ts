@@ -4,13 +4,17 @@ import { useLocalStorage } from "../../../hooks/useLocalStorage";
 
 export const PERIOD_DAYS = 7;
 export const LOW_STOCK_ALERT_THRESHOLD = 3;
+
+export const isLowVoucherStock = (available: number) =>
+  available <= LOW_STOCK_ALERT_THRESHOLD;
+
 export const useInstitutionOverviewManager = (institutionId?: string | null) => {
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<InstitutionOverviewResponse | null>(null);
   const [periodDays, setPeriodDays] = useState(PERIOD_DAYS);
 
   const dismissKey = `akit:voucher-low-stock-dismissed:${institutionId ?? "global"}`;
-  
+
   // Manejo del estado del alert en LocalStorage reactivo
   const [isAlertDismissed, setIsAlertDismissed] = useLocalStorage<boolean>(dismissKey, false);
 
@@ -49,8 +53,7 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
 
   const showLowStockAlert = useMemo(() => {
     if (!voucherStats || voucherStats.total <= 0) return false;
-    const isLow = (voucherStats.available / voucherStats.total) <= 0.1;
-    return isLow && !isAlertDismissed;
+    return isLowVoucherStock(voucherStats.available) && !isAlertDismissed;
   }, [voucherStats, isAlertDismissed]);
 
   return {
@@ -63,4 +66,4 @@ export const useInstitutionOverviewManager = (institutionId?: string | null) => 
     periodDays,
     setPeriodDays,
   };
-};
+};
