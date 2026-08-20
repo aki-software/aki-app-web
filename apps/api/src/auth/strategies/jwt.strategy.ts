@@ -62,7 +62,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         authUser.role = 'PATIENT';
         authUser.institutionId = patient.institutionId;
       } else {
-        const internalUser = await this.usersService.findByEmail(authUser.email);
+        const internalUser = await this.usersService.findByEmail(
+          authUser.email,
+        );
         if (!internalUser) {
           // Option 1: Allow un-registered Firebase users as PATIENT
           authUser.userId = firebaseUid;
