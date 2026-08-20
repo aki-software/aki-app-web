@@ -1,12 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Repository } from 'typeorm';
 import { AUTH_JWT_MESSAGES } from '../auth.constants.js';
 import type { FirebaseJwtPayload, JwtPayload } from '@akit/contracts';
 import { AuthUserFactory } from '../factories/auth-user.factory.js';
 import { FirebaseTokenService } from '../services/firebase-token.service.js';
 import { UsersService } from '../../users/users.service.js';
+import { Patient } from '../../patients/entities/patient.entity.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -15,6 +18,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly firebaseTokenService: FirebaseTokenService,
     private readonly authUserFactory: AuthUserFactory,
     private readonly usersService: UsersService,
+    @InjectRepository(Patient)
+    private readonly patientRepository: Repository<Patient>,
   ) {
     const secretOrKeyProvider = (
       request: unknown,
@@ -41,16 +46,35 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       if (!authUser.email) {
         throw new UnauthorizedException('Firebase user is not registered.');
       }
-      const internalUser = await this.usersService.findByEmail(authUser.email);
-      if (!internalUser) {
-        // Option 1: Allow un-registered Firebase users as PATIENT
-        authUser.userId = payload.user_id || payload.sub;
+      const firebaseUid = payload.user_id || payload.sub;
+      const patient =
+        (firebaseUid
+          ? await this.patientRepository.findOne({
+              where: { firebaseUid },
+            })
+          : null) ||
+        (await this.patientRepository.findOne({
+          where: { email: authUser.email },
+        }));
+
+      if (patient) {
+        authUser.userId = patient.id;
         authUser.role = 'PATIENT';
-        authUser.institutionId = null;
+        authUser.institutionId = patient.institutionId;
       } else {
-        authUser.userId = internalUser.id;
-        authUser.role = internalUser.role;
-        authUser.institutionId = internalUser.institutionId;
+        const internalUser = await this.usersService.findByEmail(
+          authUser.email,
+        );
+        if (!internalUser) {
+          // Option 1: Allow un-registered Firebase users as PATIENT
+          authUser.userId = firebaseUid;
+          authUser.role = 'PATIENT';
+          authUser.institutionId = null;
+        } else {
+          authUser.userId = internalUser.id;
+          authUser.role = internalUser.role;
+          authUser.institutionId = internalUser.institutionId;
+        }
       }
 
       return authUser;
