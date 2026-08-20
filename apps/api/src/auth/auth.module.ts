@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { UsersModule } from '../users/users.module.js';
+import { Patient } from '../patients/entities/patient.entity.js';
 import { AuthController } from './auth.controller.js';
 import { AuthJwtModule } from './config/auth-jwt.module.js';
 import { AuthResponseFactory } from './factories/auth-response.factory.js';
@@ -14,7 +16,12 @@ import { FirebaseTokenService } from './services/firebase-token.service.js';
 import { RolesGuard } from './guards/roles.guard.js';
 
 @Module({
-  imports: [UsersModule, PassportModule, AuthJwtModule],
+  imports: [
+    UsersModule,
+    PassportModule,
+    AuthJwtModule,
+    TypeOrmModule.forFeature([Patient]),
+  ],
   controllers: [AuthController],
   providers: [
     JwtStrategy,
