@@ -45,7 +45,8 @@ export class ReportsController {
 
   private sendPdf(response: Response, filename: string, pdf: Buffer): void {
     response.set({
-      'Cache-Control': 'private, no-cache, no-store, max-age=0, must-revalidate',
+      'Cache-Control':
+        'private, no-cache, no-store, max-age=0, must-revalidate',
       Pragma: 'no-cache',
       'Content-Type': 'application/pdf',
     });

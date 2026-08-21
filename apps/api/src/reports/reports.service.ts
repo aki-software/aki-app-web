@@ -99,9 +99,7 @@ export class ReportsService {
         reportId,
         targetEmail: normalizedEmail,
         ...(force ? { force: true } : {}),
-        ...(audience === 'EVALUATOR'
-          ? { audience: 'EVALUATOR' as const }
-          : {}),
+        ...(audience === 'EVALUATOR' ? { audience: 'EVALUATOR' as const } : {}),
       },
       {
         jobId,
@@ -206,9 +204,7 @@ export class ReportsService {
         reportId: report.id,
         targetEmail,
         ...(force ? { force: true } : {}),
-        ...(audience === 'EVALUATOR'
-          ? { audience: 'EVALUATOR' as const }
-          : {}),
+        ...(audience === 'EVALUATOR' ? { audience: 'EVALUATOR' as const } : {}),
       },
       { jobId },
     );

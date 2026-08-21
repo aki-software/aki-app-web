@@ -27,7 +27,9 @@ export interface ConsentPolicyPort {
 export const REPORT_CONSENT_POLICY = Symbol('REPORT_CONSENT_POLICY');
 
 function persistedScope(role: string): ReportGrantScope {
-  return role === 'INSTITUTION_ADMIN' ? 'INSTITUTION' : (role as ReportGrantScope);
+  return role === 'INSTITUTION_ADMIN'
+    ? 'INSTITUTION'
+    : (role as ReportGrantScope);
 }
 
 @Injectable()
@@ -61,7 +63,8 @@ export class ReportAccessService {
         where: { sessionId },
         order: { version: 'DESC' },
       });
-      if (!report) throw new NotFoundException('No report exists for this session.');
+      if (!report)
+        throw new NotFoundException('No report exists for this session.');
       await this.authorizeReport(manager, report, scope);
       this.assertDownloadable(report);
       return report;
@@ -214,7 +217,9 @@ export class ReportAccessService {
     switch (report.status) {
       case ReportStatus.AVAILABLE:
         if (!report.availableUntil || report.availableUntil <= new Date()) {
-          throw new GoneException('Report is unavailable because it has expired.');
+          throw new GoneException(
+            'Report is unavailable because it has expired.',
+          );
         }
         if (!report.objectKey) {
           throw new NotFoundException('Report file not found in storage.');
@@ -227,7 +232,9 @@ export class ReportAccessService {
       case ReportStatus.STORAGE_PENDING:
         throw new ConflictException('Report is waiting for storage.');
       case ReportStatus.EXPIRED:
-        throw new GoneException('Report is unavailable because it has expired.');
+        throw new GoneException(
+          'Report is unavailable because it has expired.',
+        );
       case ReportStatus.FAILED:
         throw new BadRequestException('Report generation failed.');
     }

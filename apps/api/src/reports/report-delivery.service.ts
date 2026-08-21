@@ -68,7 +68,7 @@ export class ReportDeliveryService {
           recipientEmail,
           pdfBuffer,
           report.inputSnapshot?.data.summary,
-              audience,
+          audience,
         ),
       );
       await this.markDelivered(delivery);
@@ -85,7 +85,8 @@ export class ReportDeliveryService {
   ): Promise<ReportDelivery | null> {
     const normalizedEmail = recipientEmail.trim().toLowerCase();
     const existing = await this.find(reportId, normalizedEmail);
-    if (existing?.status === ReportDeliveryStatus.DELIVERED && !force) return null;
+    if (existing?.status === ReportDeliveryStatus.DELIVERED && !force)
+      return null;
 
     if (existing) {
       existing.status = ReportDeliveryStatus.PENDING;

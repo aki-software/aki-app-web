@@ -47,7 +47,11 @@ export class ReportOrchestratorService {
         true,
       );
     } else {
-      await this.reportsService.requestGeneration(session.id, targetEmail, scope);
+      await this.reportsService.requestGeneration(
+        session.id,
+        targetEmail,
+        scope,
+      );
     }
 
     return {

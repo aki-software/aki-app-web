@@ -274,9 +274,16 @@ describe('ReportsService', () => {
     const { service, reports, sessions, queue, delivery } = setup();
     sessions.findOne.mockResolvedValue(session());
     reports.findOne.mockResolvedValue(report(ReportStatus.AVAILABLE));
-    const scope = { role: 'THERAPIST', therapistUserId: 'therapist-1' } as never;
+    const scope = {
+      role: 'THERAPIST',
+      therapistUserId: 'therapist-1',
+    } as never;
 
-    await service.requestGeneration('session-1', 'therapist@example.com', scope);
+    await service.requestGeneration(
+      'session-1',
+      'therapist@example.com',
+      scope,
+    );
 
     expect(delivery.request).toHaveBeenCalledWith(
       'report-1',
@@ -318,7 +325,9 @@ describe('ReportsService', () => {
         force: true,
       },
       expect.objectContaining({
-        jobId: expect.stringMatching(/^report-report-1-deliver-[a-f0-9]{16}-force-/),
+        jobId: expect.stringMatching(
+          /^report-report-1-deliver-[a-f0-9]{16}-force-/,
+        ),
       }),
     );
   });

@@ -14,7 +14,10 @@ describe('session report download', () => {
   } as any;
 
   const accessService = (consentAllowed = true) => {
-    const repository = { findOne: jest.fn().mockResolvedValue(report), update: jest.fn() };
+    const repository = {
+      findOne: jest.fn().mockResolvedValue(report),
+      update: jest.fn(),
+    };
     const manager = {
       query: jest.fn().mockResolvedValue([{ id: 'patient-1' }]),
       getRepository: jest.fn().mockReturnValue(repository),
@@ -23,7 +26,11 @@ describe('session report download', () => {
     const audit = { append: jest.fn().mockResolvedValue({}) };
     const consent = { permits: jest.fn().mockResolvedValue(consentAllowed) };
     return {
-      service: new ReportAccessService(data as any, audit as any, consent as any),
+      service: new ReportAccessService(
+        data as any,
+        audit as any,
+        consent as any,
+      ),
       repository,
       consent,
     };
@@ -51,9 +58,9 @@ describe('session report download', () => {
       const { service, consent } = accessService();
       const scope = { role, institutionId: 'institution-1' };
 
-      await expect(service.downloadForSession('session-1', scope)).resolves.toEqual(
-        report,
-      );
+      await expect(
+        service.downloadForSession('session-1', scope),
+      ).resolves.toEqual(report);
       expect(consent.permits).toHaveBeenCalledWith(scope, report.id);
     },
   );
@@ -69,20 +76,32 @@ describe('session report download', () => {
     repository.findOne.mockResolvedValue({ ...report, status });
 
     await expect(
-      service.downloadForSession('session-1', { role: 'PATIENT', userId: 'firebase-patient-1' }),
+      service.downloadForSession('session-1', {
+        role: 'PATIENT',
+        userId: 'firebase-patient-1',
+      }),
     ).rejects.toThrow(message);
   });
 
   it('streams the resolved private object through the session route', async () => {
-    const access = { downloadForSession: jest.fn().mockResolvedValue(report), recordDownload: jest.fn() };
+    const access = {
+      downloadForSession: jest.fn().mockResolvedValue(report),
+      recordDownload: jest.fn(),
+    };
     const storage = { get: jest.fn().mockResolvedValue(Buffer.from('pdf')) };
     const response = { type: jest.fn(), attachment: jest.fn() };
-    const controller = new ReportsController(access as any, storage as any, {} as any);
+    const controller = new ReportsController(
+      access as any,
+      storage as any,
+      {} as any,
+    );
 
     await expect(
       controller.downloadForSession(
         'session-1',
-        { user: { role: 'INSTITUTION_ADMIN', institutionId: 'institution-1' } } as any,
+        {
+          user: { role: 'INSTITUTION_ADMIN', institutionId: 'institution-1' },
+        } as any,
         response as any,
       ),
     ).resolves.toEqual(Buffer.from('pdf'));

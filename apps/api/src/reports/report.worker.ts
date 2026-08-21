@@ -222,7 +222,13 @@ export class ReportWorker extends WorkerHost {
     report.markStoragePending();
     await this.reports.save(report);
     if (audience === 'EVALUATOR') {
-      await this.delivery.deliver(report, targetEmail, pdfBuffer, force, audience);
+      await this.delivery.deliver(
+        report,
+        targetEmail,
+        pdfBuffer,
+        force,
+        audience,
+      );
     } else if (force) {
       await this.delivery.deliver(report, targetEmail, pdfBuffer, true);
     } else {
@@ -246,7 +252,13 @@ export class ReportWorker extends WorkerHost {
     const pdfBuffer = await this.storage.get(objectKey);
     if (!pdfBuffer) throw new Error('Stored report PDF not found.');
     if (audience === 'EVALUATOR') {
-      await this.delivery.deliver(report, targetEmail, pdfBuffer, force, audience);
+      await this.delivery.deliver(
+        report,
+        targetEmail,
+        pdfBuffer,
+        force,
+        audience,
+      );
     } else if (force) {
       await this.delivery.deliver(report, targetEmail, pdfBuffer, true);
     } else {

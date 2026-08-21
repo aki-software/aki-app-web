@@ -32,7 +32,10 @@ describe('ReportDeliveryService', () => {
     };
     const eventEmitter = { emitAsync: jest.fn().mockResolvedValue(undefined) };
     return {
-      service: new ReportDeliveryService(repository as any, eventEmitter as any),
+      service: new ReportDeliveryService(
+        repository as any,
+        eventEmitter as any,
+      ),
       repository,
       eventEmitter,
     };
