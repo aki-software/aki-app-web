@@ -89,7 +89,13 @@ describe('session report download', () => {
       recordDownload: jest.fn(),
     };
     const storage = { get: jest.fn().mockResolvedValue(Buffer.from('pdf')) };
-    const response = { type: jest.fn(), attachment: jest.fn() };
+    const response = {
+      set: jest.fn(),
+      removeHeader: jest.fn(),
+      attachment: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      end: jest.fn(),
+    };
     const controller = new ReportsController(
       access as any,
       storage as any,
@@ -104,7 +110,9 @@ describe('session report download', () => {
         } as any,
         response as any,
       ),
-    ).resolves.toEqual(Buffer.from('pdf'));
+    ).resolves.toBeUndefined();
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.end).toHaveBeenCalledWith(Buffer.from('pdf'));
     expect(access.downloadForSession).toHaveBeenCalledWith('session-1', {
       role: 'INSTITUTION_ADMIN',
       userId: undefined,
