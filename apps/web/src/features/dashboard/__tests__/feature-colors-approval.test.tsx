@@ -36,8 +36,8 @@ describe('Feature Color Approval Tests', () => {
       expect(screen.getByText(/Mínimo recomendado: 10/)).toBeDefined();
       
       const firstDiv = container.firstElementChild as HTMLElement;
-      expect(firstDiv.className).toContain('bg-warning-bg');
-      expect(firstDiv.className).toContain('border-warning-border');
+      expect(firstDiv.className).toContain('bg-status-warning/10');
+      expect(firstDiv.className).toContain('border-status-warning/30');
     });
 
     it('should render dismiss button with aria-label', () => {
