@@ -270,6 +270,59 @@ describe('ReportsService', () => {
     },
   );
 
+  it('enqueues evaluator delivery jobs for therapist dashboard requests', async () => {
+    const { service, reports, sessions, queue, delivery } = setup();
+    sessions.findOne.mockResolvedValue(session());
+    reports.findOne.mockResolvedValue(report(ReportStatus.AVAILABLE));
+    const scope = { role: 'THERAPIST', therapistUserId: 'therapist-1' } as never;
+
+    await service.requestGeneration('session-1', 'therapist@example.com', scope);
+
+    expect(delivery.request).toHaveBeenCalledWith(
+      'report-1',
+      'therapist@example.com',
+    );
+    expect(queue.add).toHaveBeenCalledWith(
+      'deliver',
+      {
+        reportId: 'report-1',
+        targetEmail: 'therapist@example.com',
+        audience: 'EVALUATOR',
+      },
+      expect.any(Object),
+    );
+  });
+
+  it('enqueues a forced resend with recipient-specific job data for an available report', async () => {
+    const { service, reports, sessions, queue, delivery } = setup();
+    sessions.findOne.mockResolvedValue(session());
+    reports.findOne.mockResolvedValue(report(ReportStatus.AVAILABLE));
+
+    await service.requestGeneration(
+      'session-1',
+      'Ada@Example.com',
+      undefined,
+      true,
+    );
+
+    expect(delivery.request).toHaveBeenCalledWith(
+      'report-1',
+      'ada@example.com',
+      true,
+    );
+    expect(queue.add).toHaveBeenCalledWith(
+      'deliver',
+      {
+        reportId: 'report-1',
+        targetEmail: 'ada@example.com',
+        force: true,
+      },
+      expect.objectContaining({
+        jobId: expect.stringMatching(/^report-report-1-deliver-[a-f0-9]{16}-force-/),
+      }),
+    );
+  });
+
   it('rejects a legacy non-available report without an immutable snapshot', async () => {
     const { service, reports, sessions, queue } = setup();
     const legacy = report(ReportStatus.FAILED);

@@ -5,12 +5,15 @@ export class UserRegisteredEvent {
   ) {}
 }
 
+export type ReportDeliveryAudience = 'PATIENT' | 'EVALUATOR';
+
 export class ReportGeneratedEvent {
   constructor(
     public readonly reportUrl: string | null,
     public readonly requestedByEmail: string,
     public readonly pdfBuffer?: Buffer,
     public readonly summary?: any,
+    public readonly audience: ReportDeliveryAudience = 'PATIENT',
   ) {}
 }
 

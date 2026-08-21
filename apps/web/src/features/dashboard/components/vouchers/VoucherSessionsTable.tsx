@@ -94,8 +94,10 @@ export function VoucherSessionsTable({
       const a = document.createElement('a');
       a.href = url;
       a.download = `session-${sessionId}.pdf`;
+      document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
     } catch (error) {
       console.error('Error downloading PDF:', error);
     }

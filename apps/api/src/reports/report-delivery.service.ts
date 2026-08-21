@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ReportGeneratedEvent } from '../events/domain-events.js';
+import {
+  ReportDeliveryAudience,
+  ReportGeneratedEvent,
+} from '../events/domain-events.js';
 import { Report } from './entities/report.entity.js';
 import {
   ReportDelivery,
@@ -20,12 +23,13 @@ export class ReportDeliveryService {
   async request(
     reportId: string,
     recipientEmail: string,
+    force = false,
   ): Promise<{ queued: boolean; idempotent: boolean }> {
     const normalizedEmail = recipientEmail.trim().toLowerCase();
     const existing = await this.find(reportId, normalizedEmail);
     if (existing)
       return {
-        queued: existing.status !== ReportDeliveryStatus.DELIVERED,
+        queued: force || existing.status !== ReportDeliveryStatus.DELIVERED,
         idempotent: true,
       };
 
@@ -48,10 +52,12 @@ export class ReportDeliveryService {
     report: Report,
     recipientEmail: string | undefined,
     pdfBuffer: Buffer,
+    force = false,
+    audience: ReportDeliveryAudience = 'PATIENT',
   ): Promise<void> {
     if (!recipientEmail) return;
 
-    const delivery = await this.claim(report.id, recipientEmail);
+    const delivery = await this.claim(report.id, recipientEmail, force);
     if (!delivery) return;
 
     try {
@@ -62,6 +68,7 @@ export class ReportDeliveryService {
           recipientEmail,
           pdfBuffer,
           report.inputSnapshot?.data.summary,
+              audience,
         ),
       );
       await this.markDelivered(delivery);
@@ -74,10 +81,11 @@ export class ReportDeliveryService {
   async claim(
     reportId: string,
     recipientEmail: string,
+    force = false,
   ): Promise<ReportDelivery | null> {
     const normalizedEmail = recipientEmail.trim().toLowerCase();
     const existing = await this.find(reportId, normalizedEmail);
-    if (existing?.status === ReportDeliveryStatus.DELIVERED) return null;
+    if (existing?.status === ReportDeliveryStatus.DELIVERED && !force) return null;
 
     if (existing) {
       existing.status = ReportDeliveryStatus.PENDING;

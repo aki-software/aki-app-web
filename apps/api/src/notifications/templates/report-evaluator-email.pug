@@ -1,0 +1,9 @@
+extends ./base-email.pug
+
+block bodyContent
+  tr
+    td(style="padding:8px 40px 32px;")
+      h1(style=`margin:0 0 20px 0;font-size:24px;font-weight:800;letter-spacing:-0.02em;line-height:1.3;color:${colors.primary.DEFAULT};text-transform:uppercase;`) Informe para evaluación profesional
+      p(style=`margin:0 0 16px 0;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Recibís adjunto el informe vocacional en PDF para tu evaluación profesional.
+      p(style=`margin:0 0 16px 0;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Este correo no está dirigido al paciente ni implica acceso a una cuenta de paciente.
+      p(style=`margin:0;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Podés descargar el informe desde los archivos adjuntos al final de este mensaje.
