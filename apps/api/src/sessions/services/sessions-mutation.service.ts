@@ -219,15 +219,20 @@ export class SessionsMutationService {
       throw new BadRequestException(
         'Verified Firebase identity is required for authenticated completion.',
       );
-    const internalUser = identity.email
-      ? await this.ownerResolver.resolveFirebaseUser(
-          {
-            uid: identity.userId,
-            email: identity.email,
-            displayName: identity.displayName,
-          },
-          allowPatientProvisioning,
-        )
+    const firebaseIdentity = identity.email
+      ? {
+          uid: identity.userId,
+          email: identity.email,
+          displayName: identity.displayName,
+        }
+      : null;
+    const internalUser = firebaseIdentity
+      ? allowPatientProvisioning
+        ? await this.ownerResolver.resolveFirebasePatient(
+            firebaseIdentity,
+            true,
+          )
+        : await this.ownerResolver.resolveFirebaseUser(firebaseIdentity, false)
       : null;
     if (!internalUser)
       throw new UnauthorizedException(
