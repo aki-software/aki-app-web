@@ -42,6 +42,36 @@ export class ReportsController {
       institutionId: req.user?.institutionId,
     };
   }
+
+  private sendPdf(response: Response, filename: string, pdf: Buffer): void {
+    response.set({
+      'Cache-Control':
+        'private, no-cache, no-store, max-age=0, must-revalidate',
+      Pragma: 'no-cache',
+      'Content-Type': 'application/pdf',
+    });
+    response.removeHeader('ETag');
+    response.attachment(filename);
+    response.status(200).end(pdf);
+  }
+
+  @Get('sessions/:sessionId/download')
+  async downloadForSession(
+    @Param('sessionId') sessionId: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() response: Response,
+  ): Promise<void> {
+    const scope = this.scope(req);
+    const report = await this.access.downloadForSession(sessionId, scope);
+    if (!report.objectKey) {
+      throw new NotFoundException('Report file not found.');
+    }
+    const pdf = await this.storage.get(report.objectKey);
+    if (!pdf) throw new NotFoundException('Report file not found.');
+    await this.access.recordDownload(report, scope);
+    this.sendPdf(response, `report-${sessionId}.pdf`, pdf);
+  }
+
   @Get(':reportId') async status(
     @Param('reportId') id: string,
     @Req() req: AuthenticatedRequest,
@@ -60,8 +90,8 @@ export class ReportsController {
   async download(
     @Param('reportId') id: string,
     @Req() req: AuthenticatedRequest,
-    @Res({ passthrough: true }) response: Response,
-  ): Promise<Buffer> {
+    @Res() response: Response,
+  ): Promise<void> {
     const scope = this.scope(req);
     const report = await this.access.download(id, scope);
     if (!report.objectKey) {
@@ -70,9 +100,7 @@ export class ReportsController {
     const pdf = await this.storage.get(report.objectKey);
     if (!pdf) throw new NotFoundException('Report file not found.');
     await this.access.recordDownload(report, scope);
-    response.type('application/pdf');
-    response.attachment(`report-${report.id}.pdf`);
-    return pdf;
+    this.sendPdf(response, `report-${report.id}.pdf`, pdf);
   }
   @Post(':reportId/deliveries')
   async requestDelivery(

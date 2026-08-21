@@ -8,6 +8,7 @@ describe('ReportsController', () => {
       .fn()
       .mockResolvedValue({ id: 'report-1', status: 'AVAILABLE', version: 1 }),
     download: jest.fn(),
+    downloadForSession: jest.fn(),
     recordDownload: jest.fn(),
     issue: jest.fn(),
     renew: jest.fn(),
@@ -24,7 +25,15 @@ describe('ReportsController', () => {
   const req = (role = 'PATIENT', userId = 'patient-1') =>
     ({ user: { role, userId } }) as any;
   const response = () => {
-    const result = { type: jest.fn(), attachment: jest.fn() };
+    const result = {
+      set: jest.fn(),
+      removeHeader: jest.fn(),
+      type: jest.fn(),
+      attachment: jest.fn(),
+      status: jest.fn(),
+      end: jest.fn(),
+    };
+    result.status.mockReturnValue(result);
     return result as any;
   };
 
@@ -64,6 +73,40 @@ describe('ReportsController', () => {
     );
   });
 
+  it('resolves the current report by session before streaming the authorized private PDF', async () => {
+    const report = {
+      id: 'report-2',
+      objectKey: 'private/reports/report-2.pdf',
+    };
+    access.downloadForSession.mockResolvedValue(report);
+    storage.get.mockResolvedValue(Buffer.from('pdf'));
+    const res = response();
+
+    await controller.downloadForSession(
+      'session-1',
+      req('INSTITUTION_ADMIN'),
+      res,
+    );
+
+    expect(access.downloadForSession).toHaveBeenCalledWith('session-1', {
+      role: 'INSTITUTION_ADMIN',
+      userId: 'patient-1',
+      institutionId: undefined,
+    });
+    expect(access.download).not.toHaveBeenCalled();
+    expect(storage.get).toHaveBeenCalledWith('private/reports/report-2.pdf');
+    expect(res.set).toHaveBeenCalledWith({
+      'Cache-Control':
+        'private, no-cache, no-store, max-age=0, must-revalidate',
+      Pragma: 'no-cache',
+      'Content-Type': 'application/pdf',
+    });
+    expect(res.removeHeader).toHaveBeenCalledWith('ETag');
+    expect(res.attachment).toHaveBeenCalledWith('report-session-1.pdf');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.end).toHaveBeenCalledWith(Buffer.from('pdf'));
+  });
+
   it('streams an authorized private PDF with attachment headers', async () => {
     const report = {
       id: 'report-1',
@@ -73,9 +116,7 @@ describe('ReportsController', () => {
     storage.get.mockResolvedValue(Buffer.from('pdf'));
     const res = response();
 
-    await expect(controller.download('report-1', req(), res)).resolves.toEqual(
-      Buffer.from('pdf'),
-    );
+    await controller.download('report-1', req(), res);
 
     expect(storage.get).toHaveBeenCalledWith('private/reports/report-1.pdf');
     expect(access.recordDownload).toHaveBeenCalledWith(report, {
@@ -83,8 +124,16 @@ describe('ReportsController', () => {
       userId: 'patient-1',
       institutionId: undefined,
     });
-    expect(res.type).toHaveBeenCalledWith('application/pdf');
+    expect(res.set).toHaveBeenCalledWith({
+      'Cache-Control':
+        'private, no-cache, no-store, max-age=0, must-revalidate',
+      Pragma: 'no-cache',
+      'Content-Type': 'application/pdf',
+    });
+    expect(res.removeHeader).toHaveBeenCalledWith('ETag');
     expect(res.attachment).toHaveBeenCalledWith('report-report-1.pdf');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.end).toHaveBeenCalledWith(Buffer.from('pdf'));
   });
 
   it('rejects an invalid alternate recipient email', async () => {

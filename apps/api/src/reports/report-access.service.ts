@@ -1,6 +1,9 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import {
+  BadRequestException,
+  ConflictException,
   ForbiddenException,
+  GoneException,
   Inject,
   Injectable,
   NotFoundException,
@@ -9,6 +12,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { ReportAccessAuditEvent } from './entities/report-access-audit.entity.js';
 import { ReportStatus } from './entities/report.entity.js';
 import { Report } from './entities/report.entity.js';
+import type { ReportGrantScope } from './entities/report-grant.entity.js';
 import { ReportAccessAuditService } from './report-access-audit.service.js';
 
 export interface ReportAccessScope {
@@ -21,6 +25,12 @@ export interface ConsentPolicyPort {
   permits(scope: ReportAccessScope, reportId: string): Promise<boolean>;
 }
 export const REPORT_CONSENT_POLICY = Symbol('REPORT_CONSENT_POLICY');
+
+function persistedScope(role: string): ReportGrantScope {
+  return role === 'INSTITUTION_ADMIN'
+    ? 'INSTITUTION'
+    : (role as ReportGrantScope);
+}
 
 @Injectable()
 export class ReportAccessService {
@@ -39,9 +49,24 @@ export class ReportAccessService {
   async download(reportId: string, scope: ReportAccessScope): Promise<Report> {
     return this.data.transaction(async (manager) => {
       const report = await this.authorize(manager, reportId, scope);
-      if (!report.availableUntil || report.availableUntil <= new Date())
-        throw new ForbiddenException('Report is unavailable.');
-      if (!report.objectKey) throw new NotFoundException('Report not found.');
+      this.assertDownloadable(report);
+      return report;
+    });
+  }
+
+  async downloadForSession(
+    sessionId: string,
+    scope: ReportAccessScope,
+  ): Promise<Report> {
+    return this.data.transaction(async (manager) => {
+      const report = await manager.getRepository(Report).findOne({
+        where: { sessionId },
+        order: { version: 'DESC' },
+      });
+      if (!report)
+        throw new NotFoundException('No report exists for this session.');
+      await this.authorizeReport(manager, report, scope);
+      this.assertDownloadable(report);
       return report;
     });
   }
@@ -62,7 +87,7 @@ export class ReportAccessService {
         reportId: report.id,
         grantId: null,
         actorUserId: scope.userId ?? null,
-        scope: scope.role as any,
+        scope: persistedScope(scope.role),
         operationKey,
         occurredAt: new Date(),
         recipientEmail: recipientEmail.trim().toLowerCase(),
@@ -86,7 +111,7 @@ export class ReportAccessService {
         reportId: report.id,
         grantId: null,
         actorUserId: scope.userId ?? null,
-        scope: scope.role as any,
+        scope: persistedScope(scope.role),
         operationKey: randomUUID(),
         occurredAt,
       });
@@ -138,7 +163,7 @@ export class ReportAccessService {
         [
           report.id,
           hash,
-          scope.role,
+          persistedScope(scope.role),
           new Date(
             Math.min(Date.now() + 15 * 60_000, report.availableUntil.getTime()),
           ),
@@ -149,7 +174,7 @@ export class ReportAccessService {
         reportId,
         grantId: rows[0]?.id ?? null,
         actorUserId: scope.userId ?? null,
-        scope: scope.role as any,
+        scope: persistedScope(scope.role),
         operationKey,
         occurredAt: new Date(),
       });
@@ -181,11 +206,38 @@ export class ReportAccessService {
         reportId: grant.report_id,
         grantId: grant.id,
         actorUserId: scope.userId ?? null,
-        scope: scope.role as any,
+        scope: persistedScope(scope.role),
         operationKey,
         occurredAt: new Date(),
       });
     });
+  }
+
+  private assertDownloadable(report: Report): void {
+    switch (report.status) {
+      case ReportStatus.AVAILABLE:
+        if (!report.availableUntil || report.availableUntil <= new Date()) {
+          throw new GoneException(
+            'Report is unavailable because it has expired.',
+          );
+        }
+        if (!report.objectKey) {
+          throw new NotFoundException('Report file not found in storage.');
+        }
+        return;
+      case ReportStatus.PENDING:
+        throw new ConflictException('Report is pending generation.');
+      case ReportStatus.GENERATING:
+        throw new ConflictException('Report is being generated.');
+      case ReportStatus.STORAGE_PENDING:
+        throw new ConflictException('Report is waiting for storage.');
+      case ReportStatus.EXPIRED:
+        throw new GoneException(
+          'Report is unavailable because it has expired.',
+        );
+      case ReportStatus.FAILED:
+        throw new BadRequestException('Report generation failed.');
+    }
   }
 
   private async authorize(
@@ -198,14 +250,24 @@ export class ReportAccessService {
       .findOne({ where: { id: reportId } });
     if (!report || report.status !== ReportStatus.AVAILABLE)
       throw new NotFoundException('Report not found.');
+    return this.authorizeReport(manager, report, scope);
+  }
+
+  private async authorizeReport(
+    manager: EntityManager,
+    report: Report,
+    scope: ReportAccessScope,
+  ): Promise<Report> {
     if (scope.role === 'ADMIN') return report;
     if (scope.role === 'PATIENT') {
       const patientId = await this.resolvePatientId(manager, scope);
       if (patientId && report.entitledPatientId === patientId) return report;
     }
     if (
-      (scope.role === 'THERAPIST' || scope.role === 'INSTITUTION') &&
-      (await this.consent.permits(scope, reportId))
+      (scope.role === 'THERAPIST' ||
+        scope.role === 'INSTITUTION_ADMIN' ||
+        scope.role === 'INSTITUTION') &&
+      (await this.consent.permits(scope, report.id))
     )
       return report;
     throw new ForbiddenException('Report access is not permitted.');

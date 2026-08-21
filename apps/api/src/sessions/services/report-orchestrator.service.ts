@@ -8,6 +8,7 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
 import { SessionScope } from '../types/session-scope.type.js';
 import { UserRole } from '@akit/contracts';
+import type { ReportDeliveryAudience } from '../../events/domain-events.js';
 import { ReportsService } from '../../reports/reports.service.js';
 
 const PATIENT_ROLE = 'PATIENT';
@@ -25,15 +26,45 @@ export class ReportOrchestratorService {
     targetEmail: string,
     voucherId?: string | null,
     scope?: SessionScope,
+    force?: boolean,
   ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(sessionId, scope);
     void voucherId;
-    await this.reportsService.requestGeneration(session.id, targetEmail);
+    const audience = this.deliveryAudience(scope);
+    if (audience === 'EVALUATOR') {
+      await this.reportsService.requestGeneration(
+        session.id,
+        targetEmail,
+        scope,
+        force ?? false,
+        audience,
+      );
+    } else if (force) {
+      await this.reportsService.requestGeneration(
+        session.id,
+        targetEmail,
+        scope,
+        true,
+      );
+    } else {
+      await this.reportsService.requestGeneration(
+        session.id,
+        targetEmail,
+        scope,
+      );
+    }
 
     return {
       success: true,
       message: `Report generation queued for ${targetEmail}`,
     };
+  }
+
+  private deliveryAudience(scope?: SessionScope): ReportDeliveryAudience {
+    return scope?.role === UserRole.THERAPIST ||
+      scope?.role === UserRole.INSTITUTION_ADMIN
+      ? 'EVALUATOR'
+      : 'PATIENT';
   }
 
   private async findOne(id: string, scope?: SessionScope): Promise<Session> {

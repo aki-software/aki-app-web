@@ -19,12 +19,16 @@ export class ReportGeneratedHandler {
       `Handling report.generated event for ${event.requestedByEmail}, url: ${event.reportUrl}`,
     );
     try {
-      const html = this.templateRenderer.renderTemplate('report-email.pug', {
-        patientName: null,
-        patientEmail: event.requestedByEmail,
-        reportUrl: event.reportUrl,
-        summary: event.summary,
-      });
+      const isEvaluator = event.audience === 'EVALUATOR';
+      const html = this.templateRenderer.renderTemplate(
+        isEvaluator ? 'report-evaluator-email.pug' : 'report-email.pug',
+        {
+          patientName: null,
+          patientEmail: event.requestedByEmail,
+          reportUrl: event.reportUrl,
+          summary: event.summary,
+        },
+      );
 
       const attachments = event.pdfBuffer
         ? [
@@ -37,7 +41,9 @@ export class ReportGeneratedHandler {
         : undefined;
       await this.emailService.sendEmail(
         event.requestedByEmail,
-        'Tu informe vocacional está listo - Orient A.ki',
+        isEvaluator
+          ? 'Informe vocacional para evaluación profesional - Orient A.ki'
+          : 'Tu informe vocacional está listo - Orient A.ki',
         html,
         attachments,
       );

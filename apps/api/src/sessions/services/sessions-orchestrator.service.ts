@@ -31,8 +31,8 @@ export class SessionsOrchestratorService {
       email,
       customTitle,
       normalizedScope,
+      force,
     );
-    void force;
     return {
       success: result.success,
       message: result.message,

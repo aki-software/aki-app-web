@@ -28,6 +28,8 @@ export class ImmutableReportObjectCollisionError extends Error {
 export class PrivateReportStorageService {
   private readonly bucket: string;
   private readonly client: S3Client;
+  private readonly prefix?: string;
+
   constructor(config: ConfigService) {
     const required = [
       'S3_ENDPOINT',
@@ -44,6 +46,9 @@ export class PrivateReportStorageService {
     const region = config.get<string>('S3_REGION', 'auto');
     if (region !== 'auto')
       throw new Error('S3_REGION must be auto for private report storage.');
+    this.prefix = this.normalizePrefix(
+      config.get<string>('REPORT_STORAGE_PREFIX'),
+    );
     this.bucket = values.S3_BUCKET!;
     this.client = new S3Client({
       endpoint: values.S3_ENDPOINT,
@@ -55,6 +60,12 @@ export class PrivateReportStorageService {
       },
     });
   }
+
+  buildReportObjectKey(sessionId: string, version: number): string {
+    const reportKey = `reports/${sessionId}/v${version}.pdf`;
+    return this.prefix ? `${this.prefix}/${reportKey}` : reportKey;
+  }
+
   async put(
     objectKey: string,
     body: Buffer,
@@ -118,6 +129,23 @@ export class PrivateReportStorageService {
     } catch {
       throw this.failure();
     }
+  }
+  private normalizePrefix(prefix: string | undefined): string | undefined {
+    if (!prefix) return undefined;
+    const normalized = prefix.trim();
+    if (!normalized) return undefined;
+    const segments = normalized.split('/');
+    if (
+      segments.some(
+        (segment) =>
+          segment === '.' ||
+          segment === '..' ||
+          !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(segment),
+      )
+    ) {
+      throw new Error('REPORT_STORAGE_PREFIX contains invalid path segments.');
+    }
+    return normalized;
   }
   private failure(): InternalServerErrorException {
     return new InternalServerErrorException('Private report storage failed.');
