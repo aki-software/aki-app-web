@@ -1,0 +1,3410 @@
+{
+  "identity": {
+    "database": "orientaki",
+    "schema": "public",
+    "version": "PostgreSQL 15.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+    "host": "172.18.0.3",
+    "port": 5432
+  },
+  "tables": [
+    {
+      "table_schema": "public",
+      "table_name": "institutions"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "migrations"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_fulfillment_outbox"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_deliveries"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_grants"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_swipes"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers"
+    }
+  ],
+  "columns": [
+    {
+      "table_schema": "public",
+      "table_name": "institutions",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "institutions",
+      "ordinal_position": 2,
+      "column_name": "name",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "institutions",
+      "ordinal_position": 3,
+      "column_name": "billing_email",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "institutions",
+      "ordinal_position": 4,
+      "column_name": "responsible_therapist_user_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "institutions",
+      "ordinal_position": 5,
+      "column_name": "is_active",
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "institutions",
+      "ordinal_position": 6,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "institutions",
+      "ordinal_position": 7,
+      "column_name": "updated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "institutions",
+      "ordinal_position": 8,
+      "column_name": "deleted_at",
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "migrations",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "nextval('migrations_id_seq'::regclass)"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "migrations",
+      "ordinal_position": 2,
+      "column_name": "timestamp",
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "migrations",
+      "ordinal_position": 3,
+      "column_name": "name",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 2,
+      "column_name": "name",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 3,
+      "column_name": "email",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 4,
+      "column_name": "password_hash",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 5,
+      "column_name": "password_setup_token",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 6,
+      "column_name": "password_setup_expires_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 7,
+      "column_name": "password_set_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 8,
+      "column_name": "password_reset_token",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 9,
+      "column_name": "password_reset_expires_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 10,
+      "column_name": "institution_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 11,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 12,
+      "column_name": "updated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 13,
+      "column_name": "deleted_at",
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "patients",
+      "ordinal_position": 14,
+      "column_name": "firebase_uid",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 2,
+      "column_name": "gateway",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 3,
+      "column_name": "externalPaymentId",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 4,
+      "column_name": "status",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 5,
+      "column_name": "rawPayload",
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 6,
+      "column_name": "voucherBatchId",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 7,
+      "column_name": "createdAt",
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 8,
+      "column_name": "updatedAt",
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_event",
+      "ordinal_position": 9,
+      "column_name": "payload_digest",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_fulfillment_outbox",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_fulfillment_outbox",
+      "ordinal_position": 2,
+      "column_name": "voucher_batch_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_fulfillment_outbox",
+      "ordinal_position": 3,
+      "column_name": "processed_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_fulfillment_outbox",
+      "ordinal_position": 4,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "payment_fulfillment_outbox",
+      "ordinal_position": 5,
+      "column_name": "updated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan",
+      "ordinal_position": 2,
+      "column_name": "name",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan",
+      "ordinal_position": 3,
+      "column_name": "voucherQuantity",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan",
+      "ordinal_position": 4,
+      "column_name": "priceUsd",
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan",
+      "ordinal_position": 5,
+      "column_name": "isActive",
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan",
+      "ordinal_position": 6,
+      "column_name": "createdAt",
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan",
+      "ordinal_position": 7,
+      "column_name": "updatedAt",
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "pricing_plan",
+      "ordinal_position": 8,
+      "column_name": "description",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 2,
+      "column_name": "report_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 3,
+      "column_name": "grant_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 4,
+      "column_name": "actor_user_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 5,
+      "column_name": "event_type",
+      "udt_name": "report_access_audits_event_type_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 6,
+      "column_name": "scope",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 7,
+      "column_name": "operation_key",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 8,
+      "column_name": "occurred_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 9,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 10,
+      "column_name": "recipient_email",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_access_audits",
+      "ordinal_position": 11,
+      "column_name": "outcome",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_deliveries",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_deliveries",
+      "ordinal_position": 2,
+      "column_name": "report_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_deliveries",
+      "ordinal_position": 3,
+      "column_name": "recipient_email",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_deliveries",
+      "ordinal_position": 4,
+      "column_name": "status",
+      "udt_name": "report_deliveries_status_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": "'PENDING'::report_deliveries_status_enum"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_deliveries",
+      "ordinal_position": 5,
+      "column_name": "attempts",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_deliveries",
+      "ordinal_position": 6,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_deliveries",
+      "ordinal_position": 7,
+      "column_name": "updated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_grants",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_grants",
+      "ordinal_position": 2,
+      "column_name": "report_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_grants",
+      "ordinal_position": 3,
+      "column_name": "token_hash",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_grants",
+      "ordinal_position": 4,
+      "column_name": "scope",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_grants",
+      "ordinal_position": 5,
+      "column_name": "expires_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_grants",
+      "ordinal_position": 6,
+      "column_name": "used_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "report_grants",
+      "ordinal_position": 7,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 2,
+      "column_name": "session_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 3,
+      "column_name": "entitlement_source",
+      "udt_name": "reports_entitlement_source_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 4,
+      "column_name": "entitled_user_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 5,
+      "column_name": "voucher_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 6,
+      "column_name": "status",
+      "udt_name": "reports_status_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": "'PENDING'::reports_status_enum"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 7,
+      "column_name": "version",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "1"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 8,
+      "column_name": "object_key",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 9,
+      "column_name": "content_hash",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 10,
+      "column_name": "generated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 11,
+      "column_name": "available_until",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 12,
+      "column_name": "last_accessed_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 13,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 14,
+      "column_name": "updated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 15,
+      "column_name": "input_snapshot",
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reports",
+      "ordinal_position": 16,
+      "column_name": "entitled_patient_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 1,
+      "column_name": "session_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 2,
+      "column_name": "total_duration_ms",
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 3,
+      "column_name": "total_swipes",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 4,
+      "column_name": "unique_cards",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 5,
+      "column_name": "reverted_matches",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 6,
+      "column_name": "avg_time_between_swipes_ms",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 7,
+      "column_name": "min_time_between_swipes_ms",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 8,
+      "column_name": "max_time_between_swipes_ms",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 9,
+      "column_name": "reliability_score",
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 10,
+      "column_name": "reliability_level",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 11,
+      "column_name": "calculated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 12,
+      "column_name": "like_ratio",
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 13,
+      "column_name": "selectivity_level",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 14,
+      "column_name": "first_half_like_rate",
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 15,
+      "column_name": "last_half_like_rate",
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 16,
+      "column_name": "consistency_level",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 17,
+      "column_name": "fatigue_detected",
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 18,
+      "column_name": "rush_detected",
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 19,
+      "column_name": "response_time_histogram",
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_metrics",
+      "ordinal_position": 20,
+      "column_name": "reverted_direction",
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": "'{\"dislikedToLiked\": 0, \"likedToDisliked\": 0}'::jsonb"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "nextval('session_results_id_seq'::regclass)"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 2,
+      "column_name": "category_id",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 3,
+      "column_name": "score",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 4,
+      "column_name": "total_possible",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 5,
+      "column_name": "percentage",
+      "udt_name": "float8",
+      "data_type": "double precision",
+      "is_nullable": "NO",
+      "column_default": "'0'::double precision"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 6,
+      "column_name": "suggested_careers",
+      "udt_name": "json",
+      "data_type": "json",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 7,
+      "column_name": "material_snippet",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 8,
+      "column_name": "session_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 9,
+      "column_name": "time_spent_ms",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 10,
+      "column_name": "weighted_score",
+      "udt_name": "float8",
+      "data_type": "double precision",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_results",
+      "ordinal_position": 11,
+      "column_name": "avg_response_time_ms",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_swipes",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "nextval('session_swipes_id_seq'::regclass)"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_swipes",
+      "ordinal_position": 2,
+      "column_name": "card_id",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_swipes",
+      "ordinal_position": 3,
+      "column_name": "category_id",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_swipes",
+      "ordinal_position": 4,
+      "column_name": "is_liked",
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_swipes",
+      "ordinal_position": 5,
+      "column_name": "timestamp",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "session_swipes",
+      "ordinal_position": 6,
+      "column_name": "session_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 2,
+      "column_name": "patient_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 3,
+      "column_name": "patient_name",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 4,
+      "column_name": "session_date",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 5,
+      "column_name": "holland_code",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 6,
+      "column_name": "total_time_ms",
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 7,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 8,
+      "column_name": "report_url",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 9,
+      "column_name": "payment_status",
+      "udt_name": "sessions_payment_status_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": "'PENDING'::sessions_payment_status_enum"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 10,
+      "column_name": "voucher_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 11,
+      "column_name": "report_unlocked_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 12,
+      "column_name": "paid_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 13,
+      "column_name": "payment_reference",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 14,
+      "column_name": "therapist_user_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 15,
+      "column_name": "institution_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 16,
+      "column_name": "sync_key",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 17,
+      "column_name": "report_unlock_purchase_token",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "sessions",
+      "ordinal_position": 18,
+      "column_name": "expected_report_sku",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 2,
+      "column_name": "combination_key",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 3,
+      "column_name": "title",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 4,
+      "column_name": "area_1",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 5,
+      "column_name": "area_2",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 6,
+      "column_name": "area_3",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 7,
+      "column_name": "narrative",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 8,
+      "column_name": "tendencies",
+      "udt_name": "_text",
+      "data_type": "ARRAY",
+      "is_nullable": "NO",
+      "column_default": "'{}'::text[]"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 9,
+      "column_name": "possible_jobs",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 10,
+      "column_name": "related_professions",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 11,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 12,
+      "column_name": "updated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 13,
+      "column_name": "custom_sections",
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "column_default": "'[]'::jsonb"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 14,
+      "column_name": "key_insight",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "tres_areas_combinations",
+      "ordinal_position": 15,
+      "column_name": "competencies",
+      "udt_name": "_text",
+      "data_type": "ARRAY",
+      "is_nullable": "NO",
+      "column_default": "'{}'::text[]"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 2,
+      "column_name": "name",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 3,
+      "column_name": "email",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 4,
+      "column_name": "password_hash",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 5,
+      "column_name": "role",
+      "udt_name": "users_role_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": "'THERAPIST'::users_role_enum"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 6,
+      "column_name": "institution_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 7,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 8,
+      "column_name": "updated_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 9,
+      "column_name": "password_setup_token",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 10,
+      "column_name": "password_setup_expires_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 11,
+      "column_name": "password_set_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 12,
+      "column_name": "password_reset_token",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 13,
+      "column_name": "password_reset_expires_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "users",
+      "ordinal_position": 14,
+      "column_name": "deleted_at",
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 2,
+      "column_name": "categoryId",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 3,
+      "column_name": "title",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 4,
+      "column_name": "description",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 5,
+      "column_name": "createdAt",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 6,
+      "column_name": "updatedAt",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 7,
+      "column_name": "occupations",
+      "udt_name": "_text",
+      "data_type": "ARRAY",
+      "is_nullable": "NO",
+      "column_default": "'{}'::text[]"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 8,
+      "column_name": "formal_professions",
+      "udt_name": "_text",
+      "data_type": "ARRAY",
+      "is_nullable": "NO",
+      "column_default": "'{}'::text[]"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vocational_category",
+      "ordinal_position": 9,
+      "column_name": "competencies",
+      "udt_name": "_text",
+      "data_type": "ARRAY",
+      "is_nullable": "NO",
+      "column_default": "'{}'::text[]"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 2,
+      "column_name": "owner_type",
+      "udt_name": "voucher_batches_owner_type_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 3,
+      "column_name": "owner_user_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 4,
+      "column_name": "owner_institution_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 5,
+      "column_name": "quantity",
+      "udt_name": "int4",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 6,
+      "column_name": "unit_price",
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 7,
+      "column_name": "total_price",
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 8,
+      "column_name": "currency",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": "'ARS'::character varying"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 9,
+      "column_name": "payment_provider",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 10,
+      "column_name": "payment_reference",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 11,
+      "column_name": "status",
+      "udt_name": "voucher_batches_status_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": "'PENDING'::voucher_batches_status_enum"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 12,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 13,
+      "column_name": "paid_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 14,
+      "column_name": "short_code",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 15,
+      "column_name": "expected_amount_minor",
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 16,
+      "column_name": "idempotency_key",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 17,
+      "column_name": "fulfilled_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "voucher_batches",
+      "ordinal_position": 18,
+      "column_name": "checkout_url",
+      "udt_name": "text",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 1,
+      "column_name": "id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 2,
+      "column_name": "batch_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 3,
+      "column_name": "code",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 4,
+      "column_name": "owner_type",
+      "udt_name": "vouchers_owner_type_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 5,
+      "column_name": "owner_user_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 6,
+      "column_name": "owner_institution_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 7,
+      "column_name": "status",
+      "udt_name": "vouchers_status_enum",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": "'AVAILABLE'::vouchers_status_enum"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 8,
+      "column_name": "assigned_patient_name",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 9,
+      "column_name": "assigned_patient_email",
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 10,
+      "column_name": "created_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 11,
+      "column_name": "sent_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 12,
+      "column_name": "redeemed_session_id",
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 13,
+      "column_name": "redeemed_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_schema": "public",
+      "table_name": "vouchers",
+      "ordinal_position": 14,
+      "column_name": "expires_at",
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "constraints": [
+    {
+      "schema": "public",
+      "table": "institutions",
+      "name": "FK_29d0ccfb71ec6aef28e68ec4c97",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (responsible_therapist_user_id) REFERENCES users(id)"
+    },
+    {
+      "schema": "public",
+      "table": "institutions",
+      "name": "PK_institutions_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "migrations",
+      "name": "PK_8c82d7f526340ab734260ea46be",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "patients",
+      "name": "FK_patients_institution_id",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (institution_id) REFERENCES institutions(id)"
+    },
+    {
+      "schema": "public",
+      "table": "patients",
+      "name": "PK_patients",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "patients",
+      "name": "UQ_patients_email",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (email)"
+    },
+    {
+      "schema": "public",
+      "table": "patients",
+      "name": "UQ_patients_firebase_uid",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (firebase_uid)"
+    },
+    {
+      "schema": "public",
+      "table": "payment_event",
+      "name": "FK_252d812f8f4e9cf2fb70ffc9b2e",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (\"voucherBatchId\") REFERENCES voucher_batches(id) ON DELETE SET NULL"
+    },
+    {
+      "schema": "public",
+      "table": "payment_event",
+      "name": "PK_7e4a9d66fdf160a9fb9d236150f",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "payment_fulfillment_outbox",
+      "name": "FK_payment_fulfillment_outbox_batch",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (voucher_batch_id) REFERENCES voucher_batches(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "table": "payment_fulfillment_outbox",
+      "name": "UQ_payment_fulfillment_outbox_batch",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (voucher_batch_id)"
+    },
+    {
+      "schema": "public",
+      "table": "payment_fulfillment_outbox",
+      "name": "payment_fulfillment_outbox_pkey",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pricing_plan",
+      "name": "PK_6c58c7053b6a1404176154fe47f",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "report_access_audits",
+      "name": "CHK_report_access_audits_scope",
+      "type": "CHECK",
+      "definition": "CHECK ((scope = ANY (ARRAY['PATIENT'::text, 'THERAPIST'::text, 'INSTITUTION'::text, 'ADMIN'::text])))"
+    },
+    {
+      "schema": "public",
+      "table": "report_access_audits",
+      "name": "FK_report_access_audits_actor",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE RESTRICT"
+    },
+    {
+      "schema": "public",
+      "table": "report_access_audits",
+      "name": "FK_report_access_audits_grant",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (grant_id) REFERENCES report_grants(id) ON DELETE RESTRICT"
+    },
+    {
+      "schema": "public",
+      "table": "report_access_audits",
+      "name": "FK_report_access_audits_report",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE RESTRICT"
+    },
+    {
+      "schema": "public",
+      "table": "report_access_audits",
+      "name": "PK_report_access_audits_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "report_deliveries",
+      "name": "FK_report_deliveries_report",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "table": "report_deliveries",
+      "name": "PK_report_deliveries",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "report_deliveries",
+      "name": "UQ_report_deliveries_report_recipient",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (report_id, recipient_email)"
+    },
+    {
+      "schema": "public",
+      "table": "report_grants",
+      "name": "CHK_report_grants_scope",
+      "type": "CHECK",
+      "definition": "CHECK ((scope = ANY (ARRAY['PATIENT'::text, 'THERAPIST'::text, 'INSTITUTION'::text, 'ADMIN'::text])))"
+    },
+    {
+      "schema": "public",
+      "table": "report_grants",
+      "name": "FK_report_grants_report",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "table": "report_grants",
+      "name": "PK_report_grants_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "CHK_reports_available_metadata",
+      "type": "CHECK",
+      "definition": "CHECK (((status <> 'AVAILABLE'::reports_status_enum) OR ((object_key IS NOT NULL) AND (content_hash IS NOT NULL) AND (generated_at IS NOT NULL) AND (available_until IS NOT NULL))))"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "CHK_reports_entitled_principal",
+      "type": "CHECK",
+      "definition": "CHECK (((entitled_user_id IS NULL) <> (entitled_patient_id IS NULL)))"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "CHK_reports_entitlement_voucher",
+      "type": "CHECK",
+      "definition": "CHECK ((((entitlement_source = 'VOUCHER'::reports_entitlement_source_enum) AND (voucher_id IS NOT NULL)) OR ((entitlement_source = 'GOOGLE_PLAY'::reports_entitlement_source_enum) AND (voucher_id IS NULL))))"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "CHK_reports_version",
+      "type": "CHECK",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "FK_reports_entitled_patient",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (entitled_patient_id) REFERENCES patients(id) ON DELETE RESTRICT"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "FK_reports_entitled_user",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (entitled_user_id) REFERENCES users(id) ON DELETE RESTRICT"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "FK_reports_session",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE RESTRICT"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "FK_reports_voucher",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE SET NULL"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "PK_reports_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "session_metrics",
+      "name": "FK_82f41dc4d58d4f608f65b077308",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "table": "session_metrics",
+      "name": "PK_82f41dc4d58d4f608f65b077308",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (session_id)"
+    },
+    {
+      "schema": "public",
+      "table": "session_results",
+      "name": "FK_31d2d6b638d4b396937d3922789",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "table": "session_results",
+      "name": "PK_session_results_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "session_swipes",
+      "name": "FK_8c4ab13fd6a4c4d62a91c0e932e",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE"
+    },
+    {
+      "schema": "public",
+      "table": "session_swipes",
+      "name": "PK_session_swipes_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "FK_355cf5b7df327d6b1aece8cfb87",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (institution_id) REFERENCES institutions(id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "FK_579c47c03a6dc4a9f65f55e0e09",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (voucher_id) REFERENCES vouchers(id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "FK_8159d85a4925c5d04f1725d780e",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (therapist_user_id) REFERENCES users(id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "PK_sessions_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "UQ_59153b538a49254d44f32d8f8f9",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (sync_key)"
+    },
+    {
+      "schema": "public",
+      "table": "tres_areas_combinations",
+      "name": "PK_tres_areas_combinations_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "FK_822972ceea1fda0973b8acc7bbe",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (institution_id) REFERENCES institutions(id)"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "PK_users_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "UQ_users_email",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (email)"
+    },
+    {
+      "schema": "public",
+      "table": "vocational_category",
+      "name": "PK_vocational_category_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "vocational_category",
+      "name": "UQ_vocational_category_categoryId",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (\"categoryId\")"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "FK_0c1d6d6fd3395052c8834f670df",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (owner_institution_id) REFERENCES institutions(id)"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "FK_684695a073df2293d062be97485",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (owner_user_id) REFERENCES users(id)"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "PK_voucher_batches_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "UQ_b439f82996effd1808370cd7fd5",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (short_code)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "FK_181f1983341ea5ed5ec20c71d4a",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (owner_institution_id) REFERENCES institutions(id)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "FK_a1a521f31aa74ec151da9a70809",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (batch_id) REFERENCES voucher_batches(id)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "FK_adf923f7defdbfa1a05efeac191",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (owner_user_id) REFERENCES users(id)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "FK_e1650be52548e7b86dab96e1c91",
+      "type": "FOREIGN KEY",
+      "definition": "FOREIGN KEY (redeemed_session_id) REFERENCES sessions(id)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "PK_vouchers_id",
+      "type": "PRIMARY KEY",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "UQ_vouchers_code",
+      "type": "UNIQUE",
+      "definition": "UNIQUE (code)"
+    }
+  ],
+  "indexes": [
+    {
+      "schema": "public",
+      "table": "institutions",
+      "name": "IDX_institutions_name",
+      "definition": "CREATE INDEX \"IDX_institutions_name\" ON public.institutions USING btree (name)"
+    },
+    {
+      "schema": "public",
+      "table": "institutions",
+      "name": "PK_institutions_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_institutions_id\" ON public.institutions USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "migrations",
+      "name": "PK_8c82d7f526340ab734260ea46be",
+      "definition": "CREATE UNIQUE INDEX \"PK_8c82d7f526340ab734260ea46be\" ON public.migrations USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "patients",
+      "name": "IDX_patients_institution_id",
+      "definition": "CREATE INDEX \"IDX_patients_institution_id\" ON public.patients USING btree (institution_id)"
+    },
+    {
+      "schema": "public",
+      "table": "patients",
+      "name": "PK_patients",
+      "definition": "CREATE UNIQUE INDEX \"PK_patients\" ON public.patients USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "patients",
+      "name": "UQ_patients_email",
+      "definition": "CREATE UNIQUE INDEX \"UQ_patients_email\" ON public.patients USING btree (email)"
+    },
+    {
+      "schema": "public",
+      "table": "patients",
+      "name": "UQ_patients_firebase_uid",
+      "definition": "CREATE UNIQUE INDEX \"UQ_patients_firebase_uid\" ON public.patients USING btree (firebase_uid)"
+    },
+    {
+      "schema": "public",
+      "table": "payment_event",
+      "name": "IDX_payment_event_gateway_external_payment",
+      "definition": "CREATE UNIQUE INDEX \"IDX_payment_event_gateway_external_payment\" ON public.payment_event USING btree (gateway, \"externalPaymentId\")"
+    },
+    {
+      "schema": "public",
+      "table": "payment_event",
+      "name": "PK_7e4a9d66fdf160a9fb9d236150f",
+      "definition": "CREATE UNIQUE INDEX \"PK_7e4a9d66fdf160a9fb9d236150f\" ON public.payment_event USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "payment_fulfillment_outbox",
+      "name": "UQ_payment_fulfillment_outbox_batch",
+      "definition": "CREATE UNIQUE INDEX \"UQ_payment_fulfillment_outbox_batch\" ON public.payment_fulfillment_outbox USING btree (voucher_batch_id)"
+    },
+    {
+      "schema": "public",
+      "table": "payment_fulfillment_outbox",
+      "name": "payment_fulfillment_outbox_pkey",
+      "definition": "CREATE UNIQUE INDEX payment_fulfillment_outbox_pkey ON public.payment_fulfillment_outbox USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pricing_plan",
+      "name": "PK_6c58c7053b6a1404176154fe47f",
+      "definition": "CREATE UNIQUE INDEX \"PK_6c58c7053b6a1404176154fe47f\" ON public.pricing_plan USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "report_access_audits",
+      "name": "IDX_report_access_audits_operation_key",
+      "definition": "CREATE UNIQUE INDEX \"IDX_report_access_audits_operation_key\" ON public.report_access_audits USING btree (operation_key)"
+    },
+    {
+      "schema": "public",
+      "table": "report_access_audits",
+      "name": "IDX_report_access_audits_report_id_occurred_at",
+      "definition": "CREATE INDEX \"IDX_report_access_audits_report_id_occurred_at\" ON public.report_access_audits USING btree (report_id, occurred_at)"
+    },
+    {
+      "schema": "public",
+      "table": "report_access_audits",
+      "name": "PK_report_access_audits_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_report_access_audits_id\" ON public.report_access_audits USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "report_deliveries",
+      "name": "PK_report_deliveries",
+      "definition": "CREATE UNIQUE INDEX \"PK_report_deliveries\" ON public.report_deliveries USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "report_deliveries",
+      "name": "UQ_report_deliveries_report_recipient",
+      "definition": "CREATE UNIQUE INDEX \"UQ_report_deliveries_report_recipient\" ON public.report_deliveries USING btree (report_id, recipient_email)"
+    },
+    {
+      "schema": "public",
+      "table": "report_grants",
+      "name": "IDX_report_grants_expires_at",
+      "definition": "CREATE INDEX \"IDX_report_grants_expires_at\" ON public.report_grants USING btree (expires_at)"
+    },
+    {
+      "schema": "public",
+      "table": "report_grants",
+      "name": "IDX_report_grants_report_id",
+      "definition": "CREATE INDEX \"IDX_report_grants_report_id\" ON public.report_grants USING btree (report_id)"
+    },
+    {
+      "schema": "public",
+      "table": "report_grants",
+      "name": "IDX_report_grants_token_hash",
+      "definition": "CREATE UNIQUE INDEX \"IDX_report_grants_token_hash\" ON public.report_grants USING btree (token_hash)"
+    },
+    {
+      "schema": "public",
+      "table": "report_grants",
+      "name": "PK_report_grants_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_report_grants_id\" ON public.report_grants USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "IDX_reports_available_until",
+      "definition": "CREATE INDEX \"IDX_reports_available_until\" ON public.reports USING btree (available_until)"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "IDX_reports_entitled_patient_id_status",
+      "definition": "CREATE INDEX \"IDX_reports_entitled_patient_id_status\" ON public.reports USING btree (entitled_patient_id, status)"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "IDX_reports_entitled_user_id_status",
+      "definition": "CREATE INDEX \"IDX_reports_entitled_user_id_status\" ON public.reports USING btree (entitled_user_id, status)"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "IDX_reports_session_id_version",
+      "definition": "CREATE UNIQUE INDEX \"IDX_reports_session_id_version\" ON public.reports USING btree (session_id, version)"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "IDX_reports_voucher_id",
+      "definition": "CREATE INDEX \"IDX_reports_voucher_id\" ON public.reports USING btree (voucher_id)"
+    },
+    {
+      "schema": "public",
+      "table": "reports",
+      "name": "PK_reports_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_reports_id\" ON public.reports USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "session_metrics",
+      "name": "PK_82f41dc4d58d4f608f65b077308",
+      "definition": "CREATE UNIQUE INDEX \"PK_82f41dc4d58d4f608f65b077308\" ON public.session_metrics USING btree (session_id)"
+    },
+    {
+      "schema": "public",
+      "table": "session_results",
+      "name": "IDX_31d2d6b638d4b396937d392278",
+      "definition": "CREATE INDEX \"IDX_31d2d6b638d4b396937d392278\" ON public.session_results USING btree (session_id)"
+    },
+    {
+      "schema": "public",
+      "table": "session_results",
+      "name": "PK_session_results_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_session_results_id\" ON public.session_results USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "session_swipes",
+      "name": "IDX_8c4ab13fd6a4c4d62a91c0e932",
+      "definition": "CREATE INDEX \"IDX_8c4ab13fd6a4c4d62a91c0e932\" ON public.session_swipes USING btree (session_id)"
+    },
+    {
+      "schema": "public",
+      "table": "session_swipes",
+      "name": "PK_session_swipes_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_session_swipes_id\" ON public.session_swipes USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "IDX_sessions_institution_id",
+      "definition": "CREATE INDEX \"IDX_sessions_institution_id\" ON public.sessions USING btree (institution_id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "IDX_sessions_institution_id_created_at",
+      "definition": "CREATE INDEX \"IDX_sessions_institution_id_created_at\" ON public.sessions USING btree (institution_id, created_at)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "IDX_sessions_payment_reference_unique",
+      "definition": "CREATE UNIQUE INDEX \"IDX_sessions_payment_reference_unique\" ON public.sessions USING btree (payment_reference) WHERE (payment_reference IS NOT NULL)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "IDX_sessions_payment_status",
+      "definition": "CREATE INDEX \"IDX_sessions_payment_status\" ON public.sessions USING btree (payment_status)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "IDX_sessions_report_unlock_purchase_token",
+      "definition": "CREATE UNIQUE INDEX \"IDX_sessions_report_unlock_purchase_token\" ON public.sessions USING btree (report_unlock_purchase_token) WHERE (report_unlock_purchase_token IS NOT NULL)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "IDX_sessions_therapist_user_id",
+      "definition": "CREATE INDEX \"IDX_sessions_therapist_user_id\" ON public.sessions USING btree (therapist_user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "IDX_sessions_voucher_id",
+      "definition": "CREATE INDEX \"IDX_sessions_voucher_id\" ON public.sessions USING btree (voucher_id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "PK_sessions_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_sessions_id\" ON public.sessions USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "UQ_59153b538a49254d44f32d8f8f9",
+      "definition": "CREATE UNIQUE INDEX \"UQ_59153b538a49254d44f32d8f8f9\" ON public.sessions USING btree (sync_key)"
+    },
+    {
+      "schema": "public",
+      "table": "tres_areas_combinations",
+      "name": "PK_tres_areas_combinations_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_tres_areas_combinations_id\" ON public.tres_areas_combinations USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "tres_areas_combinations",
+      "name": "UQ_tres_areas_combinations_combination_key",
+      "definition": "CREATE UNIQUE INDEX \"UQ_tres_areas_combinations_combination_key\" ON public.tres_areas_combinations USING btree (combination_key)"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "IDX_users_institution_id",
+      "definition": "CREATE INDEX \"IDX_users_institution_id\" ON public.users USING btree (institution_id)"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "IDX_users_role",
+      "definition": "CREATE INDEX \"IDX_users_role\" ON public.users USING btree (role)"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "PK_users_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_users_id\" ON public.users USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "UQ_users_email",
+      "definition": "CREATE UNIQUE INDEX \"UQ_users_email\" ON public.users USING btree (email)"
+    },
+    {
+      "schema": "public",
+      "table": "vocational_category",
+      "name": "PK_vocational_category_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_vocational_category_id\" ON public.vocational_category USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "vocational_category",
+      "name": "UQ_vocational_category_categoryId",
+      "definition": "CREATE UNIQUE INDEX \"UQ_vocational_category_categoryId\" ON public.vocational_category USING btree (\"categoryId\")"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "IDX_voucher_batches_institution_idempotency",
+      "definition": "CREATE UNIQUE INDEX \"IDX_voucher_batches_institution_idempotency\" ON public.voucher_batches USING btree (owner_institution_id, idempotency_key) WHERE (idempotency_key IS NOT NULL)"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "IDX_voucher_batches_owner_institution_id",
+      "definition": "CREATE INDEX \"IDX_voucher_batches_owner_institution_id\" ON public.voucher_batches USING btree (owner_institution_id)"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "IDX_voucher_batches_owner_institution_id_status",
+      "definition": "CREATE INDEX \"IDX_voucher_batches_owner_institution_id_status\" ON public.voucher_batches USING btree (owner_institution_id, status)"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "IDX_voucher_batches_short_code",
+      "definition": "CREATE UNIQUE INDEX \"IDX_voucher_batches_short_code\" ON public.voucher_batches USING btree (short_code)"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "PK_voucher_batches_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_voucher_batches_id\" ON public.voucher_batches USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "voucher_batches",
+      "name": "UQ_b439f82996effd1808370cd7fd5",
+      "definition": "CREATE UNIQUE INDEX \"UQ_b439f82996effd1808370cd7fd5\" ON public.voucher_batches USING btree (short_code)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "IDX_efc30b2b9169e05e0e1e19d6dd",
+      "definition": "CREATE UNIQUE INDEX \"IDX_efc30b2b9169e05e0e1e19d6dd\" ON public.vouchers USING btree (code)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "IDX_vouchers_batch_id",
+      "definition": "CREATE INDEX \"IDX_vouchers_batch_id\" ON public.vouchers USING btree (batch_id)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "IDX_vouchers_owner_institution_id_status",
+      "definition": "CREATE INDEX \"IDX_vouchers_owner_institution_id_status\" ON public.vouchers USING btree (owner_institution_id, status)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "IDX_vouchers_status",
+      "definition": "CREATE INDEX \"IDX_vouchers_status\" ON public.vouchers USING btree (status)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "PK_vouchers_id",
+      "definition": "CREATE UNIQUE INDEX \"PK_vouchers_id\" ON public.vouchers USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "vouchers",
+      "name": "UQ_vouchers_code",
+      "definition": "CREATE UNIQUE INDEX \"UQ_vouchers_code\" ON public.vouchers USING btree (code)"
+    }
+  ],
+  "enums": [
+    {
+      "schema": "public",
+      "type": "report_access_audits_event_type_enum",
+      "label": "REPORT_GRANT_ISSUED",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "report_access_audits_event_type_enum",
+      "label": "REPORT_GRANT_RENEWED",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "report_access_audits_event_type_enum",
+      "label": "REPORT_GRANT_CONSUMED",
+      "order_no": 3
+    },
+    {
+      "schema": "public",
+      "type": "report_access_audits_event_type_enum",
+      "label": "REPORT_DOWNLOAD_ACCESSED",
+      "order_no": 4
+    },
+    {
+      "schema": "public",
+      "type": "report_access_audits_event_type_enum",
+      "label": "REPORT_DELIVERY_AUTHORIZED",
+      "order_no": 5
+    },
+    {
+      "schema": "public",
+      "type": "report_deliveries_status_enum",
+      "label": "PENDING",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "report_deliveries_status_enum",
+      "label": "DELIVERED",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "report_deliveries_status_enum",
+      "label": "FAILED",
+      "order_no": 3
+    },
+    {
+      "schema": "public",
+      "type": "reports_entitlement_source_enum",
+      "label": "GOOGLE_PLAY",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "reports_entitlement_source_enum",
+      "label": "VOUCHER",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "reports_status_enum",
+      "label": "PENDING",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "reports_status_enum",
+      "label": "GENERATING",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "reports_status_enum",
+      "label": "AVAILABLE",
+      "order_no": 3
+    },
+    {
+      "schema": "public",
+      "type": "reports_status_enum",
+      "label": "EXPIRED",
+      "order_no": 4
+    },
+    {
+      "schema": "public",
+      "type": "reports_status_enum",
+      "label": "FAILED",
+      "order_no": 5
+    },
+    {
+      "schema": "public",
+      "type": "reports_status_enum",
+      "label": "STORAGE_PENDING",
+      "order_no": 6
+    },
+    {
+      "schema": "public",
+      "type": "sessions_payment_status_enum",
+      "label": "PENDING",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "sessions_payment_status_enum",
+      "label": "PAID",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "sessions_payment_status_enum",
+      "label": "VOUCHER_REDEEMED",
+      "order_no": 3
+    },
+    {
+      "schema": "public",
+      "type": "users_role_enum",
+      "label": "ADMIN",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "users_role_enum",
+      "label": "THERAPIST",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "users_role_enum",
+      "label": "INSTITUTION_ADMIN",
+      "order_no": 3
+    },
+    {
+      "schema": "public",
+      "type": "users_role_enum",
+      "label": "PATIENT",
+      "order_no": 4
+    },
+    {
+      "schema": "public",
+      "type": "voucher_batches_owner_type_enum",
+      "label": "THERAPIST",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "voucher_batches_owner_type_enum",
+      "label": "INSTITUTION",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "voucher_batches_status_enum",
+      "label": "PENDING",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "voucher_batches_status_enum",
+      "label": "PAID",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "voucher_batches_status_enum",
+      "label": "CANCELLED",
+      "order_no": 3
+    },
+    {
+      "schema": "public",
+      "type": "voucher_batches_status_enum",
+      "label": "REFUNDED",
+      "order_no": 4
+    },
+    {
+      "schema": "public",
+      "type": "voucher_batches_status_enum",
+      "label": "FAILED",
+      "order_no": 5
+    },
+    {
+      "schema": "public",
+      "type": "vouchers_owner_type_enum",
+      "label": "THERAPIST",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "vouchers_owner_type_enum",
+      "label": "INSTITUTION",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "vouchers_status_enum",
+      "label": "AVAILABLE",
+      "order_no": 1
+    },
+    {
+      "schema": "public",
+      "type": "vouchers_status_enum",
+      "label": "SENT",
+      "order_no": 2
+    },
+    {
+      "schema": "public",
+      "type": "vouchers_status_enum",
+      "label": "USED",
+      "order_no": 3
+    },
+    {
+      "schema": "public",
+      "type": "vouchers_status_enum",
+      "label": "EXPIRED",
+      "order_no": 4
+    },
+    {
+      "schema": "public",
+      "type": "vouchers_status_enum",
+      "label": "REVOKED",
+      "order_no": 5
+    }
+  ],
+  "migrations": [
+    {
+      "id": 1,
+      "timestamp": "1776000000000",
+      "name": "InitialMvpSchema1776000000000"
+    },
+    {
+      "id": 2,
+      "timestamp": "1776100000000",
+      "name": "SessionOwnershipPhase11776100000000"
+    },
+    {
+      "id": 3,
+      "timestamp": "1776200000000",
+      "name": "UserRolePatient1776200000000"
+    },
+    {
+      "id": 4,
+      "timestamp": "1776300000000",
+      "name": "UnifyVoucherOwnershipInstitution1776300000000"
+    },
+    {
+      "id": 5,
+      "timestamp": "1776400000000",
+      "name": "RenameVoucherPurchaserToOwner1776400000000"
+    },
+    {
+      "id": 6,
+      "timestamp": "1776500000000",
+      "name": "UserPasswordSetup1776500000000"
+    },
+    {
+      "id": 7,
+      "timestamp": "1776900000000",
+      "name": "SetVoucherCodeLength81776900000000"
+    },
+    {
+      "id": 8,
+      "timestamp": "1777000000000",
+      "name": "CreateTresAreasCombinations1777000000000"
+    },
+    {
+      "id": 9,
+      "timestamp": "1777100000000",
+      "name": "AddInstitutionAdminRole1777100000000"
+    },
+    {
+      "id": 10,
+      "timestamp": "1777200000000",
+      "name": "CreateSessionMetrics1777200000000"
+    },
+    {
+      "id": 11,
+      "timestamp": "1777300000000",
+      "name": "UserPasswordReset1777300000000"
+    },
+    {
+      "id": 12,
+      "timestamp": "1777400000000",
+      "name": "SessionSyncKey1777400000000"
+    },
+    {
+      "id": 13,
+      "timestamp": "1777500000000",
+      "name": "AddIndexesAndSoftDelete1777500000000"
+    },
+    {
+      "id": 14,
+      "timestamp": "1778000000000",
+      "name": "SeparatePatientEntity1778000000000"
+    },
+    {
+      "id": 15,
+      "timestamp": "1780405141840",
+      "name": "AddTimeSpentToSessionResult1780405141840"
+    },
+    {
+      "id": 16,
+      "timestamp": "1780413280950",
+      "name": "MakePaymentReferenceUnique1780413280950"
+    },
+    {
+      "id": 17,
+      "timestamp": "1780451337572",
+      "name": "TimestampsToTimestamptz1780451337572"
+    },
+    {
+      "id": 18,
+      "timestamp": "1780455000000",
+      "name": "AddWeightedScoresToSessionResult1780455000000"
+    },
+    {
+      "id": 19,
+      "timestamp": "1780600000000",
+      "name": "AddBehavMetrics1780600000000"
+    },
+    {
+      "id": 20,
+      "timestamp": "1784084164100",
+      "name": "AddCustomSectionsToCombinations1784084164100"
+    },
+    {
+      "id": 21,
+      "timestamp": "1785964171325",
+      "name": "AddVoucherBatchShortCode1785964171325"
+    },
+    {
+      "id": 22,
+      "timestamp": "1786000000000",
+      "name": "CreatePaymentGatewayTables1786000000000"
+    },
+    {
+      "id": 23,
+      "timestamp": "1786100000000",
+      "name": "AddDescriptionToPricingPlan1786100000000"
+    },
+    {
+      "id": 24,
+      "timestamp": "1786566486552",
+      "name": "AddKeyInsightToTresAreas1786566486552"
+    },
+    {
+      "id": 25,
+      "timestamp": "1787000000000",
+      "name": "SecurePaymentSettlement1787000000000"
+    },
+    {
+      "id": 26,
+      "timestamp": "1787000000001",
+      "name": "CheckoutFailureAndReportUnlock1787000000001"
+    },
+    {
+      "id": 27,
+      "timestamp": "1787000000002",
+      "name": "SessionReportSkuExpectation1787000000002"
+    },
+    {
+      "id": 28,
+      "timestamp": "1787000000003",
+      "name": "ReportLifecycleSchema1787000000003"
+    },
+    {
+      "id": 29,
+      "timestamp": "1787000000004",
+      "name": "ReportAccessAuditSchema1787000000004"
+    },
+    {
+      "id": 30,
+      "timestamp": "1787000000005",
+      "name": "ReportInputSnapshotAndStoragePending1787000000005"
+    },
+    {
+      "id": 31,
+      "timestamp": "1787000000006",
+      "name": "ReportDelivery1787000000006"
+    },
+    {
+      "id": 32,
+      "timestamp": "1787000000007",
+      "name": "ReportDeliveryAuthorization1787000000007"
+    },
+    {
+      "id": 33,
+      "timestamp": "1787000000008",
+      "name": "AddPatientFirebaseUid1787000000008"
+    },
+    {
+      "id": 34,
+      "timestamp": "1787000000009",
+      "name": "ReportPatientEntitlement1787000000009"
+    },
+    {
+      "id": 35,
+      "timestamp": "1787000000010",
+      "name": "AddCanonicalReportContentFields1787000000010"
+    }
+  ]
+}
