@@ -27,7 +27,8 @@ export class ReportConsentPolicyService implements ConsentPolicyPort {
       return rows.length > 0;
     }
 
-    if (scope.role !== 'INSTITUTION_ADMIN' || !scope.institutionId) return false;
+    if (scope.role !== 'INSTITUTION_ADMIN' || !scope.institutionId)
+      return false;
     const rows = await this.data.query(
       `SELECT 1
        FROM "reports" report

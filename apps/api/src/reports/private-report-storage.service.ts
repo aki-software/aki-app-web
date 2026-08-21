@@ -46,7 +46,9 @@ export class PrivateReportStorageService {
     const region = config.get<string>('S3_REGION', 'auto');
     if (region !== 'auto')
       throw new Error('S3_REGION must be auto for private report storage.');
-    this.prefix = this.normalizePrefix(config.get<string>('REPORT_STORAGE_PREFIX'));
+    this.prefix = this.normalizePrefix(
+      config.get<string>('REPORT_STORAGE_PREFIX'),
+    );
     this.bucket = values.S3_BUCKET!;
     this.client = new S3Client({
       endpoint: values.S3_ENDPOINT,
