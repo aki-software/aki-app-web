@@ -88,7 +88,10 @@ export class ReportWorker extends WorkerHost {
         data: report.inputSnapshot.data as unknown as Record<string, unknown>,
       });
 
-      const objectKey = `reports/${report.sessionId}/v${report.version}.pdf`;
+      const objectKey = this.storage.buildReportObjectKey(
+        report.sessionId,
+        report.version,
+      );
       let head;
       try {
         head = await this.storage.head(objectKey);
@@ -198,9 +201,10 @@ export class ReportWorker extends WorkerHost {
     targetEmail: string | undefined,
   ): Promise<void> {
     if (!targetEmail) return;
-    const pdfBuffer = await this.storage.get(
-      `reports/${report.sessionId}/v${report.version}.pdf`,
-    );
+    const objectKey =
+      report.objectKey ??
+      this.storage.buildReportObjectKey(report.sessionId, report.version);
+    const pdfBuffer = await this.storage.get(objectKey);
     if (!pdfBuffer) throw new Error('Stored report PDF not found.');
     await this.delivery.deliver(report, targetEmail, pdfBuffer);
   }

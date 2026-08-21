@@ -25,10 +25,12 @@ export class ReportOrchestratorService {
     targetEmail: string,
     voucherId?: string | null,
     scope?: SessionScope,
+    force?: boolean,
   ): Promise<{ success: boolean; message: string }> {
     const session = await this.findOne(sessionId, scope);
     void voucherId;
-    await this.reportsService.requestGeneration(session.id, targetEmail);
+    void force;
+    await this.reportsService.requestGeneration(session.id, targetEmail, scope);
 
     return {
       success: true,

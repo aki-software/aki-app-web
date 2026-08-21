@@ -15,6 +15,7 @@ import { Session } from '../sessions/entities/session.entity.js';
 import { SessionsModule } from '../sessions/sessions.module.js';
 import { ReportAccessAudit } from './entities/report-access-audit.entity.js';
 import { ReportAccessAuditService } from './report-access-audit.service.js';
+import { ReportConsentPolicyService } from './report-consent-policy.service.js';
 import { ReportsController } from './reports.controller.js';
 import {
   REPORT_CONSENT_POLICY,
@@ -52,10 +53,11 @@ import {
     PrivateReportStorageService,
     ReportsService,
     ReportAccessAuditService,
+    ReportConsentPolicyService,
     ReportAccessService,
     {
       provide: REPORT_CONSENT_POLICY,
-      useValue: { permits: () => Promise.resolve(false) },
+      useExisting: ReportConsentPolicyService,
     },
     { provide: REPORT_TEMPLATE_RENDERER, useExisting: TemplateRendererService },
   ],

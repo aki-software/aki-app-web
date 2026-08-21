@@ -8,6 +8,7 @@ describe('ReportsController', () => {
       .fn()
       .mockResolvedValue({ id: 'report-1', status: 'AVAILABLE', version: 1 }),
     download: jest.fn(),
+    downloadForSession: jest.fn(),
     recordDownload: jest.fn(),
     issue: jest.fn(),
     renew: jest.fn(),
@@ -62,6 +63,29 @@ describe('ReportsController', () => {
     expect(JSON.stringify(access.consume.mock.calls)).not.toContain(
       'objectKey',
     );
+  });
+
+  it('resolves the current report by session before streaming the authorized private PDF', async () => {
+    const report = {
+      id: 'report-2',
+      objectKey: 'private/reports/report-2.pdf',
+    };
+    access.downloadForSession.mockResolvedValue(report);
+    storage.get.mockResolvedValue(Buffer.from('pdf'));
+    const res = response();
+
+    await expect(
+      controller.downloadForSession('session-1', req('INSTITUTION_ADMIN'), res),
+    ).resolves.toEqual(Buffer.from('pdf'));
+
+    expect(access.downloadForSession).toHaveBeenCalledWith('session-1', {
+      role: 'INSTITUTION_ADMIN',
+      userId: 'patient-1',
+      institutionId: undefined,
+    });
+    expect(access.download).not.toHaveBeenCalled();
+    expect(storage.get).toHaveBeenCalledWith('private/reports/report-2.pdf');
+    expect(res.attachment).toHaveBeenCalledWith('report-session-1.pdf');
   });
 
   it('streams an authorized private PDF with attachment headers', async () => {

@@ -37,11 +37,14 @@ describe('ReportWorker', () => {
         .mockResolvedValue({ pdf: Buffer.from('pdf'), inputHash: 'hash-1' }),
     };
     const storage = {
+      buildReportObjectKey: jest
+        .fn()
+        .mockReturnValue('qa/reports/session-1/v1.pdf'),
       get: jest.fn(),
       head: jest.fn().mockResolvedValue(null),
       put: jest
         .fn()
-        .mockResolvedValue({ objectKey: 'reports/session-1/v1.pdf' }),
+        .mockResolvedValue({ objectKey: 'qa/reports/session-1/v1.pdf' }),
     };
     const delivery = { deliver: jest.fn().mockResolvedValue(undefined) };
     const queue = { add: jest.fn().mockResolvedValue(undefined) };
@@ -68,7 +71,7 @@ describe('ReportWorker', () => {
       opts: { attempts: 3 },
     }) as any;
 
-  it('renders and stores an absent immutable object using the persisted snapshot', async () => {
+  it('renders and stores an absent immutable object using the centralized key builder', async () => {
     const { worker, report, reports, renderer, storage, queue } = setup();
     await expect(
       worker.process({
@@ -90,13 +93,17 @@ describe('ReportWorker', () => {
         data: report.inputSnapshot.data,
       }),
     );
+    expect(storage.buildReportObjectKey).toHaveBeenCalledWith('session-1', 1);
     expect(storage.put).toHaveBeenCalledWith(
-      'reports/session-1/v1.pdf',
+      'qa/reports/session-1/v1.pdf',
       Buffer.from('pdf'),
       { contentHash: 'hash-1', version: 1 },
     );
     expect(report.markAvailable).toHaveBeenCalledWith(
-      expect.objectContaining({ contentHash: 'hash-1' }),
+      expect.objectContaining({
+        objectKey: 'qa/reports/session-1/v1.pdf',
+        contentHash: 'hash-1',
+      }),
     );
     expect(reports.save).toHaveBeenCalledWith(report);
     expect(queue.add).toHaveBeenCalledWith(
@@ -176,8 +183,9 @@ describe('ReportWorker', () => {
     expect(reports.save).toHaveBeenCalledWith(report);
   });
 
-  it('uses the same idempotent delivery service after storage recovery', async () => {
+  it('delivers a persisted legacy object key before consulting the key builder', async () => {
     const { worker, report, storage, delivery } = setup(ReportStatus.AVAILABLE);
+    report.objectKey = 'reports/legacy-session/v7.pdf';
     storage.get.mockResolvedValue(Buffer.from('pdf'));
 
     await worker.process({
@@ -186,6 +194,8 @@ describe('ReportWorker', () => {
       data: { reportId: 'report-1', targetEmail: 'ada@example.com' },
     });
 
+    expect(storage.get).toHaveBeenCalledWith('reports/legacy-session/v7.pdf');
+    expect(storage.buildReportObjectKey).not.toHaveBeenCalled();
     expect(delivery.deliver).toHaveBeenCalledWith(
       report,
       'ada@example.com',

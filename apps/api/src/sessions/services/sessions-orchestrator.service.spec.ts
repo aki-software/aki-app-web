@@ -55,7 +55,7 @@ describe('SessionsOrchestratorService', () => {
       email,
     } as SessionScope;
 
-    await service.sendReport('session-id', email, null, scope);
+    await service.sendReport('session-id', email, null, scope, true);
 
     const normalizedScope = { ...scope, patientId };
     expect(
@@ -70,6 +70,7 @@ describe('SessionsOrchestratorService', () => {
       email,
       null,
       normalizedScope,
+      true,
     );
   });
 
@@ -109,7 +110,7 @@ describe('SessionsOrchestratorService', () => {
       therapistId: 'therapist-id',
     } as SessionScope;
 
-    await service.sendReport('session-id', email, null, scope);
+    await service.sendReport('session-id', email, null, scope, true);
 
     expect(
       sessionOwnerResolverService.resolveFirebaseUser,
@@ -123,6 +124,7 @@ describe('SessionsOrchestratorService', () => {
       email,
       null,
       scope,
+      true,
     );
   });
 });

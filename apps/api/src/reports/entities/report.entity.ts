@@ -15,6 +15,7 @@ import type { Session } from '../../sessions/entities/session.entity.js';
 export enum ReportEntitlementSource {
   GOOGLE_PLAY = 'GOOGLE_PLAY',
   VOUCHER = 'VOUCHER',
+  INSTITUTION = 'INSTITUTION',
 }
 
 export enum ReportStatus {
@@ -61,7 +62,7 @@ export interface AvailableReportObject {
 @Index('IDX_reports_voucher_id', ['voucherId'])
 @Check(
   'CHK_reports_entitlement_voucher',
-  `("entitlement_source" = 'VOUCHER' AND "voucher_id" IS NOT NULL) OR ("entitlement_source" = 'GOOGLE_PLAY' AND "voucher_id" IS NULL)`,
+  `("entitlement_source" = 'VOUCHER' AND "voucher_id" IS NOT NULL) OR ("entitlement_source" IN ('GOOGLE_PLAY', 'INSTITUTION') AND "voucher_id" IS NULL)`,
 )
 @Check(
   'CHK_reports_entitled_principal',
@@ -133,8 +134,7 @@ export class Report {
     if (
       (input.entitlementSource === ReportEntitlementSource.VOUCHER &&
         !voucherId) ||
-      (input.entitlementSource === ReportEntitlementSource.GOOGLE_PLAY &&
-        voucherId)
+      (input.entitlementSource !== ReportEntitlementSource.VOUCHER && voucherId)
     ) {
       throw new Error('Invalid report voucher provenance.');
     }

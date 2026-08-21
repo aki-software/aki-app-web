@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Download, ChevronDown } from 'lucide-react';
-import { API_URL } from '../../../../config/app-config';
-import { getStoredToken } from '../../../../utils/storage';
 import { Pagination } from '../../../../components/molecules/Pagination';
 import { DETAIL_ITEMS_PER_PAGE } from '../../constants/vouchers.constants';
+import { downloadSessionPdf } from '../../api/sessions.api';
 
 
 interface SessionMetrics {
@@ -90,16 +89,11 @@ export function VoucherSessionsTable({
 
   const handleDownloadPdf = async (sessionId: string) => {
     try {
-      const token = getStoredToken();
-      const response = await fetch(`${API_URL}/sessions/${sessionId}/report/pdf`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      if (!response.ok) throw new Error('Failed to download PDF');
-      const blob = await response.blob();
+      const blob = await downloadSessionPdf(sessionId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `session-${sessionId}.html`;
+      a.download = `session-${sessionId}.pdf`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {

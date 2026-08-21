@@ -61,6 +61,7 @@ describe('ReportOrchestratorService', () => {
     expect(reportsService.requestGeneration).toHaveBeenCalledWith(
       sessionId,
       targetEmail,
+      undefined,
     );
 
     expect(result).toEqual({
@@ -78,12 +79,13 @@ describe('ReportOrchestratorService', () => {
       paymentStatus: 'PENDING',
       voucherId: null,
     });
+    const scope = {
+      role: 'PATIENT',
+      patientId: 'patient-1',
+    } as never;
 
     await expect(
-      service.sendReport(sessionId, targetEmail, null, {
-        role: 'PATIENT',
-        patientId: 'patient-1',
-      } as never),
+      service.sendReport(sessionId, targetEmail, null, scope),
     ).resolves.toEqual(expect.objectContaining({ success: true }));
     expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
       'session.patientId = :patientId',
@@ -92,6 +94,32 @@ describe('ReportOrchestratorService', () => {
     expect(reportsService.requestGeneration).toHaveBeenCalledWith(
       sessionId,
       targetEmail,
+      scope,
+    );
+  });
+
+  it('allows an unpaid institution session only for a matching institution admin', async () => {
+    mockQueryBuilder.getOne.mockResolvedValue({
+      id: sessionId,
+      patientId: 'patient-1',
+      institutionId: 'institution-1',
+      results: [{}],
+      reportUnlockedAt: null,
+      reportUnlockPurchaseToken: null,
+      voucherId: null,
+    });
+    const scope = {
+      role: 'INSTITUTION_ADMIN',
+      institutionId: 'institution-1',
+    } as never;
+
+    await expect(
+      service.sendReport(sessionId, targetEmail, null, scope, true),
+    ).resolves.toEqual(expect.objectContaining({ success: true }));
+    expect(reportsService.requestGeneration).toHaveBeenCalledWith(
+      sessionId,
+      targetEmail,
+      scope,
     );
   });
 

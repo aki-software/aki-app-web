@@ -133,11 +133,16 @@ import { API_URL } from "../../../api/client";
 export async function downloadSessionPdf(sessionId: string): Promise<Blob> {
   const token = getStoredToken();
   const response = await fetch(
-    `${API_URL}/sessions/${sessionId}/report/pdf`,
-    { headers: { Authorization: `Bearer ${token}` } } 
+    `${API_URL}/reports/sessions/${sessionId}/download`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : undefined },
   );
 
-  if (!response.ok) throw new Error('Failed to download PDF');
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ message: 'Failed to download PDF' })) as { message?: string };
+    throw new Error(error.message || 'Failed to download PDF');
+  }
   return response.blob();
 }
 // Note: downloadSessionPdf still uses fetch because apiClient is optimized for JSON.
