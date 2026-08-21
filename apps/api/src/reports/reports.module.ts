@@ -17,6 +17,7 @@ import { ReportAccessAudit } from './entities/report-access-audit.entity.js';
 import { ReportAccessAuditService } from './report-access-audit.service.js';
 import { ReportConsentPolicyService } from './report-consent-policy.service.js';
 import { ReportsController } from './reports.controller.js';
+import { VoucherRedeemedHandler } from './handlers/voucher-redeemed.handler.js';
 import {
   REPORT_CONSENT_POLICY,
   ReportAccessService,
@@ -52,6 +53,7 @@ import {
     ReportRendererService,
     PrivateReportStorageService,
     ReportsService,
+    VoucherRedeemedHandler,
     ReportAccessAuditService,
     ReportConsentPolicyService,
     ReportAccessService,

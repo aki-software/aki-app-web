@@ -5,7 +5,9 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EntityManager, DataSource } from 'typeorm';
 import { Voucher } from '../entities/voucher.entity.js';
 import {
@@ -14,6 +16,7 @@ import {
 } from '../../sessions/entities/session.entity.js';
 import { Patient } from '../../patients/entities/patient.entity.js';
 import { VoucherStatus } from '../entities/voucher.enums.js';
+import { VoucherRedeemedEvent } from '../../events/domain-events.js';
 
 interface VerifiedAndroidIdentity {
   userId?: string;
@@ -39,7 +42,12 @@ const voucherErrorResponse = (
 
 @Injectable()
 export class VoucherRedemptionService {
-  constructor(private readonly dataSource: DataSource) {}
+  private readonly logger = new Logger(VoucherRedemptionService.name);
+
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async redeemVoucher(
     code: string,
@@ -51,7 +59,7 @@ export class VoucherRedemptionService {
     voucherCode: string;
     sessionId: string;
   }> {
-    return await this.dataSource.transaction(async (manager: EntityManager) => {
+    const redeemTransaction = async (manager: EntityManager) => {
       const normalizedCode = code.trim().toUpperCase();
       const normalizedEmail = identity?.email?.trim().toLowerCase();
 
@@ -149,10 +157,18 @@ export class VoucherRedemptionService {
         await voucherRepo.save(voucher);
         await sessionRepo.save(session);
         return {
-          success: true,
-          status: 'ALREADY_REDEEMED_BY_THIS_SESSION' as const,
-          voucherCode: voucher.code,
-          sessionId,
+          response: {
+            success: true,
+            status: 'ALREADY_REDEEMED_BY_THIS_SESSION' as const,
+            voucherCode: voucher.code,
+            sessionId,
+          },
+          event: new VoucherRedeemedEvent(
+            sessionId,
+            normalizedEmail,
+            voucher.id,
+            patient?.id ?? session.patientId ?? null,
+          ),
         };
       }
 
@@ -196,12 +212,45 @@ export class VoucherRedemptionService {
       await sessionRepo.save(session);
 
       return {
-        success: true,
-        status: 'REDEEMED' as const,
-        voucherCode: voucher.code,
-        sessionId,
+        response: {
+          success: true,
+          status: 'REDEEMED' as const,
+          voucherCode: voucher.code,
+          sessionId,
+        },
+        event: new VoucherRedeemedEvent(
+          sessionId,
+          normalizedEmail,
+          voucher.id,
+          patient?.id ?? session.patientId ?? null,
+        ),
       };
-    });
+    };
+    const redeemed = await this.dataSource.transaction(redeemTransaction);
+
+    try {
+      this.logger.log(
+        JSON.stringify({
+          event: 'voucher.redeemed',
+          sessionId: redeemed.event.sessionId,
+          voucherId: redeemed.event.voucherId,
+          action: 'dispatching',
+        }),
+      );
+      await this.eventEmitter.emitAsync('voucher.redeemed', redeemed.event);
+    } catch (error) {
+      this.logger.error(
+        JSON.stringify({
+          event: 'voucher.redeemed',
+          sessionId: redeemed.event.sessionId,
+          voucherId: redeemed.event.voucherId,
+          action: 'dispatch_failed',
+        }),
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+
+    return redeemed.response;
   }
 
   private applyVoucherToSession(session: Session, voucher: Voucher) {

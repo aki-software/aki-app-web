@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DataSource } from 'typeorm';
 import { VoucherRedemptionService } from './voucher-redemption.service.js';
 import { Voucher } from '../entities/voucher.entity.js';
@@ -12,6 +13,7 @@ describe('VoucherRedemptionService', () => {
   let sessionRepository: { findOne: jest.Mock; save: jest.Mock };
   let patientRepository: { findOne: jest.Mock };
   let dataSource: { transaction: jest.Mock };
+  let eventEmitter: { emitAsync: jest.Mock };
   const verifiedPatient = {
     userId: 'patient-1',
     email: 'patient@example.com',
@@ -68,6 +70,7 @@ describe('VoucherRedemptionService', () => {
     patientRepository = {
       findOne: jest.fn().mockResolvedValue({ id: 'patient-1' }),
     };
+    eventEmitter = { emitAsync: jest.fn().mockResolvedValue([]) };
     dataSource = {
       transaction: jest.fn((callback: any) =>
         callback({
@@ -85,10 +88,88 @@ describe('VoucherRedemptionService', () => {
       providers: [
         VoucherRedemptionService,
         { provide: DataSource, useValue: dataSource },
+        { provide: EventEmitter2, useValue: eventEmitter },
       ],
     }).compile();
 
     service = module.get(VoucherRedemptionService);
+  });
+
+  it('emits voucher.redeemed only after a successful transaction and preserves the API response', async () => {
+    const voucher = buildVoucher();
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+    let transactionResolved = false;
+    dataSource.transaction.mockImplementationOnce(async (callback: any) => {
+      const result = await callback({
+        getRepository: (entity: unknown) => {
+          if (entity === Voucher) return voucherRepository;
+          if (entity === Session) return sessionRepository;
+          if (entity === Patient) return patientRepository;
+          throw new Error('Unexpected repository');
+        },
+      });
+      transactionResolved = true;
+      return result;
+    });
+    eventEmitter.emitAsync.mockImplementation(() => {
+      expect(transactionResolved).toBe(true);
+    });
+
+    await expect(
+      service.redeemVoucher(' AB12CD34 ', 'session-1', {
+        ...verifiedPatient,
+        email: ' Patient@Example.com ',
+      }),
+    ).resolves.toEqual({
+      success: true,
+      status: 'REDEEMED',
+      voucherCode: 'AB12CD34',
+      sessionId: 'session-1',
+    });
+
+    expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
+      'voucher.redeemed',
+      expect.objectContaining({
+        sessionId: 'session-1',
+        voucherId: 'voucher-1',
+        recipientEmail: 'patient@example.com',
+        canonicalPatientId: 'patient-1',
+      }),
+    );
+    expect(eventEmitter.emitAsync.mock.calls[0][1]).not.toHaveProperty(
+      'userId',
+    );
+  });
+
+  it('re-emits an idempotent same-session redemption but never emits after transaction failure', async () => {
+    const redeemedVoucher = buildVoucher({ redeemedSessionId: 'session-1' });
+    voucherRepository.findOne.mockResolvedValueOnce(redeemedVoucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
+    ).resolves.toMatchObject({ status: 'ALREADY_REDEEMED_BY_THIS_SESSION' });
+    expect(eventEmitter.emitAsync).toHaveBeenCalledTimes(1);
+
+    dataSource.transaction.mockRejectedValueOnce(new Error('rollback'));
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
+    ).rejects.toThrow('rollback');
+    expect(eventEmitter.emitAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps redemption successful when post-commit event dispatch fails', async () => {
+    const voucher = buildVoucher();
+    voucherRepository.findOne.mockResolvedValueOnce(voucher);
+    sessionRepository.findOne.mockResolvedValueOnce(buildSession());
+    eventEmitter.emitAsync.mockRejectedValueOnce(
+      new Error('handler unavailable'),
+    );
+
+    await expect(
+      service.redeemVoucher('AB12CD34', 'session-1', verifiedPatient),
+    ).resolves.toMatchObject({ status: 'REDEEMED' });
   });
 
   it('preserves INVALID_CODE and ALREADY_USED as stable business errors', async () => {
@@ -99,6 +180,7 @@ describe('VoucherRedemptionService', () => {
     ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'INVALID_CODE' }),
     });
+    expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
 
     const usedVoucher = buildVoucher({ status: VoucherStatus.USED });
     voucherRepository.findOne.mockResolvedValueOnce(usedVoucher);
@@ -109,6 +191,7 @@ describe('VoucherRedemptionService', () => {
     ).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'ALREADY_USED' }),
     });
+    expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
   });
 
   it('returns SESSION_NOT_FOUND and VOUCHER_EXPIRED with explicit status handling', async () => {
