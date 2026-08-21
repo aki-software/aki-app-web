@@ -6,9 +6,11 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserRole } from '@akit/contracts';
 import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { Session } from '../sessions/entities/session.entity.js';
+import type { SessionScope } from '../sessions/types/session-scope.type.js';
 import { ReportService } from '../sessions/services/report.service.js';
 import {
   Report,
@@ -30,6 +32,7 @@ export class ReportsService {
   async requestGeneration(
     sessionId: string,
     targetEmail?: string,
+    scope?: SessionScope,
   ): Promise<{ reportId: string; jobId: string }> {
     const session = await this.sessions
       .createQueryBuilder('session')
@@ -43,7 +46,7 @@ export class ReportsService {
     let report = await this.reports.findOne({
       where: { sessionId, version: 1 },
     });
-    if (!report) report = await this.create(session);
+    if (!report) report = await this.create(session, scope);
     if (report.status !== ReportStatus.AVAILABLE && !report.inputSnapshot) {
       throw new BadRequestException(
         'Legacy report cannot be generated because its immutable input snapshot is unavailable.',
@@ -94,8 +97,11 @@ export class ReportsService {
     return result;
   }
 
-  private async create(session: Session): Promise<Report> {
-    const entitlement = this.entitlement(session);
+  private async create(
+    session: Session,
+    scope?: SessionScope,
+  ): Promise<Report> {
+    const entitlement = this.entitlement(session, scope);
     const entitledPatientId = session.patientId ?? null;
     const entitledUserId = entitledPatientId
       ? null
@@ -133,12 +139,22 @@ export class ReportsService {
     }
   }
 
-  private entitlement(session: Session): ReportEntitlementSource {
+  private entitlement(
+    session: Session,
+    scope?: SessionScope,
+  ): ReportEntitlementSource {
     if (!session.patientId && !session.therapistUserId)
       throw new BadRequestException('Report provenance cannot be proven.');
     if (session.voucherId) return ReportEntitlementSource.VOUCHER;
     if (session.reportUnlockedAt && session.reportUnlockPurchaseToken)
       return ReportEntitlementSource.GOOGLE_PLAY;
+    if (
+      scope?.role === UserRole.INSTITUTION_ADMIN &&
+      scope.institutionId &&
+      scope.institutionId === session.institutionId
+    ) {
+      return ReportEntitlementSource.INSTITUTION;
+    }
     throw new BadRequestException('Session has not been paid or unlocked.');
   }
 

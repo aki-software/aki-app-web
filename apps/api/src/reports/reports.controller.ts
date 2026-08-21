@@ -42,6 +42,25 @@ export class ReportsController {
       institutionId: req.user?.institutionId,
     };
   }
+  @Get('sessions/:sessionId/download')
+  async downloadForSession(
+    @Param('sessionId') sessionId: string,
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<Buffer> {
+    const scope = this.scope(req);
+    const report = await this.access.downloadForSession(sessionId, scope);
+    if (!report.objectKey) {
+      throw new NotFoundException('Report file not found.');
+    }
+    const pdf = await this.storage.get(report.objectKey);
+    if (!pdf) throw new NotFoundException('Report file not found.');
+    await this.access.recordDownload(report, scope);
+    response.type('application/pdf');
+    response.attachment(`report-${sessionId}.pdf`);
+    return pdf;
+  }
+
   @Get(':reportId') async status(
     @Param('reportId') id: string,
     @Req() req: AuthenticatedRequest,

@@ -22,6 +22,30 @@ describe('PrivateReportStorageService', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
+  it.each([
+    [undefined, 'reports/session-1/v2.pdf'],
+    ['qa', 'qa/reports/session-1/v2.pdf'],
+    ['prod', 'prod/reports/session-1/v2.pdf'],
+  ])('builds report keys for prefix %s', (REPORT_STORAGE_PREFIX, expected) => {
+    const storage = new PrivateReportStorageService(
+      config({ ...valid, REPORT_STORAGE_PREFIX }) as any,
+    );
+
+    expect(storage.buildReportObjectKey('session-1', 2)).toBe(expected);
+  });
+
+  it.each(['../qa', 'qa//blue', '/qa', 'qa/', 'qa/../prod'])(
+    'rejects invalid storage prefixes',
+    (REPORT_STORAGE_PREFIX) => {
+      expect(
+        () =>
+          new PrivateReportStorageService(
+            config({ ...valid, REPORT_STORAGE_PREFIX }) as any,
+          ),
+      ).toThrow('REPORT_STORAGE_PREFIX');
+    },
+  );
+
   it('uploads immutable private metadata without an ACL or URL', async () => {
     mockSend.mockResolvedValue({ ETag: 'etag', VersionId: 'v1' });
     const storage = new PrivateReportStorageService(config(valid) as any);
