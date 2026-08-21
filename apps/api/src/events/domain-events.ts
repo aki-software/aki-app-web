@@ -31,6 +31,15 @@ export class ReportFailedEvent {
   ) {}
 }
 
+export class VoucherRedeemedEvent {
+  constructor(
+    public readonly sessionId: string,
+    public readonly recipientEmail: string,
+    public readonly voucherId: string,
+    public readonly canonicalPatientId: string | null,
+  ) {}
+}
+
 export class VoucherAssignedEvent {
   constructor(
     public readonly voucherId: string,

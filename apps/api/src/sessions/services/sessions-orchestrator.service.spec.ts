@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import { ReportOrchestratorService } from './report-orchestrator.service.js';
 import { SessionOwnerResolverService } from './session-owner-resolver.service.js';
 import { SessionsOrchestratorService } from './sessions-orchestrator.service.js';
@@ -22,7 +21,7 @@ describe('SessionsOrchestratorService', () => {
       }),
     };
     const sessionOwnerResolverService = {
-      resolveFirebaseUser: jest.fn().mockResolvedValue({ id: patientId }),
+      resolveFirebasePatient: jest.fn().mockResolvedValue({ id: patientId }),
     };
     const Service = SessionsOrchestratorService as unknown as new (
       sessionsQueryService: SessionsQueryService,
@@ -42,7 +41,7 @@ describe('SessionsOrchestratorService', () => {
     };
   };
 
-  it('normalizes Firebase patient scope before querying and sending a report', async () => {
+  it('normalizes a Firebase patient scope to its canonical patient ID before sending a report', async () => {
     const {
       service,
       sessionsQueryService,
@@ -59,7 +58,7 @@ describe('SessionsOrchestratorService', () => {
 
     const normalizedScope = { ...scope, patientId };
     expect(
-      sessionOwnerResolverService.resolveFirebaseUser,
+      sessionOwnerResolverService.resolveFirebasePatient,
     ).toHaveBeenCalledWith({ uid: firebaseUid, email }, false);
     expect(sessionsQueryService.findOne).toHaveBeenCalledWith(
       'session-id',
@@ -74,7 +73,7 @@ describe('SessionsOrchestratorService', () => {
     );
   });
 
-  it('fails closed without downstream calls when Firebase identity is unmapped', async () => {
+  it('fails closed without downstream calls when the Firebase patient is unmapped', async () => {
     const {
       service,
       sessionsQueryService,
@@ -86,8 +85,8 @@ describe('SessionsOrchestratorService', () => {
       patientId: firebaseUid,
       email,
     } as SessionScope;
-    sessionOwnerResolverService.resolveFirebaseUser.mockRejectedValueOnce(
-      new NotFoundException('Firebase patient identity is not mapped'),
+    sessionOwnerResolverService.resolveFirebasePatient.mockResolvedValueOnce(
+      null,
     );
 
     await expect(
@@ -98,7 +97,7 @@ describe('SessionsOrchestratorService', () => {
     expect(reportOrchestratorService.sendReport).not.toHaveBeenCalled();
   });
 
-  it('preserves non-patient scopes without resolving Firebase identity', async () => {
+  it('preserves therapist scopes without resolving patient identity', async () => {
     const {
       service,
       sessionsQueryService,
@@ -113,7 +112,7 @@ describe('SessionsOrchestratorService', () => {
     await service.sendReport('session-id', email, null, scope, true);
 
     expect(
-      sessionOwnerResolverService.resolveFirebaseUser,
+      sessionOwnerResolverService.resolveFirebasePatient,
     ).not.toHaveBeenCalled();
     expect(sessionsQueryService.findOne).toHaveBeenCalledWith(
       'session-id',
