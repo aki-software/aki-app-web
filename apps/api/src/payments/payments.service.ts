@@ -1,7 +1,9 @@
 import {
   Injectable,
   BadRequestException,
-  ConflictException,
+  HttpException,
+  Logger,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { SessionsQueryService } from '../sessions/services/sessions-query.service';
@@ -33,6 +35,8 @@ export interface VerifyPurchaseResult {
 
 @Injectable()
 export class PaymentsService {
+  private readonly logger = new Logger(PaymentsService.name);
+
   constructor(
     private readonly sessionsQueryService: SessionsQueryService,
     private readonly sessionOwnerResolverService: SessionOwnerResolverService,
@@ -147,15 +151,62 @@ export class PaymentsService {
         expectedSku,
       );
     } catch (error) {
-      if (
-        error instanceof ConflictException ||
-        error instanceof BadRequestException
-      ) {
+      if (error instanceof HttpException && error.getStatus() < 500) {
         throw error;
       }
 
-      throw new BadRequestException('Error verificando la compra');
+      this.logger.error({
+        event: 'google_play_purchase_verification_failed',
+        action: 'verify_google_play_purchase',
+        sessionId: dto.sessionId,
+        productId: dto.productId,
+        errorClass: this.getErrorClass(error),
+        ...this.getSafeProviderFailure(error),
+      });
+      throw new ServiceUnavailableException({
+        code: 'GOOGLE_PLAY_VERIFICATION_UNAVAILABLE',
+        message: 'Google Play verification is temporarily unavailable',
+      });
     }
+  }
+
+  private getErrorClass(error: unknown): string {
+    return error instanceof Error ? error.constructor.name : typeof error;
+  }
+
+  private getSafeProviderFailure(error: unknown): {
+    providerStatus?: number;
+    providerReason?: string;
+    providerCode?: number | string;
+  } {
+    if (!error || typeof error !== 'object' || !('response' in error)) {
+      return {};
+    }
+
+    const response = (
+      error as {
+        response?: {
+          status?: unknown;
+          data?: { error?: Record<string, unknown> };
+        };
+      }
+    ).response;
+    const providerError = response?.data?.error;
+    const providerStatus =
+      typeof response?.status === 'number' ? response.status : undefined;
+    const providerReason =
+      typeof providerError?.status === 'string' &&
+      /^[A-Z_]{1,64}$/.test(providerError.status)
+        ? providerError.status
+        : undefined;
+    const providerCode =
+      typeof providerError?.code === 'number' ||
+      (typeof providerError?.code === 'string' &&
+        /^[A-Z0-9_]{1,64}$/.test(providerError.code))
+        ? providerError.code
+        : undefined;
+
+    return { providerStatus, providerReason, providerCode };
   }
 
   private async resolvePaymentPatientId(principal: {
@@ -168,7 +219,7 @@ export class PaymentsService {
       throw new BadRequestException('Unable to resolve payment patient');
     }
 
-    const owner = await this.sessionOwnerResolverService.resolveFirebaseUser(
+    const owner = await this.sessionOwnerResolverService.resolveFirebasePatient(
       { uid: principal.userId, email: principal.email },
       false,
     );
