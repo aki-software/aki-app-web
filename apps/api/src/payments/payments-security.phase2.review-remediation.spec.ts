@@ -55,7 +55,9 @@ describe('Phase 2 review remediation', () => {
         findByPaymentToken: jest.fn(),
       } as never,
       {
-        resolveFirebaseUser: jest.fn().mockResolvedValue({ id: 'patient-1' }),
+        resolveFirebasePatient: jest
+          .fn()
+          .mockResolvedValue({ id: 'patient-1' }),
       } as never,
       { unlockReportEntitlement: jest.fn() } as never,
       {
@@ -99,7 +101,9 @@ describe('Phase 2 review remediation', () => {
         findByPaymentToken: jest.fn().mockResolvedValue(null),
       } as never,
       {
-        resolveFirebaseUser: jest.fn().mockResolvedValue({ id: 'patient-1' }),
+        resolveFirebasePatient: jest
+          .fn()
+          .mockResolvedValue({ id: 'patient-1' }),
       } as never,
       { unlockReportEntitlement } as never,
       {
@@ -154,7 +158,9 @@ describe('Phase 2 review remediation', () => {
         findByPaymentToken: jest.fn().mockResolvedValue(null),
       } as never,
       {
-        resolveFirebaseUser: jest.fn().mockResolvedValue({ id: 'patient-1' }),
+        resolveFirebasePatient: jest
+          .fn()
+          .mockResolvedValue({ id: 'patient-1' }),
       } as never,
       { unlockReportEntitlement, updatePaymentStatus: jest.fn() } as never,
       {

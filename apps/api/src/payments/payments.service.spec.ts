@@ -26,6 +26,7 @@ describe('PaymentsService', () => {
           provide: SessionOwnerResolverService,
           useValue: {
             resolveFirebaseUser: jest.fn(),
+            resolveFirebasePatient: jest.fn(),
           },
         },
         {
@@ -64,7 +65,7 @@ describe('PaymentsService', () => {
   it('resolves a Firebase patient UID to the internal patient ID before querying the session', async () => {
     const resolver = (service as any)
       .sessionOwnerResolverService as jest.Mocked<SessionOwnerResolverService>;
-    resolver.resolveFirebaseUser.mockResolvedValue({
+    resolver.resolveFirebasePatient.mockResolvedValue({
       id: 'patient-uuid',
       institutionId: 'institution-123',
     });
@@ -91,7 +92,7 @@ describe('PaymentsService', () => {
       },
     );
 
-    expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
+    expect(resolver.resolveFirebasePatient).toHaveBeenCalledWith(
       { uid: 'firebase-uid', email: 'patient@example.com' },
       false,
     );
@@ -105,7 +106,7 @@ describe('PaymentsService', () => {
   it('fails closed when a Firebase patient has no internal patient mapping', async () => {
     const resolver = (service as any)
       .sessionOwnerResolverService as jest.Mocked<SessionOwnerResolverService>;
-    resolver.resolveFirebaseUser.mockResolvedValue(null);
+    resolver.resolveFirebasePatient.mockResolvedValue(null);
 
     const queryService = (service as any)
       .sessionsQueryService as jest.Mocked<SessionsQueryService>;
@@ -125,7 +126,7 @@ describe('PaymentsService', () => {
       ),
     ).rejects.toThrow('Unable to resolve payment patient');
 
-    expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
+    expect(resolver.resolveFirebasePatient).toHaveBeenCalledWith(
       { uid: 'firebase-uid', email: 'patient@example.com' },
       false,
     );
@@ -157,7 +158,7 @@ describe('PaymentsService', () => {
       },
     );
 
-    expect(resolver.resolveFirebaseUser).not.toHaveBeenCalled();
+    expect(resolver.resolveFirebasePatient).not.toHaveBeenCalled();
     expect(queryService.findOneForPaymentUnlock).toHaveBeenCalledWith(
       'session-123',
       'b3d6d89b-8f58-4fb1-aef5-3f0196c6c936',
