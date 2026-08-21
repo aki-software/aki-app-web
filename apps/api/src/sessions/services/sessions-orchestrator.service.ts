@@ -46,10 +46,11 @@ export class SessionsOrchestratorService {
       return scope;
     }
 
-    const patient = await this.sessionOwnerResolverService.resolveFirebaseUser(
-      { uid: scope.patientId, email: scope.email },
-      false,
-    );
+    const patient =
+      await this.sessionOwnerResolverService.resolveFirebasePatient(
+        { uid: scope.patientId, email: scope.email },
+        false,
+      );
 
     if (!patient) {
       throw new NotFoundException('Firebase patient identity is not mapped');

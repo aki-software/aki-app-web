@@ -245,7 +245,7 @@ describe('SessionsMutationService completion boundary', () => {
         isTherapistUser: false,
         fallbackOwner: { id: '92177e63-49f2-46f8-a76f-406fd8f8b438' },
       }),
-      resolveFirebaseUser: jest.fn().mockResolvedValue({
+      resolveFirebasePatient: jest.fn().mockResolvedValue({
         id: '6ed5f206-2c2f-4d5c-b1d3-376454b4a19c',
       }),
     };
@@ -280,7 +280,7 @@ describe('SessionsMutationService completion boundary', () => {
       }),
       expect.anything(),
     );
-    expect(resolver.resolveFirebaseUser).toHaveBeenCalledWith(
+    expect(resolver.resolveFirebasePatient).toHaveBeenCalledWith(
       {
         uid: 'firebase-non-uuid-user-id',
         email: 'patient@example.com',
@@ -292,7 +292,7 @@ describe('SessionsMutationService completion boundary', () => {
 
   it('rejects an unmapped verified Firebase patient before persistence', async () => {
     const resolver = {
-      resolveFirebaseUser: jest.fn().mockResolvedValue(null),
+      resolveFirebasePatient: jest.fn().mockResolvedValue(null),
       resolveContext: jest.fn(),
     };
     const service = Object.create(SessionsMutationService.prototype);
@@ -317,7 +317,7 @@ describe('SessionsMutationService completion boundary', () => {
 
   it('persists a safe pending session before secure voucher redemption', async () => {
     const resolver = {
-      resolveFirebaseUser: jest.fn().mockResolvedValue({
+      resolveFirebasePatient: jest.fn().mockResolvedValue({
         id: '6ed5f206-2c2f-4d5c-b1d3-376454b4a19c',
       }),
       resolveContext: jest.fn().mockResolvedValue({
@@ -374,7 +374,7 @@ describe('SessionsMutationService completion boundary', () => {
 
   it('retries redemption using the recovered safe session after a failure', async () => {
     const resolver = {
-      resolveFirebaseUser: jest.fn().mockResolvedValue({
+      resolveFirebasePatient: jest.fn().mockResolvedValue({
         id: '6ed5f206-2c2f-4d5c-b1d3-376454b4a19c',
       }),
       resolveContext: jest.fn().mockResolvedValue({

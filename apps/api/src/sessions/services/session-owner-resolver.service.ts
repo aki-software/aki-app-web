@@ -40,11 +40,20 @@ export class SessionOwnerResolverService {
     allowPatientProvisioning: boolean,
   ): Promise<FirebaseSessionOwner | null> {
     const firebaseIdentity = this.normalizeFirebaseIdentity(identity);
-    const user = await this.usersService.findByEmail(firebaseIdentity.email);
-    if (user) {
-      return { id: user.id, institutionId: user.institutionId };
+
+    if (allowPatientProvisioning) {
+      return this.resolveFirebasePatient(firebaseIdentity, true);
     }
 
+    const user = await this.usersService.findByEmail(firebaseIdentity.email);
+    return user ? { id: user.id, institutionId: user.institutionId } : null;
+  }
+
+  async resolveFirebasePatient(
+    identity: FirebaseIdentity | string,
+    allowProvisioning: boolean,
+  ): Promise<FirebaseSessionOwner | null> {
+    const firebaseIdentity = this.normalizeFirebaseIdentity(identity);
     const byUid = firebaseIdentity.uid
       ? await this.findPatient({ firebaseUid: firebaseIdentity.uid })
       : null;
@@ -56,7 +65,7 @@ export class SessionOwnerResolverService {
       return this.toOwner(byEmail);
     }
 
-    if (!allowPatientProvisioning) return null;
+    if (!allowProvisioning) return null;
 
     try {
       const patient = await this.patientRepository.save(
@@ -67,7 +76,7 @@ export class SessionOwnerResolverService {
           passwordHash: FIREBASE_ONLY_PASSWORD_HASH,
         }),
       );
-      return { id: patient.id, institutionId: patient.institutionId };
+      return this.toOwner(patient);
     } catch (error) {
       if (!this.isUniqueViolation(error)) throw error;
 

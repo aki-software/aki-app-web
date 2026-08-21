@@ -35,7 +35,7 @@ describe('SessionOwnerResolverService', () => {
     jest.clearAllMocks();
   });
 
-  it('resolves an existing user before patient provisioning', async () => {
+  it('resolves an existing therapist before patient provisioning', async () => {
     usersService.findByEmail.mockResolvedValue({
       id: 'user-1',
       institutionId: 'institution-1',
@@ -45,13 +45,66 @@ describe('SessionOwnerResolverService', () => {
     await expect(
       service.resolveFirebaseUser(
         { uid: 'firebase-user-1', email: '  THERAPIST@example.com  ' },
-        true,
+        false,
       ),
     ).resolves.toEqual({ id: 'user-1', institutionId: 'institution-1' });
     expect(usersService.findByEmail).toHaveBeenCalledWith(
       'therapist@example.com',
     );
     expect(patientRepository.findOne).not.toHaveBeenCalled();
+  });
+
+  it('resolves a Firebase patient before a same-email internal user', async () => {
+    usersService.findByEmail.mockResolvedValue({
+      id: 'user-1',
+      institutionId: 'institution-1',
+      role: UserRole.THERAPIST,
+    });
+    patientRepository.findOne.mockResolvedValueOnce({
+      id: 'patient-1',
+      institutionId: 'institution-1',
+      firebaseUid: 'firebase-patient-1',
+    });
+
+    await expect(
+      service.resolveFirebaseUser(
+        { uid: 'firebase-patient-1', email: 'patient@example.com' },
+        true,
+      ),
+    ).resolves.toEqual({ id: 'patient-1', institutionId: 'institution-1' });
+    expect(usersService.findByEmail).not.toHaveBeenCalled();
+    expect(patientRepository.findOne).toHaveBeenCalledWith({
+      select: { id: true, institutionId: true, firebaseUid: true },
+      where: { firebaseUid: 'firebase-patient-1' },
+    });
+  });
+
+  it('provisions a Firebase patient instead of returning a same-email internal user', async () => {
+    usersService.findByEmail.mockResolvedValue({
+      id: 'user-1',
+      institutionId: 'institution-1',
+      role: UserRole.THERAPIST,
+    });
+    patientRepository.findOne.mockResolvedValue(null);
+    patientRepository.create.mockImplementation((patient) => patient);
+    patientRepository.save.mockResolvedValue({
+      id: 'patient-1',
+      institutionId: null,
+    });
+
+    await expect(
+      service.resolveFirebaseUser(
+        { uid: 'firebase-patient-1', email: 'patient@example.com' },
+        true,
+      ),
+    ).resolves.toEqual({ id: 'patient-1', institutionId: null });
+    expect(usersService.findByEmail).not.toHaveBeenCalled();
+    expect(patientRepository.create).toHaveBeenCalledWith({
+      email: 'patient@example.com',
+      firebaseUid: 'firebase-patient-1',
+      name: 'Usuario App',
+      passwordHash: 'firebase-only-no-password',
+    });
   });
 
   it('resolves an existing patient by Firebase UID', async () => {
@@ -236,5 +289,22 @@ describe('SessionOwnerResolverService', () => {
     expect(result.inferredPatientName).toBe('Usuario App');
     expect(result.isTherapistUser).toBe(false);
     expect(result.isPatientUser).toBe(false);
+  });
+
+  it('resolves canonical patient identity without choosing a same-email user', async () => {
+    usersService.findByEmail.mockResolvedValue({ id: 'internal-user-1' });
+    patientRepository.findOne.mockResolvedValue({
+      id: 'patient-1',
+      institutionId: null,
+      firebaseUid: 'firebase-patient-1',
+    });
+
+    await expect(
+      service.resolveFirebasePatient(
+        { uid: 'firebase-patient-1', email: 'patient@example.com' },
+        false,
+      ),
+    ).resolves.toEqual({ id: 'patient-1', institutionId: null });
+    expect(usersService.findByEmail).not.toHaveBeenCalled();
   });
 });
