@@ -168,7 +168,7 @@ export class PaymentsService {
       throw new BadRequestException('Unable to resolve payment patient');
     }
 
-    const owner = await this.sessionOwnerResolverService.resolveFirebaseUser(
+    const owner = await this.sessionOwnerResolverService.resolveFirebasePatient(
       { uid: principal.userId, email: principal.email },
       false,
     );
