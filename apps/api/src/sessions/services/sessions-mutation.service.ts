@@ -290,8 +290,12 @@ export class SessionsMutationService {
       .createQueryBuilder()
       .update(Session)
       .set({
-        reportUnlockedAt: new Date(),
         reportUnlockPurchaseToken: purchaseToken,
+        reportUnlockedAt: () =>
+          'COALESCE("report_unlocked_at", CURRENT_TIMESTAMP)',
+        paymentStatus: SessionPaymentStatus.PAID,
+        paidAt: () =>
+          'COALESCE("paid_at", "report_unlocked_at", CURRENT_TIMESTAMP)',
       })
       .where('id = :id', { id })
       .andWhere(
