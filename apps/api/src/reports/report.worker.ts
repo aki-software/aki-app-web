@@ -1,3 +1,4 @@
+import { createHash, randomUUID } from 'node:crypto';
 import { Logger } from '@nestjs/common';
 import {
   InjectQueue,
@@ -9,9 +10,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Job, Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { Report, ReportStatus } from './entities/report.entity.js';
+import type { ReportDeliveryAudience } from '../events/domain-events.js';
 import { ReportDeliveryService } from './report-delivery.service.js';
 import { PrivateReportStorageService } from './private-report-storage.service.js';
 import { ReportRendererService } from './report-renderer.service.js';
+
+type ReportJobData = {
+  reportId: string;
+  targetEmail?: string;
+  force?: boolean;
+  audience?: ReportDeliveryAudience;
+};
 
 @Processor('reports', { concurrency: 1 })
 export class ReportWorker extends WorkerHost {
@@ -37,9 +46,7 @@ export class ReportWorker extends WorkerHost {
     this.logger.error(`Worker error: ${error.message}`, error.stack);
   }
 
-  async process(
-    job: Job<{ reportId: string; targetEmail?: string }, unknown, string>,
-  ) {
+  async process(job: Job<ReportJobData, unknown, string>) {
     if (job.name === 'deliver') return this.processDelivery(job);
 
     const report = await this.reports.findOne({
@@ -101,6 +108,8 @@ export class ReportWorker extends WorkerHost {
           job.data.targetEmail,
           rendered.pdf,
           storageError,
+          job.data.force ?? false,
+          job.data.audience ?? 'PATIENT',
         );
         throw storageError;
       }
@@ -123,6 +132,8 @@ export class ReportWorker extends WorkerHost {
             job.data.targetEmail,
             rendered.pdf,
             storageError,
+            job.data.force ?? false,
+            job.data.audience ?? 'PATIENT',
           );
           throw storageError;
         }
@@ -136,8 +147,23 @@ export class ReportWorker extends WorkerHost {
       if (job.data.targetEmail) {
         await this.queue.add(
           'deliver',
-          { reportId: report.id, targetEmail: job.data.targetEmail },
-          { jobId: `report-${report.id}-deliver` },
+          {
+            reportId: report.id,
+            targetEmail: job.data.targetEmail.trim().toLowerCase(),
+            ...(job.data.force ? { force: true } : {}),
+            ...(job.data.audience === 'EVALUATOR'
+              ? { audience: 'EVALUATOR' as const }
+              : {}),
+          },
+          {
+            jobId: this.deliveryJobId(
+              report.id,
+              job.data.targetEmail,
+              job.data.force ?? false,
+            ),
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 1000 },
+          },
         );
       }
       return {
@@ -158,9 +184,7 @@ export class ReportWorker extends WorkerHost {
     }
   }
 
-  private async processDelivery(
-    job: Job<{ reportId: string; targetEmail?: string }, unknown, string>,
-  ) {
+  private async processDelivery(job: Job<ReportJobData, unknown, string>) {
     const report = await this.reports.findOne({
       where: { id: job.data.reportId },
     });
@@ -170,7 +194,12 @@ export class ReportWorker extends WorkerHost {
     }
 
     try {
-      await this.deliverStoredReport(report, job.data.targetEmail);
+      await this.deliverStoredReport(
+        report,
+        job.data.targetEmail,
+        job.data.force ?? false,
+        job.data.audience ?? 'PATIENT',
+      );
       return { inputHash: report.contentHash, byteLength: 0 };
     } catch (error) {
       if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
@@ -187,10 +216,18 @@ export class ReportWorker extends WorkerHost {
     targetEmail: string | undefined,
     pdfBuffer: Buffer,
     storageError: unknown,
+    force: boolean,
+    audience: ReportDeliveryAudience,
   ): Promise<void> {
     report.markStoragePending();
     await this.reports.save(report);
-    await this.delivery.deliver(report, targetEmail, pdfBuffer);
+    if (audience === 'EVALUATOR') {
+      await this.delivery.deliver(report, targetEmail, pdfBuffer, force, audience);
+    } else if (force) {
+      await this.delivery.deliver(report, targetEmail, pdfBuffer, true);
+    } else {
+      await this.delivery.deliver(report, targetEmail, pdfBuffer);
+    }
     this.logger.warn(
       `Storage upload failed; report ${report.id} retained for retry: ${(storageError as Error).message}`,
     );
@@ -199,6 +236,8 @@ export class ReportWorker extends WorkerHost {
   private async deliverStoredReport(
     report: Report,
     targetEmail: string | undefined,
+    force: boolean,
+    audience: ReportDeliveryAudience,
   ): Promise<void> {
     if (!targetEmail) return;
     const objectKey =
@@ -206,6 +245,25 @@ export class ReportWorker extends WorkerHost {
       this.storage.buildReportObjectKey(report.sessionId, report.version);
     const pdfBuffer = await this.storage.get(objectKey);
     if (!pdfBuffer) throw new Error('Stored report PDF not found.');
-    await this.delivery.deliver(report, targetEmail, pdfBuffer);
+    if (audience === 'EVALUATOR') {
+      await this.delivery.deliver(report, targetEmail, pdfBuffer, force, audience);
+    } else if (force) {
+      await this.delivery.deliver(report, targetEmail, pdfBuffer, true);
+    } else {
+      await this.delivery.deliver(report, targetEmail, pdfBuffer);
+    }
+  }
+
+  private deliveryJobId(
+    reportId: string,
+    recipientEmail: string,
+    force: boolean,
+  ): string {
+    const recipientHash = createHash('sha256')
+      .update(recipientEmail.trim().toLowerCase())
+      .digest('hex')
+      .slice(0, 16);
+    const base = `report-${reportId}-deliver-${recipientHash}`;
+    return force ? `${base}-force-${randomUUID()}` : base;
   }
 }

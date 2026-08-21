@@ -8,10 +8,16 @@ vi.mock('../../../api/sessions.api', () => ({
 }));
 
 describe('VoucherSessionsTable PDF downloads', () => {
-  it('uses the shared session PDF downloader', async () => {
+  it('appends and clicks the download anchor before delaying URL revocation', async () => {
+    vi.useFakeTimers();
+    const createObjectURL = vi.fn().mockReturnValue('blob:report');
+    const revokeObjectURL = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click');
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
     vi.mocked(downloadSessionPdf).mockResolvedValue(
       new Blob(['pdf'], { type: 'application/pdf' }),
     );
+
     render(
       <VoucherSessionsTable
         voucherId="voucher-1"
@@ -31,6 +37,16 @@ describe('VoucherSessionsTable PDF downloads', () => {
 
     fireEvent.click(screen.getByTitle('Descargar reporte'));
 
+    await Promise.resolve();
+    await Promise.resolve();
     expect(downloadSessionPdf).toHaveBeenCalledWith('session-1');
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+
+    await vi.runAllTimersAsync();
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:report');
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    click.mockRestore();
   });
 });

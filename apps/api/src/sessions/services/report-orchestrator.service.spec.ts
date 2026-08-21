@@ -98,6 +98,23 @@ describe('ReportOrchestratorService', () => {
     );
   });
 
+  it('marks therapist dashboard delivery as evaluator audience', async () => {
+    const scope = {
+      role: 'THERAPIST',
+      therapistUserId: 'therapist-1',
+    } as never;
+
+    await service.sendReport(sessionId, targetEmail, null, scope);
+
+    expect(reportsService.requestGeneration).toHaveBeenCalledWith(
+      sessionId,
+      targetEmail,
+      scope,
+      false,
+      'EVALUATOR',
+    );
+  });
+
   it('allows an unpaid institution session only for a matching institution admin', async () => {
     mockQueryBuilder.getOne.mockResolvedValue({
       id: sessionId,
@@ -120,6 +137,8 @@ describe('ReportOrchestratorService', () => {
       sessionId,
       targetEmail,
       scope,
+      true,
+      'EVALUATOR',
     );
   });
 

@@ -85,7 +85,7 @@ export const useSessionDetailManager = (id?: string) => {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 0);
     } catch (error) {
       console.error('Error downloading PDF:', error);
       alert('No se pudo descargar el informe. Intente nuevamente.');

@@ -109,7 +109,11 @@ describe('ReportWorker', () => {
     expect(queue.add).toHaveBeenCalledWith(
       'deliver',
       { reportId: 'report-1', targetEmail: 'ada@example.com' },
-      { jobId: 'report-report-1-deliver' },
+      expect.objectContaining({
+        jobId: 'report-report-1-deliver-b5fc85e55755f9e0',
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+      }),
     );
   });
 
@@ -181,6 +185,51 @@ describe('ReportWorker', () => {
       Buffer.from('pdf'),
     );
     expect(reports.save).toHaveBeenCalledWith(report);
+  });
+
+  it('propagates evaluator audience through delivery jobs', async () => {
+    const { worker, report, storage, delivery } = setup(ReportStatus.AVAILABLE);
+    storage.get.mockResolvedValue(Buffer.from('pdf'));
+
+    await worker.process({
+      ...job(),
+      name: 'deliver',
+      data: {
+        reportId: 'report-1',
+        targetEmail: 'therapist@example.com',
+        audience: 'EVALUATOR',
+      },
+    });
+
+    expect(delivery.deliver).toHaveBeenCalledWith(
+      report,
+      'therapist@example.com',
+      Buffer.from('pdf'),
+      false,
+      'EVALUATOR',
+    );
+  });
+
+  it('propagates forced resend delivery to the delivery service', async () => {
+    const { worker, report, storage, delivery } = setup(ReportStatus.AVAILABLE);
+    storage.get.mockResolvedValue(Buffer.from('pdf'));
+
+    await worker.process({
+      ...job(),
+      name: 'deliver',
+      data: {
+        reportId: 'report-1',
+        targetEmail: 'ada@example.com',
+        force: true,
+      },
+    });
+
+    expect(delivery.deliver).toHaveBeenCalledWith(
+      report,
+      'ada@example.com',
+      Buffer.from('pdf'),
+      true,
+    );
   });
 
   it('delivers a persisted legacy object key before consulting the key builder', async () => {
