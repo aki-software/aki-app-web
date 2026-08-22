@@ -24,7 +24,7 @@ const isMaintenance = import.meta.env.PUBLIC_MAINTENANCE_MODE === 'true';
   {isMaintenance ? (
     <Maintenance locale={locale} t={t} />
   ) : (
-    <main id="main">
+    <main id="main" class="pb-16 md:pb-0">
       <Navbar locale={locale} t={t} />
       <Hero locale={locale} t={t} />
       <StatsBar locale={locale} t={t} />
