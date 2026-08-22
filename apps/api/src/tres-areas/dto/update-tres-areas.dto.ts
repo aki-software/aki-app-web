@@ -1,8 +1,25 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import sanitizeHtml from 'sanitize-html';
 import { Transform } from 'class-transformer';
 
 export class UpdateTresAreasDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  @Transform(({ value }) =>
+    typeof value === 'string'
+      ? sanitizeHtml(value, { allowedTags: [] }).trim()
+      : value,
+  )
+  title?: string;
+
   @IsOptional()
   @IsString()
   @Transform(({ value }) =>
