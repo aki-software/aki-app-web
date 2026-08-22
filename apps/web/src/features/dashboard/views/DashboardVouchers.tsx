@@ -7,6 +7,7 @@ import { useVoucherStats } from "../hooks/useVoucherStats";
 import { useVoucherForm } from "../hooks/useVoucherForm";
 import { useVoucherActions } from "../hooks/useVoucherActions";
 import { Alert } from "../../../components/atoms/Alert";
+import { Modal } from "../../../components/atoms/Modal";
 import { VoucherEmitForm } from "../components/vouchers/VoucherEmitForm";
 import { VoucherStatsCards } from "../components/vouchers/VoucherStatsCards";
 import { VoucherSessionsTable } from "../components/vouchers/VoucherSessionsTable";
@@ -172,7 +173,16 @@ export function DashboardVouchers() {
       <Alert type="success" message={successMessage || ""} />
       <Alert type="error" message={errorMessage || ""} />
 
-      {showCreateForm && (
+      <Modal
+        isOpen={showCreateForm}
+        onClose={() => {
+          setShowCreateForm(false);
+          formManager.resetFormMessages();
+        }}
+        title="Emitir nuevo lote de Vouchers"
+        subtitle="Gestión Operativa"
+        size="lg"
+      >
         <VoucherEmitForm
           institutions={statsManager.institutions}
           therapists={statsManager.therapists}
@@ -184,7 +194,7 @@ export function DashboardVouchers() {
           successMessage={formManager.success}
           resetMessages={() => { formManager.resetFormMessages(); setErrorMessage(null); setSuccessMessage(null); }}
         />
-      )}
+      </Modal>
 
       <div className="space-y-8">
         <VouchersFilterBar

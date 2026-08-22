@@ -199,9 +199,20 @@ export function DashboardResults() {
               <Spinner size="lg" className="border-app-primary" />
             </div>
           ) : groupedSessions.length === 0 ? (
-            <div className="flex h-64 flex-col items-center justify-center text-app-text-muted/40">
-              <Search className="mb-4 h-12 w-12 opacity-10" />
-              <p className="text-sm font-bold uppercase tracking-widest">{uiTexts.emptyState}</p>
+            <div className="flex h-64 flex-col items-center justify-center text-app-text-muted">
+              <Search className="mb-4 h-10 w-10 text-app-text-muted/30" />
+              <p className="text-sm font-bold uppercase tracking-widest mb-3">{uiTexts.emptyState}</p>
+              {(searchTerm || statusFilter !== "ALL") && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setStatusFilter("ALL");
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-app-primary/10 text-app-primary border border-app-primary/20 hover:bg-app-primary hover:text-white transition-all cursor-pointer"
+                >
+                  Limpiar filtros de búsqueda
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-1 slide-in-from-bottom-4 duration-500">

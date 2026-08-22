@@ -58,7 +58,39 @@ export function BillingHistoryTable({ transactions }: BillingHistoryTableProps) 
 
   return (
     <div className="flex flex-col">
-      <div className="overflow-x-auto">
+      {/* Mobile card view */}
+      <div className="md:hidden divide-y divide-app-border">
+        {paginated.map((tx) => (
+          <div key={tx.id} className="p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-app-text-main">
+                {new Date(tx.createdAt).toLocaleDateString('es-AR', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+              <StatusBadge status={tx.status} />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-app-primary/10 text-app-primary border border-app-primary/20">
+                {tx.plan?.name || 'Lote'}
+              </span>
+              <div className="font-bold text-app-text-main font-display text-sm">
+                ${tx.amount} <span className="text-app-text-muted text-xs font-medium">{tx.currency}</span>
+              </div>
+            </div>
+
+            <div className="text-[11px] font-semibold text-app-text-muted uppercase tracking-wider text-right">
+              Método: {tx.gateway === 'MERCADO_PAGO' ? 'MercadoPago' : 'Stripe'}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-app-border bg-app-surface/20">
