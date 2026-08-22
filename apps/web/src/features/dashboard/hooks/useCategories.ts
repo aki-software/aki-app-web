@@ -4,8 +4,15 @@ import { fetchCategories, type CategoryData } from "../api/dashboard";
 let cachedCategories: Record<string, CategoryData> | null = null;
 let fetchPromise: Promise<Record<string, CategoryData>> | null = null;
 
+export function invalidateCategoriesCache(): void {
+  cachedCategories = null;
+  fetchPromise = null;
+}
+
 export function useCategories() {
-  const [categoriesMap, setCategoriesMap] = useState<Record<string, CategoryData>>({});
+  const [categoriesMap, setCategoriesMap] = useState<
+    Record<string, CategoryData>
+  >({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

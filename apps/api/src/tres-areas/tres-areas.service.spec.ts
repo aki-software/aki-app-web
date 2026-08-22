@@ -46,4 +46,30 @@ describe('TresAreasService', () => {
       tendencies: ['Legacy update'],
     });
   });
+
+  it('updates the editable title without changing identity fields', async () => {
+    const repo = {
+      findOne: jest.fn().mockResolvedValue({
+        ...combination,
+        title: 'Original title',
+        combinationKey: 'art|business|science',
+        area1: 'ART',
+        area2: 'BUS',
+        area3: 'SCI',
+      }),
+      save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
+    };
+    const service = new TresAreasService(repo as never);
+
+    await expect(
+      service.update('combination-1', { title: 'Updated title' }),
+    ).resolves.toMatchObject({
+      id: 'combination-1',
+      title: 'Updated title',
+      combinationKey: 'art|business|science',
+      area1: 'ART',
+      area2: 'BUS',
+      area3: 'SCI',
+    });
+  });
 });
