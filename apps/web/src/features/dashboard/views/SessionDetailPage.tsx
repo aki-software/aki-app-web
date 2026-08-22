@@ -36,8 +36,8 @@ export function SessionDetailPage() {
     return (
       <div className="flex h-96 flex-col items-center justify-center gap-4 text-app-text-muted">
         <Spinner size="xl" className="border-app-primary" />
-        <span className="app-label mt-4 opacity-50 tracking-[0.2em] animate-pulse">
-          Generando Analítica Lux 3.0...
+        <span className="app-label mt-4 opacity-70 tracking-[0.2em] animate-pulse">
+          Cargando reporte de sesión...
         </span>
       </div>
     );
@@ -50,9 +50,9 @@ export function SessionDetailPage() {
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-[11px] font-semibold text-app-text-muted/50 uppercase tracking-[0.15em]">
-        <button onClick={() => navigate('/dashboard/results')} className="hover:text-app-primary transition-colors">Dashboard</button>
+        <button onClick={() => navigate('/dashboard/results')} className="hover:text-app-primary transition-colors cursor-pointer">Dashboard</button>
         <span className="opacity-30">/</span>
-        <button onClick={() => navigate('/dashboard/results')} className="hover:text-app-primary transition-colors">Resultados</button>
+        <button onClick={() => navigate('/dashboard/results')} className="hover:text-app-primary transition-colors cursor-pointer">Resultados</button>
         <span className="opacity-30">/</span>
         <span className="text-app-text-muted/80 truncate max-w-[200px]">{session.patientName}</span>
       </div>
@@ -66,8 +66,8 @@ export function SessionDetailPage() {
       />
 
       {/* Contenido Principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-        <div className="lg:col-span-12 xl:col-span-12 space-y-16">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        <div className="lg:col-span-12 xl:col-span-12 space-y-10 lg:space-y-16">
           
           {/* Métricas Core (Destacadas) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

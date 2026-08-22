@@ -65,7 +65,7 @@ const { locale, t } = Astro.props;
 
       <!-- Title -->
       <h1 class="font-display font-extrabold text-3.5xl sm:text-5xl tracking-tight leading-[1.1] text-white mb-6">
-        {t.maintenance.title.split(' ').map((word, idx, arr) => {
+        {t.maintenance.title.split(' ').map((word) => {
           // Highlight key words in gradient (e.g. "futuro", "orientación", "future", "vocational")
           const isHighlight = ['futuro', 'orientación', 'future', 'vocational', 'guidance', 'vocacional'].includes(word.toLowerCase().replace(/[^a-záéíóúüñ]/g, ''));
           if (isHighlight) {
