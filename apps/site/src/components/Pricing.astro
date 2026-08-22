@@ -6,13 +6,7 @@ interface Props {
   t: Translation;
 }
 
-const { locale, t } = Astro.props;
-const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
-
-const isEn = locale === 'en';
-const demoMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'Demo Request - A.ki Platform' : 'Solicitud de Demo - Plataforma A.ki')}`;
-const basicMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'I want 25 vouchers - A.ki' : 'Quiero 25 vouchers - A.ki')}`;
-const proMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'I want 50 vouchers - A.ki' : 'Quiero 50 vouchers - A.ki')}`;
+const { t } = Astro.props;
 ---
 
 <section class="py-24 md:py-32 relative bg-bg" id="precios">
