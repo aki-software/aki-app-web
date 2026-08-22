@@ -1,6 +1,7 @@
 import { Filter } from "lucide-react";
 import { VoucherData } from "../../api/dashboard";
 import { VoucherTableRow } from "./VoucherTableRow";
+import { VoucherCardMobile } from "./VoucherCardMobile";
 import { Pagination } from "../../../../components/molecules/Pagination";
 import { EmptyState } from "../../../../components/molecules/EmptyState";
 
@@ -31,9 +32,47 @@ export const VouchersIndividualTable = ({
   onViewSessions,
   actionManager
 }: VouchersIndividualTableProps) => {
+  if (items.length === 0) {
+    return (
+      <div className="app-card !p-10 text-center shadow-md">
+        <EmptyState
+          icon={<Filter className="h-10 w-10" />}
+          title="Sin resultados"
+          description="No se encontraron vouchers que coincidan con los filtros seleccionados."
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
-      <div className="app-card !p-0 overflow-hidden shadow-2xl">
+    <div className="space-y-6">
+      {/* Mobile Card List (visible on screens < md) */}
+      <div className="md:hidden space-y-4">
+        {items.map((voucher) => (
+          <VoucherCardMobile
+            key={voucher.id}
+            voucher={voucher}
+            isAdmin={isAdmin}
+            actionBusy={actionManager.actionBusy}
+            copiedType={actionManager.copiedType}
+            onWhatsApp={() => actionManager.handleWhatsApp(voucher)}
+            onCopyCode={() => actionManager.handleCopyCode(voucher.code)}
+            onSendEmail={(email) =>
+              actionManager.handleSendEmail(
+                voucher.id,
+                voucher.code,
+                email || voucher.assignedPatientEmail || "",
+                voucher.status === "SENT"
+              )
+            }
+            onRevoke={() => actionManager.handleRevokeAction(voucher.id, voucher.code)}
+            onViewSessions={() => onViewSessions(voucher.id)}
+          />
+        ))}
+      </div>
+
+      {/* Desktop Table (visible on screens >= md) */}
+      <div className="hidden md:block app-card !p-0 overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="bg-app-surface/90 border-b border-app-border">
@@ -46,43 +85,32 @@ export const VouchersIndividualTable = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-app-border bg-app-surface">
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={isAdmin ? 5 : 4} className="px-5 py-5">
-                    <EmptyState
-                      icon={<Filter className="h-10 w-10" />}
-                      title="Sin resultados"
-                      description="No se encontraron vouchers que coincidan con los filtros seleccionados."
-                    />
-                  </td>
-                </tr>
-              ) : (
-                items.map((voucher) => (
-                  <VoucherTableRow
-                    key={voucher.id}
-                    voucher={voucher}
-                    isAdmin={isAdmin}
-                    actionBusy={actionManager.actionBusy}
-                    copiedType={actionManager.copiedType}
-                    onWhatsApp={() => actionManager.handleWhatsApp(voucher)}
-                    onCopyCode={() => actionManager.handleCopyCode(voucher.code)}
-                    onSendEmail={(email) => 
-                      actionManager.handleSendEmail(
-                        voucher.id, 
-                        voucher.code, 
-                        email || voucher.assignedPatientEmail || "", 
-                        voucher.status === "SENT"
-                      )
-                    }
-                    onRevoke={() => actionManager.handleRevokeAction(voucher.id, voucher.code)}
-                    onViewSessions={() => onViewSessions(voucher.id)}
-                  />
-                ))
-              )}
+              {items.map((voucher) => (
+                <VoucherTableRow
+                  key={voucher.id}
+                  voucher={voucher}
+                  isAdmin={isAdmin}
+                  actionBusy={actionManager.actionBusy}
+                  copiedType={actionManager.copiedType}
+                  onWhatsApp={() => actionManager.handleWhatsApp(voucher)}
+                  onCopyCode={() => actionManager.handleCopyCode(voucher.code)}
+                  onSendEmail={(email) => 
+                    actionManager.handleSendEmail(
+                      voucher.id, 
+                      voucher.code, 
+                      email || voucher.assignedPatientEmail || "", 
+                      voucher.status === "SENT"
+                    )
+                  }
+                  onRevoke={() => actionManager.handleRevokeAction(voucher.id, voucher.code)}
+                  onViewSessions={() => onViewSessions(voucher.id)}
+                />
+              ))}
             </tbody>
           </table>
         </div>
       </div>
+
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
     </div>
   );
