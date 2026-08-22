@@ -6,11 +6,17 @@ interface CategoryCardProps {
   category: CategoryData;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  onEdit: () => void;
 }
 
 const PREVIEW_CHARS = 360;
 
-export const CategoryCard = ({ category, isExpanded, onToggleExpand }: CategoryCardProps) => {
+export const CategoryCard = ({
+  category,
+  isExpanded,
+  onToggleExpand,
+  onEdit,
+}: CategoryCardProps) => {
   const isLongText = category.description.length > PREVIEW_CHARS;
 
   return (
@@ -43,12 +49,31 @@ export const CategoryCard = ({ category, isExpanded, onToggleExpand }: CategoryC
                   onClick={onToggleExpand}
                   className="mt-4 !py-1.5 !px-3 !text-[11px] !rounded-lg h-auto font-bold"
                 >
-                  {isExpanded ? <><ChevronUp className="mr-1.5 h-3.5 w-3.5" />Ver menos</> : <><ChevronDown className="mr-1.5 h-3.5 w-3.5" />Ver más</>}
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="mr-1.5 h-3.5 w-3.5" />
+                      Ver menos
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="mr-1.5 h-3.5 w-3.5" />
+                      Ver más
+                    </>
+                  )}
                 </Button>
               )}
             </div>
           </div>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onEdit}
+          aria-label={`Editar ${category.title}`}
+          className="shrink-0 !px-3 !py-2"
+        >
+          Editar
+        </Button>
       </div>
     </div>
   );
