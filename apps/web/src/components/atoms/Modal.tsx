@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
-import { ReactNode, useEffect, useCallback } from "react";
+import { ReactNode, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 
 interface ModalProps {
@@ -9,7 +10,7 @@ interface ModalProps {
   subtitle?: string;
   children: ReactNode;
   footer?: ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   isLoading?: boolean;
 }
 
@@ -20,40 +21,53 @@ export const Modal = ({
   subtitle,
   children,
   footer,
-  size = 'md',
+  size = "md",
   isLoading = false,
 }: ModalProps) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
   useEscapeKey(onClose, !isOpen || isLoading);
 
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-xl',
-    lg: 'max-w-3xl',
-    xl: 'max-w-5xl',
+    sm: "max-w-md",
+    md: "max-w-xl",
+    lg: "max-w-3xl",
+    xl: "max-w-5xl",
   };
 
-  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !isLoading) {
-      onClose();
-    }
-  }, [onClose, isLoading]);
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget && !isLoading) {
+        onClose();
+      }
+    },
+    [onClose, isLoading],
+  );
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      previousFocus.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      document.body.style.overflow = "hidden";
+      dialogRef.current?.focus();
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
+      previousFocus.current?.focus();
     };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"
+  return createPortal(
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 sm:p-6 animate-in fade-in duration-300"
       aria-modal="true"
       role="dialog"
     >
@@ -64,9 +78,11 @@ export const Modal = ({
       />
 
       {/* Contenedor del Modal */}
-      <div className={`relative flex w-full ${sizeClasses[size]} flex-col overflow-hidden rounded-[2rem] border border-app-border bg-app-surface shadow-[0_32px_64px_-12px_rgba(0,0,0,0.4)] max-h-[90vh] animate-in zoom-in-95 duration-200`}>
+      <div
+        className={`relative flex max-h-[calc(100vh-2rem)] w-full ${sizeClasses[size]} flex-col overflow-hidden rounded-2xl border border-app-border bg-app-bg shadow-[0_24px_48px_-16px_rgba(0,0,0,0.45)] animate-in zoom-in-95 duration-200`}
+      >
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-app-border bg-app-surface/95 px-8 py-6 backdrop-blur">
+        <div className="flex items-start justify-between border-b border-app-border px-6 py-5 sm:px-8">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <div className="h-1.5 w-6 bg-app-primary rounded-full" />
@@ -96,11 +112,12 @@ export const Modal = ({
 
         {/* Footer */}
         {footer && (
-          <div className="border-t border-app-border bg-app-surface/95 px-8 py-6 flex justify-end items-center gap-4">
+          <div className="flex items-center justify-end gap-4 border-t border-app-border px-6 py-4 sm:px-8">
             {footer}
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
