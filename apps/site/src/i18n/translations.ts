@@ -2,10 +2,11 @@ export const translations = {
   es: {
     nav: {
       howItWorks: 'Cómo funciona',
-      forInstitutions: 'Para instituciones',
-      pricing: 'Precios',
-      login: 'Ingresar',
-      startFree: 'Acceso a instituciones',
+      methodology: 'Metodología',
+      forInstitutions: 'Instituciones',
+      pricing: 'Planes',
+      login: 'Acceso Institucional',
+      startFree: 'Descargar App',
     },
     hero: {
       badge: 'Orientación Vocacional',
@@ -151,10 +152,11 @@ export const translations = {
   en: {
     nav: {
       howItWorks: 'How it works',
-      forInstitutions: 'For institutions',
+      methodology: 'Methodology',
+      forInstitutions: 'Institutions',
       pricing: 'Pricing',
-      login: 'Sign in',
-      startFree: 'Access for institutions',
+      login: 'Institutional Access',
+      startFree: 'Download App',
     },
     hero: {
       badge: 'Vocational Guidance',

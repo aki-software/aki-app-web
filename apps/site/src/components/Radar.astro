@@ -33,12 +33,12 @@ const badgeStyles: BadgeStyle[] = [
 ];
 ---
 
-<section class="py-24 md:py-32 relative bg-[#F5EFE7] overflow-hidden" id="metodologia">
+<section class="py-24 md:py-32 relative bg-bg overflow-hidden" id="metodologia">
   <div class="container relative z-10">
     <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
       <!-- Radar Visualization Card -->
       <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0">
-        <div id="radar-card" class="bg-white border border-[#DCD3C5]/40 p-8 md:p-10 rounded-[3rem] shadow-md overflow-hidden">
+        <div id="radar-card" class="bg-surface border border-border/60 p-6 sm:p-8 md:p-10 rounded-[2.5rem] sm:rounded-[3rem] shadow-md overflow-hidden">
           <div class="radar-svg-wrapper" style="transform: scale(0.8); opacity: 0; transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;">
             <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto overflow-visible">
               <defs>
@@ -142,31 +142,33 @@ const badgeStyles: BadgeStyle[] = [
 
       <!-- Right: Description + Interactive Badge Grid -->
       <div class="flex-1 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#8E5A12]/20 mb-6 reveal reveal-delay-1 shadow-sm">
-          <p class="text-[11px] font-medium text-[#8E5A12] tracking-widest uppercase">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-secondary/20 mb-6 reveal reveal-delay-1 shadow-sm">
+          <p class="text-[11px] font-medium text-secondary tracking-widest uppercase">
             METODOLOGÍA CIENTÍFICA
           </p>
         </div>
-        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-[#1F2523] mb-6 reveal reveal-delay-1 tracking-tight">
+        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-text mb-6 reveal reveal-delay-1 tracking-tight">
           {locale === 'es' ? '12 categorías ocupacionales' : '12 occupational categories'}
         </h2>
-        <p class="text-lg text-[#44403C] leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
+        <p class="text-lg text-text-muted leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
           {locale === 'es'
             ? 'A.ki mapea tus intereses mediante un enfoque científico de orientación vocacional validado globalmente. Identificamos tu afinidad en doce categorías ocupacionales para trazar el mapa de tu futuro.'
             : 'A.ki maps your interests using a globally validated scientific approach in vocational guidance. We identify your affinity across twelve occupational categories to chart your future.'}
         </p>
 
         <!-- Interactive badge grid -->
-        <div id="badge-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 reveal reveal-delay-3">
+        <div id="badge-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 reveal reveal-delay-3" role="group" aria-label="Categorías vocacionales">
           {badgeStyles.map((type) => {
             const cat = categories.find((c) => c.code === type.code);
             return (
               <button
+                type="button"
                 data-code={type.code}
                 data-fullname={cat?.name || type.code}
-                class={`badge-chip flex items-center gap-2 p-2 rounded-xl bg-white border shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${type.border}`}
+                aria-label={`Categoría ${cat?.name || type.code}`}
+                class={`badge-chip flex items-center gap-2 p-2.5 rounded-xl bg-surface border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer text-left ${type.border}`}
               >
-                <span class={`w-2 h-2 rounded-full flex-shrink-0 ${type.bg} border ${type.border}`} style={`background: ${type.dot}`}></span>
+                <span class={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${type.bg} border ${type.border}`} style={`background: ${type.dot}`}></span>
                 <span class={`font-display font-bold text-xs tracking-wider ${type.text}`}>{type.code}</span>
               </button>
             );
@@ -174,8 +176,8 @@ const badgeStyles: BadgeStyle[] = [
         </div>
 
         <!-- Active category tooltip -->
-        <div id="cat-tooltip" class="mt-6 text-center text-sm text-[#44403C] min-h-[1.5rem] transition-opacity duration-300 opacity-0">
-          {locale === 'es' ? 'Pasá el cursor sobre una categoría' : 'Hover over a category'}
+        <div id="cat-tooltip" class="mt-6 text-center lg:text-left text-sm font-medium text-text-muted min-h-[1.5rem] transition-opacity duration-300 opacity-60">
+          {locale === 'es' ? 'Tocá o pasá el cursor sobre una categoría para resaltarla' : 'Tap or hover over a category to highlight it'}
         </div>
       </div>
     </div>
@@ -188,8 +190,13 @@ const badgeStyles: BadgeStyle[] = [
     cursor: default;
   }
   .radar-dot-recharts.active {
-    r: 5;
-    filter: drop-shadow(0 0 6px currentColor);
+    r: 6;
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  .badge-chip.active {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 107, 104, 0.15);
+    border-color: var(--color-primary) !important;
   }
   .radar-result-animate {
     animation: radar-draw 1s ease-out forwards;
@@ -204,6 +211,8 @@ const badgeStyles: BadgeStyle[] = [
   const svgWrapper = document.querySelector('.radar-svg-wrapper') as HTMLElement | null;
   const tooltip = document.getElementById('cat-tooltip');
   const chips = document.querySelectorAll<HTMLButtonElement>('.badge-chip');
+  const defaultTooltipText = tooltip?.textContent || '';
+  let activeCode: string | null = null;
 
   // Scroll-triggered radar animation
   const radarObserver = new IntersectionObserver((entries) => {
@@ -219,22 +228,56 @@ const badgeStyles: BadgeStyle[] = [
   }, { threshold: 0.3 });
   if (radarCard) radarObserver.observe(radarCard);
 
-  // Badge hover → highlight dot
-  chips.forEach((chip) => {
-    chip.addEventListener('mouseenter', () => {
-      const code = chip.dataset.code;
-      const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
-      if (dot) dot.classList.add('active');
+  function activateCategory(chip: HTMLButtonElement) {
+    const code = chip.dataset.code;
+    if (!code) return;
+
+    chips.forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
+
+    if (activeCode === code) {
+      activeCode = null;
       if (tooltip) {
-        tooltip.textContent = chip.dataset.fullname || code || '';
-        tooltip.style.opacity = '1';
+        tooltip.textContent = defaultTooltipText;
+        tooltip.style.opacity = '0.6';
+      }
+      return;
+    }
+
+    activeCode = code;
+    chip.classList.add('active');
+    const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
+    if (dot) dot.classList.add('active');
+    if (tooltip) {
+      tooltip.textContent = `${code}: ${chip.dataset.fullname || ''}`;
+      tooltip.style.opacity = '1';
+    }
+  }
+
+  function clearActiveCategory() {
+    if (activeCode) return; // Keep persistent if clicked
+    document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
+    if (tooltip) {
+      tooltip.textContent = defaultTooltipText;
+      tooltip.style.opacity = '0.6';
+    }
+  }
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => activateCategory(chip));
+    chip.addEventListener('mouseenter', () => {
+      if (!activeCode) {
+        const code = chip.dataset.code;
+        const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
+        if (dot) dot.classList.add('active');
+        if (tooltip) {
+          tooltip.textContent = `${code}: ${chip.dataset.fullname || ''}`;
+          tooltip.style.opacity = '1';
+        }
       }
     });
     chip.addEventListener('mouseleave', () => {
-      document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
-      if (tooltip) {
-        tooltip.style.opacity = '0';
-      }
+      if (!activeCode) clearActiveCategory();
     });
   });
 
