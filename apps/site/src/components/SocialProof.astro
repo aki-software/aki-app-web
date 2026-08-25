@@ -9,49 +9,46 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-<section class="bg-bg py-24 md:py-32" id="testimonios">
-  <div class="container">
-    <div class="flex flex-col items-center">
-      <!-- Badge -->
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-[11px] font-semibold tracking-widest uppercase mb-6 reveal">
-        {t.socialProof.badge}
+{t.socialProof?.testimonials && t.socialProof.testimonials.length > 0 && (
+  <section class="bg-bg py-24 md:py-32" id="testimonios">
+    <div class="container">
+      <div class="flex flex-col items-center">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-[11px] font-semibold tracking-widest uppercase mb-6 reveal">
+          {t.socialProof.badge}
+        </div>
+
+        <!-- Title -->
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-text mb-12 text-center reveal reveal-delay-1 max-w-2xl">
+          {t.socialProof.title}
+        </h2>
       </div>
 
-      <!-- Title -->
-      <h2 class="font-display font-bold text-3xl md:text-4xl text-text mb-12 text-center reveal reveal-delay-1">
-        {t.socialProof.title}
-      </h2>
+      <!-- Testimonials Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        {t.socialProof.testimonials.map((testimonial, index) => (
+          <div class="bg-surface rounded-2xl border border-border/60 shadow-sm p-8 reveal hover:border-primary/20 transition-all" style={`transition-delay: ${index * 0.15}s;`}>
+            <!-- Decorative quote icon -->
+            <svg class="w-8 h-8 text-secondary/30 mb-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.69 11 13.166 11 15c0 1.984-1.538 3.5-3.5 3.5-1.174 0-2.253-.619-2.917-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C19.591 11.69 21 13.166 21 15c0 1.984-1.538 3.5-3.5 3.5-1.174 0-2.253-.619-2.917-1.179z" />
+            </svg>
 
-      <!-- User Count -->
-      <p class="text-lg text-primary font-semibold text-center mb-10 reveal reveal-delay-2">
-        {t.socialProof.userCount}
-      </p>
-    </div>
+            <!-- Quote text -->
+            <p class="text-base text-text-muted leading-relaxed mb-6 italic">
+              {testimonial.quote}
+            </p>
 
-    <!-- Testimonials Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-      {t.socialProof.testimonials.map((testimonial, index) => (
-        <div class="bg-surface rounded-2xl border border-border/60 shadow-sm p-8 reveal hover:border-primary/20 transition-all" style={`transition-delay: ${index * 0.15}s;`}>
-          <!-- Decorative quote icon -->
-          <svg class="w-8 h-8 text-secondary/30 mb-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.69 11 13.166 11 15c0 1.984-1.538 3.5-3.5 3.5-1.174 0-2.253-.619-2.917-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C19.591 11.69 21 13.166 21 15c0 1.984-1.538 3.5-3.5 3.5-1.174 0-2.253-.619-2.917-1.179z" />
-          </svg>
-
-          <!-- Quote text -->
-          <p class="text-base text-text-muted leading-relaxed mb-6 italic">
-            {testimonial.quote}
-          </p>
-
-          <!-- Author block with left border accent -->
-          <div class="border-l-2 border-secondary/40 pl-6">
-            <p class="text-sm font-semibold text-text">{testimonial.author}</p>
-            <p class="text-xs text-text-muted">{testimonial.role}</p>
+            <!-- Author block with left border accent -->
+            <div class="border-l-2 border-secondary/40 pl-6">
+              <p class="text-sm font-semibold text-text">{testimonial.author}</p>
+              <p class="text-xs text-text-muted">{testimonial.role}</p>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+)}
 
 <script>
   const observer = new IntersectionObserver((entries) => {
