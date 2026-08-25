@@ -44,9 +44,8 @@ export function VoucherEmitForm({
   };
 
   return (
-    <div className="app-card !p-10 border-app-primary/10 shadow-2xl animate-in">
-      <form className="space-y-10" onSubmit={onSubmit}>
-        <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-4">
+    <form className="space-y-8" onSubmit={onSubmit}>
+      <div className="grid gap-6 md:grid-cols-2">
           <label className="flex flex-col gap-3">
             <span className="app-label opacity-60">Institución</span>
             <select
@@ -142,6 +141,5 @@ export function VoucherEmitForm({
           </button>
         </div>
       </form>
-    </div>
   );
 }

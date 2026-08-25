@@ -6,40 +6,34 @@ interface Props {
   t: Translation;
 }
 
-const { locale, t } = Astro.props;
-const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
-
-const isEn = locale === 'en';
-const demoMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'Demo Request - A.ki Platform' : 'Solicitud de Demo - Plataforma A.ki')}`;
-const basicMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'I want 25 vouchers - A.ki' : 'Quiero 25 vouchers - A.ki')}`;
-const proMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(isEn ? 'I want 50 vouchers - A.ki' : 'Quiero 50 vouchers - A.ki')}`;
+const { t } = Astro.props;
 ---
 
-<section class="py-24 md:py-32 relative bg-[#F5EFE7]" id="precios">
+<section class="py-24 md:py-32 relative bg-bg" id="precios">
 
   <div class="container">
     <div class="text-center mb-16">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#8E5A12]/20 mb-6 reveal shadow-sm">
-        <p class="text-[11px] font-medium text-[#8E5A12] tracking-widest uppercase">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-secondary/20 mb-6 reveal shadow-sm">
+        <p class="text-[11px] font-medium text-secondary tracking-widest uppercase">
           PLANES CLAROS
         </p>
       </div>
-      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-[#1F2523] mb-6 reveal reveal-delay-1 tracking-tight">{t.pricing.title}</h2>
-      <p class="text-lg text-[#44403C] max-w-2xl mx-auto reveal reveal-delay-2">{t.pricing.subtitle}</p>
+      <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-text mb-6 reveal reveal-delay-1 tracking-tight">{t.pricing.title}</h2>
+      <p class="text-lg text-text-muted max-w-2xl mx-auto reveal reveal-delay-2">{t.pricing.subtitle}</p>
     </div>
 
     <div class="flex flex-col md:flex-row items-stretch justify-center gap-6 lg:gap-8 max-w-5xl mx-auto">
       <!-- Demo Tier (3 vouchers, $0) — prominent -->
-      <div class="w-full md:w-[340px] flex flex-col bg-white border-2 border-primary/20 rounded-[2rem] p-8 reveal hover:-translate-y-1 transition-transform duration-500 shadow-sm">
+      <div class="w-full md:w-[340px] flex flex-col bg-surface border-2 border-primary/40 rounded-[2rem] p-8 reveal hover:-translate-y-1 transition-transform duration-500 shadow-md">
         <div class="mb-8">
           <div class="flex justify-between items-center mb-4">
-            <p class="text-sm font-semibold text-[#44403C] uppercase tracking-widest">{t.pricing.demo.label}</p>
+            <p class="text-sm font-semibold text-text-muted uppercase tracking-widest">{t.pricing.demo.label}</p>
             <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-primary rounded-full">{t.pricing.demo.badge}</span>
           </div>
           <div class="flex items-baseline gap-1">
-            <span class="font-display font-bold text-5xl text-[#1F2523]">$0</span>
+            <span class="font-display font-bold text-5xl text-text">$0</span>
           </div>
-          <p class="text-xs text-[#44403C] font-medium mt-1">{t.pricing.demo.desc}</p>
+          <p class="text-xs text-text-muted font-medium mt-1">{t.pricing.demo.desc}</p>
         </div>
         
         <div class="flex-1 flex flex-col gap-4 mb-8">
@@ -48,25 +42,25 @@ const proMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(is
               <div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
                 <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
               </div>
-              <span class="text-sm text-[#1F2523]/80 leading-relaxed">{f}</span>
+              <span class="text-sm text-text/80 leading-relaxed">{f}</span>
             </div>
           ))}
         </div>
 
-        <a href={demoMailto} onclick="event.preventDefault();window.location.href=this.href" class="mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary-dark transition-colors">{t.pricing.demo.cta}</a>
+        <a href="#instituciones" data-plan="demo" class="plan-cta mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary-dark transition-all hover:scale-[1.02] shadow-sm">{t.pricing.demo.cta}</a>
       </div>
 
       <!-- Basic Tier (25 vouchers) -->
-      <div class="w-full md:w-[280px] flex flex-col bg-white border border-[#DCD3C5]/40 rounded-[2rem] p-8 reveal reveal-delay-1 hover:-translate-y-1 transition-transform duration-500 shadow-sm">
+      <div class="w-full md:w-[280px] flex flex-col bg-surface border border-border/60 rounded-[2rem] p-8 reveal reveal-delay-1 hover:-translate-y-1 transition-transform duration-500 shadow-sm">
         <div class="mb-8">
           <div class="flex justify-between items-center mb-4">
-            <p class="text-sm font-semibold text-[#1F2523] uppercase tracking-widest">{t.pricing.basic.label}</p>
-            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#1F2523] bg-[#8E5A12] rounded-full">{t.pricing.basic.badge}</span>
+            <p class="text-sm font-semibold text-text uppercase tracking-widest">{t.pricing.basic.label}</p>
+            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-secondary rounded-full">{t.pricing.basic.badge}</span>
           </div>
           <div class="flex items-baseline gap-1 mb-2">
-            <span class="font-display font-bold text-5xl text-[#1F2523]">{t.pricing.basic.price}</span>
+            <span class="font-display font-bold text-5xl text-text">{t.pricing.basic.price}</span>
           </div>
-          <p class="text-xs text-[#44403C] font-medium">{t.pricing.basic.desc}</p>
+          <p class="text-xs text-text-muted font-medium">{t.pricing.basic.desc}</p>
         </div>
         
         <div class="flex-1 flex flex-col gap-4 mb-8">
@@ -75,25 +69,25 @@ const proMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(is
               <div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
               </div>
-              <span class="text-sm text-[#1F2523] leading-relaxed">{f}</span>
+              <span class="text-sm text-text leading-relaxed">{f}</span>
             </div>
           ))}
         </div>
 
-        <a href={basicMailto} onclick="event.preventDefault();window.location.href=this.href" class="mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-[#1F2523] rounded-xl hover:bg-[#1F2523]/90 transition-colors">{t.pricing.basic.cta}</a>
+        <a href="#instituciones" data-plan="25" class="plan-cta mt-auto block w-full py-4 text-center text-sm font-bold text-bg bg-text rounded-xl hover:opacity-90 transition-all hover:scale-[1.02]">{t.pricing.basic.cta}</a>
       </div>
 
       <!-- Pro Tier (50 vouchers) -->
-      <div class="w-full md:w-[280px] flex flex-col bg-white border border-[#DCD3C5]/40 rounded-[2rem] p-8 reveal reveal-delay-2 hover:-translate-y-1 transition-transform duration-500 shadow-sm">
+      <div class="w-full md:w-[280px] flex flex-col bg-surface border border-border/60 rounded-[2rem] p-8 reveal reveal-delay-2 hover:-translate-y-1 transition-transform duration-500 shadow-sm">
         <div class="mb-8">
           <div class="flex justify-between items-center mb-4">
-            <p class="text-sm font-semibold text-[#1F2523] uppercase tracking-widest">{t.pricing.pro.label}</p>
-            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-[#0F6B68] rounded-full">{t.pricing.pro.badge}</span>
+            <p class="text-sm font-semibold text-text uppercase tracking-widest">{t.pricing.pro.label}</p>
+            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-primary rounded-full">{t.pricing.pro.badge}</span>
           </div>
           <div class="flex items-baseline gap-1 mb-2">
-            <span class="font-display font-bold text-5xl text-[#1F2523]">{t.pricing.pro.price}</span>
+            <span class="font-display font-bold text-5xl text-text">{t.pricing.pro.price}</span>
           </div>
-          <p class="text-xs text-[#44403C] font-medium">{t.pricing.pro.desc}</p>
+          <p class="text-xs text-text-muted font-medium">{t.pricing.pro.desc}</p>
         </div>
         
         <div class="flex-1 flex flex-col gap-4 mb-8">
@@ -102,18 +96,33 @@ const proMailto = `mailto:contacto@orientaki.com?subject=${encodeURIComponent(is
               <div class="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
               </div>
-              <span class="text-sm text-[#1F2523] leading-relaxed">{f}</span>
+              <span class="text-sm text-text leading-relaxed">{f}</span>
             </div>
           ))}
         </div>
 
-        <a href={proMailto} onclick="event.preventDefault();window.location.href=this.href" class="mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-[#0F6B68] rounded-xl hover:bg-[#0F6B68]/90 transition-colors">{t.pricing.pro.cta}</a>
+        <a href="#instituciones" data-plan="50" class="plan-cta mt-auto block w-full py-4 text-center text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary-dark transition-all hover:scale-[1.02]">{t.pricing.pro.cta}</a>
       </div>
     </div>
   </div>
 </section>
 
 <script>
+  // Plan selection link handler
+  document.querySelectorAll<HTMLAnchorElement>('.plan-cta').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const plan = btn.dataset.plan;
+      const target = document.getElementById('instituciones');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      // Dispatch custom event to notify ContactForm
+      window.dispatchEvent(new CustomEvent('akit:select-plan', { detail: { plan } }));
+    });
+  });
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
   }, { threshold: 0.1 });

@@ -20,11 +20,11 @@ const t = translations[locale];
 const isMaintenance = import.meta.env.PUBLIC_MAINTENANCE_MODE === 'true';
 ---
 
-<BaseLayout locale={locale} t={t} title="ORIENT A.KI — Descubrí tu vocación en 10 minutos">
+<BaseLayout locale={locale} t={t} title="ORIENT A.KI — Descubrí tu perfil ocupacional en 10 minutos">
   {isMaintenance ? (
     <Maintenance locale={locale} t={t} />
   ) : (
-    <main id="main">
+    <main id="main" class="pb-16 md:pb-0">
       <Navbar locale={locale} t={t} />
       <Hero locale={locale} t={t} />
       <StatsBar locale={locale} t={t} />

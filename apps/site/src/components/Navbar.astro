@@ -26,15 +26,21 @@ const langPath = locale === 'es' ? '/en' : '/';
       </a>
 
       <!-- Desktop Links -->
-      <div class="hidden md:flex items-center gap-8">
+      <div class="hidden md:flex items-center gap-6 lg:gap-8">
         <a href="#como-funciona" class="nav-link text-sm font-medium text-white/70 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{t.nav.howItWorks}</a>
+        <a href="#metodologia" class="nav-link text-sm font-medium text-white/70 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{t.nav.methodology}</a>
         <a href="#instituciones" class="nav-link text-sm font-medium text-white/70 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{t.nav.forInstitutions}</a>
+        <a href="#precios" class="nav-link text-sm font-medium text-white/70 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{t.nav.pricing}</a>
         
         <div class="h-4 w-px bg-white/20"></div>
         
         <a id="nav-lang-switch" href={langPath} class="text-sm font-bold text-white/50 hover:text-white transition-colors">{t.langSwitch}</a>
         
-        <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" class="px-5 py-2 text-sm font-bold text-dark-bg bg-white rounded-full hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300">
+        <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" class="nav-btn-login text-xs font-semibold px-4 py-2 rounded-full border border-white/20 text-white hover:bg-white/10 transition-all">
+          {t.nav.login}
+        </a>
+
+        <a href={playStoreUrl} target="_blank" rel="noopener noreferrer" class="nav-btn-app px-5 py-2 text-xs font-bold text-white bg-primary rounded-full hover:bg-primary-dark hover:scale-105 transition-all duration-300 shadow-md">
           {t.nav.startFree}
         </a>
       </div>
@@ -70,8 +76,12 @@ const langPath = locale === 'es' ? '/en' : '/';
   >
     <div class="flex flex-col gap-2">
       <a href="#como-funciona" class="mobile-menu-link px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 rounded-xl transition-colors" role="menuitem">{t.nav.howItWorks}</a>
+      <a href="#metodologia" class="mobile-menu-link px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 rounded-xl transition-colors" role="menuitem">{t.nav.methodology}</a>
       <a href="#instituciones" class="mobile-menu-link px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 rounded-xl transition-colors" role="menuitem">{t.nav.forInstitutions}</a>
-      <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" class="mobile-menu-link mt-2 w-full py-3 text-sm text-center text-dark-bg bg-white rounded-xl font-bold" role="menuitem">{t.nav.startFree}</a>
+      <a href="#precios" class="mobile-menu-link px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 rounded-xl transition-colors" role="menuitem">{t.nav.pricing}</a>
+      <div class="h-px bg-white/10 my-1"></div>
+      <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" class="mobile-menu-link px-4 py-2.5 text-sm font-semibold text-white/70 hover:text-white rounded-xl transition-colors" role="menuitem">{t.nav.login}</a>
+      <a href={playStoreUrl} target="_blank" rel="noopener noreferrer" class="mobile-menu-link mt-1 w-full py-3 text-sm text-center text-dark-bg bg-white rounded-xl font-bold" role="menuitem">{t.nav.startFree}</a>
     </div>
   </div>
 </nav>
@@ -79,45 +89,56 @@ const langPath = locale === 'es' ? '/en' : '/';
 <style>
   /* Scrolled state: fixed navbar when hero is out of view */
   #nav-container.scrolled {
-    background-color: #F5EFE7 !important;
-    border-color: #DCD3C5 !important;
+    background-color: var(--color-bg) !important;
+    border-color: var(--color-border) !important;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   }
   #nav-container.scrolled .nav-link {
-    color: #44403C;
+    color: var(--color-text-muted);
   }
   #nav-container.scrolled .nav-link:hover {
-    color: #1F2523;
+    color: var(--color-text);
     text-shadow: none;
   }
   #nav-container.scrolled #nav-logo-text {
-    color: #1F2523;
+    color: var(--color-text);
   }
   #nav-container.scrolled #nav-lang-switch,
   #nav-container.scrolled #nav-lang-switch-mobile {
-    color: #44403C;
+    color: var(--color-text-muted);
   }
   #nav-container.scrolled #nav-lang-switch:hover,
   #nav-container.scrolled #nav-lang-switch-mobile:hover {
-    color: #1F2523;
+    color: var(--color-text);
+  }
+  #nav-container.scrolled .nav-btn-login {
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+  }
+  #nav-container.scrolled .nav-btn-login:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+  }
+  #nav-container.scrolled .nav-btn-app {
+    background-color: var(--color-primary) !important;
+    color: #ffffff !important;
   }
   #nav-container.scrolled #mobile-menu-btn {
-    color: #1F2523;
-    background-color: #DCD3C5;
+    color: var(--color-text);
+    background-color: var(--color-border);
   }
   #nav-container.scrolled + #mobile-menu {
-    background-color: #F5EFE7;
-    border-color: #DCD3C5;
+    background-color: var(--color-bg);
+    border-color: var(--color-border);
   }
   #nav-container.scrolled ~ #mobile-menu .mobile-menu-link {
-    color: #44403C;
+    color: var(--color-text-muted);
   }
   #nav-container.scrolled ~ #mobile-menu .mobile-menu-link:hover {
     background-color: rgba(220, 211, 197, 0.3);
   }
-  #nav-container.scrolled ~ #mobile-menu a[href*="dashboard"] {
-    color: #F5EFE7;
-    background-color: #1F2523;
+  #nav-container.scrolled ~ #mobile-menu a[href*="details?id="] {
+    color: #ffffff;
+    background-color: var(--color-primary);
   }
 </style>
 

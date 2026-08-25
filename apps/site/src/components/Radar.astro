@@ -27,18 +27,18 @@ const badgeStyles: BadgeStyle[] = [
   { code: 'MEC', border: 'border-orange-200', text: 'text-orange-700', bg: 'bg-orange-50', dot: '#ea580c' },
   { code: 'NAT', border: 'border-green-200', text: 'text-green-700', bg: 'bg-green-50', dot: '#22c55e' },
   { code: 'LÍD', border: 'border-indigo-200', text: 'text-indigo-700', bg: 'bg-indigo-50', dot: '#6366f1' },
-  { code: 'SCI', border: 'border-indigo-300', text: 'text-indigo-800', bg: 'bg-indigo-100', dot: '#4338ca' },
+  { code: locale === 'es' ? 'CIE' : 'SCI', border: 'border-indigo-300', text: 'text-indigo-800', bg: 'bg-indigo-100', dot: '#4338ca' },
   { code: 'VENT', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50', dot: '#f43f5e' },
-  { code: 'BUS', border: 'border-indigo-200', text: 'text-indigo-800', bg: 'bg-indigo-50', dot: '#312e81' },
+  { code: locale === 'es' ? 'NEG' : 'BUS', border: 'border-indigo-200', text: 'text-indigo-800', bg: 'bg-indigo-50', dot: '#312e81' },
 ];
 ---
 
-<section class="py-24 md:py-32 relative bg-[#F5EFE7] overflow-hidden" id="metodologia">
+<section class="py-24 md:py-32 relative bg-bg overflow-hidden" id="metodologia">
   <div class="container relative z-10">
     <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
       <!-- Radar Visualization Card -->
       <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0">
-        <div id="radar-card" class="bg-white border border-[#DCD3C5]/40 p-8 md:p-10 rounded-[3rem] shadow-md overflow-hidden">
+        <div id="radar-card" class="bg-surface border border-border/60 p-6 sm:p-8 md:p-10 rounded-[2.5rem] sm:rounded-[3rem] shadow-md overflow-hidden">
           <div class="radar-svg-wrapper" style="transform: scale(0.8); opacity: 0; transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;">
             <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto overflow-visible">
               <defs>
@@ -101,9 +101,9 @@ const badgeStyles: BadgeStyle[] = [
                 { x: 50, y: 78, color: '#ea580c', code: 'MEC' },
                 { x: 38, y: 72, color: '#22c55e', code: 'NAT' },
                 { x: 28, y: 60, color: '#6366f1', code: 'LÍD' },
-                { x: 24, y: 50, color: '#4338ca', code: 'SCI' },
+                { x: 24, y: 50, color: '#4338ca', code: locale === 'es' ? 'CIE' : 'SCI' },
                 { x: 28, y: 38, color: '#f43f5e', code: 'VENT' },
-                { x: 38, y: 25, color: '#312e81', code: 'BUS' }
+                { x: 38, y: 25, color: '#312e81', code: locale === 'es' ? 'NEG' : 'BUS' }
               ].map(({ x, y, color, code }) => (
                 <circle id={`v-${code}`}
                   cx={`${x}`} cy={`${y}`} r="3" fill={color} stroke="white" stroke-width="1" filter="url(#dot-glow-recharts)"
@@ -112,18 +112,18 @@ const badgeStyles: BadgeStyle[] = [
 
               <!-- Category labels (codes with full names below) -->
               {[
-                { x: 50, y: 6, code: 'ART', fullName: 'Artística', color: '#7c3aed' },
-                { x: 70, y: 16, code: 'HUM', fullName: 'Humanidades', color: '#c026d3' },
-                { x: 86, y: 30, code: 'SERV', fullName: 'Servicio Social', color: '#0f766e' },
-                { x: 91, y: 50, code: 'PROT', fullName: 'Protección', color: '#475569' },
-                { x: 86, y: 70, code: 'FÍS', fullName: 'Deportes', color: '#dc2626' },
-                { x: 70, y: 84, code: 'IND', fullName: 'Industria', color: '#525252' },
-                { x: 50, y: 92, code: 'MEC', fullName: 'Mecánica', color: '#c2410c' },
-                { x: 30, y: 84, code: 'NAT', fullName: 'Naturaleza', color: '#16a34a' },
-                { x: 14, y: 70, code: 'LÍD', fullName: 'Liderazgo', color: '#4f46e5' },
-                { x: 9, y: 50, code: 'SCI', fullName: 'Ciencia', color: '#3730a3' },
-                { x: 14, y: 30, code: 'VENT', fullName: 'Ventas', color: '#dc2626' },
-                { x: 30, y: 16, code: 'BUS', fullName: 'Negocios', color: '#1e1b4b' }
+                { x: 50, y: 6, code: 'ART', fullName: locale === 'es' ? 'Artística' : 'Arts', color: '#7c3aed' },
+                { x: 70, y: 16, code: 'HUM', fullName: locale === 'es' ? 'Humanidades' : 'Humanities', color: '#c026d3' },
+                { x: 86, y: 30, code: 'SERV', fullName: locale === 'es' ? 'Servicios y acomodación' : 'Services & Accommodation', color: '#0f766e' },
+                { x: 91, y: 50, code: 'PROT', fullName: locale === 'es' ? 'Protección' : 'Protection', color: '#475569' },
+                { x: 86, y: 70, code: 'FÍS', fullName: locale === 'es' ? 'Deportes' : 'Sports', color: '#dc2626' },
+                { x: 70, y: 84, code: 'IND', fullName: locale === 'es' ? 'Industria' : 'Industry', color: '#525252' },
+                { x: 50, y: 92, code: 'MEC', fullName: locale === 'es' ? 'Mecánica' : 'Mechanics', color: '#c2410c' },
+                { x: 30, y: 84, code: 'NAT', fullName: locale === 'es' ? 'Naturaleza' : 'Nature', color: '#16a34a' },
+                { x: 14, y: 70, code: 'LÍD', fullName: locale === 'es' ? 'Liderazgo' : 'Leadership', color: '#4f46e5' },
+                { x: 9, y: 50, code: locale === 'es' ? 'CIE' : 'SCI', fullName: locale === 'es' ? 'Ciencia' : 'Science', color: '#3730a3' },
+                { x: 14, y: 30, code: 'VENT', fullName: locale === 'es' ? 'Ventas' : 'Sales', color: '#dc2626' },
+                { x: 30, y: 16, code: locale === 'es' ? 'NEG' : 'BUS', fullName: locale === 'es' ? 'Negocios' : 'Business', color: '#1e1b4b' }
               ].map(({ x, y, code, fullName, color }) => {
                 const isLeft = x < 50;
                 const anchor = x === 50 ? 'middle' : isLeft ? 'end' : 'start';
@@ -142,31 +142,33 @@ const badgeStyles: BadgeStyle[] = [
 
       <!-- Right: Description + Interactive Badge Grid -->
       <div class="flex-1 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#8E5A12]/20 mb-6 reveal reveal-delay-1 shadow-sm">
-          <p class="text-[11px] font-medium text-[#8E5A12] tracking-widest uppercase">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-secondary/20 mb-6 reveal reveal-delay-1 shadow-sm">
+          <p class="text-[11px] font-medium text-secondary tracking-widest uppercase">
             METODOLOGÍA CIENTÍFICA
           </p>
         </div>
-        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-[#1F2523] mb-6 reveal reveal-delay-1 tracking-tight">
+        <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-text mb-6 reveal reveal-delay-1 tracking-tight">
           {locale === 'es' ? '12 categorías ocupacionales' : '12 occupational categories'}
         </h2>
-        <p class="text-lg text-[#44403C] leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
+        <p class="text-lg text-text-muted leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
           {locale === 'es'
-            ? 'A.ki mapea tus intereses mediante un enfoque científico de orientación vocacional validado globalmente. Identificamos tu afinidad en doce categorías ocupacionales para trazar el mapa de tu futuro.'
-            : 'A.ki maps your interests using a globally validated scientific approach in vocational guidance. We identify your affinity across twelve occupational categories to chart your future.'}
+            ? 'Orient A.KI mapea tus intereses mediante un enfoque estructurado de orientación ocupacional validado profesionalmente. Identificamos tu afinidad en doce categorías ocupacionales para trazar el mapa de tu futuro.'
+            : 'Orient A.KI maps your interests using a structured occupational guidance framework. We identify your affinity across twelve occupational categories to chart your future.'}
         </p>
 
         <!-- Interactive badge grid -->
-        <div id="badge-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 reveal reveal-delay-3">
+        <div id="badge-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 reveal reveal-delay-3" role="group" aria-label={locale === 'es' ? 'Categorías ocupacionales' : 'Occupational categories'}>
           {badgeStyles.map((type) => {
             const cat = categories.find((c) => c.code === type.code);
             return (
               <button
+                type="button"
                 data-code={type.code}
                 data-fullname={cat?.name || type.code}
-                class={`badge-chip flex items-center gap-2 p-2 rounded-xl bg-white border shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${type.border}`}
+                aria-label={`Categoría ${cat?.name || type.code}`}
+                class={`badge-chip flex items-center gap-2 p-2.5 rounded-xl bg-surface border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer text-left ${type.border}`}
               >
-                <span class={`w-2 h-2 rounded-full flex-shrink-0 ${type.bg} border ${type.border}`} style={`background: ${type.dot}`}></span>
+                <span class={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${type.bg} border ${type.border}`} style={`background: ${type.dot}`}></span>
                 <span class={`font-display font-bold text-xs tracking-wider ${type.text}`}>{type.code}</span>
               </button>
             );
@@ -174,8 +176,8 @@ const badgeStyles: BadgeStyle[] = [
         </div>
 
         <!-- Active category tooltip -->
-        <div id="cat-tooltip" class="mt-6 text-center text-sm text-[#44403C] min-h-[1.5rem] transition-opacity duration-300 opacity-0">
-          {locale === 'es' ? 'Pasá el cursor sobre una categoría' : 'Hover over a category'}
+        <div id="cat-tooltip" class="mt-6 text-center lg:text-left text-sm font-medium text-text-muted min-h-[1.5rem] transition-opacity duration-300 opacity-60">
+          {locale === 'es' ? 'Tocá o pasá el cursor sobre una categoría para resaltarla' : 'Tap or hover over a category to highlight it'}
         </div>
       </div>
     </div>
@@ -188,8 +190,13 @@ const badgeStyles: BadgeStyle[] = [
     cursor: default;
   }
   .radar-dot-recharts.active {
-    r: 5;
-    filter: drop-shadow(0 0 6px currentColor);
+    r: 6;
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  .badge-chip.active {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 107, 104, 0.15);
+    border-color: var(--color-primary) !important;
   }
   .radar-result-animate {
     animation: radar-draw 1s ease-out forwards;
@@ -204,6 +211,8 @@ const badgeStyles: BadgeStyle[] = [
   const svgWrapper = document.querySelector('.radar-svg-wrapper') as HTMLElement | null;
   const tooltip = document.getElementById('cat-tooltip');
   const chips = document.querySelectorAll<HTMLButtonElement>('.badge-chip');
+  const defaultTooltipText = tooltip?.textContent || '';
+  let activeCode: string | null = null;
 
   // Scroll-triggered radar animation
   const radarObserver = new IntersectionObserver((entries) => {
@@ -219,22 +228,56 @@ const badgeStyles: BadgeStyle[] = [
   }, { threshold: 0.3 });
   if (radarCard) radarObserver.observe(radarCard);
 
-  // Badge hover → highlight dot
-  chips.forEach((chip) => {
-    chip.addEventListener('mouseenter', () => {
-      const code = chip.dataset.code;
-      const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
-      if (dot) dot.classList.add('active');
+  function activateCategory(chip: HTMLButtonElement) {
+    const code = chip.dataset.code;
+    if (!code) return;
+
+    chips.forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
+
+    if (activeCode === code) {
+      activeCode = null;
       if (tooltip) {
-        tooltip.textContent = chip.dataset.fullname || code || '';
-        tooltip.style.opacity = '1';
+        tooltip.textContent = defaultTooltipText;
+        tooltip.style.opacity = '0.6';
+      }
+      return;
+    }
+
+    activeCode = code;
+    chip.classList.add('active');
+    const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
+    if (dot) dot.classList.add('active');
+    if (tooltip) {
+      tooltip.textContent = `${code}: ${chip.dataset.fullname || ''}`;
+      tooltip.style.opacity = '1';
+    }
+  }
+
+  function clearActiveCategory() {
+    if (activeCode) return; // Keep persistent if clicked
+    document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
+    if (tooltip) {
+      tooltip.textContent = defaultTooltipText;
+      tooltip.style.opacity = '0.6';
+    }
+  }
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => activateCategory(chip));
+    chip.addEventListener('mouseenter', () => {
+      if (!activeCode) {
+        const code = chip.dataset.code;
+        const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
+        if (dot) dot.classList.add('active');
+        if (tooltip) {
+          tooltip.textContent = `${code}: ${chip.dataset.fullname || ''}`;
+          tooltip.style.opacity = '1';
+        }
       }
     });
     chip.addEventListener('mouseleave', () => {
-      document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
-      if (tooltip) {
-        tooltip.style.opacity = '0';
-      }
+      if (!activeCode) clearActiveCategory();
     });
   });
 

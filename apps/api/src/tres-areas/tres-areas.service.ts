@@ -69,6 +69,7 @@ export class TresAreasService {
       throw new NotFoundException(`Combination with id ${id} not found`);
     }
 
+    if (dto.title !== undefined) combination.title = dto.title;
     if (dto.narrative !== undefined) combination.narrative = dto.narrative;
     if (dto.tendencies !== undefined) {
       combination.tendencies = dto.tendencies;

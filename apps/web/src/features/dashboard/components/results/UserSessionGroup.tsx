@@ -52,17 +52,17 @@ export function UserSessionGroup({
       {/* ─── HEADER DEL ACORDEÓN (Resumen del Paciente) ─── */}
       <div
         onClick={onToggle}
-        className="flex cursor-pointer items-center px-10 py-8 transition-colors hover:bg-app-bg/10 select-none"
+        className="flex cursor-pointer items-center px-5 py-5 sm:px-10 sm:py-8 transition-colors hover:bg-app-bg/10 select-none"
       >
         <div className="flex-[2] flex items-center">
-          <div className="mr-8 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-app-bg border border-app-border font-black text-app-primary shadow-sm text-xl group-hover:scale-105 transition-transform duration-500">
+          <div className="mr-4 sm:mr-8 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-[1.5rem] bg-app-bg border border-app-border font-black text-app-primary shadow-sm text-lg sm:text-xl group-hover:scale-105 transition-transform duration-500 flex-shrink-0">
             {userName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <div className="app-value !text-xl group-hover:text-app-primary transition-colors">
+            <div className="app-value !text-lg sm:!text-xl group-hover:text-app-primary transition-colors truncate">
               {userName}
             </div>
-            <div className="app-label mt-2 opacity-60">
+            <div className="app-label mt-1 sm:mt-2 opacity-60 truncate">
               {lastSession.paymentStatus === "PAID" && !lastSession.institutionName
                 ? "Pago individual / Sin asignación"
                 : sourceLabel(lastSession)}
@@ -76,13 +76,13 @@ export function UserSessionGroup({
           </span>
         </div>
 
-        <div className="flex-1 text-center font-mono text-xs font-black text-app-text-muted/60 group-hover:text-app-text-muted transition-colors uppercase tracking-widest">
+        <div className="flex-1 text-center font-mono text-xs font-black text-app-text-muted/60 group-hover:text-app-text-muted transition-colors uppercase tracking-widest hidden sm:block">
           {formatDate(lastSession.sessionDate)}
         </div>
 
-        <div className="flex w-12 justify-end">
-          <div className={`rounded-xl p-3 transition-all ${isExpanded ? "bg-app-primary text-white shadow-lg" : "text-app-text-muted group-hover:bg-app-bg"}`}>
-            {isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+        <div className="flex w-10 sm:w-12 justify-end">
+          <div className={`rounded-xl p-2 sm:p-3 transition-all ${isExpanded ? "bg-app-primary text-white shadow-lg" : "text-app-text-muted group-hover:bg-app-bg"}`}>
+            {isExpanded ? <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" /> : <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />}
           </div>
         </div>
       </div>
@@ -94,12 +94,12 @@ export function UserSessionGroup({
             {userSessions.map((session, idx) => (
               <div
                 key={session.id}
-                className="flex flex-col gap-10 px-10 py-10 lg:flex-row lg:items-center lg:justify-between group/session hover:bg-app-surface transition-colors"
+                className="flex flex-col gap-6 sm:gap-10 px-5 py-6 sm:px-10 sm:py-10 lg:flex-row lg:items-center lg:justify-between group/session hover:bg-app-surface transition-colors"
               >
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-4 sm:gap-6">
                   
                   {/* Fila superior: Tags e info principal */}
-                  <div className="flex flex-wrap items-center gap-8">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                     <span className="app-label opacity-70">Ronda {userSessions.length - idx}</span>
 
                     {/* Holland code con color */}
@@ -167,13 +167,12 @@ export function UserSessionGroup({
                   </div>
                 </div>
 
-                {/* Reemplazamos el button nativo por nuestro <Button> */}
                 <Button
                   onClick={(event) => {
                     event.stopPropagation();
                     onOpenDetail(session.id);
                   }}
-                  className="px-8 py-4 text-[10px] uppercase tracking-[0.16em] hover:shadow-2xl hover:shadow-app-primary/20 hover:scale-105 active:scale-95"
+                  className="w-full lg:w-auto px-6 sm:px-8 py-3.5 sm:py-4 text-[10px] uppercase tracking-[0.16em] hover:shadow-2xl hover:shadow-app-primary/20 hover:scale-105 active:scale-95 justify-center"
                 >
                   Analizar Perfil Clínico
                   <ChevronRight className="ml-3 h-4 w-4" />

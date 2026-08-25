@@ -21,6 +21,30 @@ export type CombinationsResponse = {
   total: number;
 };
 
+export type CombinationUpdatePayload = Partial<
+  Pick<
+    TresAreasCombinationItem,
+    | "title"
+    | "narrative"
+    | "keyInsight"
+    | "competencies"
+    | "tendencies"
+    | "possibleJobs"
+    | "relatedProfessions"
+    | "customSections"
+  >
+>;
+
+export async function updateCombination(
+  id: string,
+  payload: CombinationUpdatePayload,
+): Promise<TresAreasCombinationItem> {
+  return apiClient.put<TresAreasCombinationItem>(
+    `/tres-areas/combinations/${id}`,
+    payload,
+  );
+}
+
 export async function fetchCombinations(
   page: number = 1,
   limit: number = 1000,

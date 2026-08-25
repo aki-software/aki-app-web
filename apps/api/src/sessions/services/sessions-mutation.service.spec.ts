@@ -1,5 +1,85 @@
 import { SessionsMutationService } from './sessions-mutation.service';
 
+describe('SessionsMutationService report unlock entitlement', () => {
+  const createService = (affected = 1) => {
+    const queryBuilder = {
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue({ affected }),
+    };
+    const service = Object.create(
+      SessionsMutationService.prototype,
+    ) as SessionsMutationService;
+    (service as any).sessionRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    };
+    return { service, queryBuilder };
+  };
+
+  const metadata = {
+    providerProductId: 'report_unlock_v2',
+    expectedSku: 'report_unlock_v2',
+  };
+
+  it('atomically marks a verified Google Play entitlement paid without a payment reference', async () => {
+    const { service, queryBuilder } = createService();
+
+    await service.unlockReportEntitlement(
+      'session-1',
+      'purchase-token',
+      metadata,
+    );
+
+    const fields = queryBuilder.set.mock.calls[0][0];
+    expect(fields).toMatchObject({
+      reportUnlockPurchaseToken: 'purchase-token',
+      paymentStatus: 'PAID',
+    });
+    expect(fields.paymentReference).toBeUndefined();
+    expect(fields.reportUnlockedAt).toEqual(expect.any(Function));
+    expect(fields.paidAt).toEqual(expect.any(Function));
+  });
+
+  it('keeps the original unlock and payment timestamps on a same-token replay', async () => {
+    const { service, queryBuilder } = createService();
+
+    await service.unlockReportEntitlement(
+      'session-1',
+      'purchase-token',
+      metadata,
+    );
+    await service.unlockReportEntitlement(
+      'session-1',
+      'purchase-token',
+      metadata,
+    );
+
+    expect(queryBuilder.execute).toHaveBeenCalledTimes(2);
+    for (const [fields] of queryBuilder.set.mock.calls) {
+      expect(fields.reportUnlockedAt()).toContain('COALESCE');
+      expect(fields.paidAt()).toContain('COALESCE');
+    }
+  });
+
+  it('conflicts without mutating when a different token is already associated', async () => {
+    const { service, queryBuilder } = createService(0);
+
+    await expect(
+      service.unlockReportEntitlement('session-1', 'different-token', metadata),
+    ).rejects.toThrow(
+      'Purchase token is already associated with another report',
+    );
+
+    expect(queryBuilder.execute).toHaveBeenCalledTimes(1);
+    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+      '(report_unlock_purchase_token IS NULL OR report_unlock_purchase_token = :purchaseToken)',
+      { purchaseToken: 'different-token' },
+    );
+  });
+});
+
 describe('SessionsMutationService completion boundary', () => {
   it('rejects voucher completion without verified Firebase provenance', async () => {
     const service = Object.create(

@@ -8,7 +8,6 @@ interface Props {
 
 const { t, locale } = Astro.props;
 const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.akit.app';
-const dashboardUrl = import.meta.env.PUBLIC_WEB_URL || 'https://app.akituespacio.com.ar/login';
 const cardData = t.hero.cards;
 ---
 
@@ -35,7 +34,7 @@ const cardData = t.hero.cards;
         </p>
 
         <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start reveal reveal-delay-3">
-          <a href={playStoreUrl} class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-semibold text-dark-bg bg-white rounded-xl hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+          <a href={playStoreUrl} target="_blank" rel="noopener noreferrer" class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-semibold text-dark-bg bg-white rounded-xl hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.3)]">
             <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-primary to-primary-light opacity-0 group-hover:opacity-10 transition-opacity"></div>
             <svg aria-hidden="true" class="w-5 h-5 text-dark-bg" viewBox="0 0 24 24" fill="currentColor">
               <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
@@ -47,8 +46,19 @@ const cardData = t.hero.cards;
           </a>
         </div>
 
-        <p class="text-xs text-dark-muted/60 mt-6 reveal reveal-delay-3 font-mono">
-          {locale === 'es' ? 'APP MÓVIL · SIN REGISTRO · TEST DINÁMICO' : 'MOBILE APP · NO SIGNUP · DYNAMIC TEST'}
+        <!-- Prominent QR Box for Desktop / Mobile -->
+        <div class="mt-8 pt-6 border-t border-white/10 flex items-center gap-4 justify-center lg:justify-start reveal reveal-delay-3">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white p-2 rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.15)] flex-shrink-0 flex items-center justify-center">
+            <img src="/qr-playstore.svg" alt={t.hero.qrLabel} class="w-full h-full object-contain" />
+          </div>
+          <div class="text-left">
+            <p class="text-xs sm:text-sm font-bold text-white tracking-wide">{t.hero.qrLabel}</p>
+            <p class="text-[11px] sm:text-xs text-dark-muted font-medium mt-0.5">{t.hero.qrSublabel}</p>
+          </div>
+        </div>
+
+        <p class="text-xs text-dark-muted/60 mt-4 reveal reveal-delay-3 font-mono">
+          {locale === 'es' ? 'APP MÓVIL · TEST EN 10 MIN MÁX · INFORME DETALLADO' : 'MOBILE APP · 10 MIN MAX TEST · DETAILED REPORT'}
         </p>
       </div>
 
