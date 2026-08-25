@@ -36,11 +36,11 @@ const langPath = locale === 'es' ? '/en' : '/';
         
         <a id="nav-lang-switch" href={langPath} class="text-sm font-bold text-white/50 hover:text-white transition-colors">{t.langSwitch}</a>
         
-        <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-white/80 hover:text-white transition-colors">
+        <a href={dashboardUrl} target="_blank" rel="noopener noreferrer" class="nav-btn-login text-xs font-semibold px-4 py-2 rounded-full border border-white/20 text-white hover:bg-white/10 transition-all">
           {t.nav.login}
         </a>
 
-        <a href={playStoreUrl} target="_blank" rel="noopener noreferrer" class="px-5 py-2 text-xs font-bold text-dark-bg bg-white rounded-full hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300">
+        <a href={playStoreUrl} target="_blank" rel="noopener noreferrer" class="nav-btn-app px-5 py-2 text-xs font-bold text-white bg-primary rounded-full hover:bg-primary-dark hover:scale-105 transition-all duration-300 shadow-md">
           {t.nav.startFree}
         </a>
       </div>
@@ -111,11 +111,16 @@ const langPath = locale === 'es' ? '/en' : '/';
   #nav-container.scrolled #nav-lang-switch-mobile:hover {
     color: var(--color-text);
   }
-  #nav-container.scrolled a[href*="login"] {
-    color: var(--color-text-muted);
+  #nav-container.scrolled .nav-btn-login {
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
   }
-  #nav-container.scrolled a[href*="login"]:hover {
-    color: var(--color-primary);
+  #nav-container.scrolled .nav-btn-login:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+  }
+  #nav-container.scrolled .nav-btn-app {
+    background-color: var(--color-primary) !important;
+    color: #ffffff !important;
   }
   #nav-container.scrolled #mobile-menu-btn {
     color: var(--color-text);
@@ -132,8 +137,8 @@ const langPath = locale === 'es' ? '/en' : '/';
     background-color: rgba(220, 211, 197, 0.3);
   }
   #nav-container.scrolled ~ #mobile-menu a[href*="details?id="] {
-    color: var(--color-bg);
-    background-color: var(--color-text);
+    color: #ffffff;
+    background-color: var(--color-primary);
   }
 </style>
 

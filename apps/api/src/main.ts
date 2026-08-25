@@ -34,6 +34,9 @@ async function bootstrap() {
 
   const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? [
     'http://localhost:5173',
+    'http://localhost:4321',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:4321',
   ];
   app.enableCors({
     origin: (
@@ -43,7 +46,8 @@ async function bootstrap() {
       if (
         !origin ||
         allowedOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app')
+        origin.endsWith('.vercel.app') ||
+        (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))
       ) {
         callback(null, true);
       } else {

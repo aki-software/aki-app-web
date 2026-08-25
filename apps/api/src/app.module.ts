@@ -18,6 +18,7 @@ import { ReportsModule } from './reports/reports.module.js';
 import { BullModule } from '@nestjs/bullmq';
 import { RequestLoggerMiddleware } from './common/middlewares/request-logger.middleware.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
+import { ContactModule } from './contact/contact.module.js';
 import { resolvePaymentConfiguration } from './payments/config/payment-configuration.js';
 import { requireFirebaseProjectId } from './auth/config/firebase-project-id.js';
 
@@ -130,6 +131,7 @@ void _migrations;
     PaymentsModule,
     ReportsModule,
     NotificationsModule,
+    ContactModule,
   ],
   controllers: [HealthController],
   providers: [],
