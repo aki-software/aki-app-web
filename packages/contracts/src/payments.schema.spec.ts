@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { z } from 'zod';
 import {
   PaymentGateway,
   PricingPlan,
@@ -8,7 +7,41 @@ import {
   PaymentEventStatus,
   PaymentTransaction,
   BillingHistory,
+  CommercialSnapshot,
+  ExactDecimal,
+  Money,
 } from './payments';
+
+const id = '123e4567-e89b-12d3-a456-426614174000';
+const usd = { amountMinor: '1050', currency: 'USD' };
+const mercadoPago = {
+  kind: 'COMPLETE',
+  pricingPlanId: id,
+  planName: 'Basic',
+  voucherQuantity: 2,
+  listedUsd: usd,
+  charged: { amountMinor: '160000', currency: 'ARS' },
+  gateway: 'MERCADO_PAGO',
+  fxRate: '152.380952',
+  fxQuotedAt: '2026-01-01T00:00:00.000Z',
+  fxSource: 'DOLAR_API_BLUE',
+};
+const legacy = {
+  kind: 'LEGACY_PARTIAL',
+  pricingPlanId: null,
+  planName: null,
+  voucherQuantity: null,
+  listedUsd: null,
+  charged: null,
+  gateway: null,
+  fxRate: null,
+  fxQuotedAt: null,
+  fxSource: null,
+  missingFields: [
+    'pricingPlanId', 'planName', 'voucherQuantity', 'listedUsd', 'charged',
+    'gateway', 'fxRate', 'fxQuotedAt', 'fxSource',
+  ],
+};
 
 describe('Payment Schemas', () => {
   describe('PaymentGateway', () => {
@@ -46,13 +79,14 @@ describe('Payment Schemas', () => {
   });
 
   describe('CheckoutSessionResponse', () => {
-    it('should parse valid response', () => {
+    it('requires a checkout attempt and rejects stale event identity', () => {
       const response = {
         checkoutUrl: 'https://checkout.url',
-        voucherBatchId: '123e4567-e89b-12d3-a456-426614174000',
-        paymentEventId: '123e4567-e89b-12d3-a456-426614174001',
+        voucherBatchId: id,
+        checkoutAttemptId: id,
       };
       expect(CheckoutSessionResponse.parse(response)).toEqual(response);
+      expect(CheckoutSessionResponse.safeParse({ ...response, paymentEventId: id }).success).toBe(false);
     });
   });
 
@@ -75,6 +109,45 @@ describe('Payment Schemas', () => {
         },
       };
       expect(PaymentTransaction.parse(transaction)).toEqual(transaction);
+      expect(PaymentEventStatus.parse('APPROVED')).toBe('APPROVED');
+      expect(BillingHistory.parse({
+        transactions: [transaction], totalPaid: 10.5, currentBalance: 2,
+      })).toMatchObject({ totalPaid: 10.5 });
+    });
+  });
+
+  describe('commercial snapshots', () => {
+    it('uses exact money and decimal values', () => {
+      expect(Money.parse(usd)).toEqual(usd);
+      expect(ExactDecimal.parse('0.125')).toBe('0.125');
+      expect(Money.safeParse({ amountMinor: 1050, currency: 'usd' }).success).toBe(false);
+      expect(ExactDecimal.safeParse('1e2').success).toBe(false);
+    });
+
+    it('accepts Mercado Pago FX and Stripe USD snapshots', () => {
+      expect(CommercialSnapshot.parse(mercadoPago)).toEqual(mercadoPago);
+      const {
+        fxRate: _fxRate,
+        fxQuotedAt: _fxQuotedAt,
+        fxSource: _fxSource,
+        ...stripe
+      } = mercadoPago;
+      expect(CommercialSnapshot.parse({
+        ...stripe, gateway: 'STRIPE', charged: usd,
+      })).toMatchObject({ gateway: 'STRIPE', charged: usd });
+    });
+
+    it('rejects incomplete provider facts and dishonest legacy facts', () => {
+      expect(CommercialSnapshot.safeParse({ ...mercadoPago, fxRate: '01.2' }).success).toBe(false);
+      expect(CommercialSnapshot.safeParse({ ...mercadoPago, fxQuotedAt: undefined }).success).toBe(false);
+      expect(CommercialSnapshot.safeParse({ ...mercadoPago, gateway: 'STRIPE' }).success).toBe(false);
+      expect(CommercialSnapshot.parse(legacy)).toEqual(legacy);
+      expect(CommercialSnapshot.safeParse({ ...legacy, planName: 'invented' }).success).toBe(false);
+      expect(CommercialSnapshot.safeParse({ ...legacy, missingFields: legacy.missingFields.slice(1) }).success).toBe(false);
+      expect(CommercialSnapshot.safeParse({
+        ...legacy,
+        missingFields: [...legacy.missingFields, 'planName'],
+      }).success).toBe(false);
     });
   });
 });
