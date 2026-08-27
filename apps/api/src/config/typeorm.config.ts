@@ -15,6 +15,7 @@ import { TresAreasCombination } from '../tres-areas/entities/tres-areas-combinat
 import { PricingPlan } from '../payments/entities/pricing-plan.entity.js';
 import { PaymentEvent } from '../payments/entities/payment-event.entity.js';
 import { PaymentFulfillmentOutbox } from '../payments/entities/payment-fulfillment-outbox.entity.js';
+import { CheckoutAttempt } from '../payments/entities/checkout-attempt.entity.js';
 import { Report } from '../reports/entities/report.entity.js';
 import { ReportGrant } from '../reports/entities/report-grant.entity.js';
 import { ReportAccessAudit } from '../reports/entities/report-access-audit.entity.js';
@@ -48,6 +49,7 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         PricingPlan,
         PaymentEvent,
         PaymentFulfillmentOutbox,
+        CheckoutAttempt,
         Report,
         ReportGrant,
         ReportAccessAudit,
@@ -80,6 +82,7 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
         PricingPlan,
         PaymentEvent,
         PaymentFulfillmentOutbox,
+        CheckoutAttempt,
         Report,
         ReportGrant,
         ReportAccessAudit,
