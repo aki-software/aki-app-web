@@ -14,6 +14,7 @@ import { GooglePlayAdapter } from './google-play.adapter.js';
 import { PricingPlan } from './entities/pricing-plan.entity.js';
 import { PaymentEvent } from './entities/payment-event.entity.js';
 import { PaymentFulfillmentOutbox } from './entities/payment-fulfillment-outbox.entity.js';
+import { CheckoutAttempt } from './entities/checkout-attempt.entity.js';
 import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
 import { PaymentGatewayModule } from './payment-gateway.module.js';
 import { VoucherFulfillmentDispatcherService } from './services/voucher-fulfillment-dispatcher.service.js';
@@ -26,6 +27,7 @@ import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.proc
       PaymentEvent,
       VoucherBatch,
       PaymentFulfillmentOutbox,
+      CheckoutAttempt,
     ]),
     BullModule.registerQueue({ name: 'voucher-fulfillment' }),
     SessionsModule,
