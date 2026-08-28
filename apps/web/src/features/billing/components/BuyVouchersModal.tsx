@@ -5,6 +5,8 @@ import { GatewaySelector } from './GatewaySelector';
 import { usePricingPlans, useCheckout } from '../hooks/useBilling';
 import { Spinner } from '../../../components/atoms/Spinner';
 
+export const CHECKOUT_ATTEMPT_STORAGE_KEY = 'akit.billing.checkoutAttemptId';
+
 interface BuyVouchersModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,6 +41,7 @@ export function BuyVouchersModal({ isOpen, onClose, preselectedPlanId }: BuyVouc
         planId: selectedPlanId,
         gateway: selectedGateway,
       });
+      sessionStorage.setItem(CHECKOUT_ATTEMPT_STORAGE_KEY, response.checkoutAttemptId);
       window.location.href = response.checkoutUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to initiate checkout. Please try again.');

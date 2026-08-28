@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { billingApi } from '../api/billing.api';
-import { CheckoutSessionRequest, CheckoutSessionResponse, PricingPlan, BillingHistory } from '@akit/contracts';
+import { CheckoutSessionRequest, CheckoutSessionResponse, PricingPlan, BillingHistory, PaymentStatus } from '@akit/contracts';
 
 export function usePricingPlans() {
   const [data, setData] = useState<PricingPlan[] | null>(null);
@@ -50,6 +50,24 @@ export function useBillingHistory() {
   }, [fetchHistory]);
 
   return { data, isLoading, error, refetch: fetchHistory };
+}
+
+export function useCheckoutAttemptStatus(id: string | null) {
+  const [data, setData] = useState<PaymentStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(Boolean(id));
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchStatus = useCallback(async () => {
+    if (!id) return;
+    setIsLoading(true);
+    setError(null);
+    try { setData(await billingApi.getCheckoutAttemptStatus(id)); }
+    catch (err) { setError(err instanceof Error ? err : new Error(String(err))); }
+    finally { setIsLoading(false); }
+  }, [id]);
+
+  useEffect(() => { fetchStatus(); }, [fetchStatus]);
+  return { data, isLoading, error, refetch: fetchStatus };
 }
 
 export function useCheckout() {
