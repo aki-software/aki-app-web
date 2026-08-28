@@ -37,10 +37,13 @@ describe('CheckoutService', () => {
     batches = [];
     savedEntityTypes = [];
     mpAdapter = {
-      createCheckout: jest.fn().mockResolvedValue({
-        checkoutUrl: 'https://checkout.example/mp',
-        externalReference: 'mp-ref',
-      }),
+      createCheckout: jest.fn().mockImplementation((request) =>
+        Promise.resolve({
+          checkoutUrl: 'https://checkout.example/mp',
+          externalReference: 'mp-ref',
+          merchantReference: request.voucherBatchId,
+        }),
+      ),
     };
     stripeAdapter = {
       createCheckout: jest.fn().mockResolvedValue({
@@ -54,6 +57,31 @@ describe('CheckoutService', () => {
         entityTypes.set(value, entityType);
         return value;
       }),
+      findOneBy: jest.fn(
+        (entityType: unknown, where: Record<string, unknown>) =>
+          Promise.resolve(
+            (entityType === CheckoutAttempt ? attempts : batches).find((item) =>
+              Object.entries(where).every(
+                ([key, value]) => item[key] === value,
+              ),
+            ) ?? null,
+          ),
+      ),
+      update: jest.fn(
+        (
+          entityType: unknown,
+          where: Record<string, unknown>,
+          partial: Record<string, unknown>,
+        ) => {
+          const collection =
+            entityType === CheckoutAttempt ? attempts : batches;
+          const current = collection.find((item) =>
+            Object.entries(where).every(([key, value]) => item[key] === value),
+          );
+          if (current) Object.assign(current, partial);
+          return Promise.resolve({ affected: current ? 1 : 0 });
+        },
+      ),
       save: jest.fn(
         (entityOrValue: unknown, partial?: Record<string, unknown>) => {
           const value = partial ?? (entityOrValue as Record<string, unknown>);
@@ -194,6 +222,61 @@ describe('CheckoutService', () => {
     expect(mpAdapter.createCheckout).toHaveBeenCalledWith(
       expect.objectContaining({ priceUsd: 10, priceArs: 15000 }),
     );
+  });
+
+  it('marks an MP timeout OUTCOME_UNKNOWN and retries the same durable key to READY', async () => {
+    mpAdapter.createCheckout.mockRejectedValueOnce(
+      Object.assign(new Error('request timeout'), { code: 'ETIMEDOUT' }),
+    );
+    const request = {
+      planId: '55555555-5555-4555-8555-555555555555',
+      gateway: 'MERCADO_PAGO' as const,
+      userId: USER_ID,
+      institutionId: INSTITUTION_ID,
+      buyerEmail: 'buyer@example.com',
+      idempotencyKey: 'mp-timeout-key',
+    };
+    await expect(service.initiateCheckout(request)).rejects.toThrow(
+      'request timeout',
+    );
+    expect(attempts[0]).toEqual(
+      expect.objectContaining({ state: 'OUTCOME_UNKNOWN' }),
+    );
+    const providerKey = attempts[0].providerIdempotencyKey;
+
+    await expect(service.initiateCheckout(request)).resolves.toEqual(
+      expect.objectContaining({ checkoutAttemptId: attempts[0].id }),
+    );
+    expect(attempts[0]).toEqual(
+      expect.objectContaining({
+        state: 'READY',
+        providerIdempotencyKey: providerKey,
+      }),
+    );
+    expect(mpAdapter.createCheckout).toHaveBeenCalledTimes(2);
+    expect(
+      mpAdapter.createCheckout.mock.calls[1][0].providerIdempotencyKey,
+    ).toBe(providerKey);
+  });
+
+  it('fails closed when MP returns a mismatched batch reference', async () => {
+    mpAdapter.createCheckout.mockResolvedValueOnce({
+      checkoutUrl: 'https://checkout.example/mp',
+      externalReference: 'mp-ref',
+      merchantReference: 'other-batch',
+    });
+    await expect(
+      service.initiateCheckout({
+        planId: '55555555-5555-4555-8555-555555555555',
+        gateway: 'MERCADO_PAGO',
+        userId: USER_ID,
+        institutionId: INSTITUTION_ID,
+        buyerEmail: 'buyer@example.com',
+        idempotencyKey: 'mp-reference-key',
+      }),
+    ).rejects.toThrow('reference mismatch');
+    expect(attempts[0]).toEqual(expect.objectContaining({ state: 'FAILED' }));
+    expect(attempts[0].providerCheckoutUrl).toBeUndefined();
   });
 
   it('returns a READY attempt for the same digest without another provider call', async () => {

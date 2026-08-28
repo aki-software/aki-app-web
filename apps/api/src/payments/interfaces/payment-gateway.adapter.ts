@@ -24,6 +24,8 @@ export interface CheckoutRequest {
 export interface CheckoutResponse {
   checkoutUrl: string;
   externalReference: string;
+  /** Provider-confirmed merchant reference, when the checkout API returns it. */
+  merchantReference?: string;
 }
 
 export interface PaymentGatewayAdapter {
