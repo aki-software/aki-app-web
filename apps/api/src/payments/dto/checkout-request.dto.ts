@@ -18,6 +18,11 @@ export class CheckoutRequestDto {
 
   @IsString()
   @IsOptional()
+  @Length(36, 36)
+  checkoutAttemptId?: string;
+
+  @IsString()
+  @IsOptional()
   @IsUrl({ protocols: ['https'], require_protocol: true })
   @Length(1, 2048)
   successUrl?: string;

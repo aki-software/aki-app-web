@@ -17,6 +17,8 @@ export interface CheckoutRequest {
   notificationUrl: string;
   buyerEmail: string;
   description: string;
+  /** Persisted for provider-side idempotency when an adapter supports it. */
+  providerIdempotencyKey: string;
 }
 
 export interface CheckoutResponse {

@@ -239,31 +239,42 @@ describe('Phase 2 review remediation', () => {
   });
 
   it('does not persist a PENDING batch when checkout URL configuration is invalid', async () => {
-    const save = jest.fn();
+    const transaction = jest.fn();
     const service = new CheckoutService(
       {} as never,
       { createCheckout: jest.fn() } as never,
-      { findOneBy: jest.fn() } as never,
-      { create: jest.fn(), save, findOneBy: jest.fn() } as never,
-      { getUsdToArsRate: jest.fn() } as never,
+      {
+        findOneBy: jest.fn().mockResolvedValue({
+          id: 'plan-1',
+          priceUsd: '10.00',
+          voucherQuantity: 1,
+          name: 'Starter',
+        }),
+      } as never,
+      { getUsdToArsQuote: jest.fn() } as never,
+      { findOneBy: jest.fn(), manager: { transaction } } as never,
     );
     const originalFrontendUrl = process.env.FRONTEND_URL;
     const originalApiUrl = process.env.API_URL;
+    const originalIdempotencySecret = process.env.PAYMENT_IDEMPOTENCY_SECRET;
     process.env.FRONTEND_URL = 'http://invalid.example';
     process.env.API_URL = 'https://api.akit.example';
+    process.env.PAYMENT_IDEMPOTENCY_SECRET = 'a'.repeat(32);
 
     await expect(
       service.initiateCheckout({
         planId: 'plan-1',
         gateway: 'STRIPE',
         institutionId: 'tenant-1',
+        userId: 'buyer-1',
         buyerEmail: 'billing@akit.example',
-        idempotencyKey: 'key-12345678',
+        idempotencyKey: 'checkout-idempotency-placeholder',
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
-    expect(save).not.toHaveBeenCalled();
+    expect(transaction).not.toHaveBeenCalled();
 
     process.env.FRONTEND_URL = originalFrontendUrl;
     process.env.API_URL = originalApiUrl;
+    process.env.PAYMENT_IDEMPOTENCY_SECRET = originalIdempotencySecret;
   });
 });

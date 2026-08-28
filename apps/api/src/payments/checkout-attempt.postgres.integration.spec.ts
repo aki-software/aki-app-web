@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { CreateCheckoutAttempts1787370000000 } from '../migrations/1787370000000-CreateCheckoutAttempts.js';
 
@@ -125,6 +126,30 @@ describeIntegration('CheckoutAttempt PostgreSQL persistence', () => {
     await expect(
       insert({ institution: institutionA, buyer, digest: null }),
     ).resolves.toBeDefined();
+    await expect(
+      insert({
+        institution: institutionA,
+        buyer,
+        providerIdempotencyKey: 'invalid',
+      }),
+    ).rejects.toThrow();
+    const providerKey = `bbbbbbbbbbb${'c'.repeat(32)}`;
+    await expect(
+      insert({
+        institution: institutionA,
+        buyer,
+        digest: 'd'.repeat(64),
+        providerIdempotencyKey: providerKey,
+      }),
+    ).resolves.toBeDefined();
+    await expect(
+      insert({
+        institution: institutionB,
+        buyer,
+        digest: 'e'.repeat(64),
+        providerIdempotencyKey: providerKey,
+      }),
+    ).rejects.toThrow();
 
     const event = await uuid('payment_event');
     await expect(
@@ -255,6 +280,12 @@ describeIntegration('CheckoutAttempt PostgreSQL persistence', () => {
     ).rejects.toThrow('immutable');
     await expect(
       dataSource.query(
+        "UPDATE checkout_attempts SET provider_idempotency_key = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' WHERE id = $1",
+        [attempt.id],
+      ),
+    ).rejects.toThrow('immutable');
+    await expect(
+      dataSource.query(
         "UPDATE checkout_attempts SET state = 'READY', provider_checkout_url = 'https://provider.test/checkout' WHERE id = $1",
         [attempt.id],
       ),
@@ -299,10 +330,11 @@ describeIntegration('CheckoutAttempt PostgreSQL persistence', () => {
       dataSource.query(`
         SELECT indexname FROM pg_indexes
         WHERE tablename IN ('checkout_attempts', 'payment_event')
-          AND indexname IN ('IDX_checkout_attempts_tenant_client_key_digest', 'IDX_checkout_attempts_tenant_state', 'IDX_payment_event_checkout_attempt_id')
+          AND indexname IN ('IDX_checkout_attempts_provider_idempotency_key', 'IDX_checkout_attempts_tenant_client_key_digest', 'IDX_checkout_attempts_tenant_state', 'IDX_payment_event_checkout_attempt_id')
         ORDER BY indexname
       `),
     ).resolves.toEqual([
+      { indexname: 'IDX_checkout_attempts_provider_idempotency_key' },
       { indexname: 'IDX_checkout_attempts_tenant_client_key_digest' },
       { indexname: 'IDX_checkout_attempts_tenant_state' },
       { indexname: 'IDX_payment_event_checkout_attempt_id' },
@@ -345,6 +377,7 @@ describeIntegration('CheckoutAttempt PostgreSQL persistence', () => {
     batch = null,
     digest: clientDigest = digest,
     requestFingerprint = fingerprint,
+    providerIdempotencyKey = `aaaaaaaaaaa${randomUUID().replace(/-/g, '')}`,
     gateway = 'STRIPE',
     snapshot = completeSnapshot,
   }: {
@@ -353,18 +386,20 @@ describeIntegration('CheckoutAttempt PostgreSQL persistence', () => {
     batch?: string | null;
     digest?: string | null;
     requestFingerprint?: string;
+    providerIdempotencyKey?: string;
     gateway?: 'MERCADO_PAGO' | 'STRIPE' | 'OTHER';
     snapshot?: object;
   }): Promise<{ id: string }> {
     const result: unknown = await dataSource.query(
-      `INSERT INTO checkout_attempts (owner_institution_id, buyer_user_id, gateway, state, client_key_digest, request_fingerprint, commercial_snapshot, voucher_batch_id)
-       VALUES ($1, $2, $3, 'CREATED', $4, $5, $6, $7) RETURNING id`,
+      `INSERT INTO checkout_attempts (owner_institution_id, buyer_user_id, gateway, state, client_key_digest, request_fingerprint, provider_idempotency_key, commercial_snapshot, voucher_batch_id)
+       VALUES ($1, $2, $3, 'CREATED', $4, $5, $6, $7, $8) RETURNING id`,
       [
         institution,
         buyer,
         gateway,
         clientDigest,
         requestFingerprint,
+        providerIdempotencyKey,
         snapshot,
         batch,
       ],
