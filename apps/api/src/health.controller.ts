@@ -1,4 +1,5 @@
 import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import { getPaymentReadiness } from './payments/config/payment-configuration.js';
 
 @Controller()
 export class HealthController {
@@ -9,6 +10,7 @@ export class HealthController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
+      payment: getPaymentReadiness(process.env),
     };
   }
 

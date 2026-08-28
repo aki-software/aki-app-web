@@ -1,4 +1,8 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CheckoutService } from './checkout.service';
 import {
@@ -31,7 +35,9 @@ describe('CheckoutService', () => {
 
   beforeEach(async () => {
     process.env.PAYMENT_IDEMPOTENCY_SECRET = 'a'.repeat(32);
+    process.env.PAYMENT_GATEWAY = 'STRIPE';
     process.env.FRONTEND_URL = 'https://app.example.com';
+
     process.env.API_URL = 'https://api.example.com';
     attempts = [];
     batches = [];
@@ -154,6 +160,27 @@ describe('CheckoutService', () => {
   });
 
   afterEach(() => jest.restoreAllMocks());
+
+  it('rejects Stripe before persistence or provider calls when Mercado Pago is active', async () => {
+    process.env.PAYMENT_GATEWAY = 'MERCADO_PAGO';
+
+    await expect(
+      service.initiateCheckout({
+        planId: '55555555-5555-4555-8555-555555555555',
+        gateway: 'STRIPE',
+        userId: USER_ID,
+        institutionId: INSTITUTION_ID,
+        buyerEmail: 'buyer@example.com',
+        idempotencyKey: 'stripe-disabled-key',
+      }),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
+
+    expect(pricingPlanRepository.findOneBy).not.toHaveBeenCalled();
+    expect(attemptRepository.findOneBy).not.toHaveBeenCalled();
+    expect(attemptRepository.manager.transaction).not.toHaveBeenCalled();
+    expect(stripeAdapter.createCheckout).not.toHaveBeenCalled();
+    expect(mpAdapter.createCheckout).not.toHaveBeenCalled();
+  });
 
   it('creates an exact Stripe COMPLETE USD snapshot and persists only derived idempotency values before provider I/O', async () => {
     const response = await service.initiateCheckout({
