@@ -7,6 +7,8 @@ import {
   Headers,
   UseGuards,
   Request,
+  Param,
+  Res,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service.js';
 import { CheckoutService } from './services/checkout.service.js';
@@ -17,7 +19,7 @@ import { GooglePlayPatientGuard } from '../auth/guards/google-play-patient.guard
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { CheckoutSessionResponse, UserRole } from '@akit/contracts';
-import type { Request as ExpressRequest } from 'express';
+import type { Request as ExpressRequest, Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PricingPlan } from './entities/pricing-plan.entity.js';
@@ -119,6 +121,21 @@ export class PaymentsController {
         'X-Idempotency-Key must be supplied exactly once',
       );
     }
+  }
+
+  @Get('checkout-attempts/:checkoutAttemptId/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.INSTITUTION_ADMIN)
+  async getCheckoutAttemptStatus(
+    @Param('checkoutAttemptId') checkoutAttemptId: string,
+    @Request() req: RequestWithUser,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    response.setHeader('Cache-Control', 'private, no-store');
+    return this.paymentsService.getCheckoutAttemptStatus(checkoutAttemptId, {
+      userId: req.user.userId,
+      institutionId: req.user.institutionId,
+    });
   }
 
   @Get('history')

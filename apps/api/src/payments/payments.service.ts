@@ -4,17 +4,20 @@ import {
   HttpException,
   Logger,
   ServiceUnavailableException,
+  NotFoundException,
 } from '@nestjs/common';
 import { VerifyPlayPurchaseDto } from './dto/verify-play-purchase.dto';
 import { SessionsQueryService } from '../sessions/services/sessions-query.service';
 import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
 import { SessionOwnerResolverService } from '../sessions/services/session-owner-resolver.service';
-import { SessionPaymentStatus } from '@akit/contracts';
+import { PaymentStatus, SessionPaymentStatus } from '@akit/contracts';
 import type { androidpublisher_v3 } from 'googleapis';
 import { GooglePlayAdapter } from './google-play.adapter.js';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
+import { PaymentEvent } from './entities/payment-event.entity.js';
+import { CheckoutAttempt } from './entities/checkout-attempt.entity.js';
 import { Voucher } from '../vouchers/entities/voucher.entity.js';
 import type { Session } from '../sessions/entities/session.entity.js';
 import {
@@ -23,6 +26,7 @@ import {
 } from '../vouchers/entities/voucher.enums.js';
 import type {
   BillingHistory,
+  CommercialSnapshot,
   PaymentGateway,
   PaymentEventStatus,
 } from '@akit/contracts';
@@ -44,6 +48,98 @@ export class PaymentsService {
     private readonly googlePlayAdapter: GooglePlayAdapter,
     @InjectDataSource() private dataSource: DataSource,
   ) {}
+
+  async getCheckoutAttemptStatus(
+    checkoutAttemptId: string,
+    principal: { userId: string; institutionId: string },
+  ): Promise<PaymentStatus> {
+    const attempt = await this.dataSource.manager.findOne(CheckoutAttempt, {
+      where: {
+        id: checkoutAttemptId,
+        buyerUserId: principal.userId,
+        ownerInstitutionId: principal.institutionId,
+      },
+      relations: { voucherBatch: true },
+    });
+    if (!attempt) throw new NotFoundException('Checkout attempt not found');
+
+    const paymentEvent = await this.dataSource.manager.findOne(PaymentEvent, {
+      where: attempt.voucherBatchId
+        ? [
+            { checkoutAttemptId: attempt.id },
+            { voucherBatchId: attempt.voucherBatchId },
+          ]
+        : { checkoutAttemptId: attempt.id },
+      order: { createdAt: 'DESC' },
+    });
+    const voucherBatch = attempt.voucherBatch;
+    const commercialSnapshot: CommercialSnapshot = attempt.commercialSnapshot;
+    const paymentState = this.paymentState(
+      attempt.state,
+      voucherBatch?.status,
+      paymentEvent?.status,
+    );
+    const fulfillmentState = this.fulfillmentState(
+      paymentState,
+      voucherBatch?.status,
+      voucherBatch?.fulfilledAt,
+      voucherBatch,
+    );
+    const issuedVoucherCount = voucherBatch?.fulfilledAt
+      ? voucherBatch.quantity
+      : null;
+    const expectedVoucherCount = commercialSnapshot.voucherQuantity;
+
+    return PaymentStatus.parse({
+      paymentState,
+      fulfillmentState,
+      provider: attempt.gateway,
+      providerFreshness: 'NOT_OBSERVED',
+      observedAt: null,
+      staleAfter: null,
+      checkoutAttemptId: attempt.id,
+      paymentEventId: paymentEvent?.id ?? null,
+      voucherBatchId: attempt.voucherBatchId,
+      commercialSnapshot,
+      chargedTotal: commercialSnapshot.charged,
+      issuedVoucherCount,
+      expectedVoucherCount,
+      voucherDiscrepancy:
+        issuedVoucherCount === null || expectedVoucherCount === null
+          ? null
+          : issuedVoucherCount - expectedVoucherCount,
+    });
+  }
+
+  private paymentState(
+    attemptState: CheckoutAttempt['state'],
+    batchStatus: VoucherBatchStatus | undefined,
+    eventStatus: PaymentEvent['status'] | undefined,
+  ): PaymentStatus['paymentState'] {
+    if (eventStatus === 'APPROVED') return 'PAID';
+    if (eventStatus === 'REJECTED') return 'FAILED';
+    if (eventStatus === 'EXPIRED') return 'EXPIRED';
+    if (eventStatus === 'PENDING') return 'PENDING';
+    if (batchStatus === VoucherBatchStatus.PAID) return 'PAID';
+    if (batchStatus === VoucherBatchStatus.FAILED) return 'FAILED';
+    if (batchStatus === VoucherBatchStatus.CANCELLED) return 'CANCELLED';
+    if (batchStatus === VoucherBatchStatus.REFUNDED) return 'REFUNDED';
+    if (attemptState === 'FAILED') return 'FAILED';
+    if (attemptState === 'OUTCOME_UNKNOWN') return 'UNKNOWN';
+    return 'PENDING';
+  }
+
+  private fulfillmentState(
+    paymentState: PaymentStatus['paymentState'],
+    batchStatus: VoucherBatchStatus | undefined,
+    fulfilledAt: Date | null | undefined,
+    voucherBatch: VoucherBatch | null,
+  ): PaymentStatus['fulfillmentState'] {
+    if (batchStatus === VoucherBatchStatus.REFUNDED) return 'REVOKED';
+    if (paymentState !== 'PAID') return 'NOT_APPLICABLE';
+    if (!voucherBatch) return 'BLOCKED';
+    return fulfilledAt ? 'FULFILLED' : 'QUEUED';
+  }
 
   async getBillingHistory(institutionId: string): Promise<BillingHistory> {
     const batches = await this.dataSource.manager.find(VoucherBatch, {

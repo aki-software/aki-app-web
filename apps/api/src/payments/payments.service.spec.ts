@@ -8,7 +8,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsService } from './payments.service';
 import { SessionsQueryService } from '../sessions/services/sessions-query.service';
 import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
-import { SessionPaymentStatus } from '@akit/contracts';
+import { PaymentStatus, SessionPaymentStatus } from '@akit/contracts';
+import { CheckoutAttempt } from './entities/checkout-attempt.entity';
+import { PaymentEvent } from './entities/payment-event.entity';
+import { VoucherBatchStatus } from '../vouchers/entities/voucher.enums';
 import { GooglePlayAdapter } from './google-play.adapter';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { SessionOwnerResolverService } from '../sessions/services/session-owner-resolver.service';
@@ -55,6 +58,7 @@ describe('PaymentsService', () => {
             manager: {
               find: jest.fn().mockResolvedValue([]),
               count: jest.fn().mockResolvedValue(0),
+              findOne: jest.fn(),
             },
           },
         },
@@ -66,6 +70,128 @@ describe('PaymentsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('getCheckoutAttemptStatus', () => {
+    const attemptId = '11111111-1111-4111-8111-111111111111';
+    const userId = '22222222-2222-4222-8222-222222222222';
+    const institutionId = '33333333-3333-4333-8333-333333333333';
+
+    it('returns the owned persisted status without a provider call', async () => {
+      const attempt = {
+        id: attemptId,
+        buyerUserId: userId,
+        ownerInstitutionId: institutionId,
+        gateway: 'MERCADO_PAGO',
+        state: 'READY',
+        voucherBatchId: '44444444-4444-4444-8444-444444444444',
+        commercialSnapshot: {
+          kind: 'COMPLETE',
+          pricingPlanId: '55555555-5555-4555-8555-555555555555',
+          planName: 'Persisted plan',
+          voucherQuantity: 3,
+          listedUsd: { amountMinor: '9007199254740993', currency: 'USD' },
+          charged: { amountMinor: '12345678901234567890', currency: 'ARS' },
+          gateway: 'MERCADO_PAGO',
+          fxRate: '1000.5',
+          fxQuotedAt: '2026-01-01T00:00:00.000Z',
+          fxSource: 'TEST_SOURCE',
+        },
+        voucherBatch: {
+          id: '44444444-4444-4444-8444-444444444444',
+          quantity: 3,
+          status: VoucherBatchStatus.PAID,
+          fulfilledAt: new Date('2026-01-02T00:00:00.000Z'),
+        },
+      };
+      const paymentEvent = {
+        id: '66666666-6666-4666-8666-666666666666',
+        status: 'APPROVED',
+      };
+      const findOne = (service as any).dataSource.manager.findOne as jest.Mock;
+      findOne.mockImplementation((entity) =>
+        entity === CheckoutAttempt ? attempt : paymentEvent,
+      );
+
+      const result = await service.getCheckoutAttemptStatus(attemptId, {
+        userId,
+        institutionId,
+      });
+
+      expect(result).toMatchObject({
+        paymentState: 'PAID',
+        fulfillmentState: 'FULFILLED',
+        providerFreshness: 'NOT_OBSERVED',
+        observedAt: null,
+        staleAfter: null,
+        chargedTotal: { amountMinor: '12345678901234567890', currency: 'ARS' },
+      });
+      expect(result.commercialSnapshot.charged).toEqual({
+        amountMinor: '12345678901234567890',
+        currency: 'ARS',
+      });
+      expect(PaymentStatus.safeParse(result).success).toBe(true);
+      expect(findOne).toHaveBeenNthCalledWith(1, CheckoutAttempt, {
+        where: {
+          id: attemptId,
+          buyerUserId: userId,
+          ownerInstitutionId: institutionId,
+        },
+        relations: { voucherBatch: true },
+      });
+      expect(findOne).toHaveBeenNthCalledWith(2, PaymentEvent, {
+        where: [
+          { checkoutAttemptId: attempt.id },
+          { voucherBatchId: attempt.voucherBatchId },
+        ],
+        order: { createdAt: 'DESC' },
+      });
+      expect(
+        (service as any).googlePlayAdapter.getAndroidPublisher,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('returns the same not found result for foreign and unknown attempts', async () => {
+      const findOne = (service as any).dataSource.manager.findOne as jest.Mock;
+      findOne.mockResolvedValue(null);
+      const principal = { userId, institutionId };
+      const foreignPrincipal = {
+        userId: '88888888-8888-4888-8888-888888888888',
+        institutionId,
+      };
+
+      await expect(
+        service.getCheckoutAttemptStatus(attemptId, foreignPrincipal),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(
+        service.getCheckoutAttemptStatus(
+          '77777777-7777-4777-8777-777777777777',
+          principal,
+        ),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(findOne).toHaveBeenNthCalledWith(
+        1,
+        CheckoutAttempt,
+        expect.objectContaining({
+          where: {
+            id: attemptId,
+            buyerUserId: foreignPrincipal.userId,
+            ownerInstitutionId: institutionId,
+          },
+        }),
+      );
+      expect(findOne).toHaveBeenNthCalledWith(
+        2,
+        CheckoutAttempt,
+        expect.objectContaining({
+          where: {
+            id: '77777777-7777-4777-8777-777777777777',
+            buyerUserId: userId,
+            ownerInstitutionId: institutionId,
+          },
+        }),
+      );
+    });
   });
 
   it('resolves a Firebase patient UID to the internal patient ID before querying the session', async () => {

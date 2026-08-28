@@ -6,6 +6,7 @@ import { CheckoutService } from './services/checkout.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PricingPlan } from './entities/pricing-plan.entity';
 import { RateLimitService } from '../common/services/rate-limit.service';
+import type { PaymentStatus } from '@akit/contracts';
 
 describe('PaymentsController', () => {
   let controller: PaymentsController;
@@ -20,6 +21,7 @@ describe('PaymentsController', () => {
           provide: PaymentsService,
           useValue: {
             verifyGooglePlayPurchase: jest.fn(),
+            getCheckoutAttemptStatus: jest.fn(),
           },
         },
         {
@@ -85,6 +87,62 @@ describe('PaymentsController', () => {
           institutionId: '55555555-5555-4555-8555-555555555555',
           idempotencyKey: 'client-key',
         }),
+      );
+    });
+  });
+
+  describe('getCheckoutAttemptStatus', () => {
+    it('forwards route and authenticated scope and disables caching', async () => {
+      const status: PaymentStatus = {
+        paymentState: 'PENDING',
+        fulfillmentState: 'NOT_APPLICABLE',
+        provider: 'STRIPE',
+        providerFreshness: 'NOT_OBSERVED',
+        observedAt: null,
+        staleAfter: null,
+        checkoutAttemptId: '11111111-1111-4111-8111-111111111111',
+        paymentEventId: null,
+        voucherBatchId: null,
+        commercialSnapshot: {
+          kind: 'COMPLETE',
+          pricingPlanId: '22222222-2222-4222-8222-222222222222',
+          planName: 'Plan',
+          voucherQuantity: 1,
+          listedUsd: { amountMinor: '100', currency: 'USD' },
+          charged: { amountMinor: '100', currency: 'USD' },
+          gateway: 'STRIPE',
+        },
+        chargedTotal: { amountMinor: '100', currency: 'USD' },
+        issuedVoucherCount: null,
+        expectedVoucherCount: 1,
+        voucherDiscrepancy: null,
+      };
+      jest.mocked(service.getCheckoutAttemptStatus).mockResolvedValue(status);
+      const response = { setHeader: jest.fn() };
+      const request = {
+        user: {
+          userId: '33333333-3333-4333-8333-333333333333',
+          institutionId: '44444444-4444-4444-8444-444444444444',
+        },
+      };
+
+      await expect(
+        controller.getCheckoutAttemptStatus(
+          '11111111-1111-4111-8111-111111111111',
+          request as never,
+          response as never,
+        ),
+      ).resolves.toEqual(status);
+      expect(service.getCheckoutAttemptStatus).toHaveBeenCalledWith(
+        '11111111-1111-4111-8111-111111111111',
+        {
+          userId: '33333333-3333-4333-8333-333333333333',
+          institutionId: '44444444-4444-4444-8444-444444444444',
+        },
+      );
+      expect(response.setHeader).toHaveBeenCalledWith(
+        'Cache-Control',
+        'private, no-store',
       );
     });
   });
