@@ -4,6 +4,7 @@ import {
   Injectable,
   Inject,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import {
   PAYMENT_GATEWAY_MP,
@@ -35,6 +36,7 @@ import {
   createProviderIdempotencyKey,
   createRequestFingerprint,
 } from '../utils/checkout-idempotency.js';
+import { isMercadoPagoOnly } from '../config/payment-configuration.js';
 
 interface InitiateCheckoutParams {
   planId: string;
@@ -62,6 +64,11 @@ export class CheckoutService {
   ) {}
 
   async initiateCheckout(params: InitiateCheckoutParams) {
+    if (params.gateway === 'STRIPE' && isMercadoPagoOnly(process.env)) {
+      throw new ServiceUnavailableException(
+        'Stripe checkout is unavailable while Mercado Pago is active',
+      );
+    }
     const clientKey = this.requireIdempotencyKey(params.idempotencyKey);
     const userId = this.requireBuyer(params.userId);
     const secret = this.requireIdempotencySecret();
