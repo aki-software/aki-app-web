@@ -8,6 +8,7 @@ import {
 import {
   PAYMENT_GATEWAY_MP,
   PAYMENT_GATEWAY_STRIPE,
+  type CheckoutRequest,
   type PaymentGatewayAdapter,
 } from '../interfaces/payment-gateway.adapter.js';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -81,7 +82,19 @@ export class CheckoutService {
     });
     const digest = createClientKeyDigest(clientKey, secret);
     const existing = await this.findExisting(params, userId, digest);
-    if (existing) return this.resumeExisting(existing, fingerprint, digest);
+    if (existing) {
+      if (params.gateway === 'MERCADO_PAGO') {
+        return this.resumeMercadoPago(
+          existing,
+          fingerprint,
+          digest,
+          params,
+          urls,
+          plan,
+        );
+      }
+      return this.resumeExisting(existing, fingerprint, digest);
+    }
     if (params.checkoutAttemptId) {
       throw new NotFoundException('Checkout attempt not found');
     }
@@ -116,51 +129,52 @@ export class CheckoutService {
           shortCode: randomBytes(4).toString('hex').toUpperCase(),
         });
         await manager.save(voucherBatch);
-        const attempt = manager.create(CheckoutAttempt, {
-          id: attemptId,
-          ownerInstitutionId: params.institutionId,
-          buyerUserId: userId,
-          gateway: params.gateway,
-          state: 'PROVIDER_CREATING',
-          clientKeyDigest: digest,
-          requestFingerprint: fingerprint,
-          providerIdempotencyKey,
-          commercialSnapshot: snapshot,
-          voucherBatchId: batchId,
-          voucherBatch,
-        });
-        await manager.save(attempt);
+        await manager.save(
+          manager.create(CheckoutAttempt, {
+            id: attemptId,
+            ownerInstitutionId: params.institutionId,
+            buyerUserId: userId,
+            gateway: params.gateway,
+            state: 'PROVIDER_CREATING',
+            clientKeyDigest: digest,
+            requestFingerprint: fingerprint,
+            providerIdempotencyKey,
+            commercialSnapshot: snapshot,
+            voucherBatchId: batchId,
+            voucherBatch,
+          }),
+        );
         return voucherBatch;
       },
     );
 
-    const adapter =
-      params.gateway === 'MERCADO_PAGO' ? this.mpAdapter : this.stripeAdapter;
+    if (params.gateway === 'MERCADO_PAGO') {
+      return this.createMercadoPagoCheckout(
+        {
+          id: attemptId,
+          voucherBatchId: batchId,
+          commercialSnapshot: snapshot,
+          providerIdempotencyKey,
+          voucherBatch: batch,
+        },
+        params,
+        urls,
+        plan,
+      );
+    }
+
+    // Stripe deliberately retains the PR2 lifecycle and provider contract.
     try {
-      const result = await adapter.createCheckout({
-        voucherBatchId: batchId,
-        priceUsd: Number(
-          minorUnitsToDecimal(BigInt(snapshot.listedUsd.amountMinor), 2),
+      const result = await this.stripeAdapter.createCheckout(
+        this.checkoutRequest(
+          batchId,
+          snapshot,
+          params,
+          urls,
+          plan,
+          providerIdempotencyKey,
         ),
-        priceArs:
-          snapshot.gateway === 'MERCADO_PAGO'
-            ? Number(chargedAmount)
-            : undefined,
-        successUrl: this.safeRedirectUrl(
-          params.successUrl,
-          `${urls.frontendOrigin}/billing/success?batchId=${batchId}`,
-          urls.frontendOrigin,
-        ),
-        failureUrl: this.safeRedirectUrl(
-          params.failureUrl,
-          `${urls.frontendOrigin}/billing/failure`,
-          urls.frontendOrigin,
-        ),
-        notificationUrl: urls.notificationUrl,
-        buyerEmail: params.buyerEmail,
-        description: `A.kit - Lote de ${plan.voucherQuantity} Vouchers (${plan.name})`,
-        providerIdempotencyKey,
-      });
+      );
       await this.checkoutAttemptRepo.manager.transaction(async (manager) => {
         batch.checkoutUrl = result.checkoutUrl;
         batch.paymentReference = result.externalReference;
@@ -252,6 +266,173 @@ export class CheckoutService {
       ...where,
       clientKeyDigest: digest,
     });
+  }
+
+  private async resumeMercadoPago(
+    attempt: CheckoutAttempt,
+    fingerprint: string,
+    digest: string,
+    params: InitiateCheckoutParams,
+    urls: { frontendOrigin: string; notificationUrl: string },
+    plan: PricingPlan,
+  ) {
+    this.assertCompatible(attempt, fingerprint, digest);
+    if (attempt.state === 'READY')
+      return this.resumeExisting(attempt, fingerprint, digest);
+    return this.createMercadoPagoCheckout(attempt, params, urls, plan);
+  }
+
+  private async createMercadoPagoCheckout(
+    attempt: Pick<
+      CheckoutAttempt,
+      'id' | 'voucherBatchId' | 'commercialSnapshot' | 'providerIdempotencyKey'
+    > & { voucherBatch?: VoucherBatch | null },
+    params: InitiateCheckoutParams,
+    urls: { frontendOrigin: string; notificationUrl: string },
+    plan: PricingPlan,
+  ) {
+    if (!attempt.voucherBatchId) {
+      throw new ConflictException('Checkout batch is unavailable');
+    }
+    const snapshot = attempt.commercialSnapshot;
+    const batch =
+      attempt.voucherBatch ??
+      (await this.checkoutAttemptRepo.manager.findOneBy(VoucherBatch, {
+        id: attempt.voucherBatchId,
+      }));
+    if (!batch) throw new ConflictException('Checkout batch is unavailable');
+    let result;
+    try {
+      // Provider I/O is intentionally outside both claim and finalization transactions.
+      result = await this.mpAdapter.createCheckout(
+        this.checkoutRequest(
+          attempt.voucherBatchId,
+          snapshot,
+          params,
+          urls,
+          plan,
+          attempt.providerIdempotencyKey,
+        ),
+      );
+    } catch (error) {
+      await this.finalizeMercadoPagoError(attempt, batch, error);
+      throw error;
+    }
+    if (result.merchantReference !== attempt.voucherBatchId) {
+      const error = new Error('MercadoPago preference reference mismatch');
+      await this.finalizeMercadoPagoError(attempt, batch, error);
+      throw error;
+    }
+    return this.finalizeMercadoPagoReady(attempt, batch, result);
+  }
+
+  private async finalizeMercadoPagoReady(
+    attempt: Pick<CheckoutAttempt, 'id' | 'voucherBatchId'>,
+    batch: VoucherBatch,
+    result: { checkoutUrl: string; externalReference: string },
+  ) {
+    await this.checkoutAttemptRepo.manager.transaction(async (manager) => {
+      batch.checkoutUrl = result.checkoutUrl;
+      batch.paymentReference = result.externalReference;
+      await manager.save(batch);
+      await manager.save(CheckoutAttempt, {
+        id: attempt.id,
+        state: 'READY',
+        providerCheckoutId: result.externalReference,
+        providerCheckoutUrl: result.checkoutUrl,
+      });
+    });
+    return {
+      checkoutUrl: result.checkoutUrl,
+      voucherBatchId: attempt.voucherBatchId!,
+      checkoutAttemptId: attempt.id,
+    };
+  }
+
+  private async finalizeMercadoPagoError(
+    attempt: Pick<CheckoutAttempt, 'id'>,
+    batch: VoucherBatch,
+    error: unknown,
+  ) {
+    const ambiguous = this.isAmbiguousTransportError(error);
+    await this.checkoutAttemptRepo.manager.transaction(async (manager) => {
+      if (!ambiguous) {
+        batch.status = VoucherBatchStatus.FAILED;
+        await manager.save(batch);
+      }
+      await manager.save(CheckoutAttempt, {
+        id: attempt.id,
+        state: ambiguous ? 'OUTCOME_UNKNOWN' : 'FAILED',
+        providerErrorCode:
+          error instanceof Error ? error.name : 'PROVIDER_ERROR',
+      });
+    });
+  }
+
+  private checkoutRequest(
+    voucherBatchId: string,
+    snapshot: CompleteCommercialSnapshot,
+    params: InitiateCheckoutParams,
+    urls: { frontendOrigin: string; notificationUrl: string },
+    plan: PricingPlan,
+    providerIdempotencyKey: string,
+  ): CheckoutRequest {
+    return {
+      voucherBatchId,
+      priceUsd: Number(
+        minorUnitsToDecimal(BigInt(snapshot.listedUsd.amountMinor), 2),
+      ),
+      priceArs:
+        snapshot.gateway === 'MERCADO_PAGO'
+          ? Number(minorUnitsToDecimal(BigInt(snapshot.charged.amountMinor), 2))
+          : undefined,
+      successUrl: this.safeRedirectUrl(
+        params.successUrl,
+        `${urls.frontendOrigin}/billing/success?batchId=${voucherBatchId}`,
+        urls.frontendOrigin,
+      ),
+      failureUrl: this.safeRedirectUrl(
+        params.failureUrl,
+        `${urls.frontendOrigin}/billing/failure`,
+        urls.frontendOrigin,
+      ),
+      notificationUrl: urls.notificationUrl,
+      buyerEmail: params.buyerEmail,
+      description: `A.kit - Lote de ${plan.voucherQuantity} Vouchers (${plan.name})`,
+      providerIdempotencyKey,
+    };
+  }
+
+  private isAmbiguousTransportError(error: unknown): boolean {
+    const record = error as {
+      code?: unknown;
+      message?: unknown;
+      name?: unknown;
+    };
+    const code = typeof record?.code === 'string' ? record.code : '';
+    const name = typeof record?.name === 'string' ? record.name : '';
+    const message = typeof record?.message === 'string' ? record.message : '';
+    const text = `${name} ${message}`;
+    return (
+      /^(ETIMEDOUT|ECONNRESET|ECONNREFUSED|EHOSTUNREACH|ENETUNREACH)$/i.test(
+        code,
+      ) || /timeout|network|socket|connection reset|aborted/i.test(text)
+    );
+  }
+
+  private assertCompatible(
+    attempt: CheckoutAttempt,
+    fingerprint: string,
+    digest: string,
+  ) {
+    if (
+      attempt.clientKeyDigest !== digest ||
+      attempt.requestFingerprint !== fingerprint
+    ) {
+      throw new ConflictException(
+        'Checkout request conflicts with an existing attempt',
+      );
+    }
   }
 
   private resumeExisting(

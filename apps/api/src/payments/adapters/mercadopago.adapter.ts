@@ -61,15 +61,20 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
 
     const result = await preference.create({
       body: payload,
+      requestOptions: { idempotencyKey: params.providerIdempotencyKey },
     });
 
-    if (!result.init_point) {
+    if (!result.init_point || !result.id) {
       throw new Error('Failed to create MercadoPago preference');
+    }
+    if (result.external_reference !== params.voucherBatchId) {
+      throw new Error('MercadoPago preference reference mismatch');
     }
 
     return {
       checkoutUrl: result.init_point,
-      externalReference: result.id!,
+      externalReference: result.id,
+      merchantReference: result.external_reference,
     };
   }
 
