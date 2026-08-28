@@ -7,6 +7,7 @@ import { useBillingHistory, usePricingPlans } from "../../hooks/useBilling";
 vi.mock("../../hooks/useBilling", () => ({
   useBillingHistory: vi.fn(),
   usePricingPlans: vi.fn(),
+      useCheckoutAttemptStatus: vi.fn(() => ({ data: null, isLoading: false, error: null, refetch: vi.fn() })),
   useCheckout: vi.fn(() => ({ mutateAsync: vi.fn(), isMutating: false })),
 }));
 

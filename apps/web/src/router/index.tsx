@@ -76,6 +76,10 @@ export const router = createBrowserRouter([
     errorElement: <AppErrorBoundary />, 
     children: [
       {
+        path: "/billing/success",
+        element: <Navigate to="/dashboard/billing" replace />,
+      },
+      {
         path: APP_ROUTES.DASHBOARD.ROOT,
         element: <DashboardLayout />,
         errorElement: <AppErrorBoundary />,
