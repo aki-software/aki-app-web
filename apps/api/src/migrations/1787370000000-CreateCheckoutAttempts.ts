@@ -13,6 +13,7 @@ export class CreateCheckoutAttempts1787370000000 implements MigrationInterface {
         "state" text NOT NULL DEFAULT 'CREATED',
         "client_key_digest" varchar(64),
         "request_fingerprint" varchar(64) NOT NULL,
+        "provider_idempotency_key" varchar(43) NOT NULL,
         "commercial_snapshot" jsonb NOT NULL,
         "voucher_batch_id" uuid UNIQUE,
         "provider_checkout_id" text,
@@ -24,11 +25,15 @@ export class CreateCheckoutAttempts1787370000000 implements MigrationInterface {
         CONSTRAINT "CHK_checkout_attempts_state" CHECK ("state" IN ('CREATED', 'PROVIDER_CREATING', 'READY', 'FAILED', 'OUTCOME_UNKNOWN')),
         CONSTRAINT "CHK_checkout_attempts_client_key_digest" CHECK ("client_key_digest" IS NULL OR "client_key_digest" ~ '^[0-9a-f]{64}$'),
         CONSTRAINT "CHK_checkout_attempts_request_fingerprint" CHECK ("request_fingerprint" ~ '^[0-9a-f]{64}$'),
+        CONSTRAINT "CHK_checkout_attempts_provider_idempotency_key" CHECK ("provider_idempotency_key" ~ '^[A-Za-z0-9_-]{43}$'),
         CONSTRAINT "FK_checkout_attempts_owner_institution" FOREIGN KEY ("owner_institution_id") REFERENCES "institutions"("id") ON DELETE RESTRICT,
         CONSTRAINT "FK_checkout_attempts_buyer_user" FOREIGN KEY ("buyer_user_id") REFERENCES "users"("id") ON DELETE RESTRICT,
         CONSTRAINT "FK_checkout_attempts_voucher_batch" FOREIGN KEY ("voucher_batch_id") REFERENCES "voucher_batches"("id") ON DELETE SET NULL
       )
     `);
+    await queryRunner.query(
+      'CREATE UNIQUE INDEX "IDX_checkout_attempts_provider_idempotency_key" ON "checkout_attempts" ("provider_idempotency_key")',
+    );
     await queryRunner.query(
       'CREATE UNIQUE INDEX "IDX_checkout_attempts_tenant_client_key_digest" ON "checkout_attempts" ("owner_institution_id", "client_key_digest") WHERE "client_key_digest" IS NOT NULL',
     );
@@ -82,6 +87,7 @@ export class CreateCheckoutAttempts1787370000000 implements MigrationInterface {
           OR OLD."gateway" IS DISTINCT FROM NEW."gateway"
           OR OLD."client_key_digest" IS DISTINCT FROM NEW."client_key_digest"
           OR OLD."request_fingerprint" IS DISTINCT FROM NEW."request_fingerprint"
+          OR OLD."provider_idempotency_key" IS DISTINCT FROM NEW."provider_idempotency_key"
           OR OLD."commercial_snapshot" IS DISTINCT FROM NEW."commercial_snapshot" THEN
           RAISE EXCEPTION 'checkout attempts identity and commercial snapshot are immutable';
         END IF;

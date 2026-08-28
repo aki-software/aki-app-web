@@ -15,6 +15,7 @@ const productionRequiredKeys = [
   'STRIPE_WEBHOOK_SECRET',
   'MP_ACCESS_TOKEN',
   'MP_WEBHOOK_SECRET',
+  'PAYMENT_IDEMPOTENCY_SECRET',
   'GOOGLE_PLAY_PACKAGE_NAME',
   'GOOGLE_PLAY_REPORT_SKU',
   'GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64',
@@ -120,6 +121,11 @@ function validateProductionPaymentConfiguration(
     /^[A-Za-z0-9_-]{20,}$/,
     'MP_WEBHOOK_SECRET',
   );
+  if (environment.PAYMENT_IDEMPOTENCY_SECRET!.trim().length < 32) {
+    throw new PaymentConfigurationError(
+      'PAYMENT_IDEMPOTENCY_SECRET must be at least 32 characters',
+    );
+  }
   if (
     !/^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$/.test(
       environment.GOOGLE_PLAY_PACKAGE_NAME!,

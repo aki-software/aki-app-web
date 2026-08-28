@@ -27,6 +27,13 @@ export type CheckoutAttemptState =
   | 'OUTCOME_UNKNOWN';
 
 @Entity('checkout_attempts')
+@Index(
+  'IDX_checkout_attempts_provider_idempotency_key',
+  ['providerIdempotencyKey'],
+  {
+    unique: true,
+  },
+)
 @Index('IDX_checkout_attempts_tenant_state', ['ownerInstitutionId', 'state'])
 export class CheckoutAttempt {
   @PrimaryGeneratedColumn('uuid')
@@ -62,6 +69,13 @@ export class CheckoutAttempt {
 
   @Column({ name: 'request_fingerprint', type: 'varchar', length: 64 })
   requestFingerprint!: string;
+
+  @Column({
+    name: 'provider_idempotency_key',
+    type: 'varchar',
+    length: 43,
+  })
+  providerIdempotencyKey!: string;
 
   @Column({ name: 'commercial_snapshot', type: 'jsonb' })
   commercialSnapshot!: CompleteCommercialSnapshot;

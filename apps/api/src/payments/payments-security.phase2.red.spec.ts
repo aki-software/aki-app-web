@@ -13,11 +13,13 @@ import { PaymentsController } from './payments.controller.js';
 import { PaymentsService } from './payments.service.js';
 import { CheckoutService } from './services/checkout.service.js';
 import { resolvePaymentConfiguration } from './config/payment-configuration.js';
+import { CheckoutAttempt } from './entities/checkout-attempt.entity.js';
 
 const CANONICAL_REPORT_SKU = 'report_unlock_v2';
 const SESSION_ID = '11111111-1111-4111-8111-111111111111';
 const PATIENT_ID = '22222222-2222-4222-8222-222222222222';
-const INSTITUTION_ID = '33333333-3333-4333-8333-333333333333';
+const INSTITUTION_ID = '33333333-3333-4333-8333-433333333333';
+const BUYER_USER_ID = '44444444-4444-4444-8444-444444444444';
 const initialEnvironment = { ...process.env };
 
 describe('Payments security refactor phase 2 RED', () => {
@@ -73,6 +75,7 @@ describe('Payments security refactor phase 2 RED', () => {
       planId: 'plan-1',
       gateway: 'STRIPE',
       institutionId: INSTITUTION_ID,
+      userId: BUYER_USER_ID,
       buyerEmail: 'billing@akit.example',
       successUrl: 'https://attacker.example/complete',
       failureUrl: 'https://attacker.example/fail',
@@ -93,6 +96,7 @@ describe('Payments security refactor phase 2 RED', () => {
       planId: 'plan-1',
       gateway: 'STRIPE' as const,
       institutionId: INSTITUTION_ID,
+      userId: BUYER_USER_ID,
       buyerEmail: 'billing@akit.example',
       idempotencyKey: 'checkout-retry-1',
     };
@@ -112,6 +116,7 @@ describe('Payments security refactor phase 2 RED', () => {
       planId: 'plan-1',
       gateway: 'STRIPE',
       institutionId: INSTITUTION_ID,
+      userId: BUYER_USER_ID,
       buyerEmail: 'billing@akit.example',
       idempotencyKey: 'checkout-expectation-1',
     } as never);
@@ -132,6 +137,7 @@ describe('Payments security refactor phase 2 RED', () => {
         planId: 'plan-1',
         gateway: 'STRIPE',
         institutionId: INSTITUTION_ID,
+        userId: BUYER_USER_ID,
         buyerEmail: 'billing@akit.example',
         idempotencyKey: 'checkout-failure-1',
       } as never),
@@ -344,6 +350,7 @@ describe('Payments security refactor phase 2 RED', () => {
 
 function createCheckoutFixture(options: { gatewayFailure?: boolean } = {}) {
   const createdBatches: Array<Record<string, unknown>> = [];
+  const attempts: Array<Record<string, unknown>> = [];
   const gateway = {
     createCheckout: options.gatewayFailure
       ? jest.fn().mockRejectedValue(new Error('gateway unavailable'))
@@ -352,41 +359,58 @@ function createCheckoutFixture(options: { gatewayFailure?: boolean } = {}) {
           externalReference: 'gateway-ref-1',
         }),
   };
-  const voucherBatchRepo = {
-    create: jest.fn().mockImplementation((batch: Record<string, unknown>) => ({
-      ...batch,
-      id: `batch-${createdBatches.length + 1}`,
-    })),
-    save: jest.fn().mockImplementation((batch: Record<string, unknown>) => {
-      if (!createdBatches.includes(batch)) createdBatches.push(batch);
-      return Promise.resolve(batch);
+  const entityTypes = new WeakMap<object, unknown>();
+  const manager = {
+    create: jest.fn((entityType: unknown, value: Record<string, unknown>) => {
+      entityTypes.set(value, entityType);
+      return value;
     }),
-    findOneBy: jest
-      .fn()
-      .mockImplementation((where: Record<string, unknown>) =>
-        Promise.resolve(
-          createdBatches.find(
-            (batch) =>
-              batch.ownerInstitutionId === where.ownerInstitutionId &&
-              batch.idempotencyKey === where.idempotencyKey,
-          ) ?? null,
-        ),
+    save: jest.fn(
+      (entityOrValue: unknown, partial?: Record<string, unknown>) => {
+        const value = partial ?? (entityOrValue as Record<string, unknown>);
+        const entityType =
+          typeof entityOrValue === 'function'
+            ? entityOrValue
+            : entityTypes.get(value);
+        const collection =
+          entityType === CheckoutAttempt ? attempts : createdBatches;
+        const existing = collection.find((item) => item.id === value.id);
+        if (existing) Object.assign(existing, value);
+        else collection.push(value);
+        return Promise.resolve(value);
+      },
+    ),
+  };
+  const checkoutAttemptRepo = {
+    findOneBy: jest.fn((where: Record<string, unknown>) =>
+      Promise.resolve(
+        attempts.find((attempt) =>
+          Object.entries(where).every(([key, value]) => attempt[key] === value),
+        ) ?? null,
       ),
+    ),
+    manager: { transaction: jest.fn((work) => work(manager)) },
   };
   const service = new CheckoutService(
-    {} as never,
+    gateway as never,
     gateway as never,
     {
       findOneBy: jest.fn().mockResolvedValue({
-        id: 'plan-1',
+        id: '55555555-5555-4555-8555-555555555555',
         isActive: true,
         priceUsd: '12.50',
         voucherQuantity: 5,
         name: 'Five vouchers',
       }),
     } as never,
-    voucherBatchRepo as never,
-    { getUsdToArsRate: jest.fn().mockResolvedValue(1000) } as never,
+    {
+      getUsdToArsQuote: jest.fn().mockResolvedValue({
+        rate: '1000',
+        quotedAt: new Date('2026-03-20T12:00:00.000Z'),
+        source: 'TEST',
+      }),
+    } as never,
+    checkoutAttemptRepo as never,
   );
 
   const environment = process.env;
@@ -394,6 +418,7 @@ function createCheckoutFixture(options: { gatewayFailure?: boolean } = {}) {
     ...environment,
     FRONTEND_URL: 'https://app.akit.example',
     API_URL: 'https://api.akit.example',
+    PAYMENT_IDEMPOTENCY_SECRET: 'test-idempotency-secret-32-characters',
   };
 
   return { service, gateway, createdBatches };
@@ -494,10 +519,10 @@ function validProductionEnvironment(
     FRONTEND_URL: 'https://app.akit.example',
     API_URL: 'https://api.akit.example',
     REDIS_HOST: 'redis.akit.example',
-    STRIPE_SECRET_KEY: 'sk_live_1234567890abcdef',
-    STRIPE_WEBHOOK_SECRET: 'whsec_1234567890abcdef',
-    MP_ACCESS_TOKEN: 'APP_USR-1234567890abcdef',
-    MP_WEBHOOK_SECRET: '1234567890abcdefghij',
+    STRIPE_SECRET_KEY: 'stripe-secret-placeholder',
+    STRIPE_WEBHOOK_SECRET: 'stripe-webhook-secret-placeholder',
+    MP_ACCESS_TOKEN: 'mercado-pago-access-placeholder',
+    MP_WEBHOOK_SECRET: 'mercado-pago-webhook-placeholder',
     GOOGLE_PLAY_PACKAGE_NAME: 'com.akit.mobile',
     GOOGLE_PLAY_REPORT_SKU: CANONICAL_REPORT_SKU,
     GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64: 'eyJ0eXBlIjoic2VydmljZV9hY2NvdW50In0=',

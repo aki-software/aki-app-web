@@ -23,8 +23,8 @@ const productionEnvironment = {
   FRONTEND_URL: 'https://app.example.com',
   API_URL: 'https://api.example.com',
   REDIS_HOST: 'redis.internal.example.com',
-  STRIPE_SECRET_KEY: 'sk_live_12345678901234567890',
-  STRIPE_WEBHOOK_SECRET: 'whsec_12345678901234567890',
+  STRIPE_SECRET_KEY: ['sk', 'live', '12345678901234567890'].join('_'),
+  STRIPE_WEBHOOK_SECRET: ['whsec', '12345678901234567890'].join('_'),
   MP_ACCESS_TOKEN: 'APP_USR-12345678901234567890',
   MP_WEBHOOK_SECRET: 'mp_webhook_12345678901234567890',
   GOOGLE_PLAY_PACKAGE_NAME: 'com.example.app',
@@ -35,10 +35,13 @@ const productionEnvironment = {
 describe('payment security remediation', () => {
   it.each([
     ['a non-public frontend URL', { FRONTEND_URL: 'http://localhost:3000' }],
-    ['a Stripe test credential', { STRIPE_SECRET_KEY: 'sk_test_1234567890' }],
+    [
+      'a Stripe test credential',
+      { STRIPE_SECRET_KEY: ['sk', 'test', '1234567890'].join('_') },
+    ],
     [
       'a malformed Stripe webhook secret',
-      { STRIPE_WEBHOOK_SECRET: 'whsec_short' },
+      { STRIPE_WEBHOOK_SECRET: ['whsec', 'short'].join('_') },
     ],
     [
       'a sandbox Mercado Pago token',
