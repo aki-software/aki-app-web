@@ -140,11 +140,32 @@ export const translations = {
     socialProof: {
       badge: 'TEST OCUPACIONAL',
       title: 'Lo que dicen quienes ya lo probaron',
+      metric: {
+        value: 100,
+        title: '100% de recomendación',
+        subtitle: 'De los usuarios consultados recomendaría ORIENTA.KI a otra persona',
+      },
+      attributes: [
+        { label: 'Resultados fieles a tu personalidad', percentage: 94.1 },
+        { label: 'Fácil de usar e intuitiva', percentage: 100 },
+        { label: 'Práctica y sin vueltas', percentage: 64.7 },
+      ],
       testimonials: [
-        { quote: 'No te da muchas vueltas: es directa, dinámica y te da un panorama claro sin cuestionarios eternos.', author: 'Julieta', role: 'Estudiante, 17 años' },
-        { quote: 'Poder elegir imágenes libremente y sin prejuicios de profesiones ya establecidas hace que el test sea ágil y entretenido.', author: 'Martín', role: 'Joven profesional, 26 años' },
-        { quote: 'El sistema visual de swipe es súper intuitivo y lleva muy poco tiempo. Te da exactamente lo que necesitás.', author: 'Tomás', role: 'Profesional, 32 años' },
-        { quote: 'La facilidad para utilizar la app y la precisión de los resultados ayudan un montón a pensar el siguiente paso.', author: 'Carolina', role: 'Estudiante de secundaria' },
+        {
+          quote: 'Me encantó poder elegir imágenes sin los sesgos de las profesiones de siempre. Te conecta con tus intereses reales y no con un mandato o una etiqueta preestablecida.',
+          author: 'Estudiante / Usuario ORIENTA.KI',
+          role: 'Encuesta de validación',
+        },
+        {
+          quote: 'El informe final es súper preciso y detallado. No te tira generalidades: te da exactamente la claridad que necesitás para orientarte.',
+          author: 'Usuario ORIENTA.KI',
+          role: 'Encuesta de validación',
+        },
+        {
+          quote: 'La dinámica de swipe es genial. Es directa, no te da mil vueltas como los tests eternos y en pocos minutos tenés un resultado claro.',
+          author: 'Usuario ORIENTA.KI',
+          role: 'Encuesta de validación',
+        },
       ],
     },
     langSwitch: 'EN',
@@ -290,11 +311,32 @@ export const translations = {
     socialProof: {
       badge: 'OCCUPATIONAL TEST',
       title: 'What early testers are saying',
+      metric: {
+        value: 100,
+        title: '100% recommendation',
+        subtitle: 'Of surveyed users would recommend ORIENTA.KI to someone else',
+      },
+      attributes: [
+        { label: 'Results true to your personality', percentage: 94.1 },
+        { label: 'Easy to use and intuitive', percentage: 100 },
+        { label: 'Practical and straightforward', percentage: 64.7 },
+      ],
       testimonials: [
-        { quote: 'No endless questionnaires: it is straightforward, dynamic, and gives you clear insights in minutes.', author: 'Student (16-18 y/o)', role: 'User Evaluation' },
-        { quote: 'Choosing images freely without preset career biases makes the test intuitive and engaging.', author: 'User (25-30 y/o)', role: 'User Evaluation' },
-        { quote: 'The swipe format is clear and takes very little time. It gives you exactly what you need.', author: 'User (31-35 y/o)', role: 'User Evaluation' },
-        { quote: 'Easy to use and gives accurate results to plan your next educational or occupational steps.', author: 'High School Student', role: 'User Evaluation' },
+        {
+          quote: 'I loved being able to choose images without the bias of traditional professions. It connects you with your real interests, not with a pre-established mandate or label.',
+          author: 'Student / ORIENTA.KI User',
+          role: 'Validation Survey',
+        },
+        {
+          quote: 'The final report is super precise and detailed. It doesn’t give you generalities: it gives you exactly the clarity you need to find your direction.',
+          author: 'ORIENTA.KI User',
+          role: 'Validation Survey',
+        },
+        {
+          quote: 'The swipe dynamics are great. It is direct, doesn’t beat around the bush like never-ending tests, and in a few minutes you get a clear result.',
+          author: 'ORIENTA.KI User',
+          role: 'Validation Survey',
+        },
       ],
     },
     langSwitch: 'ES',
