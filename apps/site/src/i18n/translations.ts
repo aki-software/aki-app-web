@@ -61,7 +61,7 @@ export const translations = {
       subtitle: 'Descubrí cómo Orient A.KI transforma la orientación ocupacional.',
       tabs: { student: 'Para Estudiantes', institution: 'Para Instituciones' },
       studentSteps: [
-        { title: 'Clasificá imágenes', desc: 'Pasá las imágenes de actividades hacia la derecha si te interesan o hacia la izquierda para descartarlas. Cada swipe refleja tus intereses espontáneos sin filtros.' },
+        { title: 'Clasificá imágenes', desc: 'Elegís las imágenes que te gustan deslizando hacia la derecha o clickeando el tilde (✓), y descartás las que no te interesan deslizando a la izquierda o clickeando la cruz (×).' },
         { title: 'Descubrí tu perfil', desc: 'El sistema analiza tus elecciones y calcula tu perfil ocupacional con las áreas que más se alinean a tus preferencias.' },
         { title: 'Obtené tu reporte', desc: 'Accedé a un PDF detallado con recomendaciones de carreras y ocupaciones basado en tus afinidades reales.' },
       ],
@@ -84,9 +84,9 @@ export const translations = {
     },
     institutions: {
       badge: 'Para instituciones',
-      title: '¿Trabajás en una escuela\no sos orientador?',
+      title: 'Si trabajás en una institución formativa\no sos orientador...',
       desc: 'Gestioná grupos de estudiantes, generá vouchers y accedé a analytics en tiempo real. Todo desde un dashboard intuitivo.',
-      features: ['Gestión de grupos y sesiones masivas', 'Dashboard con analytics por institución', 'Vouchers y reportes personalizados'],
+      features: ['Gestión de grupos y sesiones masivas', 'Panel de métricas institucionales en tiempo real', 'Vouchers y reportes personalizados'],
       cta: 'Solicitar una demo',
       form: { name: 'Nombre', email: 'Email', institution: 'Institución / Organización', submit: 'Solicitar demo', success: 'Gracias por tu interés. Te vamos a contactar a la brevedad.' },
       dashboard: 'Dashboard',
@@ -96,9 +96,10 @@ export const translations = {
     pricing: {
       title: 'Planes Institucionales',
       subtitle: 'Llevá la orientación ocupacional a tu colegio o consultorio.',
-      demo: { badge: 'Demo', label: 'Orient A.KI Demo', desc: 'Para probar la plataforma', features: ['Acceso al Dashboard Web', '3 vouchers gratis', 'Analíticas básicas', 'Soporte por email'], cta: 'Solicitar Demo' },
-      basic: { badge: '25', label: 'Orient A.KI 25', price: 'A convenir', desc: 'Para colegios y orientadores', features: ['25 vouchers', 'Dashboard completo', 'Analíticas detalladas', 'Soporte prioritario'], cta: 'Quiero 25 vouchers' },
-      pro: { badge: '50', label: 'Orient A.KI 50', price: 'A convenir', desc: 'Para instituciones y distritos', features: ['50 vouchers', 'Dashboard completo', 'Analíticas de cohortes', 'Soporte dedicado + onboarding'], cta: 'Quiero 50 vouchers' },
+      demo: { badge: 'Demo', label: 'Plan de Prueba', price: 'Consultar', desc: 'Comunicate con nosotros para conocer la plataforma.', features: ['Acceso guiado al Dashboard', 'Demostración de analíticas', 'Evaluación de viabilidad'], cta: 'Consultar por Demo' },
+      basic: { badge: '25', label: 'Plan Delta', price: 'Consultar', desc: 'Ideal para grupos pequeños y orientadores independientes.', features: ['25 vouchers de acceso', 'Dashboard completo', 'Analíticas detalladas', 'Soporte prioritario'], cta: 'Consultar Plan Delta' },
+      pro: { badge: '50', label: 'Plan Sigma', price: 'Consultar', desc: 'Pensado para instituciones y colegios medianos.', features: ['50 vouchers de acceso', 'Dashboard completo', 'Analíticas de cohortes', 'Soporte dedicado'], cta: 'Consultar Plan Sigma' },
+      enterprise: { badge: '1000', label: 'Plan PI', price: 'Consultar', desc: 'Licencia anual para distritos o grandes instituciones.', features: ['1000 vouchers durante 1 año', 'Acceso irrestricto al Dashboard', 'Reportes de impacto', 'Onboarding institucional'], cta: 'Consultar Plan PI' },
     },
     faq: {
       title: 'Preguntas frecuentes',
@@ -232,7 +233,7 @@ export const translations = {
       subtitle: 'Discover how A.ki transforms occupational guidance.',
       tabs: { student: 'For Students', institution: 'For Institutions' },
       studentSteps: [
-        { title: 'Swipe images', desc: 'Swipe right if an activity interests you, or left to skip. Spontaneous choices reflect genuine interests.' },
+        { title: 'Swipe images', desc: 'Choose the images you like by swiping right or clicking the checkmark (✓), and discard the ones you don\'t by swiping left or clicking the cross (×).' },
         { title: 'Discover your profile', desc: 'The system analyzes your choices and calculates your occupational profile based on aligned areas.' },
         { title: 'Get your report', desc: 'Receive a detailed PDF report with career and occupation recommendations based on real affinities.' },
       ],
@@ -255,9 +256,9 @@ export const translations = {
     },
     institutions: {
       badge: 'For institutions',
-      title: 'Do you work at a school\nor are you an advisor?',
+      title: 'If you work at an educational institution\nor are a counselor...',
       desc: 'Manage student groups, generate vouchers and access real-time analytics. All from an intuitive dashboard.',
-      features: ['Group and mass session management', 'Per-institution analytics dashboard', 'Custom vouchers and reports'],
+      features: ['Group and mass session management', 'Real-time institutional metrics dashboard', 'Custom vouchers and reports'],
       cta: 'Request a demo',
       form: { name: 'Name', email: 'Email', institution: 'Institution / Organization', submit: 'Request Demo', success: 'Thanks for your interest. We will contact you shortly.' },
       dashboard: 'Dashboard',
@@ -267,9 +268,10 @@ export const translations = {
     pricing: {
       title: 'Institutional Plans',
       subtitle: 'Bring occupational guidance to your school or private practice.',
-      demo: { badge: 'Demo', label: 'Orient A.KI Demo', desc: 'Try the platform', features: ['Web Dashboard Access', '3 free vouchers', 'Basic analytics', 'Email support'], cta: 'Request Demo' },
-      basic: { badge: '25', label: 'Orient A.KI 25', price: 'Custom', desc: 'For schools and counselors', features: ['25 vouchers', 'Full dashboard', 'Detailed analytics', 'Priority support'], cta: 'I want 25 vouchers' },
-      pro: { badge: '50', label: 'Orient A.KI 50', price: 'Custom', desc: 'For institutions and districts', features: ['50 vouchers', 'Full dashboard', 'Cohort analytics', 'Dedicated support + onboarding'], cta: 'I want 50 vouchers' },
+      demo: { badge: 'Demo', label: 'Trial Plan', price: 'Contact Us', desc: 'Try the platform', features: ['Guided Dashboard access', 'Analytics demonstration', 'Feasibility evaluation'], cta: 'Contact for Demo' },
+      basic: { badge: '25', label: 'Delta Plan', price: 'Contact Us', desc: 'For schools and counselors', features: ['25 access vouchers', 'Full dashboard', 'Detailed analytics', 'Priority support'], cta: 'Inquire Delta Plan' },
+      pro: { badge: '50', label: 'Sigma Plan', price: 'Contact Us', desc: 'For institutions and districts', features: ['50 access vouchers', 'Full dashboard', 'Cohort analytics', 'Dedicated support'], cta: 'Inquire Sigma Plan' },
+      enterprise: { badge: '1000', label: 'PI Plan', price: 'Contact Us', desc: 'Annual license for districts or large schools.', features: ['1000 vouchers for 1 year', 'Unrestricted Dashboard access', 'Impact reports', 'Institutional onboarding'], cta: 'Inquire PI Plan' },
     },
     faq: {
       title: 'Frequently asked questions',
