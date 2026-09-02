@@ -142,7 +142,7 @@ Los nombres pueden ajustarse durante la implementación, pero el índice debe pe
 
 **Documentos:** `docs/contracts.md`, `docs/api.md` y, si sigue siendo necesario, `docs/api-swagger.md`.
 
-**Estado:** contratos compartidos documentados; API y Swagger quedan pendientes.
+**Estado:** contratos y guía operativa inicial de API documentados; Swagger y referencia exhaustiva de endpoints quedan pendientes.
 
 **Tareas:**
 
@@ -163,6 +163,8 @@ Los nombres pueden ajustarse durante la implementación, pero el índice debe pe
 **Prioridad:** P1
 
 **Documento:** ampliar `docs/api.md` y crear runbooks específicos.
+
+**Estado:** guía API inicial completada; runbooks operativos y detalle profundo de infraestructura quedan pendientes.
 
 **Tareas:**
 
