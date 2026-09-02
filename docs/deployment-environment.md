@@ -46,7 +46,7 @@ Para CI de previews también se usan `NEON_PROJECT_ID` y `NEON_API_KEY` como sec
 | --------------------- | ------------------------------------ | --------------------- | ---------------------------------------------------------------------- |
 | `NODE_ENV`            | Obligatoria en producción            | Privada               | `production` en deploy.                                                |
 | `PORT`                | Opcional                             | Privada               | Default: `3000`. El proveedor puede inyectarlo.                        |
-| `CORS_ORIGIN`         | Recomendada en producción            | Pública               | Origen exacto del Web desplegado. Admite una lista separada por comas. |
+| `CORS_ORIGIN`         | **Obligatoria en producción**        | Pública               | Orígenes HTTPS exactos autorizados, separados por comas. No admite wildcards; los valores se recortan. |
 | `WEB_APP_URL`         | Recomendada                          | Pública               | URL del dashboard Web. Se usa para enlaces.                            |
 | `FRONTEND_URL`        | Obligatoria para pagos en producción | Pública               | URL HTTPS del frontend autorizado para checkout.                       |
 | `API_URL`             | Obligatoria para pagos en producción | Pública               | URL HTTPS pública de la API, sin path. Se usa para webhooks.           |
@@ -86,6 +86,8 @@ Configurar `PAYMENT_GATEWAY` de forma explícita; sus valores válidos son `STRI
 | `GOOGLE_PLAY_PACKAGE_NAME`           | Si se habilita Google Play    | Pública     | Application ID Android.                                                           |
 | `GOOGLE_PLAY_REPORT_SKU`             | Si se habilita Google Play    | Pública     | SKU del producto vendido.                                                         |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64` | Si se habilita Google Play    | **Secreto** | Service account codificada en Base64. Nunca decodificarla dentro del repositorio. |
+
+Para la prueba rápida de QA de Mercado Pago, el servicio `akit-api-qa` de Render requiere `PAYMENT_GATEWAY=MERCADO_PAGO` y `PAYMENT_SIMULATION=false`. Configurar `PAYMENT_IDEMPOTENCY_SECRET`, `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `FRONTEND_URL` y `API_URL` como secretos administrados por Render o valores de URL; no versionar sus valores.
 
 Los webhooks deben apuntar a:
 
@@ -143,8 +145,10 @@ Estas variables se incorporan al bundle de Vite. **Nunca colocar secretos en una
 | Variable               | Estado                      | Tipo    | Uso                                                                                                                            |
 | ---------------------- | --------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `VITE_API_URL`         | **Obligatoria para deploy** | Pública | URL base de la API. En local tiene default `http://localhost:3000`, pero un build desplegado debe configurarla explícitamente. |
+| `VITE_PAYMENT_GATEWAY` | Recomendada                 | Pública | Gateway habilitado en la interfaz de checkout. Los valores válidos son `MERCADO_PAGO` y `STRIPE`; el valor por defecto seguro es `MERCADO_PAGO`. |
 | `VITE_PUBLIC_TEST_URL` | Opcional                    | Pública | URL usada para el flujo de test público. Tiene default `https://akit-test.com`.                                                |
 | `VITE_WHATSAPP_URL`    | Opcional                    | Pública | URL de contacto por WhatsApp. Tiene default `https://wa.me/`.                                                                  |
+| `VITE_ALLOWED_HOSTS`   | Opcional                    | Pública | Hosts de túneles de desarrollo, separados por comas. Si está ausente, Vite conserva su protección de hosts por defecto.       |
 
 Vercel sólo configura el rewrite de la SPA; las variables deben agregarse manualmente en Project Settings. En Docker deben estar disponibles durante el build de Vite, porque el bundle se genera antes de iniciar Nginx.
 

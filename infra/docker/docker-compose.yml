@@ -5,7 +5,7 @@ services:
     env_file:
       - .env
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -16,10 +16,10 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.2.5-alpine
     container_name: akit-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -30,9 +30,13 @@ services:
     entrypoint:
       - /bin/sh
       - -c
-      - /venv/bin/python /pgadmin4/setup.py --load-servers /pgadmin4/servers.json --user "$${PGADMIN_DEFAULT_EMAIL}" || true; exec /entrypoint.sh
+      - >-
+        /venv/bin/python /pgadmin4/setup.py
+        --load-servers /pgadmin4/servers.json
+        --user "$${PGADMIN_DEFAULT_EMAIL}"
+        || true; exec /entrypoint.sh
     ports:
-      - "5050:80"
+      - "127.0.0.1:5050:80"
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@akit.com}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin123}
@@ -46,7 +50,13 @@ services:
       postgres:
         condition: service_healthy
 
-
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: akit-mailpit
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Mailpit web UI
+    restart: unless-stopped
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -55,8 +65,8 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
       - "16686:16686" # Jaeger UI
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
     restart: unless-stopped
 
 volumes:
