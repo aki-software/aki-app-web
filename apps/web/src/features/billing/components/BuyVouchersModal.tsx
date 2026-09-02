@@ -4,6 +4,9 @@ import { X, Ticket, ShoppingCart, ArrowLeft } from "lucide-react";
 import { GatewaySelector } from "./GatewaySelector";
 import { usePricingPlans, useCheckout } from "../hooks/useBilling";
 import { Spinner } from "../../../components/atoms/Spinner";
+import { PAYMENT_GATEWAY } from "../../../config/app-config";
+
+const AVAILABLE_PAYMENT_GATEWAYS = [PAYMENT_GATEWAY] as const;
 
 export const CHECKOUT_ATTEMPT_STORAGE_KEY = "akit.billing.checkoutAttemptId";
 
@@ -25,7 +28,7 @@ export function BuyVouchersModal({
     preselectedPlanId ?? null,
   );
   const [selectedGateway, setSelectedGateway] =
-    useState<PaymentGateway>("STRIPE");
+    useState<PaymentGateway>(PAYMENT_GATEWAY);
   const [error, setError] = useState<string | null>(null);
 
   // Sync preselected plan when modal opens
@@ -181,6 +184,7 @@ export function BuyVouchersModal({
             <div className="flex flex-col gap-3">
               <GatewaySelector
                 selectedGateway={selectedGateway}
+                availableGateways={AVAILABLE_PAYMENT_GATEWAYS}
                 onSelect={setSelectedGateway}
               />
             </div>
