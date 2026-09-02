@@ -43,6 +43,9 @@ jobs:
       - name: Lint
         run: pnpm turbo run lint --cache-dir=".turbo"
 
+      - name: Build shared contracts for web tests
+        run: pnpm --filter @akit/contracts build
+
       - name: Payment MVP tests
         run: >-
           pnpm --filter api test -- --runInBand
