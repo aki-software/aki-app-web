@@ -7,17 +7,28 @@ import { useBillingHistory, usePricingPlans } from "../../hooks/useBilling";
 vi.mock("../../hooks/useBilling", () => ({
   useBillingHistory: vi.fn(),
   usePricingPlans: vi.fn(),
-      useCheckoutAttemptStatus: vi.fn(() => ({ data: null, isLoading: false, error: null, refetch: vi.fn() })),
+  useCheckoutAttemptStatus: vi.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  })),
   useCheckout: vi.fn(() => ({ mutateAsync: vi.fn(), isMutating: false })),
 }));
 
 vi.mock("lucide-react", async (importOriginal) => {
-  const actual = await importOriginal<Record<string, React.ComponentType<Record<string, unknown>>>>();
+  const actual =
+    await importOriginal<
+      Record<string, React.ComponentType<Record<string, unknown>>>
+    >();
   const MockIcon = (props: Record<string, unknown>) => {
     const { ...rest } = props ?? {};
     return React.createElement("span", { "data-testid": "mock-icon", ...rest });
   };
-  const mocked: Record<string, React.ComponentType<Record<string, unknown>>> = {};
+  const mocked: Record<
+    string,
+    React.ComponentType<Record<string, unknown>>
+  > = {};
   for (const key of Object.keys(actual)) {
     mocked[key] = MockIcon;
   }
@@ -30,19 +41,37 @@ describe("BillingDashboard", () => {
   });
 
   it("renders empty state correctly when there are no plans", () => {
-    (useBillingHistory as Mock).mockReturnValue({ data: null, isLoading: false });
+    (useBillingHistory as Mock).mockReturnValue({
+      data: null,
+      isLoading: false,
+    });
     (usePricingPlans as Mock).mockReturnValue({ data: [], isLoading: false });
 
     render(<BillingDashboard />);
 
-    expect(screen.getByText("No hay planes disponibles por el momento.")).toBeDefined();
+    expect(
+      screen.getByText("No hay planes disponibles por el momento."),
+    ).toBeDefined();
   });
 
   it("renders plans correctly", () => {
-    (useBillingHistory as Mock).mockReturnValue({ data: null, isLoading: false });
+    (useBillingHistory as Mock).mockReturnValue({
+      data: null,
+      isLoading: false,
+    });
     (usePricingPlans as Mock).mockReturnValue({
-      data: [{ id: "plan-1", name: "Plan 10", voucherCount: 10, priceAmount: 1000, priceCurrency: "ARS", description: "Desc", isActive: true }],
-      isLoading: false
+      data: [
+        {
+          id: "plan-1",
+          name: "Plan 10",
+          voucherCount: 10,
+          priceAmount: 1000,
+          priceCurrency: "ARS",
+          description: "Desc",
+          isActive: true,
+        },
+      ],
+      isLoading: false,
     });
 
     render(<BillingDashboard />);
