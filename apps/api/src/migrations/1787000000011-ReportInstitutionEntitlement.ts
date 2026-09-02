@@ -2,6 +2,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class ReportInstitutionEntitlement1787000000011 implements MigrationInterface {
   name = 'ReportInstitutionEntitlement1787000000011';
+  // PostgreSQL must commit the new enum value before the following constraint can use it.
+  transaction = false;
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

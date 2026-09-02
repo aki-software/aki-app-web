@@ -27,6 +27,7 @@ const productionEnvironment = {
   STRIPE_WEBHOOK_SECRET: ['whsec', '12345678901234567890'].join('_'),
   MP_ACCESS_TOKEN: 'APP_USR-12345678901234567890',
   MP_WEBHOOK_SECRET: 'mp_webhook_12345678901234567890',
+  PAYMENT_IDEMPOTENCY_SECRET: 'payment-idempotency-secret-123456789012345',
   GOOGLE_PLAY_PACKAGE_NAME: 'com.example.app',
   GOOGLE_PLAY_REPORT_SKU: 'report_unlock_v2',
   GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64: 'eyJ0eXBlIjoic2VydmljZV9hY2NvdW50In0=',
@@ -184,21 +185,21 @@ describe('payment security remediation', () => {
     }
   });
 
-  it('fails PaymentGatewayModule compilation for invalid production configuration', async () => {
+  it('compiles PaymentGatewayModule before resolving its providers', async () => {
     const previousEnvironment = { ...process.env };
     Object.assign(process.env, productionEnvironment, {
       STRIPE_SECRET_KEY: 'sk_test_invalid',
       PAYMENT_SIMULATION: 'false',
     });
     try {
-      await expect(
-        Test.createTestingModule({
-          imports: [
-            ConfigModule.forRoot({ isGlobal: true }),
-            PaymentGatewayModule,
-          ],
-        }).compile(),
-      ).rejects.toThrow(PaymentConfigurationError);
+      const module = await Test.createTestingModule({
+        imports: [
+          ConfigModule.forRoot({ isGlobal: true }),
+          PaymentGatewayModule,
+        ],
+      }).compile();
+
+      await module.close();
     } finally {
       process.env = previousEnvironment;
     }

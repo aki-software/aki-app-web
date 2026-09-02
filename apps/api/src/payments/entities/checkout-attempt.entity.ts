@@ -95,7 +95,6 @@ export class CheckoutAttempt {
 
   @Column({ name: 'provider_error_code', type: 'text', nullable: true })
   providerErrorCode!: string | null;
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

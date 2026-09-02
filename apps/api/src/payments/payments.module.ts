@@ -19,6 +19,7 @@ import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
 import { PaymentGatewayModule } from './payment-gateway.module.js';
 import { VoucherFulfillmentDispatcherService } from './services/voucher-fulfillment-dispatcher.service.js';
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
+import { PaymentReconciliationService } from './services/payment-reconciliation.service.js';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.proc
     WebhookProcessorService,
     VoucherFulfillmentDispatcherService,
     VoucherFulfillmentProcessor,
+    PaymentReconciliationService,
     ExchangeRateService,
   ],
 })

@@ -1,17 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
-import { ValidationPipe } from '@nestjs/common';
-import { Logger } from 'nestjs-pino';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import helmet from 'helmet';
 import serverlessHttp from 'serverless-http';
 import type { RequestHandler } from 'express';
+import { createCorsOptions } from './config/cors-policy.js';
 
 let handler: ReturnType<typeof serverlessHttp> | undefined;
+const logger = new Logger('ServerlessBootstrap');
 
 async function bootstrap(): Promise<ReturnType<typeof serverlessHttp>> {
   if (handler) return handler;
 
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    rawBody: true,
+  });
 
   app.use(
     helmet({
@@ -27,26 +32,9 @@ async function bootstrap(): Promise<ReturnType<typeof serverlessHttp>> {
     }),
   );
 
-  app.useLogger(app.get(Logger));
+  app.useLogger(app.get(PinoLogger));
 
-  const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? [
-    'http://localhost:5173',
-  ];
-  app.enableCors({
-    origin: (origin, callback) => {
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app')
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+  app.enableCors(createCorsOptions());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -73,14 +61,15 @@ export default async function (req: unknown, res: any): Promise<void> {
     const h = await bootstrap();
     await h(req as Parameters<typeof h>[0], res as Parameters<typeof h>[1]);
   } catch (error) {
-    console.error('Fatal bootstrap error:', error);
+    logger.error(
+      'Fatal bootstrap error',
+      error instanceof Error ? error.stack : String(error),
+    );
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
     res.end(
       JSON.stringify({
-        error: 'Bootstrap failed',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        message: 'Internal server error',
       }),
     );
   }
