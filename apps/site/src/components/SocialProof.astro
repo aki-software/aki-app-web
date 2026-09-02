@@ -9,55 +9,247 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-{t.socialProof?.testimonials && t.socialProof.testimonials.length > 0 && (
+{t.socialProof && (
   <section class="bg-bg py-24 md:py-32" id="testimonios">
     <div class="container">
-      <div class="flex flex-col items-center">
+      <div class="flex flex-col items-center text-center mb-16 md:mb-20">
         <!-- Badge -->
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-[11px] font-semibold tracking-widest uppercase mb-6 reveal">
           {t.socialProof.badge}
         </div>
 
         <!-- Title -->
-        <h2 class="font-display font-bold text-3xl md:text-4xl text-text mb-12 text-center reveal reveal-delay-1 max-w-2xl">
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-text reveal reveal-delay-1 max-w-2xl">
           {t.socialProof.title}
         </h2>
       </div>
 
-      <!-- Testimonials Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-        {t.socialProof.testimonials.map((testimonial, index) => (
-          <div class="bg-surface rounded-2xl border border-border/60 shadow-sm p-8 reveal hover:border-primary/20 transition-all" style={`transition-delay: ${index * 0.15}s;`}>
-            <!-- Decorative quote icon -->
-            <svg class="w-8 h-8 text-secondary/30 mb-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.69 11 13.166 11 15c0 1.984-1.538 3.5-3.5 3.5-1.174 0-2.253-.619-2.917-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C19.591 11.69 21 13.166 21 15c0 1.984-1.538 3.5-3.5 3.5-1.174 0-2.253-.619-2.917-1.179z" />
-            </svg>
+      <!-- 2 columns on lg (stacked on mobile) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-start">
+        <!-- Left Column: Interactive Validation Metrics -->
+        <div class="flex flex-col gap-6">
+          <!-- Main Stat Card -->
+          <div
+            class="bg-surface rounded-2xl border border-border/60 shadow-sm p-6 sm:p-8 reveal hover:border-primary/20 transition-all"
+            data-animate="stat-card"
+          >
+            <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+              <!-- SVG Progress Ring -->
+              <div class="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center shrink-0">
+                <svg class="w-full h-full -rotate-90 transform" viewBox="0 0 120 120" aria-hidden="true">
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="8"
+                    class="text-secondary/15"
+                  />
+                  <circle
+                    class="stat-ring-circle text-primary"
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    stroke-dasharray="314.16"
+                    stroke-dashoffset="314.16"
+                    style="transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);"
+                    data-target={t.socialProof.metric.value}
+                  />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center select-none">
+                  <span class="font-display font-extrabold text-3xl sm:text-4xl text-primary tracking-tight tabular-nums">
+                    <span class="stat-counter" data-target={t.socialProof.metric.value} data-decimals="0">0</span>%
+                  </span>
+                </div>
+              </div>
 
-            <!-- Quote text -->
-            <p class="text-base text-text-muted leading-relaxed mb-6 italic">
-              {testimonial.quote}
-            </p>
-
-            <!-- Author block with left border accent -->
-            <div class="border-l-2 border-secondary/40 pl-6">
-              <p class="text-sm font-semibold text-text">{testimonial.author}</p>
-              <p class="text-xs text-text-muted">{testimonial.role}</p>
+              <!-- Metric Info -->
+              <div>
+                <h3 class="font-display font-bold text-xl sm:text-2xl text-text mb-2">
+                  {t.socialProof.metric.title}
+                </h3>
+                <p class="text-sm text-text-muted leading-relaxed">
+                  {t.socialProof.metric.subtitle}
+                </p>
+              </div>
             </div>
           </div>
-        ))}
+
+          <!-- Animated Progress Bars Card -->
+          <div
+            class="bg-surface rounded-2xl border border-border/60 shadow-sm p-6 sm:p-8 reveal reveal-delay-1 hover:border-primary/20 transition-all"
+            data-animate="progress-card"
+          >
+            <div class="space-y-6">
+              {t.socialProof.attributes.map((attr) => (
+                <div>
+                  <div class="flex justify-between items-center mb-2 gap-4">
+                    <span class="text-sm font-medium text-text">{attr.label}</span>
+                    <span class="font-display font-bold text-sm text-primary shrink-0 tabular-nums">
+                      <span class="stat-counter" data-target={attr.percentage} data-decimals={attr.percentage % 1 !== 0 ? '1' : '0'}>0</span>%
+                    </span>
+                  </div>
+                  <div class="h-2.5 w-full bg-secondary/15 rounded-full overflow-hidden">
+                    <div
+                      class="progress-bar-fill h-full rounded-full bg-primary"
+                      style="width: 0%; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);"
+                      data-percentage={attr.percentage}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Testimonials -->
+        <div class="flex flex-col gap-6">
+          {t.socialProof.testimonials.map((testimonial, index) => (
+            <div
+              class="bg-surface rounded-2xl border border-border/60 shadow-sm p-6 sm:p-8 reveal hover:border-primary/20 transition-all flex flex-col justify-between"
+              style={`transition-delay: ${index * 0.15}s;`}
+            >
+              <div>
+                <!-- Decorative quote icon -->
+                <svg class="w-8 h-8 text-secondary/30 mb-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.69 11 13.166 11 15c0 1.984-1.538 3.5-3.5 3.5-1.174 0-2.253-.619-2.917-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C19.591 11.69 21 13.166 21 15c0 1.984-1.538 3.5-3.5 3.5-1.174 0-2.253-.619-2.917-1.179z" />
+                </svg>
+
+                <!-- Quote text -->
+                <p class="text-base text-text-muted leading-relaxed mb-6 italic">
+                  {testimonial.quote}
+                </p>
+              </div>
+
+              <!-- Author block with left border accent -->
+              <div class="border-l-2 border-secondary/40 pl-4">
+                <p class="text-sm font-semibold text-text">{testimonial.author}</p>
+                <p class="text-xs text-text-muted">{testimonial.role}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   </section>
 )}
 
-<script>
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, { threshold: 0.1 });
+<style>
+  @media (prefers-reduced-motion: reduce) {
+    .stat-ring-circle,
+    .progress-bar-fill {
+      transition: none !important;
+    }
+  }
+</style>
 
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+<script>
+  function initSocialProof() {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function animateCounter(el: HTMLElement, target: number, decimals: number, duration = 1200) {
+      if (prefersReducedMotion) {
+        el.textContent = decimals > 0 ? target.toFixed(decimals) : Math.round(target).toString();
+        return;
+      }
+
+      const startTime = performance.now();
+
+      function update(currentTime: number) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentVal = target * easeOut;
+
+        el.textContent = decimals > 0 ? currentVal.toFixed(decimals) : Math.round(currentVal).toString();
+
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        } else {
+          el.textContent = decimals > 0 ? target.toFixed(decimals) : Math.round(target).toString();
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    const metricObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          const container = entry.target as HTMLElement;
+          const type = container.dataset.animate;
+
+          if (type === 'stat-card') {
+            const ring = container.querySelector<SVGCircleElement>('.stat-ring-circle');
+            if (ring) {
+              const target = parseFloat(ring.dataset.target || '100');
+              const circumference = 314.16;
+              const offset = circumference * (1 - target / 100);
+              if (prefersReducedMotion) {
+                ring.style.transition = 'none';
+              }
+              ring.style.strokeDashoffset = offset.toString();
+            }
+
+            const counter = container.querySelector<HTMLElement>('.stat-counter');
+            if (counter) {
+              const target = parseFloat(counter.dataset.target || '0');
+              const decimals = parseInt(counter.dataset.decimals || '0', 10);
+              animateCounter(counter, target, decimals);
+            }
+
+            observer.unobserve(container);
+          } else if (type === 'progress-card') {
+            const bars = container.querySelectorAll<HTMLElement>('.progress-bar-fill');
+            bars.forEach((bar) => {
+              const percentage = bar.dataset.percentage || '0';
+              if (prefersReducedMotion) {
+                bar.style.transition = 'none';
+              }
+              bar.style.width = `${percentage}%`;
+            });
+
+            const counters = container.querySelectorAll<HTMLElement>('.stat-counter');
+            counters.forEach((counter) => {
+              const target = parseFloat(counter.dataset.target || '0');
+              const decimals = parseInt(counter.dataset.decimals || '0', 10);
+              animateCounter(counter, target, decimals);
+            });
+
+            observer.unobserve(container);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    document.querySelectorAll<HTMLElement>('#testimonios [data-animate]').forEach((el) => {
+      metricObserver.observe(el);
+    });
+
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('#testimonios .reveal').forEach((el) => {
+      revealObserver.observe(el);
+    });
+  }
+
+  initSocialProof();
 </script>
+
