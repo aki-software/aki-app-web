@@ -193,16 +193,28 @@ const badgeStyles: BadgeStyle[] = [
     r: 6;
     filter: drop-shadow(0 0 8px currentColor);
   }
+  .radar-dot-animate {
+    animation: dot-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
   .badge-chip.active {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(15, 107, 104, 0.15);
     border-color: var(--color-primary) !important;
   }
   .radar-result-animate {
-    animation: radar-draw 1s ease-out forwards;
+    animation: radar-draw 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards, radar-fill 1.5s ease-out forwards;
   }
   @keyframes radar-draw {
+    from { stroke-dashoffset: 400; }
     to { stroke-dashoffset: 0; }
+  }
+  @keyframes radar-fill {
+    from { fill-opacity: 0; }
+    to { fill-opacity: 1; }
+  }
+  @keyframes dot-pop {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
 </style>
 
@@ -222,6 +234,12 @@ const badgeStyles: BadgeStyle[] = [
         svgWrapper.style.opacity = '1';
         const poly = document.getElementById('radar-result');
         if (poly) poly.classList.add('radar-result-animate');
+        
+        document.querySelectorAll('.radar-dot-recharts').forEach((dot, i) => {
+          (dot as HTMLElement).style.animationDelay = `${0.5 + (i * 0.05)}s`;
+          dot.classList.add('radar-dot-animate');
+        });
+        
         radarObserver.unobserve(entry.target);
       }
     });

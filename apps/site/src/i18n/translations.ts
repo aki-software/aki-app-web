@@ -61,12 +61,12 @@ export const translations = {
       subtitle: 'Descubrí cómo Orient A.KI transforma la orientación ocupacional.',
       tabs: { student: 'Para Estudiantes', institution: 'Para Instituciones' },
       studentSteps: [
-        { title: 'Clasificá imágenes', desc: 'Elegís las imágenes que te gustan deslizando hacia la derecha o clickeando el tilde (✓), y descartás las que no te interesan deslizando a la izquierda o clickeando la cruz (×).' },
+        { title: 'Clasificá imágenes', desc: 'Elegís las imágenes que te gustan deslizando hacia la derecha o clickeando la tilde (<strong class="text-confirm font-bold text-base">✓</strong>), y descartás las que no te interesan deslizando a la izquierda o clickeando la equis (<strong class="text-destructive font-bold text-base">×</strong>).' },
         { title: 'Descubrí tu perfil', desc: 'El sistema analiza tus elecciones y calcula tu perfil ocupacional con las áreas que más se alinean a tus preferencias.' },
         { title: 'Obtené tu reporte', desc: 'Accedé a un PDF detallado con recomendaciones de carreras y ocupaciones basado en tus afinidades reales.' },
       ],
       institutionSteps: [
-        { title: 'Solicitá acceso', desc: 'Obtené tu cuenta para el Dashboard Institucional de Orient A.KI.' },
+        { title: 'Solicitá acceso', desc: 'Obtené tu cuenta para acceder a la plataforma institucional de Orient A.KI.' },
         { title: 'Generá vouchers', desc: 'Creá códigos únicos para que tus estudiantes accedan al reporte completo sin costo para ellos.' },
         { title: 'Monitoreá en vivo', desc: 'Accedé a analíticas de grupo en tiempo real y descargá reportes detallados en un clic.' },
       ],
@@ -85,7 +85,7 @@ export const translations = {
     institutions: {
       badge: 'Para instituciones',
       title: 'Si trabajás en una institución formativa\no sos orientador...',
-      desc: 'Gestioná grupos de estudiantes, generá vouchers y accedé a analytics en tiempo real. Todo desde un dashboard intuitivo.',
+      desc: 'Gestioná a tus estudiantes o consultantes, enviales pases de acceso y revisá sus resultados al instante. Todo desde una plataforma simple y fácil de usar.',
       features: ['Gestión de grupos y sesiones masivas', 'Panel de métricas institucionales en tiempo real', 'Vouchers y reportes personalizados'],
       cta: 'Solicitar una demo',
       form: { name: 'Nombre', email: 'Email', institution: 'Institución / Organización', submit: 'Solicitar demo', success: 'Gracias por tu interés. Te vamos a contactar a la brevedad.' },
@@ -97,9 +97,9 @@ export const translations = {
       title: 'Planes Institucionales',
       subtitle: 'Llevá la orientación ocupacional a tu colegio o consultorio.',
       demo: { badge: 'Demo', label: 'Plan de Prueba', price: 'Consultar', desc: 'Comunicate con nosotros para conocer la plataforma.', features: ['Acceso guiado al Dashboard', 'Demostración de analíticas', 'Evaluación de viabilidad'], cta: 'Consultar por Demo' },
-      basic: { badge: '25', label: 'Plan Delta', price: 'Consultar', desc: 'Ideal para grupos pequeños y orientadores independientes.', features: ['25 vouchers de acceso', 'Dashboard completo', 'Analíticas detalladas', 'Soporte prioritario'], cta: 'Consultar Plan Delta' },
-      pro: { badge: '50', label: 'Plan Sigma', price: 'Consultar', desc: 'Pensado para instituciones y colegios medianos.', features: ['50 vouchers de acceso', 'Dashboard completo', 'Analíticas de cohortes', 'Soporte dedicado'], cta: 'Consultar Plan Sigma' },
-      enterprise: { badge: '1000', label: 'Plan PI', price: 'Consultar', desc: 'Licencia anual para distritos o grandes instituciones.', features: ['1000 vouchers durante 1 año', 'Acceso irrestricto al Dashboard', 'Reportes de impacto', 'Onboarding institucional'], cta: 'Consultar Plan PI' },
+      basic: { badge: '25', label: 'Plan <span class="font-display font-black text-secondary text-2xl">Δ</span>-AKI', price: 'Consultar', desc: 'Ideal para grupos pequeños y orientadores independientes.', features: ['25 vouchers de acceso', 'Dashboard completo', 'Analíticas detalladas', 'Soporte prioritario'], cta: 'Consultar Plan Δ-AKI' },
+      pro: { badge: '50', label: 'Plan <span class="font-display font-black text-primary text-2xl">Σ</span>-AKI', price: 'Consultar', desc: 'Pensado para instituciones y colegios medianos.', features: ['50 vouchers de acceso', 'Dashboard completo', 'Analíticas de cohortes', 'Soporte dedicado'], cta: 'Consultar Plan Σ-AKI' },
+      enterprise: { badge: '1000', label: 'Plan <span class="font-display font-black text-text text-2xl">Π</span>-AKI', price: 'Consultar', desc: 'Licencia anual para distritos o grandes instituciones.', features: ['1000 vouchers durante 1 año', 'Acceso irrestricto al Dashboard', 'Reportes de impacto', 'Onboarding institucional'], cta: 'Consultar Plan Π-AKI' },
     },
     faq: {
       title: 'Preguntas frecuentes',
@@ -233,12 +233,12 @@ export const translations = {
       subtitle: 'Discover how A.ki transforms occupational guidance.',
       tabs: { student: 'For Students', institution: 'For Institutions' },
       studentSteps: [
-        { title: 'Swipe images', desc: 'Choose the images you like by swiping right or clicking the checkmark (✓), and discard the ones you don\'t by swiping left or clicking the cross (×).' },
+        { title: 'Swipe images', desc: 'Choose the images you like by swiping right or clicking the checkmark (<strong class="text-confirm font-bold text-base">✓</strong>), and discard the ones you don\'t by swiping left or clicking the cross (<strong class="text-destructive font-bold text-base">×</strong>).' },
         { title: 'Discover your profile', desc: 'The system analyzes your choices and calculates your occupational profile based on aligned areas.' },
         { title: 'Get your report', desc: 'Receive a detailed PDF report with career and occupation recommendations based on real affinities.' },
       ],
       institutionSteps: [
-        { title: 'Request access', desc: 'Get your account for the custom A.ki Institutional Dashboard.' },
+        { title: 'Request access', desc: 'Get your account for the custom A.ki institutional platform.' },
         { title: 'Generate vouchers', desc: 'Create unique codes so your students can access the full report at no individual cost.' },
         { title: 'Monitor in real-time', desc: 'Access group analytics instantly and download detailed reports in one click.' },
       ],
@@ -257,7 +257,7 @@ export const translations = {
     institutions: {
       badge: 'For institutions',
       title: 'If you work at an educational institution\nor are a counselor...',
-      desc: 'Manage student groups, generate vouchers and access real-time analytics. All from an intuitive dashboard.',
+      desc: 'Manage your students or clients, send them access passes, and review their results instantly. All from a simple and easy-to-use platform.',
       features: ['Group and mass session management', 'Real-time institutional metrics dashboard', 'Custom vouchers and reports'],
       cta: 'Request a demo',
       form: { name: 'Name', email: 'Email', institution: 'Institution / Organization', submit: 'Request Demo', success: 'Thanks for your interest. We will contact you shortly.' },
@@ -269,9 +269,9 @@ export const translations = {
       title: 'Institutional Plans',
       subtitle: 'Bring occupational guidance to your school or private practice.',
       demo: { badge: 'Demo', label: 'Trial Plan', price: 'Contact Us', desc: 'Try the platform', features: ['Guided Dashboard access', 'Analytics demonstration', 'Feasibility evaluation'], cta: 'Contact for Demo' },
-      basic: { badge: '25', label: 'Delta Plan', price: 'Contact Us', desc: 'For schools and counselors', features: ['25 access vouchers', 'Full dashboard', 'Detailed analytics', 'Priority support'], cta: 'Inquire Delta Plan' },
-      pro: { badge: '50', label: 'Sigma Plan', price: 'Contact Us', desc: 'For institutions and districts', features: ['50 access vouchers', 'Full dashboard', 'Cohort analytics', 'Dedicated support'], cta: 'Inquire Sigma Plan' },
-      enterprise: { badge: '1000', label: 'PI Plan', price: 'Contact Us', desc: 'Annual license for districts or large schools.', features: ['1000 vouchers for 1 year', 'Unrestricted Dashboard access', 'Impact reports', 'Institutional onboarding'], cta: 'Inquire PI Plan' },
+      basic: { badge: '25', label: 'Δ-AKI Plan', price: 'Contact Us', desc: 'Ideal for small groups and independent counselors.', features: ['25 access vouchers', 'Full dashboard', 'Detailed analytics', 'Priority support'], cta: 'Inquire Δ-AKI Plan' },
+      pro: { badge: '50', label: 'Σ-AKI Plan', price: 'Contact Us', desc: 'Designed for institutions and mid-sized schools.', features: ['50 access vouchers', 'Full dashboard', 'Cohort analytics', 'Dedicated support'], cta: 'Inquire Σ-AKI Plan' },
+      enterprise: { badge: '1000', label: 'Π-AKI Plan', price: 'Contact Us', desc: 'Annual license for districts or large schools.', features: ['1000 vouchers for 1 year', 'Unrestricted Dashboard access', 'Impact reports', 'Institutional onboarding'], cta: 'Inquire Π-AKI Plan' },
     },
     faq: {
       title: 'Frequently asked questions',
