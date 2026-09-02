@@ -16,6 +16,7 @@ import { DataSource } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PaymentEvent } from '../entities/payment-event.entity.js';
 import { PaymentFulfillmentOutbox } from '../entities/payment-fulfillment-outbox.entity.js';
+import { CheckoutAttempt } from '../entities/checkout-attempt.entity.js';
 import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
 import { VoucherBatchStatus } from '../../vouchers/entities/voucher.enums.js';
 import { VoucherFulfillmentDispatcherService } from './voucher-fulfillment-dispatcher.service.js';
@@ -77,117 +78,113 @@ export class WebhookProcessorService {
       throw new BadRequestException('Provider payment reference is required');
     }
 
+    let payment;
+    try {
+      payment = await adapter.getPaymentStatus(externalPaymentId);
+    } catch (error) {
+      if (isProviderUnavailable(error)) return { outcome: 'PENDING_RETRY' };
+      throw error;
+    }
+    if (payment.status !== 'APPROVED') return;
+    return this.settleVerifiedPayment({
+      gateway: params.gateway,
+      payment,
+      rawBody: params.rawBody,
+      hasRetriedSerialization,
+    });
+  }
+
+  /** Shared authenticated settlement path for webhooks and server-side reconciliation. */
+  async settleVerifiedPayment(params: {
+    gateway: 'MERCADO_PAGO' | 'STRIPE';
+    payment: import('../interfaces/payment-gateway.adapter.js').VerifiedPayment;
+    rawBody: Buffer;
+    hasRetriedSerialization?: boolean;
+  }): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction('SERIALIZABLE');
-
     try {
-      // Idempotency check
       const existingEvent = await queryRunner.manager.findOne(PaymentEvent, {
         where: {
-          externalPaymentId,
+          externalPaymentId: params.payment.providerPaymentId,
           gateway: params.gateway,
         },
       });
-
       if (existingEvent) {
-        this.logger.debug(
-          `Webhook already processed for payment ${externalPaymentId}`,
-        );
         await queryRunner.rollbackTransaction();
         return;
       }
-
-      let paymentStatus;
-      try {
-        paymentStatus = await adapter.getPaymentStatus(externalPaymentId);
-      } catch (error) {
-        await queryRunner.rollbackTransaction();
-        if (isProviderUnavailable(error)) return { outcome: 'PENDING_RETRY' };
-        throw error;
-      }
-      if (paymentStatus.status !== 'APPROVED') {
-        await queryRunner.rollbackTransaction();
-        return;
-      }
-
       const voucherBatch = await queryRunner.manager.findOne(VoucherBatch, {
-        where: { id: paymentStatus.merchantReference },
+        where: { id: params.payment.merchantReference },
         relations: ['ownerInstitution', 'ownerUser'],
         lock: { mode: 'pessimistic_write', tables: ['voucher_batches'] },
       });
-
-      if (!voucherBatch) {
-        this.logger.warn(
-          `VoucherBatch not found for payment ${externalPaymentId}`,
-        );
-        await queryRunner.rollbackTransaction();
+      if (!voucherBatch)
         throw new BadRequestException('Unknown payment reference');
-      }
-
-      if (voucherBatch.status === VoucherBatchStatus.PAID) {
-        const settledEvent = await queryRunner.manager.findOne(PaymentEvent, {
-          where: { externalPaymentId, gateway: params.gateway },
-        });
-        if (settledEvent) {
-          await queryRunner.rollbackTransaction();
-          return;
-        }
-      }
-
       if (
         voucherBatch.status !== VoucherBatchStatus.PENDING ||
-        !paymentStatus.merchantReference ||
-        voucherBatch.id !== paymentStatus.merchantReference ||
+        voucherBatch.id !== params.payment.merchantReference ||
         voucherBatch.expectedAmountMinor == null ||
         !voucherBatch.currency ||
-        !paymentStatus.currency ||
         voucherBatch.expectedAmountMinor !==
-          paymentStatus.amountMinor.toString() ||
-        voucherBatch.currency.toUpperCase() !== paymentStatus.currency ||
+          params.payment.amountMinor.toString() ||
+        voucherBatch.currency.toUpperCase() !== params.payment.currency ||
         voucherBatch.paymentProvider !== params.gateway
       )
         throw new ForbiddenException(
           'Payment settlement does not match its expectation',
         );
 
+      const checkoutAttempt = await queryRunner.manager.findOne(
+        CheckoutAttempt,
+        {
+          where: { voucherBatchId: voucherBatch.id },
+          relations: ['buyerUser'],
+        },
+      );
       voucherBatch.markAsPaid();
       await queryRunner.manager.save(VoucherBatch, voucherBatch);
-
       const paymentEvent = queryRunner.manager.create(
         PaymentEvent,
         toPaymentEvent({
           gateway: params.gateway,
-          externalPaymentId: paymentStatus.providerPaymentId,
-          status: paymentStatus.status,
+          externalPaymentId: params.payment.providerPaymentId,
+          status: params.payment.status,
           voucherBatchId: voucherBatch.id,
           rawBody: params.rawBody,
         }) as PaymentEvent,
       );
+      paymentEvent.checkoutAttemptId = checkoutAttempt?.id ?? null;
       await queryRunner.manager.save(PaymentEvent, paymentEvent);
       const outbox = queryRunner.manager.create(PaymentFulfillmentOutbox, {
         voucherBatchId: voucherBatch.id,
       });
       await queryRunner.manager.save(PaymentFulfillmentOutbox, outbox);
-
       await queryRunner.commitTransaction();
-      if (outbox.id) {
+      if (outbox.id)
         void this.fulfillmentDispatcher
           ?.dispatchAfterCommit(outbox)
-          .catch((error: unknown) => {
+          .catch((error: unknown) =>
             this.logger.error(
               'Voucher fulfillment dispatch failed after settlement',
               error,
-            );
-          });
-      }
-      this.emitCompatibilityNotification(voucherBatch, params.gateway);
+            ),
+          );
+      this.emitCompatibilityNotification(
+        voucherBatch,
+        params.gateway,
+        checkoutAttempt?.buyerUser?.email,
+      );
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      if (!hasRetriedSerialization && isSerializationFailure(err)) {
-        return this.processWebhook(params, true);
+      if (!params.hasRetriedSerialization && isSerializationFailure(err)) {
+        return this.settleVerifiedPayment({
+          ...params,
+          hasRetriedSerialization: true,
+        });
       }
-      this.logger.error('Error processing webhook');
+      this.logger.error('Error processing payment settlement');
       throw err;
     } finally {
       await queryRunner.release();
@@ -196,13 +193,14 @@ export class WebhookProcessorService {
   private emitCompatibilityNotification(
     voucherBatch: VoucherBatch,
     gateway: 'MERCADO_PAGO' | 'STRIPE',
+    buyerEmail?: string,
   ): void {
     try {
       this.eventEmitter.emit('payment.completed', {
         voucherBatchId: voucherBatch.id,
         institutionId:
           voucherBatch.ownerInstitutionId ?? voucherBatch.ownerInstitution?.id,
-        buyerEmail: voucherBatch.ownerUser?.email,
+        buyerEmail,
         planName: `Voucher batch (${voucherBatch.quantity})`,
         voucherQuantity: voucherBatch.quantity,
         gateway,

@@ -39,6 +39,10 @@ export interface PaymentGatewayAdapter {
     context: WebhookVerificationContext,
   ): Promise<string | undefined>;
   getPaymentStatus(externalPaymentId: string): Promise<VerifiedPayment>;
+  /** Server-to-server lookup by a trusted merchant reference, when supported. */
+  findPaymentByMerchantReference?(
+    merchantReference: string,
+  ): Promise<VerifiedPayment | undefined>;
   extractPaymentReference(body: unknown): string | undefined;
 }
 
