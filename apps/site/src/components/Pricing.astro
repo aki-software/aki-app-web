@@ -27,7 +27,7 @@ const { t } = Astro.props;
       <div class="flex flex-col bg-surface border-2 border-primary/40 rounded-[2rem] p-8 reveal hover:-translate-y-1 transition-transform duration-500 shadow-md">
         <div class="mb-8">
           <div class="flex justify-between items-center mb-4">
-            <p class="text-sm font-semibold text-text-muted uppercase tracking-widest">{t.pricing.demo.label}</p>
+            <p class="text-sm font-semibold text-text-muted uppercase tracking-widest flex items-center gap-1" set:html={t.pricing.demo.label}></p>
             <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-primary rounded-full">{t.pricing.demo.badge}</span>
           </div>
           <div class="flex items-baseline gap-1 mb-2">
@@ -54,7 +54,7 @@ const { t } = Astro.props;
       <div class="flex flex-col bg-surface border border-border/60 rounded-[2rem] p-8 reveal reveal-delay-1 hover:-translate-y-1 transition-transform duration-500 shadow-sm">
         <div class="mb-8">
           <div class="flex justify-between items-center mb-4">
-            <p class="text-sm font-semibold text-text uppercase tracking-widest">{t.pricing.basic.label}</p>
+            <p class="text-sm font-semibold text-text uppercase tracking-widest flex items-center gap-1" set:html={t.pricing.basic.label}></p>
             <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-secondary rounded-full">{t.pricing.basic.badge}</span>
           </div>
           <div class="flex items-baseline gap-1 mb-2">
@@ -81,7 +81,7 @@ const { t } = Astro.props;
       <div class="flex flex-col bg-surface border border-border/60 rounded-[2rem] p-8 reveal reveal-delay-2 hover:-translate-y-1 transition-transform duration-500 shadow-sm">
         <div class="mb-8">
           <div class="flex justify-between items-center mb-4">
-            <p class="text-sm font-semibold text-text uppercase tracking-widest">{t.pricing.pro.label}</p>
+            <p class="text-sm font-semibold text-text uppercase tracking-widest flex items-center gap-1" set:html={t.pricing.pro.label}></p>
             <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-primary rounded-full">{t.pricing.pro.badge}</span>
           </div>
           <div class="flex items-baseline gap-1 mb-2">
@@ -108,7 +108,7 @@ const { t } = Astro.props;
       <div class="flex flex-col bg-surface border-2 border-text rounded-[2rem] p-8 reveal reveal-delay-3 hover:-translate-y-1 transition-transform duration-500 shadow-md">
         <div class="mb-8">
           <div class="flex justify-between items-center mb-4">
-            <p class="text-sm font-semibold text-text uppercase tracking-widest">{t.pricing.enterprise.label}</p>
+            <p class="text-sm font-semibold text-text uppercase tracking-widest flex items-center gap-1" set:html={t.pricing.enterprise.label}></p>
             <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-bg bg-text rounded-full">{t.pricing.enterprise.badge}</span>
           </div>
           <div class="flex items-baseline gap-1 mb-2">
