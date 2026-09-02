@@ -142,12 +142,14 @@ Los nombres pueden ajustarse durante la implementación, pero el índice debe pe
 
 **Documentos:** `docs/contracts.md`, `docs/api.md` y, si sigue siendo necesario, `docs/api-swagger.md`.
 
+**Estado:** contratos compartidos documentados; API y Swagger quedan pendientes.
+
 **Tareas:**
 
-- [ ] Documentar `packages/contracts` como fuente de verdad.
-- [ ] Explicar schemas Zod, tipos inferidos, exports y validación.
-- [ ] Documentar el pipeline de quicktype y la generación de modelos para Android.
-- [ ] Documentar reglas de compatibilidad y cambios breaking.
+- [x] Documentar `packages/contracts` como fuente de verdad.
+- [x] Explicar schemas Zod, tipos inferidos, exports y validación.
+- [x] Documentar el pipeline de quicktype y la generación de modelos para Android.
+- [x] Documentar reglas de compatibilidad y cambios breaking.
 - [ ] Documentar cómo API y Web consumen los contratos.
 - [ ] Documentar autenticación JWT/Firebase, roles, guards y errores esperados.
 - [ ] Documentar convenciones de módulos NestJS, DTOs, repositories, adapters y servicios.
