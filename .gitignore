@@ -1,28 +1,57 @@
-node_modules
-dist
+# ── Dependencies ──────────────────────────────────────────────────
+node_modules/
+
+# ── Build outputs ─────────────────────────────────────────────────
+dist/
+dist-ssr/
+build/
+out/
+.next/
+
+# apps/site (Astro)
+.astro/
+
+# ── Environment variables — NEVER commit real secrets ─────────────
 .env
 .env.*
+!.env.example
 
-.claude
-# Keystore - NO versionar nunca
+# ── Tooling cache ─────────────────────────────────────────────────
+.turbo/
+coverage/
+
+# ── Logs ──────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ── Editor & OS ───────────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.local
+
+# ── Security: Never version these ─────────────────────────────────
 *.jks
 *.keystore
 keystore.properties
 *.pem
 *.key
-.next
-.turbo
-coverage
-build
-.DS_Store
-.idea
-.vscode
-*.log
-pnpm-debug.log*
-tmp/
-/openspec
-# Local Pi runtime state
-.atl/
-.pi
-.codegraph
 
+# ── Tmp / local runtime state ─────────────────────────────────────
+tmp/
+.atl/
+.pi/
+.codegraph/
+.claude/
+
+# ── SDD / local tooling ───────────────────────────────────────────
+/openspec
