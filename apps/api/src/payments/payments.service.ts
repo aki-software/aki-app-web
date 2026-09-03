@@ -24,6 +24,7 @@ import {
   VoucherBatchStatus,
   VoucherStatus,
 } from '../vouchers/entities/voucher.enums.js';
+import { PaymentReconciliationService } from './services/payment-reconciliation.service.js';
 import type {
   BillingHistory,
   CommercialSnapshot,
@@ -47,13 +48,14 @@ export class PaymentsService {
     private readonly sessionsMutationService: SessionsMutationService,
     private readonly googlePlayAdapter: GooglePlayAdapter,
     @InjectDataSource() private dataSource: DataSource,
+    private readonly paymentReconciliationService: PaymentReconciliationService,
   ) {}
 
   async getCheckoutAttemptStatus(
     checkoutAttemptId: string,
     principal: { userId: string; institutionId: string },
   ): Promise<PaymentStatus> {
-    const attempt = await this.dataSource.manager.findOne(CheckoutAttempt, {
+    let attempt = await this.dataSource.manager.findOne(CheckoutAttempt, {
       where: {
         id: checkoutAttemptId,
         buyerUserId: principal.userId,
@@ -62,6 +64,32 @@ export class PaymentsService {
       relations: { voucherBatch: true },
     });
     if (!attempt) throw new NotFoundException('Checkout attempt not found');
+
+    if (
+      attempt.gateway === 'MERCADO_PAGO' &&
+      (attempt.state === 'READY' || attempt.state === 'OUTCOME_UNKNOWN') &&
+      attempt.voucherBatch?.status === VoucherBatchStatus.PENDING
+    ) {
+      try {
+        await this.paymentReconciliationService.reconcileAuthorizedAttempt(
+          attempt,
+        );
+      } catch (error) {
+        this.logger.error(
+          'Mercado Pago status reconciliation failed',
+          error instanceof Error ? error.stack : undefined,
+        );
+      }
+      attempt = await this.dataSource.manager.findOne(CheckoutAttempt, {
+        where: {
+          id: checkoutAttemptId,
+          buyerUserId: principal.userId,
+          ownerInstitutionId: principal.institutionId,
+        },
+        relations: { voucherBatch: true },
+      });
+      if (!attempt) throw new NotFoundException('Checkout attempt not found');
+    }
 
     const paymentEvent = await this.dataSource.manager.findOne(PaymentEvent, {
       where: attempt.voucherBatchId

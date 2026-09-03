@@ -15,6 +15,7 @@ import { VoucherBatchStatus } from '../vouchers/entities/voucher.enums';
 import { GooglePlayAdapter } from './google-play.adapter';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { SessionOwnerResolverService } from '../sessions/services/session-owner-resolver.service';
+import { PaymentReconciliationService } from './services/payment-reconciliation.service';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -61,6 +62,10 @@ describe('PaymentsService', () => {
               findOne: jest.fn(),
             },
           },
+        },
+        {
+          provide: PaymentReconciliationService,
+          useValue: { reconcileAuthorizedAttempt: jest.fn() },
         },
       ],
     }).compile();
@@ -149,6 +154,56 @@ describe('PaymentsService', () => {
       expect(
         (service as any).googlePlayAdapter.getAndroidPublisher,
       ).not.toHaveBeenCalled();
+    });
+
+    it('opportunistically reconciles an authorized unresolved Mercado Pago attempt and reloads fresh state', async () => {
+      const unresolvedAttempt = {
+        id: attemptId,
+        buyerUserId: userId,
+        ownerInstitutionId: institutionId,
+        gateway: 'MERCADO_PAGO',
+        state: 'READY',
+        voucherBatchId: '44444444-4444-4444-8444-444444444444',
+        commercialSnapshot: {
+          kind: 'COMPLETE',
+          pricingPlanId: '55555555-5555-4555-8555-555555555555',
+          planName: 'Persisted plan',
+          voucherQuantity: 3,
+          listedUsd: { amountMinor: '1000', currency: 'USD' },
+          charged: { amountMinor: '1000', currency: 'ARS' },
+          gateway: 'MERCADO_PAGO',
+          fxRate: '1',
+          fxQuotedAt: '2026-01-01T00:00:00.000Z',
+          fxSource: 'TEST_SOURCE',
+        },
+        voucherBatch: { status: VoucherBatchStatus.PENDING },
+      };
+      const settledAttempt = {
+        ...unresolvedAttempt,
+        voucherBatch: {
+          status: VoucherBatchStatus.PAID,
+          quantity: 3,
+          fulfilledAt: new Date('2026-01-02T00:00:00.000Z'),
+        },
+      };
+      const findOne = (service as any).dataSource.manager.findOne as jest.Mock;
+      findOne
+        .mockResolvedValueOnce(unresolvedAttempt)
+        .mockResolvedValueOnce(settledAttempt)
+        .mockResolvedValueOnce({
+          id: '66666666-6666-4666-8666-666666666666',
+          status: 'APPROVED',
+        });
+      const reconciliation = (service as any)
+        .paymentReconciliationService as jest.Mocked<PaymentReconciliationService>;
+
+      await expect(
+        service.getCheckoutAttemptStatus(attemptId, { userId, institutionId }),
+      ).resolves.toMatchObject({ paymentState: 'PAID' });
+      expect(reconciliation.reconcileAuthorizedAttempt).toHaveBeenCalledWith(
+        unresolvedAttempt,
+      );
+      expect(findOne).toHaveBeenCalledTimes(3);
     });
 
     it('returns the same not found result for foreign and unknown attempts', async () => {
@@ -488,6 +543,7 @@ function createVerificationFixture(
       getAndroidPublisher: jest.fn().mockResolvedValue(publisher),
     } as never,
     { manager: { find: jest.fn(), count: jest.fn() } } as never,
+    { reconcileAuthorizedAttempt: jest.fn() } as never,
   );
 
   return {
