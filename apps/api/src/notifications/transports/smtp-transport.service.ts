@@ -11,14 +11,17 @@ export class SmtpTransportService implements MailTransport {
   private readonly transporter: nodemailer.Transporter;
 
   constructor(host: string, port: number, user: string, pass: string) {
+    if (Boolean(user) !== Boolean(pass)) {
+      throw new Error(
+        'SMTP authentication requires both SMTP_USER and SMTP_PASS',
+      );
+    }
+
     this.transporter = nodemailer.createTransport({
       host,
       port,
       secure: port === 465,
-      auth: {
-        user,
-        pass,
-      },
+      ...(user && pass ? { auth: { user, pass } } : {}),
     });
     this.logger.log(
       `Initialized SMTP transport (host: ${host}, port: ${port})`,

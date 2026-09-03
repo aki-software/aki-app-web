@@ -17,11 +17,15 @@ export interface CheckoutRequest {
   notificationUrl: string;
   buyerEmail: string;
   description: string;
+  /** Persisted for provider-side idempotency when an adapter supports it. */
+  providerIdempotencyKey: string;
 }
 
 export interface CheckoutResponse {
   checkoutUrl: string;
   externalReference: string;
+  /** Provider-confirmed merchant reference, when the checkout API returns it. */
+  merchantReference?: string;
 }
 
 export interface PaymentGatewayAdapter {
@@ -35,6 +39,10 @@ export interface PaymentGatewayAdapter {
     context: WebhookVerificationContext,
   ): Promise<string | undefined>;
   getPaymentStatus(externalPaymentId: string): Promise<VerifiedPayment>;
+  /** Server-to-server lookup by a trusted merchant reference, when supported. */
+  findPaymentByMerchantReference?(
+    merchantReference: string,
+  ): Promise<VerifiedPayment | undefined>;
   extractPaymentReference(body: unknown): string | undefined;
 }
 

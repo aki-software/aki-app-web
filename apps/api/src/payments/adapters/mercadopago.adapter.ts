@@ -8,8 +8,14 @@ import {
   type PaymentGatewayAdapter,
   type VerifiedPayment,
 } from '../interfaces/payment-gateway.adapter.js';
-import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
-import { createHmac, timingSafeEqual } from 'crypto';
+import {
+  InvalidWebhookSignatureError,
+  MercadoPagoConfig,
+  Payment,
+  Preference,
+  SignatureFailureReason,
+  WebhookSignatureValidator,
+} from 'mercadopago';
 
 @Injectable()
 export class MercadoPagoAdapter implements PaymentGatewayAdapter {
@@ -49,27 +55,32 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
         },
       ],
       payer: { email: params.buyerEmail },
-      backUrls: {
+      back_urls: {
         success: params.successUrl,
         failure: params.failureUrl,
         pending: params.failureUrl,
       },
-      autoReturn: 'approved',
-      notificationUrl: params.notificationUrl,
-      externalReference: params.voucherBatchId,
+      auto_return: 'approved',
+      notification_url: params.notificationUrl,
+      external_reference: params.voucherBatchId,
     };
 
     const result = await preference.create({
       body: payload,
+      requestOptions: { idempotencyKey: params.providerIdempotencyKey },
     });
 
-    if (!result.init_point) {
+    if (!result.init_point || !result.id) {
       throw new Error('Failed to create MercadoPago preference');
+    }
+    if (result.external_reference !== params.voucherBatchId) {
+      throw new Error('MercadoPago preference reference mismatch');
     }
 
     return {
       checkoutUrl: result.init_point,
-      externalReference: result.id!,
+      externalReference: result.id,
+      merchantReference: result.external_reference,
     };
   }
 
@@ -84,47 +95,38 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
   ): Promise<boolean> {
     const headers = verificationHeaders(context);
     const query = verificationQuery(context);
-    const signatureHeader = headers['x-signature'];
-    const requestId = headers['x-request-id'];
-    const dataId = normalizeQueryValue(query?.['data.id']);
-
-    if (!signatureHeader || !requestId || !dataId) {
-      return Promise.resolve(false);
-    }
-
-    // signature is like: ts=12345,v1=abcdef...
-    const parts = signatureHeader.split(',');
-    let ts = '';
-    let hash = '';
-    for (const part of parts) {
-      const [key, value] = part.trim().split('=');
-      if (key === 'ts') ts = value;
-      if (key === 'v1') hash = value;
-    }
-
+    const signatureHeader = normalizeHeaderValue(headers['x-signature']);
+    const requestId = normalizeHeaderValue(headers['x-request-id']);
+    const dataId = normalizeQueryValue(query?.['data.id'])?.toLowerCase();
     const secret = this.configService.get<string>('MP_WEBHOOK_SECRET');
+
+    try {
+      WebhookSignatureValidator.validate({
+        xSignature: signatureHeader,
+        xRequestId: requestId,
+        dataId,
+        secret: secret ?? '',
+      });
+    } catch (error) {
+      if (error instanceof InvalidWebhookSignatureError) {
+        this.logger.warn(
+          `Mercado Pago webhook rejected: ${signatureFailureCategory(error)}`,
+        );
+        return Promise.resolve(false);
+      }
+      throw error;
+    }
+
     if (
-      !secret ||
-      !ts ||
-      !hash ||
-      !/^\d+$/.test(ts) ||
-      !/^[a-f0-9]{64}$/i.test(hash)
-    )
+      !isTimestampWithinTolerance(extractSignatureTimestamp(signatureHeader))
+    ) {
+      this.logger.warn(
+        'Mercado Pago webhook rejected: timestamp outside tolerance',
+      );
       return Promise.resolve(false);
-    if (Math.abs(Date.now() - Number(ts)) > 300_000)
-      return Promise.resolve(false);
+    }
 
-    const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
-    const expectedHash = createHmac('sha256', secret)
-      .update(manifest)
-      .digest('hex');
-
-    const expected = Buffer.from(expectedHash, 'hex');
-    const received = Buffer.from(hash, 'hex');
-    return Promise.resolve(
-      expected.length === received.length &&
-        timingSafeEqual(expected, received),
-    );
+    return Promise.resolve(true);
   }
 
   async getAuthenticatedWebhookPaymentId(
@@ -192,6 +194,31 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
     }
   }
 
+  async findPaymentByMerchantReference(
+    merchantReference: string,
+  ): Promise<VerifiedPayment | undefined> {
+    const payment = new Payment(this.client);
+    const result = await payment.search({
+      options: {
+        external_reference: merchantReference,
+        sort: 'date_created',
+        criteria: 'desc',
+        limit: 10,
+      },
+    });
+
+    // Search results are only hints: canonical details must independently match.
+    let pendingMatch: VerifiedPayment | undefined;
+    for (const candidate of result.results ?? []) {
+      if (!candidate.id) continue;
+      const verified = await this.getPaymentStatus(String(candidate.id));
+      if (verified.merchantReference !== merchantReference) continue;
+      if (verified.status === 'APPROVED') return verified;
+      pendingMatch ??= verified;
+    }
+    return pendingMatch;
+  }
+
   extractPaymentReference(body: unknown): string | undefined {
     if (!isRecord(body) || body.type !== 'payment' || !isRecord(body.data)) {
       return undefined;
@@ -206,7 +233,46 @@ export class MercadoPagoAdapter implements PaymentGatewayAdapter {
 function normalizeQueryValue(
   value: string | string[] | undefined,
 ): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
+  return normalizeHeaderValue(Array.isArray(value) ? value[0] : value);
+}
+
+function normalizeHeaderValue(value: string | undefined): string | undefined {
+  const normalized = value?.trim();
+  return normalized ? normalized : undefined;
+}
+
+function extractSignatureTimestamp(
+  signature: string | undefined,
+): string | undefined {
+  if (!signature) return undefined;
+
+  let timestamp: string | undefined;
+  for (const part of signature.split(',')) {
+    const separator = part.indexOf('=');
+    if (separator === -1) continue;
+    if (part.slice(0, separator).trim().toLowerCase() === 'ts') {
+      timestamp = part.slice(separator + 1).trim() || undefined;
+    }
+  }
+  return timestamp;
+}
+
+function isTimestampWithinTolerance(timestamp: string | undefined): boolean {
+  if (!timestamp || !/^\d+$/.test(timestamp)) return false;
+
+  const value = Number(timestamp);
+  const timestampMs = value >= 1_000_000_000_000 ? value : value * 1000;
+  return (
+    Number.isSafeInteger(value) &&
+    Number.isFinite(timestampMs) &&
+    Math.abs(Date.now() - timestampMs) <= 300_000
+  );
+}
+
+function signatureFailureCategory(error: InvalidWebhookSignatureError): string {
+  return error.reason === SignatureFailureReason.SignatureMismatch
+    ? 'signature mismatch'
+    : 'malformed input';
 }
 
 function verificationHeaders(

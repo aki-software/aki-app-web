@@ -13,6 +13,7 @@ import type { Request } from 'express';
 import { RateLimit } from '../common/decorators/rate-limit.decorator.js';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { PAYMENT_RATE_LIMIT_POLICIES } from './payment-security.constants.js';
+import { isMercadoPagoOnly } from './config/payment-configuration.js';
 
 interface RequestWithRawBody extends Request {
   rawBody?: Buffer;
@@ -38,6 +39,11 @@ export class WebhookController {
     const gatewayUpper = gateway.toUpperCase();
     if (!validGateways.includes(gatewayUpper)) {
       throw new BadRequestException('Invalid payment gateway');
+    }
+    if (gatewayUpper === 'STRIPE' && isMercadoPagoOnly(process.env)) {
+      throw new ServiceUnavailableException(
+        'Stripe webhooks are unavailable while Mercado Pago is active',
+      );
     }
 
     if (!Buffer.isBuffer(req.rawBody)) {

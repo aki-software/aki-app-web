@@ -3,6 +3,7 @@ import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
+import { createCorsOptions } from './config/cors-policy.js';
 
 async function bootstrap() {
   const start = Date.now();
@@ -32,31 +33,7 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger));
 
-  const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? [
-    'http://localhost:5173',
-    'http://localhost:4321',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:4321',
-  ];
-  app.enableCors({
-    origin: (
-      origin: string | undefined,
-      callback: (error: Error | null, allow?: boolean) => void,
-    ) => {
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app') ||
-        (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+  app.enableCors(createCorsOptions());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -72,4 +49,8 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
-bootstrap();
+
+void bootstrap().catch((error: unknown) => {
+  console.error('[Bootstrap] Application startup failed', error);
+  process.exitCode = 1;
+});

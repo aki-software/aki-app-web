@@ -9,6 +9,7 @@ import {
   Index,
 } from 'typeorm';
 import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
+import { CheckoutAttempt } from './checkout-attempt.entity.js';
 
 @Entity('payment_event')
 @Index(
@@ -45,6 +46,13 @@ export class PaymentEvent {
   @ManyToOne(() => VoucherBatch, { nullable: true })
   @JoinColumn({ name: 'voucherBatchId' })
   voucherBatch!: VoucherBatch;
+
+  @Column({ name: 'checkout_attempt_id', type: 'uuid', nullable: true })
+  checkoutAttemptId!: string | null;
+
+  @ManyToOne(() => CheckoutAttempt, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'checkout_attempt_id' })
+  checkoutAttempt!: CheckoutAttempt | null;
 
   @CreateDateColumn()
   createdAt!: Date;

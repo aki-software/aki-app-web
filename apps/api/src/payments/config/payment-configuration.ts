@@ -5,20 +5,53 @@ export class PaymentConfigurationError extends Error {
   }
 }
 
+export type PaymentGateway = 'MERCADO_PAGO' | 'STRIPE';
+
 export interface PaymentConfiguration {
   simulationEnabled: boolean;
+  gateway: PaymentGateway;
 }
 
 const productionRequiredKeys = [
   'API_URL',
-  'STRIPE_SECRET_KEY',
-  'STRIPE_WEBHOOK_SECRET',
-  'MP_ACCESS_TOKEN',
-  'MP_WEBHOOK_SECRET',
-  'GOOGLE_PLAY_PACKAGE_NAME',
-  'GOOGLE_PLAY_REPORT_SKU',
-  'GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64',
+  'PAYMENT_IDEMPOTENCY_SECRET',
 ] as const;
+
+export function resolvePaymentGateway(
+  environment: NodeJS.ProcessEnv,
+): PaymentGateway {
+  const gateway = environment.PAYMENT_GATEWAY?.trim() || 'STRIPE';
+  if (gateway === 'MERCADO_PAGO' || gateway === 'STRIPE') return gateway;
+  throw new PaymentConfigurationError(
+    'PAYMENT_GATEWAY must be MERCADO_PAGO or STRIPE',
+  );
+}
+
+export function isMercadoPagoOnly(environment: NodeJS.ProcessEnv): boolean {
+  return resolvePaymentGateway(environment) === 'MERCADO_PAGO';
+}
+
+export function getPaymentReadiness(environment: NodeJS.ProcessEnv): {
+  gateway: PaymentGateway;
+  configured: boolean;
+} {
+  const gateway = resolvePaymentGateway(environment);
+  const requiredKeys =
+    gateway === 'MERCADO_PAGO'
+      ? ['MP_ACCESS_TOKEN', 'MP_WEBHOOK_SECRET', 'PAYMENT_IDEMPOTENCY_SECRET']
+      : [
+          'STRIPE_SECRET_KEY',
+          'STRIPE_WEBHOOK_SECRET',
+          'PAYMENT_IDEMPOTENCY_SECRET',
+        ];
+  const { url: frontendUrl } = getEffectiveFrontendUrl(environment);
+  return {
+    gateway,
+    configured:
+      Boolean(frontendUrl && environment.API_URL) &&
+      requiredKeys.every((key) => Boolean(environment[key]?.trim())),
+  };
+}
 
 function getEffectiveFrontendUrl(environment: NodeJS.ProcessEnv): {
   url?: string;
@@ -53,6 +86,7 @@ export function resolvePaymentConfiguration(
 ): PaymentConfiguration {
   const isProduction = environment.NODE_ENV === 'production';
   const simulationEnabled = environment.PAYMENT_SIMULATION === 'true';
+  const gateway = resolvePaymentGateway(environment);
 
   if (
     simulationEnabled &&
@@ -66,9 +100,22 @@ export function resolvePaymentConfiguration(
   }
 
   if (isProduction) {
-    const missing: string[] = productionRequiredKeys.filter(
-      (key) => !environment[key],
-    );
+    const requiredGatewayKeys =
+      gateway === 'MERCADO_PAGO'
+        ? ['MP_ACCESS_TOKEN', 'MP_WEBHOOK_SECRET']
+        : [
+            'STRIPE_SECRET_KEY',
+            'STRIPE_WEBHOOK_SECRET',
+            'MP_ACCESS_TOKEN',
+            'MP_WEBHOOK_SECRET',
+            'GOOGLE_PLAY_PACKAGE_NAME',
+            'GOOGLE_PLAY_REPORT_SKU',
+            'GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64',
+          ];
+    const missing: string[] = [
+      ...productionRequiredKeys,
+      ...requiredGatewayKeys,
+    ].filter((key) => !environment[key]);
     const { url: effectiveFrontendUrl, key: frontendKey } =
       getEffectiveFrontendUrl(environment);
     if (!effectiveFrontendUrl) {
@@ -90,7 +137,7 @@ export function resolvePaymentConfiguration(
     validateProductionPaymentConfiguration(environment);
   }
 
-  return { simulationEnabled };
+  return { simulationEnabled, gateway };
 }
 
 function validateProductionPaymentConfiguration(
@@ -100,16 +147,18 @@ function validateProductionPaymentConfiguration(
     getEffectiveFrontendUrl(environment);
   validatePublicHttpsUrl(effectiveFrontendUrl!, frontendKey);
   validatePublicHttpsUrl(environment.API_URL!, 'API_URL');
-  validateCredential(
-    environment.STRIPE_SECRET_KEY!,
-    /^sk_live_[A-Za-z0-9]{16,}$/,
-    'STRIPE_SECRET_KEY',
-  );
-  validateCredential(
-    environment.STRIPE_WEBHOOK_SECRET!,
-    /^whsec_[A-Za-z0-9]{16,}$/,
-    'STRIPE_WEBHOOK_SECRET',
-  );
+  if (!isMercadoPagoOnly(environment)) {
+    validateCredential(
+      environment.STRIPE_SECRET_KEY!,
+      /^sk_live_[A-Za-z0-9]{16,}$/,
+      'STRIPE_SECRET_KEY',
+    );
+    validateCredential(
+      environment.STRIPE_WEBHOOK_SECRET!,
+      /^whsec_[A-Za-z0-9]{16,}$/,
+      'STRIPE_WEBHOOK_SECRET',
+    );
+  }
   validateCredential(
     environment.MP_ACCESS_TOKEN!,
     /^APP_USR-[A-Za-z0-9_-]{16,}$/,
@@ -120,17 +169,26 @@ function validateProductionPaymentConfiguration(
     /^[A-Za-z0-9_-]{20,}$/,
     'MP_WEBHOOK_SECRET',
   );
-  if (
-    !/^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$/.test(
-      environment.GOOGLE_PLAY_PACKAGE_NAME!,
-    )
-  ) {
-    throw new PaymentConfigurationError('GOOGLE_PLAY_PACKAGE_NAME is invalid');
-  }
-  if (environment.GOOGLE_PLAY_REPORT_SKU !== 'report_unlock_v2') {
+  if (environment.PAYMENT_IDEMPOTENCY_SECRET!.trim().length < 32) {
     throw new PaymentConfigurationError(
-      'GOOGLE_PLAY_REPORT_SKU must be report_unlock_v2',
+      'PAYMENT_IDEMPOTENCY_SECRET must be at least 32 characters',
     );
+  }
+  if (!isMercadoPagoOnly(environment)) {
+    if (
+      !/^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$/.test(
+        environment.GOOGLE_PLAY_PACKAGE_NAME!,
+      )
+    ) {
+      throw new PaymentConfigurationError(
+        'GOOGLE_PLAY_PACKAGE_NAME is invalid',
+      );
+    }
+    if (environment.GOOGLE_PLAY_REPORT_SKU !== 'report_unlock_v2') {
+      throw new PaymentConfigurationError(
+        'GOOGLE_PLAY_REPORT_SKU must be report_unlock_v2',
+      );
+    }
   }
 }
 
