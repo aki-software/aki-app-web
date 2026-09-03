@@ -15,6 +15,7 @@ import { PricingPlan } from './entities/pricing-plan.entity.js';
 import { PaymentEvent } from './entities/payment-event.entity.js';
 import { PaymentFulfillmentOutbox } from './entities/payment-fulfillment-outbox.entity.js';
 import { CheckoutAttempt } from './entities/checkout-attempt.entity.js';
+import { PaymentNotificationDelivery } from './entities/payment-notification-delivery.entity.js';
 import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
 import { PaymentGatewayModule } from './payment-gateway.module.js';
 import { VoucherFulfillmentDispatcherService } from './services/voucher-fulfillment-dispatcher.service.js';
@@ -29,6 +30,7 @@ import { PaymentReconciliationService } from './services/payment-reconciliation.
       VoucherBatch,
       PaymentFulfillmentOutbox,
       CheckoutAttempt,
+      PaymentNotificationDelivery,
     ]),
     BullModule.registerQueue({ name: 'voucher-fulfillment' }),
     SessionsModule,
