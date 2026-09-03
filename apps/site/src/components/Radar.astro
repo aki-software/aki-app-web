@@ -31,6 +31,21 @@ const badgeStyles: BadgeStyle[] = [
   { code: 'VENT', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50', dot: '#f43f5e' },
   { code: locale === 'es' ? 'NEG' : 'BUS', border: 'border-indigo-200', text: 'text-indigo-800', bg: 'bg-indigo-50', dot: '#312e81' },
 ];
+
+const categoryDimensions = [
+  { x: 50, y: 20, lx: 50, ly: 6, code: 'ART', fullName: locale === 'es' ? 'Artística' : 'Arts', color: '#7c3aed', dotColor: '#a78bfa' },
+  { x: 63, y: 25, lx: 70, ly: 16, code: 'HUM', fullName: locale === 'es' ? 'Humanidades' : 'Humanities', color: '#c026d3', dotColor: '#d946ef' },
+  { x: 72, y: 35, lx: 86, ly: 30, code: 'SERV', fullName: locale === 'es' ? 'Servicios y acomodación' : 'Services & Accommodation', color: '#0f766e', dotColor: '#0d9488' },
+  { x: 78, y: 50, lx: 91, ly: 50, code: 'PROT', fullName: locale === 'es' ? 'Protección' : 'Protection', color: '#475569', dotColor: '#64748b' },
+  { x: 72, y: 60, lx: 86, ly: 70, code: 'FÍS', fullName: locale === 'es' ? 'Deportes' : 'Sports', color: '#dc2626', dotColor: '#f43f5e' },
+  { x: 62, y: 72, lx: 70, ly: 84, code: 'IND', fullName: locale === 'es' ? 'Industria' : 'Industry', color: '#525252', dotColor: '#52525b' },
+  { x: 50, y: 78, lx: 50, ly: 92, code: 'MEC', fullName: locale === 'es' ? 'Mecánica' : 'Mechanics', color: '#c2410c', dotColor: '#ea580c' },
+  { x: 38, y: 72, lx: 30, ly: 84, code: 'NAT', fullName: locale === 'es' ? 'Naturaleza' : 'Nature', color: '#16a34a', dotColor: '#22c55e' },
+  { x: 28, y: 60, lx: 14, ly: 70, code: 'LÍD', fullName: locale === 'es' ? 'Liderazgo' : 'Leadership', color: '#4f46e5', dotColor: '#6366f1' },
+  { x: 24, y: 50, lx: 9, ly: 50, code: locale === 'es' ? 'CIE' : 'SCI', fullName: locale === 'es' ? 'Ciencia' : 'Science', color: '#3730a3', dotColor: '#4338ca' },
+  { x: 28, y: 38, lx: 14, ly: 30, code: 'VENT', fullName: locale === 'es' ? 'Ventas' : 'Sales', color: '#dc2626', dotColor: '#f43f5e' },
+  { x: 38, y: 25, lx: 30, ly: 16, code: locale === 'es' ? 'NEG' : 'BUS', fullName: locale === 'es' ? 'Negocios' : 'Business', color: '#1e1b4b', dotColor: '#312e81' },
+];
 ---
 
 <section class="py-24 md:py-32 relative bg-bg overflow-hidden" id="metodologia">
@@ -38,9 +53,23 @@ const badgeStyles: BadgeStyle[] = [
     <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
       <!-- Radar Visualization Card -->
       <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0">
-        <div id="radar-card" class="bg-surface border border-border/60 p-6 sm:p-8 md:p-10 rounded-[2.5rem] sm:rounded-[3rem] shadow-md overflow-hidden">
-          <div class="radar-svg-wrapper" style="transform: scale(0.8); opacity: 0; transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;">
-            <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto overflow-visible">
+        <div id="radar-card" class="bg-surface border border-border/60 p-6 sm:p-8 md:p-10 rounded-[2.5rem] sm:rounded-[3rem] shadow-md overflow-hidden relative group">
+          
+          <!-- Floating live badge over the radar -->
+          <div id="radar-floating-info" class="absolute top-4 left-6 right-6 flex items-center justify-between pointer-events-none opacity-0 translate-y-1 transition-all duration-300 z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/95 border border-border shadow-sm backdrop-blur-md">
+              <span id="radar-info-dot" class="w-2.5 h-2.5 rounded-full transition-colors duration-200"></span>
+              <span id="radar-info-code" class="font-display font-bold text-xs text-text"></span>
+              <span class="text-border/60">·</span>
+              <span id="radar-info-name" class="text-xs text-text-muted font-medium truncate max-w-[140px] sm:max-w-none"></span>
+            </div>
+            <span class="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold tracking-wider uppercase">
+              {locale === 'es' ? 'Dimensión' : 'Dimension'}
+            </span>
+          </div>
+
+          <div class="radar-svg-wrapper pt-4" style="transform: scale(0.8); opacity: 0; transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;">
+            <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto overflow-visible select-none">
               <defs>
                 <linearGradient id="radarFillRecharts" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="5%" stop-color="var(--color-primary)" stop-opacity="0.55" />
@@ -90,48 +119,74 @@ const badgeStyles: BadgeStyle[] = [
                 filter="url(#dot-glow-recharts)"
               />
 
-              <!-- Vertex dots on result polygon -->
-              {[
-                { x: 50, y: 20, color: '#a78bfa', code: 'ART' },
-                { x: 63, y: 25, color: '#d946ef', code: 'HUM' },
-                { x: 72, y: 35, color: '#0d9488', code: 'SERV' },
-                { x: 78, y: 50, color: '#64748b', code: 'PROT' },
-                { x: 72, y: 60, color: '#f43f5e', code: 'FÍS' },
-                { x: 62, y: 72, color: '#52525b', code: 'IND' },
-                { x: 50, y: 78, color: '#ea580c', code: 'MEC' },
-                { x: 38, y: 72, color: '#22c55e', code: 'NAT' },
-                { x: 28, y: 60, color: '#6366f1', code: 'LÍD' },
-                { x: 24, y: 50, color: '#4338ca', code: locale === 'es' ? 'CIE' : 'SCI' },
-                { x: 28, y: 38, color: '#f43f5e', code: 'VENT' },
-                { x: 38, y: 25, color: '#312e81', code: locale === 'es' ? 'NEG' : 'BUS' }
-              ].map(({ x, y, color, code }) => (
-                <circle id={`v-${code}`}
-                  cx={`${x}`} cy={`${y}`} r="3" fill={color} stroke="white" stroke-width="1" filter="url(#dot-glow-recharts)"
-                  class="radar-dot-recharts" />
+              <!-- Vertex dots with generous hit-targets for bidirectional hover -->
+              {categoryDimensions.map(({ x, y, dotColor, code, fullName }) => (
+                <g
+                  class="radar-interactive-target cursor-pointer"
+                  data-code={code}
+                  data-fullname={fullName}
+                  data-color={dotColor}
+                  tabindex="0"
+                  role="button"
+                  aria-label={`Categoría ${code}: ${fullName}`}
+                >
+                  <circle cx={`${x}`} cy={`${y}`} r="7" fill="transparent" class="radar-hit-target" />
+                  <circle
+                    id={`v-${code}`}
+                    cx={`${x}`}
+                    cy={`${y}`}
+                    r="3"
+                    fill={dotColor}
+                    stroke="white"
+                    stroke-width="1"
+                    filter="url(#dot-glow-recharts)"
+                    class="radar-dot-recharts pointer-events-none"
+                  />
+                </g>
               ))}
 
-              <!-- Category labels (codes with full names below) -->
-              {[
-                { x: 50, y: 6, code: 'ART', fullName: locale === 'es' ? 'Artística' : 'Arts', color: '#7c3aed' },
-                { x: 70, y: 16, code: 'HUM', fullName: locale === 'es' ? 'Humanidades' : 'Humanities', color: '#c026d3' },
-                { x: 86, y: 30, code: 'SERV', fullName: locale === 'es' ? 'Servicios y acomodación' : 'Services & Accommodation', color: '#0f766e' },
-                { x: 91, y: 50, code: 'PROT', fullName: locale === 'es' ? 'Protección' : 'Protection', color: '#475569' },
-                { x: 86, y: 70, code: 'FÍS', fullName: locale === 'es' ? 'Deportes' : 'Sports', color: '#dc2626' },
-                { x: 70, y: 84, code: 'IND', fullName: locale === 'es' ? 'Industria' : 'Industry', color: '#525252' },
-                { x: 50, y: 92, code: 'MEC', fullName: locale === 'es' ? 'Mecánica' : 'Mechanics', color: '#c2410c' },
-                { x: 30, y: 84, code: 'NAT', fullName: locale === 'es' ? 'Naturaleza' : 'Nature', color: '#16a34a' },
-                { x: 14, y: 70, code: 'LÍD', fullName: locale === 'es' ? 'Liderazgo' : 'Leadership', color: '#4f46e5' },
-                { x: 9, y: 50, code: locale === 'es' ? 'CIE' : 'SCI', fullName: locale === 'es' ? 'Ciencia' : 'Science', color: '#3730a3' },
-                { x: 14, y: 30, code: 'VENT', fullName: locale === 'es' ? 'Ventas' : 'Sales', color: '#dc2626' },
-                { x: 30, y: 16, code: locale === 'es' ? 'NEG' : 'BUS', fullName: locale === 'es' ? 'Negocios' : 'Business', color: '#1e1b4b' }
-              ].map(({ x, y, code, fullName, color }) => {
-                const isLeft = x < 50;
-                const anchor = x === 50 ? 'middle' : isLeft ? 'end' : 'start';
-                const labelX = x === 50 ? x : isLeft ? x - 3 : x + 3;
+              <!-- Category labels (interactive) -->
+              {categoryDimensions.map(({ lx, ly, code, fullName, color, dotColor }) => {
+                const isLeft = lx < 50;
+                const anchor = lx === 50 ? 'middle' : isLeft ? 'end' : 'start';
+                const labelX = lx === 50 ? lx : isLeft ? lx - 3 : lx + 3;
                 return (
-                  <g>
-                    <text x={`${labelX}`} y={`${y}`} text-anchor={anchor} fill={color} font-size="4.2" font-weight="800" font-family="Sora, sans-serif" letter-spacing="1.5">{code}</text>
-                    <text x={`${labelX}`} y={`${y + 4.5}`} text-anchor={anchor} fill="rgba(0,0,0,0.35)" font-size="2.5" font-weight="500" font-family="Sora, sans-serif">{fullName}</text>
+                  <g
+                    class="radar-interactive-target cursor-pointer"
+                    data-code={code}
+                    data-fullname={fullName}
+                    data-color={dotColor}
+                    tabindex="0"
+                    role="button"
+                    aria-label={`Categoría ${code}: ${fullName}`}
+                  >
+                    <text
+                      id={`lbl-code-${code}`}
+                      x={`${labelX}`}
+                      y={`${ly}`}
+                      text-anchor={anchor}
+                      fill={color}
+                      font-size="4.2"
+                      font-weight="800"
+                      font-family="Sora, sans-serif"
+                      letter-spacing="1.5"
+                      class="radar-label-code transition-all duration-200"
+                    >
+                      {code}
+                    </text>
+                    <text
+                      id={`lbl-name-${code}`}
+                      x={`${labelX}`}
+                      y={`${ly + 4.5}`}
+                      text-anchor={anchor}
+                      fill="rgba(0,0,0,0.35)"
+                      font-size="2.5"
+                      font-weight="500"
+                      font-family="Sora, sans-serif"
+                      class="radar-label-full transition-all duration-200"
+                    >
+                      {fullName}
+                    </text>
                   </g>
                 );
               })}
@@ -165,6 +220,7 @@ const badgeStyles: BadgeStyle[] = [
                 type="button"
                 data-code={type.code}
                 data-fullname={cat?.name || type.code}
+                data-color={type.dot}
                 aria-label={`Categoría ${cat?.name || type.code}`}
                 class={`badge-chip flex items-center gap-2 p-2.5 rounded-xl bg-surface border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer text-left ${type.border}`}
               >
@@ -177,7 +233,7 @@ const badgeStyles: BadgeStyle[] = [
 
         <!-- Active category tooltip -->
         <div id="cat-tooltip" class="mt-6 text-center lg:text-left text-sm font-medium text-text-muted min-h-[1.5rem] transition-opacity duration-300 opacity-60">
-          {locale === 'es' ? 'Tocá o pasá el cursor sobre una categoría para resaltarla' : 'Tap or hover over a category to highlight it'}
+          {locale === 'es' ? 'Tocá o pasá el cursor sobre el gráfico o una categoría para resaltarla' : 'Tap or hover over the radar or a category to highlight it'}
         </div>
       </div>
     </div>
@@ -186,23 +242,33 @@ const badgeStyles: BadgeStyle[] = [
 
 <style>
   .radar-dot-recharts {
-    transition: r 0.25s ease, filter 0.25s ease;
-    cursor: default;
+    transition: r 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease, stroke-width 0.25s ease;
   }
   .radar-dot-recharts.active {
-    r: 6;
+    r: 5.5;
+    stroke-width: 1.5;
     filter: drop-shadow(0 0 8px currentColor);
-  }
-  .radar-dot-animate {
-    animation: dot-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   }
   .badge-chip.active {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(15, 107, 104, 0.15);
     border-color: var(--color-primary) !important;
   }
+  .radar-label-code.active {
+    font-size: 5px;
+    font-weight: 900;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+  .radar-label-full.active {
+    fill: var(--color-text);
+    font-weight: 700;
+  }
   .radar-result-animate {
     animation: radar-draw 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards, radar-fill 1.5s ease-out forwards;
+  }
+  #radar-card:hover #radar-result {
+    stroke-width: 2.2;
+    filter: drop-shadow(0 0 10px var(--color-primary));
   }
   @keyframes radar-draw {
     from { stroke-dashoffset: 400; }
@@ -223,6 +289,12 @@ const badgeStyles: BadgeStyle[] = [
   const svgWrapper = document.querySelector('.radar-svg-wrapper') as HTMLElement | null;
   const tooltip = document.getElementById('cat-tooltip');
   const chips = document.querySelectorAll<HTMLButtonElement>('.badge-chip');
+  const interactiveTargets = document.querySelectorAll<SVGGElement>('.radar-interactive-target');
+  const floatingInfo = document.getElementById('radar-floating-info');
+  const infoDot = document.getElementById('radar-info-dot');
+  const infoCode = document.getElementById('radar-info-code');
+  const infoName = document.getElementById('radar-info-name');
+
   const defaultTooltipText = tooltip?.textContent || '';
   let activeCode: string | null = null;
 
@@ -246,56 +318,113 @@ const badgeStyles: BadgeStyle[] = [
   }, { threshold: 0.3 });
   if (radarCard) radarObserver.observe(radarCard);
 
-  function activateCategory(chip: HTMLButtonElement) {
-    const code = chip.dataset.code;
-    if (!code) return;
-
-    chips.forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
-
-    if (activeCode === code) {
+  function highlight(code: string, fullName: string, color: string, isPermanentToggle = false) {
+    if (isPermanentToggle && activeCode === code) {
       activeCode = null;
-      if (tooltip) {
-        tooltip.textContent = defaultTooltipText;
-        tooltip.style.opacity = '0.6';
-      }
+      clearHighlight();
       return;
     }
 
-    activeCode = code;
-    chip.classList.add('active');
-    const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
-    if (dot) dot.classList.add('active');
+    if (isPermanentToggle) {
+      activeCode = code;
+    }
+
+    // Update chips
+    chips.forEach(c => {
+      if (c.dataset.code === code) {
+        c.classList.add('active');
+      } else {
+        c.classList.remove('active');
+      }
+    });
+
+    // Update dots
+    document.querySelectorAll('.radar-dot-recharts').forEach((v) => {
+      if (v.id === `v-${code}`) {
+        v.classList.add('active');
+      } else {
+        v.classList.remove('active');
+      }
+    });
+
+    // Update labels
+    document.querySelectorAll('.radar-label-code').forEach((lbl) => {
+      if (lbl.id === `lbl-code-${code}`) {
+        lbl.classList.add('active');
+      } else {
+        lbl.classList.remove('active');
+      }
+    });
+    document.querySelectorAll('.radar-label-full').forEach((lbl) => {
+      if (lbl.id === `lbl-name-${code}`) {
+        lbl.classList.add('active');
+      } else {
+        lbl.classList.remove('active');
+      }
+    });
+
+    // Floating overlay inside the radar card
+    if (floatingInfo && infoDot && infoCode && infoName) {
+      infoDot.style.backgroundColor = color;
+      infoCode.textContent = code;
+      infoName.textContent = fullName;
+      floatingInfo.classList.remove('opacity-0', 'translate-y-1');
+      floatingInfo.classList.add('opacity-100', 'translate-y-0');
+    }
+
+    // Bottom tooltip update
     if (tooltip) {
-      tooltip.textContent = `${code}: ${chip.dataset.fullname || ''}`;
+      tooltip.textContent = `${code}: ${fullName}`;
       tooltip.style.opacity = '1';
     }
   }
 
-  function clearActiveCategory() {
-    if (activeCode) return; // Keep persistent if clicked
+  function clearHighlight() {
+    if (activeCode) return; // Retain active selection if locked by click
+
+    chips.forEach(c => c.classList.remove('active'));
     document.querySelectorAll('.radar-dot-recharts').forEach((v) => v.classList.remove('active'));
+    document.querySelectorAll('.radar-label-code').forEach((lbl) => lbl.classList.remove('active'));
+    document.querySelectorAll('.radar-label-full').forEach((lbl) => lbl.classList.remove('active'));
+
+    if (floatingInfo) {
+      floatingInfo.classList.add('opacity-0', 'translate-y-1');
+      floatingInfo.classList.remove('opacity-100', 'translate-y-0');
+    }
+
     if (tooltip) {
       tooltip.textContent = defaultTooltipText;
       tooltip.style.opacity = '0.6';
     }
   }
 
+  // Bind right-column badge chips
   chips.forEach((chip) => {
-    chip.addEventListener('click', () => activateCategory(chip));
-    chip.addEventListener('mouseenter', () => {
-      if (!activeCode) {
-        const code = chip.dataset.code;
-        const dot = document.querySelector(`.radar-dot-recharts[id="v-${code}"]`);
-        if (dot) dot.classList.add('active');
-        if (tooltip) {
-          tooltip.textContent = `${code}: ${chip.dataset.fullname || ''}`;
-          tooltip.style.opacity = '1';
-        }
+    const code = chip.dataset.code || '';
+    const fullName = chip.dataset.fullname || code;
+    const color = chip.dataset.color || '#0f6b68';
+
+    chip.addEventListener('click', () => highlight(code, fullName, color, true));
+    chip.addEventListener('mouseenter', () => highlight(code, fullName, color, false));
+    chip.addEventListener('mouseleave', clearHighlight);
+  });
+
+  // Bind SVG interactive vertices and labels
+  interactiveTargets.forEach((target) => {
+    const code = target.dataset.code || '';
+    const fullName = target.dataset.fullname || code;
+    const color = target.dataset.color || '#0f6b68';
+
+    target.addEventListener('click', () => highlight(code, fullName, color, true));
+    target.addEventListener('mouseenter', () => highlight(code, fullName, color, false));
+    target.addEventListener('mouseleave', clearHighlight);
+
+    // Accessibility: support Enter/Space key navigation
+    target.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        highlight(code, fullName, color, true);
       }
-    });
-    chip.addEventListener('mouseleave', () => {
-      if (!activeCode) clearActiveCategory();
     });
   });
 
