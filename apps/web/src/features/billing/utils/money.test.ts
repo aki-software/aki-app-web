@@ -21,8 +21,6 @@ describe("formatMoney", () => {
     expect(formatMoney({ amountMinor: "-1050", currency: "ARS" })).toBe(
       "ARS -10,50",
     );
-    expect(formatMoney({ amountMinor: "0", currency: "USD" })).toBe(
-      "USD 0.00",
-    );
+    expect(formatMoney({ amountMinor: "0", currency: "USD" })).toBe("USD 0.00");
   });
 });
