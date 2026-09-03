@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useBillingHistory,
   usePricingPlans,
   useCheckoutAttemptStatus,
+  isTerminalCheckoutStatus,
 } from "../hooks/useBilling";
 import { CHECKOUT_ATTEMPT_STORAGE_KEY } from "../components/BuyVouchersModal";
 import { Alert } from "../../../components/atoms/Alert";
@@ -13,23 +14,55 @@ import { BuyVouchersModal } from "../components/BuyVouchersModal";
 import { PlanCard } from "../components/PlanCard";
 import { ShoppingCart } from "lucide-react";
 import { Spinner } from "../../../components/atoms/Spinner";
+import { formatMoney } from "../utils/money";
 
 export function BillingDashboard() {
   const { data: history, isLoading: isLoadingHistory } = useBillingHistory();
   const { data: plans, isLoading: isLoadingPlans } = usePricingPlans();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const checkoutAttemptId =
-    new URLSearchParams(window.location.search).get("checkoutAttemptId") ||
-    sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY);
+  const [isTrackingDismissed, setIsTrackingDismissed] = useState(false);
+  const [checkoutAttemptId] = useState(
+    () =>
+      new URLSearchParams(window.location.search).get("checkoutAttemptId") ||
+      sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY),
+  );
   const {
     data: checkoutStatus,
     isLoading: isLoadingCheckout,
+    isExhausted,
     error: checkoutError,
     refetch: refreshCheckout,
   } = useCheckoutAttemptStatus(checkoutAttemptId);
 
   const currentBalance = history?.currentBalance || 0;
+  const isCheckoutTerminal = Boolean(
+    checkoutStatus && isTerminalCheckoutStatus(checkoutStatus),
+  );
+      const isPurchaseLocked = Boolean(
+        checkoutAttemptId && !isCheckoutTerminal && !isTrackingDismissed,
+      );
+
+      const handleDismissTracking = () => {
+        if (
+          checkoutAttemptId &&
+          sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY) === checkoutAttemptId
+        ) {
+          sessionStorage.removeItem(CHECKOUT_ATTEMPT_STORAGE_KEY);
+        }
+        setIsTrackingDismissed(true);
+      };
+
+  useEffect(() => {
+    if (
+      checkoutAttemptId &&
+      checkoutStatus &&
+      isTerminalCheckoutStatus(checkoutStatus) &&
+      sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY) === checkoutAttemptId
+    ) {
+      sessionStorage.removeItem(CHECKOUT_ATTEMPT_STORAGE_KEY);
+    }
+  }, [checkoutAttemptId, checkoutStatus]);
 
   const handleBuyPlan = (planId: string) => {
     setSelectedPlanId(planId);
@@ -61,53 +94,71 @@ export function BillingDashboard() {
           className="app-card p-5 border border-app-border"
           aria-label="Estado del pago"
         >
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <h3 className="text-base font-display font-semibold text-app-text-main">
-              Estado de la compra
-            </h3>
-            <Button
-              variant="outline"
-              className="px-4 py-2 text-sm"
-              onClick={refreshCheckout}
-              isLoading={isLoadingCheckout}
-            >
-              Actualizar
-            </Button>
-          </div>
-          {isLoadingCheckout && (
-            <div className="flex items-center gap-2 text-sm text-app-text-muted">
-              <Spinner size="sm" /> Cargando estado del pago...
-            </div>
-          )}
-          {!isLoadingCheckout && checkoutError && (
-            <Alert
-              type="error"
-              message="No se pudo consultar el estado del pago. Intentá actualizar."
-            />
-          )}
-          {!isLoadingCheckout && !checkoutError && !checkoutStatus && (
-            <Alert
-              type="warning"
-              message="No se encontró el estado de esta compra."
-            />
-          )}
-          {checkoutStatus && (
-            <div className="space-y-1 text-sm text-app-text-main">
-              <p>
-                <strong>Pago:</strong> {checkoutStatus.paymentState}
-              </p>
-              <p>
-                <strong>Entrega:</strong> {checkoutStatus.fulfillmentState}
-              </p>
-              {checkoutStatus.chargedTotal && (
-                <p>
-                  <strong>Total cobrado:</strong>{" "}
-                  {checkoutStatus.chargedTotal.amountMinor}{" "}
-                  {checkoutStatus.chargedTotal.currency}
-                </p>
+              <div className="flex items-center justify-between gap-4 mb-3">
+                <h3 className="text-base font-display font-semibold text-app-text-main">
+                  Estado de la compra
+                </h3>
+                    <div className="flex items-center gap-2">
+                      {(checkoutError || isExhausted) && (
+                        <Button
+                          variant="outline"
+                          className="px-4 py-2 text-sm"
+                          onClick={refreshCheckout}
+                          isLoading={isLoadingCheckout}
+                        >
+                          Reintentar consulta
+                        </Button>
+                      )}
+                      {!isCheckoutTerminal && !isTrackingDismissed && (checkoutError || isExhausted) && (
+                        <Button
+                          variant="outline"
+                          className="px-4 py-2 text-sm"
+                          onClick={handleDismissTracking}
+                        >
+                          Descartar seguimiento
+                        </Button>
+                      )}
+                    </div>
+              </div>
+              {isLoadingCheckout && !checkoutStatus && (
+                <div className="flex items-center gap-2 text-sm text-app-text-muted">
+                  <Spinner size="sm" /> Confirmando pago…
+                </div>
               )}
-            </div>
-          )}
+              {(checkoutError || isExhausted) && (
+                <Alert
+                  type="error"
+                  message="No pudimos confirmar el pago automáticamente. Reintentá la consulta o verificá el estado en tu medio de pago."
+                />
+              )}
+              {!checkoutError && !checkoutStatus && !isLoadingCheckout && !isExhausted && (
+                <Alert type="warning" message="No se encontró el estado de esta compra." />
+              )}
+              {checkoutStatus && (
+                <div className="space-y-2 text-sm text-app-text-main">
+                  <p className="font-semibold">
+                    {checkoutStatus.paymentState === "PAID"
+                          ? checkoutStatus.fulfillmentState === "FULFILLED"
+                            ? "Vouchers disponibles"
+                            : checkoutStatus.fulfillmentState === "BLOCKED"
+                              ? "Emisión bloqueada. Contactá a soporte."
+                              : checkoutStatus.fulfillmentState === "REVOKED"
+                                ? "Vouchers revocados."
+                                : "Pago confirmado. Emitiendo vouchers…"
+                      : ["FAILED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(
+                            checkoutStatus.paymentState,
+                          )
+                        ? "El pago no pudo completarse. Podés intentar una nueva compra."
+                        : "Confirmando pago…"}
+                  </p>
+                  {checkoutStatus.chargedTotal && (
+                    <p>
+                      <strong>Total cobrado:</strong>{" "}
+                      {formatMoney(checkoutStatus.chargedTotal)}
+                    </p>
+                  )}
+                </div>
+              )}
         </section>
       )}
 
@@ -120,7 +171,13 @@ export function BillingDashboard() {
           </h3>
         </div>
 
-        {isLoadingPlans ? (
+            {isPurchaseLocked && (
+              <p className="mb-4 text-sm font-medium text-app-text-muted">
+                Confirmación en curso. Esperá antes de iniciar otra compra.
+              </p>
+            )}
+
+            {isLoadingPlans ? (
           <div className="flex items-center justify-center py-12 gap-3 text-app-text-muted">
             <Spinner size="md" className="border-app-primary" />
             <span className="app-label !text-xs tracking-[0.25em] animate-pulse">
@@ -144,6 +201,7 @@ export function BillingDashboard() {
                 onSelect={() => handleBuyPlan(plan.id)}
                 actionLabel="Adquirir lote"
                 actionIcon={<ShoppingCart className="w-4 h-4" />}
+                isDisabled={isPurchaseLocked}
               />
             ))}
           </div>

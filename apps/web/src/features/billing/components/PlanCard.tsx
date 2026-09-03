@@ -14,9 +14,10 @@ interface PlanCardProps {
   onSelect: () => void;
   actionLabel?: string;
   actionIcon?: React.ReactNode;
+  isDisabled?: boolean;
 }
 
-export function PlanCard({ plan, isSelected, onSelect, actionLabel, actionIcon }: PlanCardProps) {
+export function PlanCard({ plan, isSelected, onSelect, actionLabel, actionIcon, isDisabled = false }: PlanCardProps) {
   // Parse description into a list if it contains newlines, otherwise just an array of one
   const descriptionLines = plan.description 
     ? plan.description.split('\n').filter(line => line.trim().length > 0)
@@ -79,7 +80,8 @@ export function PlanCard({ plan, isSelected, onSelect, actionLabel, actionIcon }
         <div className="mt-auto pt-4">
           <button
             onClick={onSelect}
-            className={`relative w-full py-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 overflow-hidden active:scale-95 ${
+            disabled={isDisabled}
+            className={`relative w-full py-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 overflow-hidden disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 active:scale-95 ${
               isSelected 
                 ? 'bg-app-primary text-white shadow-lg shadow-app-primary/30' 
                 : 'bg-app-surface border-2 border-app-border text-app-text-main hover:border-app-primary hover:bg-app-primary hover:text-white hover:shadow-lg hover:shadow-app-primary/30'
