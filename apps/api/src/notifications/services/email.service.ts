@@ -5,10 +5,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  MailTransport,
-  MAIL_TRANSPORT_TOKEN,
-} from '../transports/mail-transport.interface.js';
+import { MAIL_TRANSPORT_TOKEN } from '../transports/mail-transport.interface.js';
+import type { MailTransport } from '../transports/mail-transport.interface.js';
 
 @Injectable()
 export class EmailService {
@@ -43,15 +41,10 @@ export class EmailService {
         html,
         attachments,
       });
-      this.logger.log(`Email successfully sent to ${to}`);
-    } catch (error) {
-      this.logger.error(
-        `Failed to send email to ${to}:`,
-        error instanceof Error ? error.stack : String(error),
-      );
-      throw new InternalServerErrorException(
-        `Email sending failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      this.logger.log('Email successfully sent');
+    } catch {
+      this.logger.error('Email delivery failed');
+      throw new InternalServerErrorException('Email sending failed');
     }
   }
 }
