@@ -219,6 +219,17 @@ export class PaymentNotificationDeliveryStateService {
   }
 }
 
-function validRecipient(user: Pick<User, 'id' | 'email' | 'name'>): boolean {
-  return Boolean(user.id && user.email.trim() && user.name.trim());
+function validRecipient(user: unknown): boolean {
+  if (!user || typeof user !== 'object') return false;
+  const { id, email, name } = user as Record<string, unknown>;
+  return (
+    typeof id === 'string' &&
+    typeof email === 'string' &&
+    typeof name === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      id,
+    ) &&
+    /^\S+@\S+\.\S+$/.test(email) &&
+    Boolean(name.trim())
+  );
 }

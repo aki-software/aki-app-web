@@ -86,8 +86,16 @@ describe('PaymentNotificationDeliveryStateService', () => {
 
   it('maps immutable BUYER userId values without a fallback lookup', async () => {
     for (const buyer of [
-      { userId: 'buyer-1', name: 'Buyer', email: 'buyer@example.com' },
-      { userId: 'buyer-2', name: 'Other', email: 'other@example.com' },
+      {
+        userId: '00000000-0000-4000-8000-000000000001',
+        name: 'Buyer',
+        email: 'buyer@example.com',
+      },
+      {
+        userId: '00000000-0000-4000-8000-000000000002',
+        name: 'Other',
+        email: 'other@example.com',
+      },
     ]) {
       manager.findOne.mockResolvedValue(
         delivery({
@@ -107,11 +115,65 @@ describe('PaymentNotificationDeliveryStateService', () => {
     expect(manager.save).toHaveBeenLastCalledWith(
       expect.anything(),
       expect.objectContaining({
-        recipientUserId: 'buyer-2',
+        recipientUserId: '00000000-0000-4000-8000-000000000002',
         recipientNameSnapshot: 'Other',
       }),
     );
     expect(manager.createQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid admin snapshot rather than persisting it', async () => {
+    manager.findOne.mockResolvedValue(
+      delivery({ status: 'QUEUED', attemptCount: 1 }),
+    );
+    manager.createQueryBuilder
+      .mockReturnValueOnce(
+        adminQuery([
+          { id: 'not-a-uuid', email: 'not-an-email', name: 'Admin' },
+        ]),
+      )
+      .mockReturnValueOnce(updateBuilder());
+
+    await expect(
+      subject().resolveRecipient('delivery-1', 1),
+    ).resolves.toBeUndefined();
+    expect(
+      manager.createQueryBuilder.mock.results[1].value.set,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lastErrorClassification: 'RECIPIENT_UNRESOLVED',
+        lastErrorMessage: 'No eligible platform administrator',
+      }),
+    );
+  });
+
+  it('fails closed for malformed runtime admin fields without throwing', async () => {
+    const valid = {
+      id: '00000000-0000-4000-8000-000000000011',
+      email: 'admin@example.com',
+      name: 'Admin',
+    };
+    for (const admin of [
+      { ...valid, id: null },
+      { ...valid, id: undefined },
+      { ...valid, id: 42 },
+      { ...valid, email: null },
+      { ...valid, email: undefined },
+      { ...valid, email: Symbol('email') },
+      { ...valid, name: null },
+      { ...valid, name: undefined },
+      { ...valid, name: 42 },
+    ]) {
+      manager.findOne.mockResolvedValue(
+        delivery({ status: 'QUEUED', attemptCount: 1 }),
+      );
+      manager.createQueryBuilder
+        .mockReturnValueOnce(adminQuery([admin]))
+        .mockReturnValueOnce(updateBuilder());
+      await expect(
+        subject().resolveRecipient('delivery-1', 1),
+      ).resolves.toBeUndefined();
+    }
   });
 
   it('resolves exactly one admin but never chooses among multiple admins', async () => {
@@ -120,12 +182,18 @@ describe('PaymentNotificationDeliveryStateService', () => {
     );
     manager.createQueryBuilder.mockReturnValue(
       adminQuery([
-        { id: 'admin-1', email: 'admin@example.com', name: 'Admin' },
+        {
+          id: '00000000-0000-4000-8000-000000000011',
+          email: 'admin@example.com',
+          name: 'Admin',
+        },
       ]),
     );
     await expect(
       subject().resolveRecipient('delivery-1', 1),
-    ).resolves.toMatchObject({ recipientUserId: 'admin-1' });
+    ).resolves.toMatchObject({
+      recipientUserId: '00000000-0000-4000-8000-000000000011',
+    });
 
     manager.findOne.mockResolvedValue(
       delivery({ status: 'QUEUED', attemptCount: 1 }),
@@ -133,8 +201,16 @@ describe('PaymentNotificationDeliveryStateService', () => {
     manager.createQueryBuilder
       .mockReturnValueOnce(
         adminQuery([
-          { id: 'admin-1', email: 'one@example.com', name: 'One' },
-          { id: 'admin-2', email: 'two@example.com', name: 'Two' },
+          {
+            id: '00000000-0000-4000-8000-000000000011',
+            email: 'one@example.com',
+            name: 'One',
+          },
+          {
+            id: '00000000-0000-4000-8000-000000000012',
+            email: 'two@example.com',
+            name: 'Two',
+          },
         ]),
       )
       .mockReturnValueOnce(updateBuilder());
