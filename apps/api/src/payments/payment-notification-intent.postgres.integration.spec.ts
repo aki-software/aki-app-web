@@ -5,6 +5,8 @@ import { Institution } from '../institutions/entities/institution.entity.js';
 import { PaymentNotificationDeliveries1787380000000 } from '../migrations/1787380000000-PaymentNotificationDeliveries.js';
 import { User } from '../users/entities/user.entity.js';
 import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
+import { Voucher } from '../vouchers/entities/voucher.entity.js';
+import { VoucherCodeGenerator } from '../vouchers/services/voucher-code-generator.service.js';
 import {
   VoucherBatchStatus,
   VoucherOwnerType,
@@ -13,6 +15,8 @@ import { CheckoutAttempt } from './entities/checkout-attempt.entity.js';
 import { PaymentEvent } from './entities/payment-event.entity.js';
 import { PaymentNotificationDelivery } from './entities/payment-notification-delivery.entity.js';
 import { PaymentNotificationIntentService } from './services/payment-notification-intent.service.js';
+import { PaymentFulfillmentOutbox } from './entities/payment-fulfillment-outbox.entity.js';
+import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 const describePostgres =
   process.env.PAYMENT_POSTGRES_INTEGRATION === 'true' &&
   process.env.PAYMENT_TEST_DATABASE_URL
@@ -106,6 +110,73 @@ describePostgres('PaymentNotificationIntentService PostgreSQL', () => {
     );
     await expect(deliveries().count()).resolves.toBe(2);
   });
+  it('creates fulfillment intents atomically from canonical settlement facts only on first fulfillment', async () => {
+    const { batch } = await fixture();
+    const outbox = await createOutbox(batch);
+    await expect(deliveries().count()).resolves.toBe(0);
+
+    await processor().process(job(outbox.id));
+
+    const [vouchers, persistedBatch, persistedOutbox, rows] = await Promise.all(
+      [
+        dataSource
+          .getRepository(Voucher)
+          .find({ where: { batchId: batch.id } }),
+        dataSource
+          .getRepository(VoucherBatch)
+          .findOneByOrFail({ id: batch.id }),
+        dataSource
+          .getRepository(PaymentFulfillmentOutbox)
+          .findOneByOrFail({ id: outbox.id }),
+        deliveries().find(),
+      ],
+    );
+    expect(vouchers).toHaveLength(batch.quantity);
+    expect(persistedBatch.fulfilledAt).toEqual(persistedOutbox.processedAt);
+    expect(rows).toHaveLength(2);
+
+    await deliveries().delete({ voucherBatchId: batch.id });
+    await processor().process(job(outbox.id));
+    await expect(deliveries().count()).resolves.toBe(0);
+  });
+  it('does not backfill delivery rows for an already-fulfilled batch', async () => {
+    const { batch } = await fixture();
+    batch.fulfilledAt = fulfilledAt;
+    await dataSource.getRepository(VoucherBatch).save(batch);
+    const outbox = await createOutbox(batch);
+
+    await processor().process(job(outbox.id));
+
+    await expect(deliveries().count()).resolves.toBe(0);
+    await expect(
+      dataSource.getRepository(VoucherBatch).findOneByOrFail({ id: batch.id }),
+    ).resolves.toMatchObject({ fulfilledAt });
+    await expect(
+      dataSource
+        .getRepository(PaymentFulfillmentOutbox)
+        .findOneByOrFail({ id: outbox.id }),
+    ).resolves.toMatchObject({ processedAt: expect.any(Date) });
+  });
+  it('rolls back fulfillment and intents when mandatory context is invalid', async () => {
+    const { batch } = await fixture({ ownerInstitutionId: null });
+    const outbox = await createOutbox(batch);
+
+    await expect(processor().process(job(outbox.id))).rejects.toThrow(
+      'Payment notification intent requires an institution',
+    );
+    await expect(
+      dataSource.getRepository(Voucher).count({ where: { batchId: batch.id } }),
+    ).resolves.toBe(0);
+    await expect(
+      dataSource.getRepository(VoucherBatch).findOneByOrFail({ id: batch.id }),
+    ).resolves.toMatchObject({ fulfilledAt: null });
+    await expect(
+      dataSource
+        .getRepository(PaymentFulfillmentOutbox)
+        .findOneByOrFail({ id: outbox.id }),
+    ).resolves.toMatchObject({ processedAt: null });
+    await expect(deliveries().count()).resolves.toBe(0);
+  });
   it('writes fixed unresolved admin intents for zero or multiple active admins', async () => {
     for (const [adminCount, lastErrorMessage] of [
       [0, 'No eligible platform administrator'],
@@ -169,6 +240,21 @@ describePostgres('PaymentNotificationIntentService PostgreSQL', () => {
     );
   const deliveries = () =>
     dataSource.getRepository(PaymentNotificationDelivery);
+  const processor = () =>
+    new VoucherFulfillmentProcessor(
+      dataSource,
+      new VoucherCodeGenerator(
+        dataSource.getRepository(Voucher),
+        dataSource.getRepository(VoucherBatch),
+      ),
+      new PaymentNotificationIntentService(),
+    );
+  const job = (outboxId: string) => ({ data: { outboxId } }) as never;
+  const createOutbox = (batch: VoucherBatch) =>
+    dataSource.getRepository(PaymentFulfillmentOutbox).save({
+      voucherBatchId: batch.id,
+      processedAt: null,
+    });
   async function fixture({
     adminCount = 1,
     ownerInstitutionId,

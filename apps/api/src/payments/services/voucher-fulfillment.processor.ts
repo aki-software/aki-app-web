@@ -11,6 +11,7 @@ import {
 import { VoucherBatchStatus } from '../../vouchers/entities/voucher.enums.js';
 import { VoucherCodeGenerator } from '../../vouchers/services/voucher-code-generator.service.js';
 import { PaymentFulfillmentOutbox } from '../entities/payment-fulfillment-outbox.entity.js';
+import { PaymentNotificationIntentService } from './payment-notification-intent.service.js';
 import {
   VOUCHER_FULFILLMENT_QUEUE,
   type VoucherFulfillmentJobPayload,
@@ -25,6 +26,11 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
     private readonly codeGenerator: Pick<
       VoucherCodeGenerator,
       'generateUniqueCode'
+    >,
+    @Inject(PaymentNotificationIntentService)
+    private readonly paymentNotificationIntents: Pick<
+      PaymentNotificationIntentService,
+      'createForFirstFulfillment'
     >,
   ) {
     super();
@@ -95,8 +101,14 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
       if (vouchers.length > 0) {
         await queryRunner.manager.save(Voucher, vouchers);
       }
-      batch.fulfilledAt = new Date();
-      outbox.processedAt = new Date();
+      const fulfilledAt = new Date();
+      await this.paymentNotificationIntents.createForFirstFulfillment(
+        queryRunner.manager,
+        batch,
+        fulfilledAt,
+      );
+      batch.fulfilledAt = fulfilledAt;
+      outbox.processedAt = fulfilledAt;
       await queryRunner.manager.save(VoucherBatch, batch);
       await queryRunner.manager.save(PaymentFulfillmentOutbox, outbox);
       await queryRunner.commitTransaction();
