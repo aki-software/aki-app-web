@@ -144,6 +144,19 @@ describe("BillingDashboard", () => {
     ).toBeDefined();
     expect(
       screen.getByText(
+        "Pago confirmado. La emisión de vouchers sigue pendiente. Reintentá la consulta y no realices otro pago.",
+      ),
+    ).toBeDefined();
+    expect(
+      screen.queryByText(
+        "No pudimos confirmar el pago automáticamente. Reintentá la consulta o verificá el estado en tu medio de pago.",
+      ),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Reintentar consulta" }),
+    ).toBeEnabled();
+        expect(
+      screen.getByText(
         "Confirmación en curso. Esperá antes de iniciar otra compra.",
       ),
     ).toBeDefined();
