@@ -7,6 +7,33 @@ interface Props {
 }
 
 const { t } = Astro.props;
+
+const featureIcons = [
+  // 1. Offline (Wifi off)
+  `<svg aria-hidden="true" class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.58 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01" />
+  </svg>`,
+  // 2. Accessibility
+  `<svg aria-hidden="true" class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4a2 2 0 100-4 2 2 0 000 4zM4 9h16M12 9v13m-4-6l4 6 4-6" />
+  </svg>`,
+  // 3. Languages
+  `<svg aria-hidden="true" class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.04 9.5A14.95 14.95 0 013 10m9-5c-.9 3.8-3.4 7.2-7 9.5m10-2.5l5 11m-8 0h6" />
+  </svg>`,
+  // 4. Professional PDF
+  `<svg aria-hidden="true" class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>`,
+  // 5. Secure Data
+  `<svg aria-hidden="true" class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>`,
+  // 6. Targeted recommendations
+  `<svg aria-hidden="true" class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+  </svg>`,
+];
 ---
 
 <section class="py-16 md:py-24 bg-surface" id="features">
@@ -18,18 +45,22 @@ const { t } = Astro.props;
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
-      {t.features.items.map((feature, i) => {
-        const icons = ['📴', '♿', '🌐', '📊', '🔒', '🎯'];
-        return (
-          <div class="bg-bg rounded-xl border border-border/60 p-5 reveal" style={`transition-delay: ${i * 0.08}s;`}>
-            <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center mb-3">
-              <span class="text-xl">{icons[i]}</span>
-            </div>
-            <h3 class="font-display font-semibold text-base text-text mb-1.5">{feature.title}</h3>
-            <p class="text-sm text-text-muted leading-relaxed">{feature.desc}</p>
+      {t.features.items.map((feature, i) => (
+        <div
+          class="group bg-bg rounded-2xl border border-border/60 p-6 reveal transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_12px_24px_rgba(0,0,0,0.06)]"
+          style={`transition-delay: ${i * 0.08}s;`}
+        >
+          <div class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/15 transition-transform duration-300">
+            <Fragment set:html={featureIcons[i]} />
           </div>
-        );
-      })}
+          <h3 class="font-display font-bold text-base text-text mb-2 group-hover:text-primary transition-colors">
+            {feature.title}
+          </h3>
+          <p class="text-sm text-text-muted leading-relaxed">
+            {feature.desc}
+          </p>
+        </div>
+      ))}
     </div>
   </div>
 </section>

@@ -62,7 +62,9 @@ const CHECKOUT_POLL_INTERVALS_MS = [2_000, 4_000, 8_000, 15_000] as const;
 const MAX_AUTOMATIC_CHECKOUT_POLLS = 5;
 
 export function isTerminalCheckoutStatus(status: PaymentStatus): boolean {
-  if (["FAILED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(status.paymentState)) {
+  if (
+    ["FAILED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(status.paymentState)
+  ) {
     return true;
   }
 
@@ -106,9 +108,10 @@ export function useCheckoutAttemptStatus(id: string | null) {
         return;
       }
 
-      const delay = CHECKOUT_POLL_INTERVALS_MS[
-        Math.min(pollCount - 1, CHECKOUT_POLL_INTERVALS_MS.length - 1)
-      ];
+      const delay =
+        CHECKOUT_POLL_INTERVALS_MS[
+          Math.min(pollCount - 1, CHECKOUT_POLL_INTERVALS_MS.length - 1)
+        ];
       timer = setTimeout(() => void poll(), delay);
     };
     const poll = async () => {
