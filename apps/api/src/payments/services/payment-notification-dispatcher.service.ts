@@ -1,5 +1,9 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  OnApplicationBootstrap,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import type { JobsOptions } from 'bullmq';
 import { DataSource, type EntityManager } from 'typeorm';
@@ -16,6 +20,11 @@ const MAX_ENQUEUE_ATTEMPTS = 8;
 const QUEUE_RETRY_DELAY_MS = 60_000;
 const QUEUE_FAILURE_MESSAGE = 'Delivery could not be queued';
 const TERMINAL_STATUSES = ['SENT', 'DEAD_LETTER'];
+const RECOVERY_INTERVAL_MS = 60_000;
+const RECOVERY_PAGE_SIZE = 100;
+const STALE_QUEUED_MS = 15 * 60_000;
+
+type RecoveryDelivery = Pick<PaymentNotificationDelivery, 'id' | 'createdAt'>;
 
 export interface PaymentNotificationDeliveryJobPayload {
   deliveryId: string;
@@ -35,12 +44,47 @@ export interface PaymentNotificationDispatcher {
 }
 
 @Injectable()
-export class PaymentNotificationDispatcherService implements PaymentNotificationDispatcher {
+export class PaymentNotificationDispatcherService
+  implements
+    PaymentNotificationDispatcher,
+    OnApplicationBootstrap,
+    OnModuleDestroy
+{
+  private recoveryTimer?: NodeJS.Timeout;
+  private activeRecovery?: Promise<void>;
+
   constructor(
     @InjectQueue(PAYMENT_NOTIFICATION_DELIVERY_QUEUE)
     private readonly queue: PaymentNotificationDeliveryQueue,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
+
+  onApplicationBootstrap(): void {
+    if (process.env.PAYMENT_NOTIFICATION_DELIVERY_ENABLED !== 'true') return;
+
+    void this.recoverPending().catch(() => undefined);
+    this.recoveryTimer = setInterval(() => {
+      void this.recoverPending().catch(() => undefined);
+    }, RECOVERY_INTERVAL_MS);
+    this.recoveryTimer.unref();
+  }
+
+  onModuleDestroy(): void {
+    if (this.recoveryTimer) clearInterval(this.recoveryTimer);
+  }
+
+  recoverPending(): Promise<void> {
+    if (process.env.PAYMENT_NOTIFICATION_DELIVERY_ENABLED !== 'true') {
+      return Promise.resolve();
+    }
+    if (this.activeRecovery) return this.activeRecovery;
+
+    const recovery = this.performRecovery().finally(() => {
+      this.activeRecovery = undefined;
+    });
+    this.activeRecovery = recovery;
+    return recovery;
+  }
 
   async dispatchAfterCommit(deliveryId: string): Promise<void> {
     if (process.env.PAYMENT_NOTIFICATION_DELIVERY_ENABLED !== 'true') return;
@@ -64,6 +108,46 @@ export class PaymentNotificationDispatcherService implements PaymentNotification
       throw new Error(QUEUE_FAILURE_MESSAGE);
     }
     await this.recordQueueSuccess(deliveryId);
+  }
+
+  private async performRecovery(): Promise<void> {
+    const now = new Date();
+    const staleQueuedAt = new Date(now.getTime() - STALE_QUEUED_MS);
+    let cursor: RecoveryDelivery | undefined;
+
+    for (;;) {
+      const query = this.dataSource
+        .createQueryBuilder(PaymentNotificationDelivery, 'delivery')
+        .select(['delivery.id AS id', 'delivery.createdAt AS "createdAt"'])
+        .where(
+          `(delivery.status = :pendingStatus
+            OR (delivery.status = :retryableFailedStatus AND delivery.nextAttemptAt <= :now)
+            OR (delivery.status = :queuedStatus AND delivery.queuedAt <= :staleQueuedAt))`,
+          {
+            pendingStatus: 'PENDING',
+            retryableFailedStatus: 'RETRYABLE_FAILED',
+            queuedStatus: 'QUEUED',
+            now,
+            staleQueuedAt,
+          },
+        )
+        .orderBy('delivery.createdAt', 'ASC')
+        .addOrderBy('delivery.id', 'ASC')
+        .take(RECOVERY_PAGE_SIZE);
+      if (cursor) {
+        query.andWhere(
+          '(delivery.createdAt > :cursorCreatedAt OR (delivery.createdAt = :cursorCreatedAt AND delivery.id > :cursorId))',
+          { cursorCreatedAt: cursor.createdAt, cursorId: cursor.id },
+        );
+      }
+
+      const deliveries = await query.getRawMany<RecoveryDelivery>();
+      await Promise.allSettled(
+        deliveries.map(({ id }) => this.dispatchAfterCommit(id)),
+      );
+      if (deliveries.length < RECOVERY_PAGE_SIZE) return;
+      cursor = deliveries[deliveries.length - 1];
+    }
   }
 
   private async reserveEnqueueAttempt(
