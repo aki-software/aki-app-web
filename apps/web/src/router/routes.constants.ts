@@ -17,5 +17,6 @@ export const APP_ROUTES = {
         ACTIVITY: 'activity',
         BILLING: 'billing',
         PRICING_PLANS: 'pricing-plans',
+    PAYMENT_LEDGER: 'payment-ledger',
     }
 } as const;
