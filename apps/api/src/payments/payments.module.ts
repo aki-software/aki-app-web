@@ -21,6 +21,7 @@ import { PaymentGatewayModule } from './payment-gateway.module.js';
 import { VoucherFulfillmentDispatcherService } from './services/voucher-fulfillment-dispatcher.service.js';
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 import { PaymentReconciliationService } from './services/payment-reconciliation.service.js';
+import { PaymentNotificationIntentService } from './services/payment-notification-intent.service.js';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { PaymentReconciliationService } from './services/payment-reconciliation.
     WebhookProcessorService,
     VoucherFulfillmentDispatcherService,
     VoucherFulfillmentProcessor,
+    PaymentNotificationIntentService,
     PaymentReconciliationService,
     ExchangeRateService,
   ],

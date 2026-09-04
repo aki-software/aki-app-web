@@ -10,6 +10,10 @@ import { VoucherCodeGenerator } from '../vouchers/services/voucher-code-generato
 import { PaymentFulfillmentOutbox } from './entities/payment-fulfillment-outbox.entity.js';
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 
+const noNotificationIntents = {
+  createForFirstFulfillment: jest.fn().mockResolvedValue(undefined),
+};
+
 const integration = process.env.PAYMENT_POSTGRES_INTEGRATION === 'true';
 const describeIntegration = integration ? describe : describe.skip;
 const databaseUrl = process.env.PAYMENT_TEST_DATABASE_URL;
@@ -131,9 +135,11 @@ describeIntegration(
       );
       const generateCode = jest.spyOn(codeGenerator, 'generateUniqueCode');
 
-      await new VoucherFulfillmentProcessor(dataSource, codeGenerator).process(
-        job(outbox.id),
-      );
+      await new VoucherFulfillmentProcessor(
+        dataSource,
+        codeGenerator,
+        noNotificationIntents,
+      ).process(job(outbox.id));
 
       expect(generateCode).not.toHaveBeenCalled();
       await expect(
@@ -207,9 +213,11 @@ describeIntegration(
     it('rolls back a forced voucher insert failure and succeeds on retry', async () => {
       const { batch, outbox } = await createOutbox();
       await createExistingVouchers(batch, ['DUPL0001']);
-      const failingProcessor = new VoucherFulfillmentProcessor(dataSource, {
-        generateUniqueCode: jest.fn().mockResolvedValue('DUPL0001'),
-      });
+      const failingProcessor = new VoucherFulfillmentProcessor(
+        dataSource,
+        { generateUniqueCode: jest.fn().mockResolvedValue('DUPL0001') },
+        noNotificationIntents,
+      );
 
       await expect(failingProcessor.process(job(outbox.id))).rejects.toThrow();
 
@@ -243,6 +251,7 @@ describeIntegration(
           dataSource.getRepository(Voucher),
           dataSource.getRepository(VoucherBatch),
         ),
+        noNotificationIntents,
       );
     }
 
