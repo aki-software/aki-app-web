@@ -38,6 +38,70 @@ describe('payments security refactor phase 4 RED', () => {
     expect(payload).toEqual({ outboxId: 'outbox-1' });
   });
 
+  it('enqueues a new job when no job exists for a pending outbox', async () => {
+    const queue = {
+      getJob: jest.fn().mockResolvedValue(undefined),
+      add: jest.fn().mockResolvedValue(undefined),
+    };
+    const dispatcher = createDispatcher(queue);
+
+    await dispatcher.dispatchAfterCommit({
+      id: 'outbox-absent',
+      voucherBatchId: 'batch-1',
+    });
+
+    expect(queue.getJob).toHaveBeenCalledWith('outbox-absent');
+    expect(queue.add).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['failed', 'completed'])(
+    'removes a retained %s job before re-enqueueing its pending outbox',
+    async (state) => {
+      const terminalJob = {
+        getState: jest.fn().mockResolvedValue(state),
+        remove: jest.fn().mockResolvedValue(undefined),
+      };
+      const queue = {
+        getJob: jest.fn().mockResolvedValue(terminalJob),
+        add: jest.fn().mockResolvedValue(undefined),
+      };
+      const dispatcher = createDispatcher(queue);
+
+      await dispatcher.dispatchAfterCommit({
+        id: 'outbox-terminal',
+        voucherBatchId: 'batch-1',
+      });
+
+      expect(terminalJob.remove).toHaveBeenCalledTimes(1);
+      expect(queue.add).toHaveBeenCalledWith(
+        'voucher-fulfillment',
+        { outboxId: 'outbox-terminal' },
+        expect.objectContaining({ jobId: 'outbox-terminal' }),
+      );
+    },
+  );
+
+  it.each(['waiting', 'active', 'delayed'])(
+    'does not duplicate a %s job for a pending outbox',
+    async (state) => {
+      const queue = {
+        getJob: jest.fn().mockResolvedValue({
+          getState: jest.fn().mockResolvedValue(state),
+          remove: jest.fn(),
+        }),
+        add: jest.fn().mockResolvedValue(undefined),
+      };
+      const dispatcher = createDispatcher(queue);
+
+      await dispatcher.dispatchAfterCommit({
+        id: 'outbox-in-flight',
+        voucherBatchId: 'batch-1',
+      });
+
+      expect(queue.add).not.toHaveBeenCalled();
+    },
+  );
+
   it('keeps an already-settled payment durable when queue enqueue fails after commit', async () => {
     const queue = {
       add: jest.fn().mockRejectedValue(new Error('queue unavailable')),
@@ -363,12 +427,16 @@ function createWorkerFixture(
 }
 
 function createDispatcher(
-  queue: VoucherFulfillmentQueue,
+  queue: Pick<VoucherFulfillmentQueue, 'add'> &
+    Partial<VoucherFulfillmentQueue>,
   outboxRepository?: Pick<Repository<PaymentFulfillmentOutbox>, 'find'>,
 ) {
   const { VoucherFulfillmentDispatcherService } = fulfillmentContracts();
   expect(VoucherFulfillmentDispatcherService).toBeDefined();
-  return new VoucherFulfillmentDispatcherService!(queue, outboxRepository);
+  return new VoucherFulfillmentDispatcherService!(
+    { getJob: jest.fn().mockResolvedValue(undefined), ...queue },
+    outboxRepository,
+  );
 }
 
 function createProcessor(

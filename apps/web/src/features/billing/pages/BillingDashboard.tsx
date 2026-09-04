@@ -42,6 +42,11 @@ export function BillingDashboard() {
   const isPurchaseLocked = Boolean(
     checkoutAttemptId && !isCheckoutTerminal && !isTrackingDismissed,
   );
+  const isPaidFulfillmentPendingAfterPolling = Boolean(
+    checkoutStatus?.paymentState === "PAID" &&
+      isExhausted &&
+      !checkoutError,
+  );
 
   const handleDismissTracking = () => {
     if (
@@ -127,10 +132,17 @@ export function BillingDashboard() {
               <Spinner size="sm" /> Confirmando pago…
             </div>
           )}
-          {(checkoutError || isExhausted) && (
+          {(checkoutError ||
+            (isExhausted && !isPaidFulfillmentPendingAfterPolling)) && (
             <Alert
               type="error"
               message="No pudimos confirmar el pago automáticamente. Reintentá la consulta o verificá el estado en tu medio de pago."
+            />
+          )}
+          {isPaidFulfillmentPendingAfterPolling && (
+            <Alert
+              type="warning"
+              message="Pago confirmado. La emisión de vouchers sigue pendiente. Reintentá la consulta y no realices otro pago."
             />
           )}
           {!checkoutError &&
