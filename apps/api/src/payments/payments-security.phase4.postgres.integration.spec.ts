@@ -11,7 +11,10 @@ import { PaymentFulfillmentOutbox } from './entities/payment-fulfillment-outbox.
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 
 const noNotificationIntents = {
-  createForFirstFulfillment: jest.fn().mockResolvedValue(undefined),
+  createForFirstFulfillment: jest.fn().mockResolvedValue([]),
+};
+const noNotificationDispatcher = {
+  dispatchAfterCommit: jest.fn().mockResolvedValue(undefined),
 };
 
 const integration = process.env.PAYMENT_POSTGRES_INTEGRATION === 'true';
@@ -139,6 +142,7 @@ describeIntegration(
         dataSource,
         codeGenerator,
         noNotificationIntents,
+        noNotificationDispatcher,
       ).process(job(outbox.id));
 
       expect(generateCode).not.toHaveBeenCalled();
@@ -217,6 +221,7 @@ describeIntegration(
         dataSource,
         { generateUniqueCode: jest.fn().mockResolvedValue('DUPL0001') },
         noNotificationIntents,
+        noNotificationDispatcher,
       );
 
       await expect(failingProcessor.process(job(outbox.id))).rejects.toThrow();
@@ -252,6 +257,7 @@ describeIntegration(
           dataSource.getRepository(VoucherBatch),
         ),
         noNotificationIntents,
+        noNotificationDispatcher,
       );
     }
 
