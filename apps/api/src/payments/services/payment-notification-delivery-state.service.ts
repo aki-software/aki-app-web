@@ -12,7 +12,7 @@ const BUYER_UNRESOLVED = 'Buyer recipient is unavailable';
 const ADMIN_UNRESOLVED = 'No eligible platform administrator';
 const ADMINS_UNRESOLVED = 'Multiple eligible platform administrators';
 
-type ClaimedDelivery = Pick<
+export type ClaimedDelivery = Pick<
   PaymentNotificationDelivery,
   | 'id'
   | 'voucherBatchId'
