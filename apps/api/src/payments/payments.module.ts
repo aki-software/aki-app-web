@@ -22,6 +22,11 @@ import { VoucherFulfillmentDispatcherService } from './services/voucher-fulfillm
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 import { PaymentReconciliationService } from './services/payment-reconciliation.service.js';
 import { PaymentNotificationIntentService } from './services/payment-notification-intent.service.js';
+import {
+  PAYMENT_NOTIFICATION_DELIVERY_QUEUE,
+  PAYMENT_NOTIFICATION_DISPATCHER,
+  PaymentNotificationDispatcherService,
+} from './services/payment-notification-dispatcher.service.js';
 
 @Module({
   imports: [
@@ -34,6 +39,7 @@ import { PaymentNotificationIntentService } from './services/payment-notificatio
       PaymentNotificationDelivery,
     ]),
     BullModule.registerQueue({ name: 'voucher-fulfillment' }),
+    BullModule.registerQueue({ name: PAYMENT_NOTIFICATION_DELIVERY_QUEUE }),
     SessionsModule,
     VouchersModule,
     PaymentGatewayModule,
@@ -47,8 +53,14 @@ import { PaymentNotificationIntentService } from './services/payment-notificatio
     VoucherFulfillmentDispatcherService,
     VoucherFulfillmentProcessor,
     PaymentNotificationIntentService,
+    PaymentNotificationDispatcherService,
+    {
+      provide: PAYMENT_NOTIFICATION_DISPATCHER,
+      useExisting: PaymentNotificationDispatcherService,
+    },
     PaymentReconciliationService,
     ExchangeRateService,
   ],
+  exports: [PAYMENT_NOTIFICATION_DISPATCHER],
 })
 export class PaymentsModule {}
