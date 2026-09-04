@@ -25,7 +25,7 @@ export class PaymentNotificationIntentService {
     manager: EntityManager,
     batch: VoucherBatch,
     fulfilledAt: Date,
-  ): Promise<void> {
+  ): Promise<string[]> {
     if (!batch.ownerInstitutionId) {
       throw new Error('Payment notification intent requires an institution');
     }
@@ -75,7 +75,7 @@ export class PaymentNotificationIntentService {
               ? 'No eligible platform administrator'
               : 'Multiple eligible platform administrators',
           );
-    await manager
+    const result = await manager
       .createQueryBuilder()
       .insert()
       .into(PaymentNotificationDelivery)
@@ -103,6 +103,7 @@ export class PaymentNotificationIntentService {
       .orIgnore()
       .returning('id')
       .execute();
+    return (result.raw as Array<{ id: string }>).map(({ id }) => id);
   }
   private context(
     batch: VoucherBatch,

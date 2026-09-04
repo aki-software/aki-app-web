@@ -11,6 +11,7 @@ import {
   type VoucherFulfillmentQueue,
   VoucherFulfillmentDispatcherService,
 } from './services/voucher-fulfillment-dispatcher.service.js';
+import type { PaymentNotificationDispatcher } from './services/payment-notification-dispatcher.service.js';
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 import { VoucherCodeGenerator } from '../vouchers/services/voucher-code-generator.service.js';
 
@@ -159,6 +160,30 @@ describe('payments security refactor phase 4 RED', () => {
     expect(fixture.transaction.commitTransaction).toHaveBeenCalledTimes(1);
   });
 
+  it('dispatches every inserted notification only after commit and release, even when one throws synchronously', async () => {
+    const fixture = createWorkerFixture({
+      notificationDeliveryIds: ['delivery-1', 'delivery-2'],
+    });
+    fixture.dispatcher.dispatchAfterCommit.mockImplementation((id: string) => {
+      expect(fixture.transaction.commitTransaction).toHaveBeenCalled();
+      expect(fixture.transaction.release).toHaveBeenCalled();
+      if (id === 'delivery-1') throw new Error('queue unavailable');
+      return Promise.resolve();
+    });
+
+    await expect(
+      fixture.processor.process({ data: { outboxId: 'outbox-1' } }),
+    ).resolves.toBeUndefined();
+
+    expect(fixture.dispatcher.dispatchAfterCommit).toHaveBeenCalledTimes(2);
+    expect(fixture.dispatcher.dispatchAfterCommit).toHaveBeenCalledWith(
+      'delivery-1',
+    );
+    expect(fixture.dispatcher.dispatchAfterCommit).toHaveBeenCalledWith(
+      'delivery-2',
+    );
+  });
+
   it('creates only the missing vouchers when a PAID batch already has a partial set', async () => {
     const fixture = createWorkerFixture({ existingVoucherCount: 1 });
 
@@ -266,6 +291,7 @@ function createWorkerFixture(
     outbox?: Partial<PaymentFulfillmentOutbox>;
     saveError?: Error;
     existingVoucherCount?: number;
+    notificationDeliveryIds?: string[];
   } = {},
 ) {
   const batch = {
@@ -303,6 +329,14 @@ function createWorkerFixture(
         : jest.fn().mockResolvedValue(undefined),
     },
   };
+  const notificationIntents = {
+    createForFirstFulfillment: jest
+      .fn()
+      .mockResolvedValue(overrides.notificationDeliveryIds ?? []),
+  };
+  const dispatcher = {
+    dispatchAfterCommit: jest.fn().mockResolvedValue(undefined),
+  } as jest.Mocked<PaymentNotificationDispatcher>;
   const codes = {
     generateUniqueCode: jest
       .fn()
@@ -316,11 +350,14 @@ function createWorkerFixture(
     outbox,
     codes,
     transaction,
+    dispatcher,
     processor: createProcessor(
       {
         createQueryRunner: jest.fn().mockReturnValue(transaction),
       } as unknown as DataSource,
       codes,
+      notificationIntents,
+      dispatcher,
     ),
   };
 }
@@ -337,10 +374,17 @@ function createDispatcher(
 function createProcessor(
   dataSource: DataSource,
   codes: Pick<VoucherCodeGenerator, 'generateUniqueCode'>,
+  notificationIntents: { createForFirstFulfillment: jest.Mock },
+  dispatcher: PaymentNotificationDispatcher,
 ) {
   const { VoucherFulfillmentProcessor } = fulfillmentContracts();
   expect(VoucherFulfillmentProcessor).toBeDefined();
-  return new VoucherFulfillmentProcessor!(dataSource, codes);
+  return new VoucherFulfillmentProcessor!(
+    dataSource,
+    codes,
+    notificationIntents,
+    dispatcher,
+  );
 }
 
 function fulfillmentContracts(): {

@@ -53,10 +53,11 @@ describePostgres('PaymentNotificationIntentService PostgreSQL', () => {
     const { batch, buyer, admin, checkout, payment } = await fixture();
     const service = new PaymentNotificationIntentService();
     await expect(deliveries().count()).resolves.toBe(0);
-    await dataSource.transaction((manager) =>
+    const insertedIds = await dataSource.transaction((manager) =>
       service.createForFirstFulfillment(manager, batch, fulfilledAt),
     );
     const rows = await deliveries().find({ order: { recipientKind: 'ASC' } });
+    expect(insertedIds.sort()).toEqual(rows.map((row) => row.id).sort());
     expect(rows).toHaveLength(2);
     for (const row of rows) {
       expect(row).toMatchObject({
@@ -105,9 +106,11 @@ describePostgres('PaymentNotificationIntentService PostgreSQL', () => {
         }),
       ]),
     );
-    await dataSource.transaction((manager) =>
-      service.createForFirstFulfillment(manager, batch, fulfilledAt),
-    );
+    await expect(
+      dataSource.transaction((manager) =>
+        service.createForFirstFulfillment(manager, batch, fulfilledAt),
+      ),
+    ).resolves.toEqual([]);
     await expect(deliveries().count()).resolves.toBe(2);
   });
   it('creates fulfillment intents atomically from canonical settlement facts only on first fulfillment', async () => {
@@ -139,6 +142,38 @@ describePostgres('PaymentNotificationIntentService PostgreSQL', () => {
     await processor().process(job(outbox.id));
     await expect(deliveries().count()).resolves.toBe(0);
   });
+  it('retains committed fulfillment and delivery rows when a recipient dispatch fails, without replaying them', async () => {
+    const { batch } = await fixture();
+    const outbox = await createOutbox(batch);
+    const dispatcher = {
+      dispatchAfterCommit: jest
+        .fn()
+        .mockRejectedValueOnce(new Error('queue unavailable'))
+        .mockResolvedValueOnce(undefined),
+    };
+
+    await expect(
+      processor(dispatcher).process(job(outbox.id)),
+    ).resolves.toBeUndefined();
+
+    await expect(
+      dataSource.getRepository(Voucher).count({ where: { batchId: batch.id } }),
+    ).resolves.toBe(batch.quantity);
+    await expect(
+      dataSource.getRepository(VoucherBatch).findOneByOrFail({ id: batch.id }),
+    ).resolves.toMatchObject({ fulfilledAt: expect.any(Date) });
+    await expect(
+      dataSource
+        .getRepository(PaymentFulfillmentOutbox)
+        .findOneByOrFail({ id: outbox.id }),
+    ).resolves.toMatchObject({ processedAt: expect.any(Date) });
+    await expect(deliveries().count()).resolves.toBe(2);
+    expect(dispatcher.dispatchAfterCommit).toHaveBeenCalledTimes(2);
+
+    await processor(dispatcher).process(job(outbox.id));
+    expect(dispatcher.dispatchAfterCommit).toHaveBeenCalledTimes(2);
+  });
+
   it('does not backfill delivery rows for an already-fulfilled batch', async () => {
     const { batch } = await fixture();
     batch.fulfilledAt = fulfilledAt;
@@ -240,7 +275,11 @@ describePostgres('PaymentNotificationIntentService PostgreSQL', () => {
     );
   const deliveries = () =>
     dataSource.getRepository(PaymentNotificationDelivery);
-  const processor = () =>
+  const processor = (
+    dispatcher = {
+      dispatchAfterCommit: jest.fn().mockResolvedValue(undefined),
+    },
+  ) =>
     new VoucherFulfillmentProcessor(
       dataSource,
       new VoucherCodeGenerator(
@@ -248,6 +287,7 @@ describePostgres('PaymentNotificationIntentService PostgreSQL', () => {
         dataSource.getRepository(VoucherBatch),
       ),
       new PaymentNotificationIntentService(),
+      dispatcher,
     );
   const job = (outboxId: string) => ({ data: { outboxId } }) as never;
   const createOutbox = (batch: VoucherBatch) =>

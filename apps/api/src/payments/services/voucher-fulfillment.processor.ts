@@ -13,6 +13,10 @@ import { VoucherCodeGenerator } from '../../vouchers/services/voucher-code-gener
 import { PaymentFulfillmentOutbox } from '../entities/payment-fulfillment-outbox.entity.js';
 import { PaymentNotificationIntentService } from './payment-notification-intent.service.js';
 import {
+  PAYMENT_NOTIFICATION_DISPATCHER,
+  type PaymentNotificationDispatcher,
+} from './payment-notification-dispatcher.service.js';
+import {
   VOUCHER_FULFILLMENT_QUEUE,
   type VoucherFulfillmentJobPayload,
 } from './voucher-fulfillment-dispatcher.service.js';
@@ -32,6 +36,8 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
       PaymentNotificationIntentService,
       'createForFirstFulfillment'
     >,
+    @Inject(PAYMENT_NOTIFICATION_DISPATCHER)
+    private readonly paymentNotificationDispatcher: PaymentNotificationDispatcher,
   ) {
     super();
   }
@@ -45,6 +51,7 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
 
     let batch: VoucherBatch | null | undefined;
     let outbox: PaymentFulfillmentOutbox | null | undefined;
+    let notificationDeliveryIds: string[] = [];
     try {
       outbox = await queryRunner.manager.findOne(PaymentFulfillmentOutbox, {
         where: { id: job.data.outboxId },
@@ -102,11 +109,12 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
         await queryRunner.manager.save(Voucher, vouchers);
       }
       const fulfilledAt = new Date();
-      await this.paymentNotificationIntents.createForFirstFulfillment(
-        queryRunner.manager,
-        batch,
-        fulfilledAt,
-      );
+      notificationDeliveryIds =
+        await this.paymentNotificationIntents.createForFirstFulfillment(
+          queryRunner.manager,
+          batch,
+          fulfilledAt,
+        );
       batch.fulfilledAt = fulfilledAt;
       outbox.processedAt = fulfilledAt;
       await queryRunner.manager.save(VoucherBatch, batch);
@@ -120,6 +128,14 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
     } finally {
       if (!queryRunner.isReleased) await queryRunner.release();
     }
+
+    await Promise.allSettled(
+      notificationDeliveryIds.map((deliveryId) =>
+        Promise.resolve().then(() =>
+          this.paymentNotificationDispatcher.dispatchAfterCommit(deliveryId),
+        ),
+      ),
+    );
   }
 
   async handleCompatibilityPaymentCompleted(): Promise<void> {
