@@ -39,19 +39,19 @@ export function BillingDashboard() {
   const isCheckoutTerminal = Boolean(
     checkoutStatus && isTerminalCheckoutStatus(checkoutStatus),
   );
-      const isPurchaseLocked = Boolean(
-        checkoutAttemptId && !isCheckoutTerminal && !isTrackingDismissed,
-      );
+  const isPurchaseLocked = Boolean(
+    checkoutAttemptId && !isCheckoutTerminal && !isTrackingDismissed,
+  );
 
-      const handleDismissTracking = () => {
-        if (
-          checkoutAttemptId &&
-          sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY) === checkoutAttemptId
-        ) {
-          sessionStorage.removeItem(CHECKOUT_ATTEMPT_STORAGE_KEY);
-        }
-        setIsTrackingDismissed(true);
-      };
+  const handleDismissTracking = () => {
+    if (
+      checkoutAttemptId &&
+      sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY) === checkoutAttemptId
+    ) {
+      sessionStorage.removeItem(CHECKOUT_ATTEMPT_STORAGE_KEY);
+    }
+    setIsTrackingDismissed(true);
+  };
 
   useEffect(() => {
     if (
@@ -94,71 +94,79 @@ export function BillingDashboard() {
           className="app-card p-5 border border-app-border"
           aria-label="Estado del pago"
         >
-              <div className="flex items-center justify-between gap-4 mb-3">
-                <h3 className="text-base font-display font-semibold text-app-text-main">
-                  Estado de la compra
-                </h3>
-                    <div className="flex items-center gap-2">
-                      {(checkoutError || isExhausted) && (
-                        <Button
-                          variant="outline"
-                          className="px-4 py-2 text-sm"
-                          onClick={refreshCheckout}
-                          isLoading={isLoadingCheckout}
-                        >
-                          Reintentar consulta
-                        </Button>
-                      )}
-                      {!isCheckoutTerminal && !isTrackingDismissed && (checkoutError || isExhausted) && (
-                        <Button
-                          variant="outline"
-                          className="px-4 py-2 text-sm"
-                          onClick={handleDismissTracking}
-                        >
-                          Descartar seguimiento
-                        </Button>
-                      )}
-                    </div>
-              </div>
-              {isLoadingCheckout && !checkoutStatus && (
-                <div className="flex items-center gap-2 text-sm text-app-text-muted">
-                  <Spinner size="sm" /> Confirmando pago…
-                </div>
-              )}
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <h3 className="text-base font-display font-semibold text-app-text-main">
+              Estado de la compra
+            </h3>
+            <div className="flex items-center gap-2">
               {(checkoutError || isExhausted) && (
-                <Alert
-                  type="error"
-                  message="No pudimos confirmar el pago automáticamente. Reintentá la consulta o verificá el estado en tu medio de pago."
-                />
+                <Button
+                  variant="outline"
+                  className="px-4 py-2 text-sm"
+                  onClick={refreshCheckout}
+                  isLoading={isLoadingCheckout}
+                >
+                  Reintentar consulta
+                </Button>
               )}
-              {!checkoutError && !checkoutStatus && !isLoadingCheckout && !isExhausted && (
-                <Alert type="warning" message="No se encontró el estado de esta compra." />
+              {!isCheckoutTerminal &&
+                !isTrackingDismissed &&
+                (checkoutError || isExhausted) && (
+                  <Button
+                    variant="outline"
+                    className="px-4 py-2 text-sm"
+                    onClick={handleDismissTracking}
+                  >
+                    Descartar seguimiento
+                  </Button>
+                )}
+            </div>
+          </div>
+          {isLoadingCheckout && !checkoutStatus && (
+            <div className="flex items-center gap-2 text-sm text-app-text-muted">
+              <Spinner size="sm" /> Confirmando pago…
+            </div>
+          )}
+          {(checkoutError || isExhausted) && (
+            <Alert
+              type="error"
+              message="No pudimos confirmar el pago automáticamente. Reintentá la consulta o verificá el estado en tu medio de pago."
+            />
+          )}
+          {!checkoutError &&
+            !checkoutStatus &&
+            !isLoadingCheckout &&
+            !isExhausted && (
+              <Alert
+                type="warning"
+                message="No se encontró el estado de esta compra."
+              />
+            )}
+          {checkoutStatus && (
+            <div className="space-y-2 text-sm text-app-text-main">
+              <p className="font-semibold">
+                {checkoutStatus.paymentState === "PAID"
+                  ? checkoutStatus.fulfillmentState === "FULFILLED"
+                    ? "Vouchers disponibles"
+                    : checkoutStatus.fulfillmentState === "BLOCKED"
+                      ? "Emisión bloqueada. Contactá a soporte."
+                      : checkoutStatus.fulfillmentState === "REVOKED"
+                        ? "Vouchers revocados."
+                        : "Pago confirmado. Emitiendo vouchers…"
+                  : ["FAILED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(
+                        checkoutStatus.paymentState,
+                      )
+                    ? "El pago no pudo completarse. Podés intentar una nueva compra."
+                    : "Confirmando pago…"}
+              </p>
+              {checkoutStatus.chargedTotal && (
+                <p>
+                  <strong>Total cobrado:</strong>{" "}
+                  {formatMoney(checkoutStatus.chargedTotal)}
+                </p>
               )}
-              {checkoutStatus && (
-                <div className="space-y-2 text-sm text-app-text-main">
-                  <p className="font-semibold">
-                    {checkoutStatus.paymentState === "PAID"
-                          ? checkoutStatus.fulfillmentState === "FULFILLED"
-                            ? "Vouchers disponibles"
-                            : checkoutStatus.fulfillmentState === "BLOCKED"
-                              ? "Emisión bloqueada. Contactá a soporte."
-                              : checkoutStatus.fulfillmentState === "REVOKED"
-                                ? "Vouchers revocados."
-                                : "Pago confirmado. Emitiendo vouchers…"
-                      : ["FAILED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(
-                            checkoutStatus.paymentState,
-                          )
-                        ? "El pago no pudo completarse. Podés intentar una nueva compra."
-                        : "Confirmando pago…"}
-                  </p>
-                  {checkoutStatus.chargedTotal && (
-                    <p>
-                      <strong>Total cobrado:</strong>{" "}
-                      {formatMoney(checkoutStatus.chargedTotal)}
-                    </p>
-                  )}
-                </div>
-              )}
+            </div>
+          )}
         </section>
       )}
 
@@ -171,13 +179,13 @@ export function BillingDashboard() {
           </h3>
         </div>
 
-            {isPurchaseLocked && (
-              <p className="mb-4 text-sm font-medium text-app-text-muted">
-                Confirmación en curso. Esperá antes de iniciar otra compra.
-              </p>
-            )}
+        {isPurchaseLocked && (
+          <p className="mb-4 text-sm font-medium text-app-text-muted">
+            Confirmación en curso. Esperá antes de iniciar otra compra.
+          </p>
+        )}
 
-            {isLoadingPlans ? (
+        {isLoadingPlans ? (
           <div className="flex items-center justify-center py-12 gap-3 text-app-text-muted">
             <Spinner size="md" className="border-app-primary" />
             <span className="app-label !text-xs tracking-[0.25em] animate-pulse">

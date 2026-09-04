@@ -20,7 +20,9 @@ vi.mock("../../hooks/useBilling", () => ({
   })),
   isTerminalCheckoutStatus: vi.fn(
     (status: { paymentState: string; fulfillmentState: string }) =>
-      ["FAILED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(status.paymentState) ||
+      ["FAILED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(
+        status.paymentState,
+      ) ||
       (status.paymentState === "PAID" &&
         ["FULFILLED", "REVOKED", "BLOCKED"].includes(status.fulfillmentState)),
   ),
@@ -109,7 +111,10 @@ describe("BillingDashboard", () => {
       CHECKOUT_ATTEMPT_STORAGE_KEY,
       "11111111-1111-4111-8111-111111111111",
     );
-    (useBillingHistory as Mock).mockReturnValue({ data: null, isLoading: false });
+    (useBillingHistory as Mock).mockReturnValue({
+      data: null,
+      isLoading: false,
+    });
     (usePricingPlans as Mock).mockReturnValue({
       data: [
         {
@@ -134,36 +139,49 @@ describe("BillingDashboard", () => {
 
     render(<BillingDashboard />);
 
-    expect(screen.getByText("Pago confirmado. Emitiendo vouchers…")).toBeDefined();
-    expect(screen.getByText("Confirmación en curso. Esperá antes de iniciar otra compra.")).toBeDefined();
-    expect(screen.getByRole("button", { name: "Adquirir lote" })).toBeDisabled();
-        expect(screen.queryByRole("button", { name: "Actualizar" })).toBeNull();
+    expect(
+      screen.getByText("Pago confirmado. Emitiendo vouchers…"),
+    ).toBeDefined();
+    expect(
+      screen.getByText(
+        "Confirmación en curso. Esperá antes de iniciar otra compra.",
+      ),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: "Adquirir lote" }),
+    ).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Actualizar" })).toBeNull();
 
-        fireEvent.click(screen.getByRole("button", { name: "Descartar seguimiento" }));
-        expect(screen.getByRole("button", { name: "Adquirir lote" })).toBeEnabled();
-        expect(sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY)).toBeNull();
-      });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Descartar seguimiento" }),
+    );
+    expect(screen.getByRole("button", { name: "Adquirir lote" })).toBeEnabled();
+    expect(sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY)).toBeNull();
+  });
 
-      it.each([
-        ["BLOCKED", "Emisión bloqueada. Contactá a soporte."],
-        ["REVOKED", "Vouchers revocados."],
-      ])("renders PAID %s fulfillment accurately", (fulfillmentState, message) => {
-        (useBillingHistory as Mock).mockReturnValue({ data: null, isLoading: false });
-        (usePricingPlans as Mock).mockReturnValue({ data: [], isLoading: false });
-        (useCheckoutAttemptStatus as Mock).mockReturnValue({
-          data: { paymentState: "PAID", fulfillmentState },
-          isLoading: false,
-          isExhausted: false,
-          error: null,
-          refetch: vi.fn(),
-        });
-
-        window.history.replaceState(
-          {},
-          "",
-          "/billing?checkoutAttemptId=11111111-1111-4111-8111-111111111111",
-        );
-        render(<BillingDashboard />);
-        expect(screen.getByText(message)).toBeDefined();
-      });
+  it.each([
+    ["BLOCKED", "Emisión bloqueada. Contactá a soporte."],
+    ["REVOKED", "Vouchers revocados."],
+  ])("renders PAID %s fulfillment accurately", (fulfillmentState, message) => {
+    (useBillingHistory as Mock).mockReturnValue({
+      data: null,
+      isLoading: false,
     });
+    (usePricingPlans as Mock).mockReturnValue({ data: [], isLoading: false });
+    (useCheckoutAttemptStatus as Mock).mockReturnValue({
+      data: { paymentState: "PAID", fulfillmentState },
+      isLoading: false,
+      isExhausted: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    window.history.replaceState(
+      {},
+      "",
+      "/billing?checkoutAttemptId=11111111-1111-4111-8111-111111111111",
+    );
+    render(<BillingDashboard />);
+    expect(screen.getByText(message)).toBeDefined();
+  });
+});
