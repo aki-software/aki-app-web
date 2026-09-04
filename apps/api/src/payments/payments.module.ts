@@ -22,6 +22,7 @@ import { VoucherFulfillmentDispatcherService } from './services/voucher-fulfillm
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 import { PaymentReconciliationService } from './services/payment-reconciliation.service.js';
 import { PaymentNotificationIntentService } from './services/payment-notification-intent.service.js';
+import { PaymentNotificationDeliveryStateService } from './services/payment-notification-delivery-state.service.js';
 import {
   PAYMENT_NOTIFICATION_DELIVERY_QUEUE,
   PAYMENT_NOTIFICATION_DISPATCHER,
@@ -53,6 +54,7 @@ import {
     VoucherFulfillmentDispatcherService,
     VoucherFulfillmentProcessor,
     PaymentNotificationIntentService,
+    PaymentNotificationDeliveryStateService,
     PaymentNotificationDispatcherService,
     {
       provide: PAYMENT_NOTIFICATION_DISPATCHER,
