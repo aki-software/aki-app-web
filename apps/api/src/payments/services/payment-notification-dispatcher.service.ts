@@ -101,6 +101,8 @@ export class PaymentNotificationDispatcherService
           jobId: deliveryId,
           attempts: MAX_ENQUEUE_ATTEMPTS,
           backoff: { type: 'exponential', delay: QUEUE_RETRY_DELAY_MS },
+          removeOnComplete: true,
+          removeOnFail: true,
         },
       );
     } catch {

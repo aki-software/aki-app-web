@@ -174,6 +174,8 @@ describe('PaymentNotificationDispatcherService', () => {
         jobId: 'delivery-1',
         attempts: 8,
         backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: true,
+        removeOnFail: true,
       },
     );
     expect(manager.save).toHaveBeenCalledWith(
