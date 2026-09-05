@@ -8,7 +8,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsService } from './payments.service';
 import { SessionsQueryService } from '../sessions/services/sessions-query.service';
 import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
-import { PaymentStatus, SessionPaymentStatus } from '@akit/contracts';
+import {
+  BillingHistory,
+  PaymentStatus,
+  SessionPaymentStatus,
+} from '@akit/contracts';
 import { CheckoutAttempt } from './entities/checkout-attempt.entity';
 import { PaymentEvent } from './entities/payment-event.entity';
 import { VoucherBatchStatus } from '../vouchers/entities/voucher.enums';
@@ -19,8 +23,22 @@ import { PaymentReconciliationService } from './services/payment-reconciliation.
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
+  let dataSource: {
+    manager: {
+      find: jest.Mock;
+      count: jest.Mock;
+      findOne: jest.Mock;
+    };
+  };
 
   beforeEach(async () => {
+    dataSource = {
+      manager: {
+        find: jest.fn().mockResolvedValue([]),
+        count: jest.fn().mockResolvedValue(0),
+        findOne: jest.fn(),
+      },
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentsService,
@@ -55,13 +73,7 @@ describe('PaymentsService', () => {
         },
         {
           provide: getDataSourceToken(),
-          useValue: {
-            manager: {
-              find: jest.fn().mockResolvedValue([]),
-              count: jest.fn().mockResolvedValue(0),
-              findOne: jest.fn(),
-            },
-          },
+          useValue: dataSource,
         },
         {
           provide: PaymentReconciliationService,
@@ -246,6 +258,57 @@ describe('PaymentsService', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('getBillingHistory', () => {
+    it('returns a manual paid batch as a zero-value administrative assignment', async () => {
+      const institutionId = '33333333-3333-4333-8333-333333333333';
+      const batch = {
+        id: '44444444-4444-4444-8444-444444444444',
+        ownerInstitutionId: institutionId,
+        status: VoucherBatchStatus.PAID,
+        quantity: 5,
+        totalPrice: '0',
+        currency: 'ARS',
+        paymentProvider: null,
+        paymentReference: null,
+        paidAt: new Date('2026-01-02T00:00:00.000Z'),
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      };
+      dataSource.manager.find.mockResolvedValue([batch]);
+      dataSource.manager.count.mockResolvedValue(5);
+
+      const result = await service.getBillingHistory(institutionId);
+
+      expect(result).toEqual({
+        transactions: [
+          expect.objectContaining({
+            id: batch.id,
+            gateway: null,
+            externalReference: null,
+            status: 'APPROVED',
+            amount: 0,
+            currency: 'ARS',
+            createdAt: '2026-01-02T00:00:00.000Z',
+            plan: expect.objectContaining({
+              name: 'Lote de 5 vouchers',
+              voucherQuantity: 5,
+              priceUsd: 0,
+            }),
+          }),
+        ],
+        totalPaid: 0,
+        currentBalance: 5,
+      });
+      expect(BillingHistory.safeParse(result).success).toBe(true);
+      expect(dataSource.manager.find).toHaveBeenCalledWith(expect.anything(), {
+        where: {
+          ownerInstitutionId: institutionId,
+          status: VoucherBatchStatus.PAID,
+        },
+        order: { paidAt: 'DESC' },
+      });
     });
   });
 

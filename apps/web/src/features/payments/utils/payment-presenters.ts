@@ -1,3 +1,5 @@
+import type { PaymentGateway } from "@akit/contracts";
+
 const STATUS_LABELS: Record<string, string> = {
   APPROVED: "Aprobado",
   REJECTED: "Rechazado",
@@ -5,8 +7,13 @@ const STATUS_LABELS: Record<string, string> = {
   EXPIRED: "Expirado",
 };
 
-export function paymentGatewayLabel(gateway: string): string {
-  return gateway === "MERCADO_PAGO" ? "Mercado Pago" : "Stripe";
+export function paymentGatewayLabel(gateway: PaymentGateway | null): string {
+  if (gateway === null) return "Asignación administrativa";
+  if (gateway === "MERCADO_PAGO") return "Mercado Pago";
+  if (gateway === "STRIPE") return "Stripe";
+
+  const exhaustiveGateway: never = gateway;
+  return exhaustiveGateway;
 }
 
 export function paymentStatusLabel(status: string): string {
@@ -35,10 +42,9 @@ export function formatPaymentTimestamp(value: string): string {
     timeZone: ARGENTINA_TIME_ZONE,
   });
   const parts = Object.fromEntries(
-    formatter.formatToParts(new Date(value)).map(({ type, value: partValue }) => [
-      type,
-      partValue,
-    ]),
+    formatter
+      .formatToParts(new Date(value))
+      .map(({ type, value: partValue }) => [type, partValue]),
   );
 
   return `${parts.day} de ${parts.month} de ${parts.year}, ${parts.hour}:${parts.minute}`;
