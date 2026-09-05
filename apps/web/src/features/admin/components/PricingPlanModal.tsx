@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { X, Package } from 'lucide-react';
 import { PricingPlan, useCreatePricingPlan, useUpdatePricingPlan } from '../api/pricing-plans.api';
+import { ApiError } from '../../../api/client';
 import { Spinner } from '../../../components/atoms/Spinner';
+
+const toFiniteNumber = (value: unknown, fallback: number) => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
+};
 
 interface PricingPlanModalProps {
   isOpen: boolean;
@@ -23,6 +29,7 @@ export function PricingPlanModal({ isOpen, onClose, editingPlan, onSuccess }: Pr
     isActive: true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,14 +37,15 @@ export function PricingPlanModal({ isOpen, onClose, editingPlan, onSuccess }: Pr
         setFormData({
           name: editingPlan.name,
           description: editingPlan.description ?? '',
-          voucherQuantity: editingPlan.voucherQuantity,
-          priceUsd: editingPlan.priceUsd,
+          voucherQuantity: toFiniteNumber(editingPlan.voucherQuantity, 10),
+          priceUsd: toFiniteNumber(editingPlan.priceUsd, 10),
           isActive: editingPlan.isActive,
         });
       } else {
         setFormData({ name: '', description: '', voucherQuantity: 10, priceUsd: 10, isActive: true });
       }
       setErrors({});
+      setSubmitError(null);
     }
   }, [isOpen, editingPlan]);
 
@@ -46,14 +54,15 @@ export function PricingPlanModal({ isOpen, onClose, editingPlan, onSuccess }: Pr
   const validate = () => {
     const e: Record<string, string> = {};
     if (!formData.name.trim()) e.name = 'El nombre es obligatorio';
-    if (formData.voucherQuantity < 1) e.voucherQuantity = 'Debe ser al menos 1';
-    if (formData.priceUsd < 0) e.priceUsd = 'No puede ser negativo';
+    if (!Number.isFinite(formData.voucherQuantity) || formData.voucherQuantity < 1) e.voucherQuantity = 'Debe ser al menos 1';
+    if (!Number.isFinite(formData.priceUsd) || formData.priceUsd < 0) e.priceUsd = 'No puede ser negativo';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     if (!validate()) return;
     try {
       const payload = {
@@ -70,8 +79,10 @@ export function PricingPlanModal({ isOpen, onClose, editingPlan, onSuccess }: Pr
       }
       onSuccess();
       onClose();
-    } catch {
-      alert('Ocurrió un error al guardar el lote');
+    } catch (error) {
+      setSubmitError(
+        error instanceof ApiError ? error.data.message : 'No se pudo guardar el plan.',
+      );
     }
   };
 
@@ -97,16 +108,17 @@ export function PricingPlanModal({ isOpen, onClose, editingPlan, onSuccess }: Pr
               </div>
               <div>
                 <p className="text-xs font-bold tracking-[0.2em] uppercase text-app-primary mb-0.5">
-                  {isEditing ? 'Modificar lote' : 'Nuevo lote de vouchers'}
+                  {isEditing ? 'Modificar plan' : 'Nuevo plan de vouchers'}
                 </p>
                 <h2 className="text-xl font-display font-bold text-app-text-main leading-tight">
-                  {isEditing ? editingPlan.name : 'Configurar disponibilidad'}
+                  {isEditing ? editingPlan.name : 'Configurar plan'}
                 </h2>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
+              aria-label="Cerrar modal"
               className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
             >
               <X className="w-5 h-5 text-app-text-muted" />
@@ -118,10 +130,17 @@ export function PricingPlanModal({ isOpen, onClose, editingPlan, onSuccess }: Pr
         <form onSubmit={onSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-5">
 
+            {submitError && (
+              <p role="alert" className="text-status-error text-sm font-semibold">
+                {submitError}
+              </p>
+            )}
+
             {/* Nombre */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold tracking-[0.12em] uppercase text-app-text-muted">Nombre del lote</label>
+              <label htmlFor="pricing-plan-name" className="text-xs font-bold tracking-[0.12em] uppercase text-app-text-muted">Nombre del plan</label>
               <input
+                id="pricing-plan-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 type="text"
@@ -201,7 +220,7 @@ export function PricingPlanModal({ isOpen, onClose, editingPlan, onSuccess }: Pr
                 <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-app-text-main">Lote activo</p>
+                <p className="text-sm font-semibold text-app-text-main">Plan activo</p>
                 <p className="text-xs text-app-text-muted">Las instituciones pueden adquirirlo</p>
               </div>
             </label>
@@ -225,7 +244,7 @@ export function PricingPlanModal({ isOpen, onClose, editingPlan, onSuccess }: Pr
               {isMutating ? (
                 <><Spinner size="sm" className="border-white" /> Guardando...</>
               ) : (
-                isEditing ? 'Guardar cambios' : 'Crear lote'
+                isEditing ? 'Guardar cambios' : 'Crear plan'
               )}
             </button>
           </div>
