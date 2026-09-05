@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { DashboardOverview } from "../DashboardOverview";
@@ -138,6 +138,21 @@ describe("DashboardOverview", () => {
       data: [],
       meta: { total: 5, page: 1, limit: 1, flaggedCount: 3 },
     });
+    mockPurchaseSummary.mockReturnValue({
+      data: {
+        scope: "PLATFORM",
+        generatedAt: "2026-03-10T00:00:00.000Z",
+        currentWindow: { from: "2026-03-03T00:00:00.000Z", to: "2026-03-10T00:00:00.000Z", days: 7 },
+        priorWindow: { from: "2026-02-24T00:00:00.000Z", to: "2026-03-03T00:00:00.000Z", days: 7 },
+        current: { accreditedPurchaseCount: 1, accreditedVoucherCount: 10, purchasingInstitutionCount: 1, accreditedAmountByCurrency: [{ currency: "USD", amount: "25.00" }] },
+        prior: { accreditedPurchaseCount: 0, accreditedVoucherCount: 0, purchasingInstitutionCount: 0, accreditedAmountByCurrency: [] },
+        alerts: { paidButNotFulfilledCount: 0, notificationAttentionCount: 0 },
+        latestAccreditation: null,
+      },
+      loading: false,
+      error: null,
+      retry: vi.fn(),
+    });
   });
 
   describe("AdminDashboardOverview (admin role)", () => {
@@ -195,22 +210,39 @@ describe("DashboardOverview", () => {
       });
     });
 
-    it("renders HealthBar with completion rate, alerts, and triage indicators", async () => {
+    it("enables the platform purchase summary and replaces the HealthBar", async () => {
       renderWithRouter(<DashboardOverview />);
-      expect(screen.getByText("Tasa de finalización")).toBeDefined();
-      expect(screen.getByText("Instituciones con alertas")).toBeDefined();
-      expect(screen.getByText("Sesiones pendientes de revisión")).toBeDefined();
+      expect(screen.getByText("Vouchers acreditados")).toBeDefined();
+      expect(screen.getByText("Instituciones compradoras")).toBeDefined();
+      expect(screen.queryByText("Instituciones con alertas")).toBeNull();
+      expect(mockPurchaseSummary).toHaveBeenLastCalledWith(7, true);
     });
 
-    it("renders SessionsChart section with period summary", async () => {
+        it("shows triage success and unavailable state when the triage request fails", async () => {
+          const { unmount } = renderWithRouter(<DashboardOverview />);
+          await waitFor(() => expect(screen.getByText("5")).toBeDefined());
+          unmount();
+
+          mockFetchTriageSessions.mockRejectedValueOnce(new Error("offline"));
+          renderWithRouter(<DashboardOverview />);
+          await waitFor(() => expect(screen.getByText("Datos de sesiones no disponibles.")).toBeDefined());
+        });
+
+        it("renders SessionsChart section with period summary", async () => {
       renderWithRouter(<DashboardOverview />);
       expect(screen.getByText("Volumen de Evaluaciones Diarias")).toBeDefined();
-      expect(screen.getByText("Total del periodo")).toBeDefined();
+      expect(screen.getByText("Total del período")).toBeDefined();
       expect(screen.getByText("Promedio diario")).toBeDefined();
-      expect(screen.getByText("Pico de actividad")).toBeDefined();
+      expect(screen.getByText("Tasa de finalización")).toBeDefined();
     });
 
-    it("renders QuickActions and ActivityFeed", async () => {
+        it("keeps operational details collapsed by default", () => {
+          renderWithRouter(<DashboardOverview />);
+          const details = screen.getByText("Ver detalle operativo de vouchers y canales").closest("details");
+          expect(details).not.toHaveAttribute("open");
+        });
+
+        it("renders QuickActions and ActivityFeed", async () => {
       renderWithRouter(<DashboardOverview />);
       expect(screen.getByText("Centro de operación")).toBeDefined();
       expect(screen.getByText("Emitir lotes")).toBeDefined();
