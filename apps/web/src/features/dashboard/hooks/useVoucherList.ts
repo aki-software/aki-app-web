@@ -5,7 +5,7 @@ import {
   type VoucherBatchSummary,
   type VoucherData,
 } from "../api/dashboard";
-import { ITEMS_PER_PAGE } from "../constants/vouchers.constants";
+import { BATCH_ITEMS_PER_PAGE, ITEMS_PER_PAGE } from "../constants/vouchers.constants";
 
 export function calculateTotalPages(count: number, limit: number): number {
   return limit > 0 ? Math.ceil(count / limit) : 0;
@@ -45,7 +45,7 @@ export const useVoucherList = (filters: VoucherListFilters, viewMode: "BATCHES" 
           clientId: filters.clientFilter === "ALL" ? undefined : filters.clientFilter,
           expiration: filters.expirationFilter,
           page: currentPage,
-          limit: ITEMS_PER_PAGE,
+          limit: BATCH_ITEMS_PER_PAGE,
         });
         setBatchItems(response.data);
         setBatchTotalItems(response.count);
@@ -98,7 +98,7 @@ export const useVoucherList = (filters: VoucherListFilters, viewMode: "BATCHES" 
     reloadToken
   ]);
 
-  const batchTotalPages = Math.ceil(batchTotalItems / ITEMS_PER_PAGE);
+  const batchTotalPages = calculateTotalPages(batchTotalItems, BATCH_ITEMS_PER_PAGE);
   const individualTotalPages = Math.ceil(individualTotalItems / ITEMS_PER_PAGE);
 
   return {
