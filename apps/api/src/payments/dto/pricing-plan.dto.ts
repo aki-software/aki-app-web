@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -15,10 +16,12 @@ export class CreatePricingPlanDto {
   @IsOptional()
   description?: string;
 
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   voucherQuantity!: number;
 
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   priceUsd!: number;
@@ -37,10 +40,12 @@ export class UpdatePricingPlanDto {
   @IsOptional()
   description?: string;
 
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   voucherQuantity?: number;
 
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   priceUsd?: number;
