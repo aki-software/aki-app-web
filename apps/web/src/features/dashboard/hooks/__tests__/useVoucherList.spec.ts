@@ -31,7 +31,17 @@ describe('useVoucherList', () => {
       expect(result.current.batchItems).toHaveLength(1);
     });
 
-    expect(dashboardApi.fetchVoucherBatches).toHaveBeenCalled();
+    expect(dashboardApi.fetchVoucherBatches).toHaveBeenCalledWith(expect.objectContaining({ limit: 6 }));
+  });
+
+  it('should calculate two batch pages for seven batches', async () => {
+    vi.mocked(dashboardApi.fetchVoucherBatches).mockResolvedValue({ data: [], count: 7 } as any);
+
+    const { result } = renderHook(() => useVoucherList(mockFilters, 'BATCHES'));
+
+    await waitFor(() => {
+      expect(result.current.batchTotalPages).toBe(2);
+    });
   });
 
   it('should fetch individual data when viewMode is INDIVIDUAL', async () => {
@@ -44,7 +54,7 @@ describe('useVoucherList', () => {
       expect(result.current.individualItems).toHaveLength(1);
     });
 
-    expect(dashboardApi.fetchVouchersPage).toHaveBeenCalled();
+    expect(dashboardApi.fetchVouchersPage).toHaveBeenCalledWith(expect.objectContaining({ limit: 10 }));
   });
 
   it('should reset page when filters change', async () => {

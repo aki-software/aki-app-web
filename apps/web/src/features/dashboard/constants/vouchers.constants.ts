@@ -1,4 +1,5 @@
 export const ITEMS_PER_PAGE = 10;
+export const BATCH_ITEMS_PER_PAGE = 6;
 export const DETAIL_ITEMS_PER_PAGE = 10;
 export const PERIOD_DAYS = 30;
 
