@@ -25,7 +25,7 @@ export function formatPaymentDate(value: string): string {
 }
 
 export function formatPaymentTimestamp(value: string): string {
-  return new Intl.DateTimeFormat("es-AR", {
+  const formatter = new Intl.DateTimeFormat("es-AR", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -33,7 +33,15 @@ export function formatPaymentTimestamp(value: string): string {
     minute: "2-digit",
     hourCycle: "h23",
     timeZone: ARGENTINA_TIME_ZONE,
-  }).format(new Date(value));
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(new Date(value)).map(({ type, value: partValue }) => [
+      type,
+      partValue,
+    ]),
+  );
+
+  return `${parts.day} de ${parts.month} de ${parts.year}, ${parts.hour}:${parts.minute}`;
 }
 
 export function formatPaymentAmount(amount: number, currency: string): string {
