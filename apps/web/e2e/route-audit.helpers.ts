@@ -6,6 +6,7 @@ import {
   categories,
   ids,
   institution,
+  institutionPurchaseSummary,
   metrics,
   overview,
   plan,
@@ -141,7 +142,9 @@ async function fulfillApi(
     return json({ data: [voucher], count: 1, page: 1, limit: 10 });
   if (pathname === "/vouchers/batches")
     return json({ data: [voucherBatch], count: 1, page: 1, limit: 6 });
-  if (pathname === "/payments/plans" || pathname === "/admin/pricing-plans")
+      if (pathname === "/payments/purchase-summary" && role === "institution")
+        return json(institutionPurchaseSummary);
+      if (pathname === "/payments/plans" || pathname === "/admin/pricing-plans")
     return json([plan]);
   if (pathname === "/payments/history")
     return json({

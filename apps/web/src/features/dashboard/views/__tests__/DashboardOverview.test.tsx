@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { DashboardOverview } from "../DashboardOverview";
+import { InstitutionDashboardOverview } from "../InstitutionDashboardOverview";
 
 // Mock lucide-react with importOriginal to preserve all exports
 vi.mock("lucide-react", async (importOriginal) => {
@@ -28,6 +29,17 @@ vi.mock("../../../auth/hooks/useAuth", () => ({
 const mockUseAdminStats = vi.fn();
 vi.mock("../../hooks/useAdminDashboardStats", () => ({
   useAdminDashboardStats: () => mockUseAdminStats(),
+}));
+
+const mockInstitutionOverview = vi.fn();
+vi.mock("../../hooks/useInstitutionOverviewManager", () => ({
+  LOW_STOCK_ALERT_THRESHOLD: 3,
+  useInstitutionOverviewManager: () => mockInstitutionOverview(),
+}));
+
+const mockPurchaseSummary = vi.fn();
+vi.mock("../../hooks/usePurchaseSummary", () => ({
+  usePurchaseSummary: (...args: unknown[]) => mockPurchaseSummary(...args),
 }));
 
 // Mock dashboard.ts (re-exports everything) and sessions.api
@@ -138,6 +150,48 @@ describe("DashboardOverview", () => {
         setPeriodDays: vi.fn(),
         error: null,
         refreshStats: vi.fn(),
+      });
+    });
+
+    describe("InstitutionDashboardOverview", () => {
+      const institutionState = {
+        loading: false,
+        overview: { topSessions: [], resultsDistribution: [] },
+        voucherStats: { available: 9, total: 12, vouchersRedeemedPeriod: 2, voucherRedemptionRatePeriod: 20, vouchersUnassignedAvailable: 3, vouchersExpiringSoon7d: 1 },
+        testsStats: { testsStartedPeriod: 0, testsCompletedPeriod: 0, reportsUnlockedPeriod: 0 },
+        showLowStockAlert: false,
+        handleDismissAlert: vi.fn(),
+        periodDays: 7,
+        setPeriodDays: vi.fn(),
+      };
+      const purchaseData = {
+        scope: "INSTITUTION" as const, institutionName: "A.kit", generatedAt: "2026-03-10T00:00:00.000Z",
+        currentWindow: { from: "2026-03-03T00:00:00.000Z", to: "2026-03-10T00:00:00.000Z", days: 7 as const },
+        priorWindow: { from: "2026-02-24T00:00:00.000Z", to: "2026-03-03T00:00:00.000Z", days: 7 as const },
+        current: { accreditedPurchaseCount: 1, accreditedVoucherCount: 12, accreditedAmountByCurrency: [] },
+        prior: { accreditedPurchaseCount: 0, accreditedVoucherCount: 0, accreditedAmountByCurrency: [] },
+        alerts: { paidButNotFulfilledCount: 1, notificationAttentionCount: 1 }, latestAccreditation: null,
+      };
+
+      it("shows exactly four primary voucher metrics for institution admins without an unsafe prior-zero comparison", () => {
+        mockUseAuth.mockReturnValue({ user: { role: "INSTITUTION_ADMIN", institutionId: "inst-1", name: "A.kit" } });
+        mockInstitutionOverview.mockReturnValue(institutionState);
+        mockPurchaseSummary.mockReturnValue({ data: purchaseData, loading: false, error: null, retry: vi.fn() });
+        renderWithRouter(<InstitutionDashboardOverview />);
+        expect(screen.getByText("Acreditados")).toBeDefined();
+        expect(screen.getAllByText(/Sin asignar/)).toHaveLength(1);
+        expect(screen.queryByText(/respecto del período anterior/)).toBeNull();
+        expect(screen.getByText("Última compra acreditada")).toBeDefined();
+      });
+
+      it("keeps therapist inventory behavior and never enables the purchase summary", () => {
+        mockUseAuth.mockReturnValue({ user: { role: "THERAPIST", institutionId: "inst-1", name: "Terapeuta" } });
+        mockInstitutionOverview.mockReturnValue(institutionState);
+        mockPurchaseSummary.mockReturnValue({ data: null, loading: false, error: null, retry: vi.fn() });
+        renderWithRouter(<InstitutionDashboardOverview />);
+        expect(screen.getByText("Sin asignar")).toBeDefined();
+        expect(screen.queryByText("Acreditados")).toBeNull();
+        expect(mockPurchaseSummary).toHaveBeenLastCalledWith(7, false);
       });
     });
 

@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { useInstitutionOverviewManager, LOW_STOCK_ALERT_THRESHOLD } from "../hooks/useInstitutionOverviewManager";
+import { usePurchaseSummary, type PurchaseSummaryPeriod } from "../hooks/usePurchaseSummary";
 import { LowStockAlert } from "../components/institucion/LowStockAlert";
+import { InstitutionPurchaseSummary } from "../components/institucion/InstitutionPurchaseSummary";
+import { purchaseComparison } from "../utils/purchase-summary-presenters";
 import { TopSessionsTable } from "../components/institucion/TopSessionsTable";
 import { StatCard } from "../../../components/atoms/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
@@ -24,6 +27,18 @@ export function InstitutionDashboardOverview() {
     periodDays,
     setPeriodDays,
   } = useInstitutionOverviewManager(user?.institutionId);
+  const isInstitutionAdmin = user?.role === "INSTITUTION_ADMIN";
+  const isPurchasePeriod = [7, 30, 90].includes(periodDays);
+  const purchaseSummary = usePurchaseSummary(
+    periodDays as PurchaseSummaryPeriod,
+    isInstitutionAdmin && isPurchasePeriod,
+  );
+  const accreditedComparison = purchaseSummary.data
+    ? purchaseComparison(
+        purchaseSummary.data.current.accreditedVoucherCount,
+        purchaseSummary.data.prior.accreditedVoucherCount,
+      )
+    : null;
 
   if (loading) {
     return (
@@ -91,33 +106,53 @@ export function InstitutionDashboardOverview() {
           </button>
         </div>
 
-        {/* Usando nuestra molécula StatCard */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard 
-            label="Disponibles" 
-            value={voucherStats?.available ?? 0} 
-            description={`De ${voucherStats?.total ?? 0} históricos.`} 
-            valueColor="text-status-success" 
-          />
-          <StatCard 
-            label="Consumidos (período)" 
-            value={voucherStats?.vouchersRedeemedPeriod ?? 0} 
-            description={`Tasa de uso: ${voucherStats?.voucherRedemptionRatePeriod ?? 0}%.`} 
-            valueColor="text-status-error" 
-          />
-          <StatCard 
-            label="Sin asignar" 
-            value={voucherStats?.vouchersUnassignedAvailable ?? 0} 
-            description="Stock listo para enviar." 
-          />
-          <StatCard 
-            label="Vencen pronto" 
-            value={voucherStats?.vouchersExpiringSoon7d ?? 0}
-            description="En los próximos 7 días."
-            icon={<Clock className="h-4 w-4 text-app-text-muted/40" />}
-          />
-        </div>
-      </section>
+            {/* Usando nuestra molécula StatCard */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <StatCard
+                label="Disponibles"
+                value={voucherStats?.available ?? 0}
+                description={`De ${voucherStats?.total ?? 0} históricos.`}
+                valueColor="text-status-success"
+              />
+              {isInstitutionAdmin && (
+                <StatCard
+                  label="Acreditados"
+                  value={purchaseSummary.data?.current.accreditedVoucherCount ?? "—"}
+                  description={accreditedComparison ?? undefined}
+                  valueColor="text-app-primary"
+                />
+              )}
+              <StatCard
+                label="Consumidos"
+                value={voucherStats?.vouchersRedeemedPeriod ?? 0}
+                description={`Tasa de uso: ${voucherStats?.voucherRedemptionRatePeriod ?? 0}%.`}
+                valueColor="text-status-error"
+              />
+              {!isInstitutionAdmin && (
+                <StatCard
+                  label="Sin asignar"
+                  value={voucherStats?.vouchersUnassignedAvailable ?? 0}
+                  description="Stock listo para enviar."
+                />
+              )}
+              <StatCard
+                label="Vencen pronto"
+                value={voucherStats?.vouchersExpiringSoon7d ?? 0}
+                description="En los próximos 7 días."
+                icon={<Clock className="h-4 w-4 text-app-text-muted/40" />}
+              />
+            </div>
+          </section>
+
+          {isInstitutionAdmin && isPurchasePeriod && (
+            <InstitutionPurchaseSummary
+              data={purchaseSummary.data}
+              error={purchaseSummary.error}
+              loading={purchaseSummary.loading}
+              onRetry={purchaseSummary.retry}
+              unassignedAvailable={voucherStats?.vouchersUnassignedAvailable ?? 0}
+            />
+          )}
 
       {/* SECCIÓN TESTS */}
       <section className="space-y-6">
