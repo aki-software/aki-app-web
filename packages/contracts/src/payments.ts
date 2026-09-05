@@ -306,84 +306,237 @@ export const RemediationResponse = z
   .strict();
 export type RemediationResponse = z.infer<typeof RemediationResponse>;
 
-export const PaymentNotificationRecipientKind = z.enum(['BUYER', 'PLATFORM_ADMIN']);
-export type PaymentNotificationRecipientKind = z.infer<typeof PaymentNotificationRecipientKind>;
+export const PaymentNotificationRecipientKind = z.enum([
+  "BUYER",
+  "PLATFORM_ADMIN",
+]);
+export type PaymentNotificationRecipientKind = z.infer<
+  typeof PaymentNotificationRecipientKind
+>;
 
-export const PaymentNotificationDeliveryStatus = z.enum(['PENDING', 'QUEUED', 'SENT', 'RETRYABLE_FAILED', 'DEAD_LETTER']);
-export type PaymentNotificationDeliveryStatus = z.infer<typeof PaymentNotificationDeliveryStatus>;
+export const PaymentNotificationDeliveryStatus = z.enum([
+  "PENDING",
+  "QUEUED",
+  "SENT",
+  "RETRYABLE_FAILED",
+  "DEAD_LETTER",
+]);
+export type PaymentNotificationDeliveryStatus = z.infer<
+  typeof PaymentNotificationDeliveryStatus
+>;
 
 export const PaymentNotificationErrorClassification = z.enum([
-  'RECIPIENT_UNRESOLVED', 'QUEUE_FAILURE', 'RENDER_FAILURE', 'TRANSPORT_TRANSIENT', 'TRANSPORT_PERMANENT',
+  "RECIPIENT_UNRESOLVED",
+  "QUEUE_FAILURE",
+  "RENDER_FAILURE",
+  "TRANSPORT_TRANSIENT",
+  "TRANSPORT_PERMANENT",
 ]);
-export type PaymentNotificationErrorClassification = z.infer<typeof PaymentNotificationErrorClassification>;
+export type PaymentNotificationErrorClassification = z.infer<
+  typeof PaymentNotificationErrorClassification
+>;
 
 const safeIdentity = z.object({ id: uuid, name: z.string().min(1) }).strict();
-const safeRecipientSnapshot = z.object({ userId: uuid, name: z.string().min(1), email: z.string().email() }).strict();
-const safeCommercialSnapshot = z.object({ pricingPlanId: uuid.nullable(), planName: z.string().min(1).nullable() }).strict();
+const safeRecipientSnapshot = z
+  .object({ userId: uuid, name: z.string().min(1), email: z.string().email() })
+  .strict();
+const safeCommercialSnapshot = z
+  .object({
+    pricingPlanId: uuid.nullable(),
+    planName: z.string().min(1).nullable(),
+  })
+  .strict();
 const exactMonetaryValue = z.string().regex(/^(?:0|[1-9]\d*)(?:\.\d+)?$/);
 
-export const PaymentNotificationContextSnapshotV1 = z.object({
-  version: z.literal(1),
-  voucherBatchId: uuid,
-  checkoutAttemptId: uuid.nullable(),
-  paymentEventId: uuid.nullable(),
-  institution: safeIdentity,
-  buyer: safeRecipientSnapshot.nullable(),
-  commercial: z.object({ pricingPlanId: uuid.nullable(), planName: z.string().min(1).nullable(), voucherQuantity: z.number().int().positive() }).strict(),
-  charged: Money.nullable(),
-  payment: z.object({ gateway: PaymentGateway, externalReference: z.string().min(1), settledAt: datetime }).strict().nullable(),
-  fulfilledAt: datetime,
-}).strict();
-export type PaymentNotificationContextSnapshotV1 = z.infer<typeof PaymentNotificationContextSnapshotV1>;
+export const PaymentNotificationContextSnapshotV1 = z
+  .object({
+    version: z.literal(1),
+    voucherBatchId: uuid,
+    checkoutAttemptId: uuid.nullable(),
+    paymentEventId: uuid.nullable(),
+    institution: safeIdentity,
+    buyer: safeRecipientSnapshot.nullable(),
+    commercial: z
+      .object({
+        pricingPlanId: uuid.nullable(),
+        planName: z.string().min(1).nullable(),
+        voucherQuantity: z.number().int().positive(),
+      })
+      .strict(),
+    charged: Money.nullable(),
+    payment: z
+      .object({
+        gateway: PaymentGateway,
+        externalReference: z.string().min(1),
+        settledAt: datetime,
+      })
+      .strict()
+      .nullable(),
+    fulfilledAt: datetime,
+  })
+  .strict();
+export type PaymentNotificationContextSnapshotV1 = z.infer<
+  typeof PaymentNotificationContextSnapshotV1
+>;
 
-const assertInclusiveRange = (from: string | undefined, to: string | undefined, field: string, ctx: z.RefinementCtx) => {
+const assertInclusiveRange = (
+  from: string | undefined,
+  to: string | undefined,
+  field: string,
+  ctx: z.RefinementCtx,
+) => {
   if (from && to && from > to) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: `${field} must be before or equal to its end` });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [field],
+      message: `${field} must be before or equal to its end`,
+    });
   }
 };
 
-export const AdminPaymentLedgerQuery = z.object({
-  page: z.coerce.number().int().min(1).max(1_000_000).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(25),
-  fulfillmentState: z.enum(['PENDING', 'FULFILLED']).optional(),
-  notificationRecipient: z.enum(['ANY', 'BUYER', 'PLATFORM_ADMIN']).default('ANY'),
-  notificationStatus: z.enum(['ABSENT', 'PENDING', 'QUEUED', 'SENT', 'RETRYABLE_FAILED', 'DEAD_LETTER']).optional(),
-  institutionId: uuid.optional(),
-  settledFrom: datetime.optional(), settledTo: datetime.optional(),
-  fulfilledFrom: datetime.optional(), fulfilledTo: datetime.optional(),
-  sort: z.literal('FULFILLED_DESC').default('FULFILLED_DESC'),
-}).strict().superRefine((query, ctx) => {
-  assertInclusiveRange(query.settledFrom, query.settledTo, 'settledFrom', ctx);
-  assertInclusiveRange(query.fulfilledFrom, query.fulfilledTo, 'fulfilledFrom', ctx);
-});
+export const AdminPaymentLedgerSort = z.enum([
+  "SETTLED_ASC",
+  "SETTLED_DESC",
+  "INSTITUTION_ASC",
+  "INSTITUTION_DESC",
+  "PLAN_ASC",
+  "PLAN_DESC",
+  "AMOUNT_ASC",
+  "AMOUNT_DESC",
+  "GATEWAY_ASC",
+  "GATEWAY_DESC",
+  "OPERATIONAL_STATE_ASC",
+  "OPERATIONAL_STATE_DESC",
+]);
+export type AdminPaymentLedgerSort = z.infer<typeof AdminPaymentLedgerSort>;
+
+export const AdminPaymentLedgerOperationalState = z.enum([
+  "ACCREDITED",
+  "PENDING_ACCREDITATION",
+  "ACCREDITED_NOTIFICATION_ATTENTION",
+]);
+export type AdminPaymentLedgerOperationalState = z.infer<
+  typeof AdminPaymentLedgerOperationalState
+>;
+
+export const AdminPaymentLedgerQuery = z
+  .object({
+    page: z.coerce.number().int().min(1).max(1_000_000).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(25),
+    fulfillmentState: z.enum(["PENDING", "FULFILLED"]).optional(),
+    notificationRecipient: z
+      .enum(["ANY", "BUYER", "PLATFORM_ADMIN"])
+      .default("ANY"),
+    notificationStatus: z
+      .enum([
+        "ABSENT",
+        "PENDING",
+        "QUEUED",
+        "SENT",
+        "RETRYABLE_FAILED",
+        "DEAD_LETTER",
+      ])
+      .optional(),
+    institutionId: uuid.optional(),
+    institutionName: z.string().trim().min(1).max(120).optional(),
+    settledFrom: datetime.optional(),
+    settledTo: datetime.optional(),
+    fulfilledFrom: datetime.optional(),
+    fulfilledTo: datetime.optional(),
+    sort: AdminPaymentLedgerSort.default("SETTLED_DESC"),
+  })
+  .strict()
+  .superRefine((query, ctx) => {
+    assertInclusiveRange(
+      query.settledFrom,
+      query.settledTo,
+      "settledFrom",
+      ctx,
+    );
+    assertInclusiveRange(
+      query.fulfilledFrom,
+      query.fulfilledTo,
+      "fulfilledFrom",
+      ctx,
+    );
+  });
 export type AdminPaymentLedgerQuery = z.infer<typeof AdminPaymentLedgerQuery>;
 
-const AdminPaymentLedgerDeliverySummary = z.object({
-  deliveryId: uuid,
-  status: PaymentNotificationDeliveryStatus,
-  attemptCount: z.number().int().nonnegative(),
-  enqueueAttemptCount: z.number().int().nonnegative(),
-  recipient: safeRecipientSnapshot.nullable(),
-  queuedAt: datetime.nullable(), lastAttemptAt: datetime.nullable(), sentAt: datetime.nullable(),
-  error: z.object({ classification: PaymentNotificationErrorClassification, message: z.string().min(1).max(256) }).strict().nullable(),
-}).strict();
-export type AdminPaymentLedgerDeliverySummary = z.infer<typeof AdminPaymentLedgerDeliverySummary>;
+const AdminPaymentLedgerDeliverySummary = z
+  .object({
+    deliveryId: uuid,
+    status: PaymentNotificationDeliveryStatus,
+    attemptCount: z.number().int().nonnegative(),
+    enqueueAttemptCount: z.number().int().nonnegative(),
+    recipient: safeRecipientSnapshot.nullable(),
+    queuedAt: datetime.nullable(),
+    lastAttemptAt: datetime.nullable(),
+    sentAt: datetime.nullable(),
+    error: z
+      .object({
+        classification: PaymentNotificationErrorClassification,
+        message: z.string().min(1).max(256),
+      })
+      .strict()
+      .nullable(),
+  })
+  .strict();
+export type AdminPaymentLedgerDeliverySummary = z.infer<
+  typeof AdminPaymentLedgerDeliverySummary
+>;
 
-export const AdminPaymentLedgerEntry = z.object({
-  voucherBatchId: uuid, checkoutAttemptId: uuid.nullable(), paymentEventId: uuid.nullable(),
-  institution: safeIdentity, buyer: safeRecipientSnapshot.nullable(),
-  commercial: safeCommercialSnapshot,
-  amount: z.object({ value: exactMonetaryValue, currency: z.string().regex(/^[A-Z]{3}$/) }).strict(),
-  payment: z.object({ gateway: PaymentGateway, externalReference: z.string().min(1), settledAt: datetime }).strict().nullable(),
-  fulfillment: z.object({ state: z.enum(['PENDING', 'FULFILLED']), fulfilledAt: datetime.nullable(), expectedVoucherCount: z.number().int().nonnegative(), actualVoucherCount: z.number().int().nonnegative(), discrepancy: z.number().int() }).strict(),
-  notifications: z.object({ buyer: AdminPaymentLedgerDeliverySummary.nullable(), platformAdmin: AdminPaymentLedgerDeliverySummary.nullable() }).strict(),
-}).strict();
+export const AdminPaymentLedgerEntry = z
+  .object({
+    voucherBatchId: uuid,
+    checkoutAttemptId: uuid.nullable(),
+    paymentEventId: uuid.nullable(),
+    institution: safeIdentity,
+    buyer: safeRecipientSnapshot.nullable(),
+    commercial: safeCommercialSnapshot,
+    amount: z
+      .object({
+        value: exactMonetaryValue,
+        currency: z.string().regex(/^[A-Z]{3}$/),
+      })
+      .strict(),
+    payment: z
+      .object({
+        gateway: PaymentGateway,
+        externalReference: z.string().min(1),
+        settledAt: datetime,
+      })
+      .strict()
+      .nullable(),
+    fulfillment: z
+      .object({
+        state: z.enum(["PENDING", "FULFILLED"]),
+        fulfilledAt: datetime.nullable(),
+        expectedVoucherCount: z.number().int().nonnegative(),
+        actualVoucherCount: z.number().int().nonnegative(),
+        discrepancy: z.number().int(),
+      })
+      .strict(),
+    operationalState: AdminPaymentLedgerOperationalState,
+    notifications: z
+      .object({
+        buyer: AdminPaymentLedgerDeliverySummary.nullable(),
+        platformAdmin: AdminPaymentLedgerDeliverySummary.nullable(),
+      })
+      .strict(),
+  })
+  .strict();
 export type AdminPaymentLedgerEntry = z.infer<typeof AdminPaymentLedgerEntry>;
 
-export const AdminPaymentLedgerPage = z.object({
-  items: z.array(AdminPaymentLedgerEntry), page: z.number().int().min(1), pageSize: z.number().int().min(1).max(100),
-  total: z.number().int().nonnegative(), totalPages: z.number().int().nonnegative(), sort: z.literal('FULFILLED_DESC'),
-}).strict();
+export const AdminPaymentLedgerPage = z
+  .object({
+    items: z.array(AdminPaymentLedgerEntry),
+    page: z.number().int().min(1),
+    pageSize: z.number().int().min(1).max(100),
+    total: z.number().int().nonnegative(),
+    totalPages: z.number().int().nonnegative(),
+    sort: AdminPaymentLedgerSort,
+  })
+  .strict();
 export type AdminPaymentLedgerPage = z.infer<typeof AdminPaymentLedgerPage>;
 
 export const AdminPaymentLedgerDetail = AdminPaymentLedgerEntry;

@@ -345,67 +345,218 @@ describe("Payment Schemas", () => {
     });
   });
 
-  describe('payment notification audit contracts', () => {
+  describe("payment notification audit contracts", () => {
     const notificationContext = {
-      version: 1, voucherBatchId: id, checkoutAttemptId: id, paymentEventId: null,
-      institution: { id, name: 'A.kit University' },
-      buyer: { userId: id, name: 'Buyer', email: 'buyer@example.com' },
-      commercial: { pricingPlanId: id, planName: 'Plan', voucherQuantity: 2 },
-      charged: { amountMinor: '1050', currency: 'USD' },
-      payment: { gateway: 'STRIPE', externalReference: 'ref_123', settledAt: '2026-01-01T00:00:00.000Z' },
-      fulfilledAt: '2026-01-02T00:00:00.000Z',
+      version: 1,
+      voucherBatchId: id,
+      checkoutAttemptId: id,
+      paymentEventId: null,
+      institution: { id, name: "A.kit University" },
+      buyer: { userId: id, name: "Buyer", email: "buyer@example.com" },
+      commercial: { pricingPlanId: id, planName: "Plan", voucherQuantity: 2 },
+      charged: { amountMinor: "1050", currency: "USD" },
+      payment: {
+        gateway: "STRIPE",
+        externalReference: "ref_123",
+        settledAt: "2026-01-01T00:00:00.000Z",
+      },
+      fulfilledAt: "2026-01-02T00:00:00.000Z",
     };
     const summary = {
-      deliveryId: id, status: 'SENT', attemptCount: 1, enqueueAttemptCount: 1,
-      recipient: { userId: id, name: 'Buyer', email: 'buyer@example.com' },
-      queuedAt: '2026-01-02T00:00:00.000Z', lastAttemptAt: '2026-01-02T00:00:00.000Z',
-      sentAt: '2026-01-02T00:00:00.000Z', error: null,
+      deliveryId: id,
+      status: "SENT",
+      attemptCount: 1,
+      enqueueAttemptCount: 1,
+      recipient: { userId: id, name: "Buyer", email: "buyer@example.com" },
+      queuedAt: "2026-01-02T00:00:00.000Z",
+      lastAttemptAt: "2026-01-02T00:00:00.000Z",
+      sentAt: "2026-01-02T00:00:00.000Z",
+      error: null,
     };
     const entry = {
-      voucherBatchId: id, checkoutAttemptId: null, paymentEventId: null,
-      institution: { id, name: 'A.kit University' }, buyer: null,
+      voucherBatchId: id,
+      checkoutAttemptId: null,
+      paymentEventId: null,
+      institution: { id, name: "A.kit University" },
+      buyer: null,
       commercial: { pricingPlanId: null, planName: null },
-      amount: { value: '10.50', currency: 'USD' }, payment: null,
-      fulfillment: { state: 'PENDING', fulfilledAt: null, expectedVoucherCount: 2, actualVoucherCount: 0, discrepancy: -2 },
+      amount: { value: "10.50", currency: "USD" },
+      payment: null,
+      fulfillment: {
+        state: "PENDING",
+        fulfilledAt: null,
+        expectedVoucherCount: 2,
+        actualVoucherCount: 0,
+        discrepancy: -2,
+      },
+      operationalState: "PENDING_ACCREDITATION",
       notifications: { buyer: null, platformAdmin: summary },
     };
 
-    it('parses the delivery taxonomy and the required private v1 context', () => {
-      expect(PaymentNotificationRecipientKind.parse('PLATFORM_ADMIN')).toBe('PLATFORM_ADMIN');
-      expect(PaymentNotificationDeliveryStatus.parse('RETRYABLE_FAILED')).toBe('RETRYABLE_FAILED');
-      expect(PaymentNotificationErrorClassification.parse('TRANSPORT_PERMANENT')).toBe('TRANSPORT_PERMANENT');
-      expect(PaymentNotificationContextSnapshotV1.parse(notificationContext)).toEqual(notificationContext);
-      expect(PaymentNotificationContextSnapshotV1.safeParse({ ...notificationContext, rawPayload: { token: 'secret' } }).success).toBe(false);
-      expect(PaymentNotificationContextSnapshotV1.safeParse({ ...notificationContext, fulfilledAt: undefined }).success).toBe(false);
+    it("parses the delivery taxonomy and the required private v1 context", () => {
+      expect(PaymentNotificationRecipientKind.parse("PLATFORM_ADMIN")).toBe(
+        "PLATFORM_ADMIN",
+      );
+      expect(PaymentNotificationDeliveryStatus.parse("RETRYABLE_FAILED")).toBe(
+        "RETRYABLE_FAILED",
+      );
+      expect(
+        PaymentNotificationErrorClassification.parse("TRANSPORT_PERMANENT"),
+      ).toBe("TRANSPORT_PERMANENT");
+      expect(
+        PaymentNotificationContextSnapshotV1.parse(notificationContext),
+      ).toEqual(notificationContext);
+      expect(
+        PaymentNotificationContextSnapshotV1.safeParse({
+          ...notificationContext,
+          rawPayload: { token: "secret" },
+        }).success,
+      ).toBe(false);
+      expect(
+        PaymentNotificationContextSnapshotV1.safeParse({
+          ...notificationContext,
+          fulfilledAt: undefined,
+        }).success,
+      ).toBe(false);
     });
 
-    it('coerces default ledger pagination and rejects invalid page, range, and sort input', () => {
-      expect(AdminPaymentLedgerQuery.parse({})).toMatchObject({ page: 1, pageSize: 25, notificationRecipient: 'ANY', sort: 'FULFILLED_DESC' });
-      expect(AdminPaymentLedgerQuery.parse({ page: '2', pageSize: '100' })).toMatchObject({ page: 2, pageSize: 100 });
-      expect(AdminPaymentLedgerQuery.safeParse({ page: 0 }).success).toBe(false);
-      expect(AdminPaymentLedgerQuery.safeParse({ settledFrom: '2026-02-01T00:00:00.000Z', settledTo: '2026-01-01T00:00:00.000Z' }).success).toBe(false);
-      expect(AdminPaymentLedgerQuery.safeParse({ sort: 'SETTLED_ASC' }).success).toBe(false);
+    it("supports the allowlisted scalable ledger filters and sorts", () => {
+      expect(AdminPaymentLedgerQuery.parse({})).toMatchObject({
+        page: 1,
+        pageSize: 25,
+        notificationRecipient: "ANY",
+        sort: "SETTLED_DESC",
+      });
+      expect(
+        AdminPaymentLedgerQuery.parse({
+          page: "2",
+          pageSize: "6",
+          institutionName: "  University  ",
+          sort: "AMOUNT_ASC",
+        }),
+      ).toMatchObject({
+        page: 2,
+        pageSize: 6,
+        institutionName: "University",
+        sort: "AMOUNT_ASC",
+      });
+      expect(AdminPaymentLedgerQuery.safeParse({ page: 0 }).success).toBe(
+        false,
+      );
+      expect(
+        AdminPaymentLedgerQuery.safeParse({
+          settledFrom: "2026-02-01T00:00:00.000Z",
+          settledTo: "2026-01-01T00:00:00.000Z",
+        }).success,
+      ).toBe(false);
+      expect(
+        AdminPaymentLedgerQuery.safeParse({ sort: "DROP_TABLE_ASC" }).success,
+      ).toBe(false);
     });
 
-    it('accepts safe nullable historical summaries and rejects public unsafe fields', () => {
-      const page = { items: [entry], page: 1, pageSize: 25, total: 1, totalPages: 1, sort: 'FULFILLED_DESC' };
+    it("accepts safe nullable historical summaries and rejects public unsafe fields", () => {
+      const page = {
+        items: [entry],
+        page: 1,
+        pageSize: 25,
+        total: 1,
+        totalPages: 1,
+        sort: "SETTLED_DESC",
+      };
       expect(AdminPaymentLedgerPage.parse(page)).toEqual(page);
       expect(AdminPaymentLedgerDetail.parse(entry)).toEqual(entry);
-      expect(AdminPaymentLedgerPage.safeParse({ ...page, rawContext: notificationContext }).success).toBe(false);
-      expect(AdminPaymentLedgerDetail.safeParse({ ...entry, notifications: { ...entry.notifications, buyer: { ...summary, error: { classification: 'TRANSPORT_TRANSIENT', message: 'safe', providerResponse: 'secret' } } } }).success).toBe(false);
+      expect(
+        AdminPaymentLedgerPage.safeParse({
+          ...page,
+          rawContext: notificationContext,
+        }).success,
+      ).toBe(false);
+      expect(
+        AdminPaymentLedgerDetail.safeParse({
+          ...entry,
+          notifications: {
+            ...entry.notifications,
+            buyer: {
+              ...summary,
+              error: {
+                classification: "TRANSPORT_TRANSIENT",
+                message: "safe",
+                providerResponse: "secret",
+              },
+            },
+          },
+        }).success,
+      ).toBe(false);
     });
 
-    it('accepts inclusive range boundaries and recipient-aware ABSENT filters', () => {
-      const boundary = '2026-01-01T00:00:00.000Z';
-      expect(AdminPaymentLedgerQuery.parse({ settledFrom: boundary, settledTo: boundary })).toMatchObject({ settledFrom: boundary, settledTo: boundary });
-      expect(AdminPaymentLedgerQuery.parse({ notificationRecipient: 'ANY', notificationStatus: 'ABSENT' })).toMatchObject({ notificationRecipient: 'ANY', notificationStatus: 'ABSENT' });
-      expect(AdminPaymentLedgerQuery.parse({ notificationRecipient: 'BUYER', notificationStatus: 'ABSENT' })).toMatchObject({ notificationRecipient: 'BUYER', notificationStatus: 'ABSENT' });
+    it("accepts inclusive range boundaries and recipient-aware ABSENT filters", () => {
+      const boundary = "2026-01-01T00:00:00.000Z";
+      expect(
+        AdminPaymentLedgerQuery.parse({
+          settledFrom: boundary,
+          settledTo: boundary,
+        }),
+      ).toMatchObject({ settledFrom: boundary, settledTo: boundary });
+      expect(
+        AdminPaymentLedgerQuery.parse({
+          notificationRecipient: "ANY",
+          notificationStatus: "ABSENT",
+        }),
+      ).toMatchObject({
+        notificationRecipient: "ANY",
+        notificationStatus: "ABSENT",
+      });
+      expect(
+        AdminPaymentLedgerQuery.parse({
+          notificationRecipient: "BUYER",
+          notificationStatus: "ABSENT",
+        }),
+      ).toMatchObject({
+        notificationRecipient: "BUYER",
+        notificationStatus: "ABSENT",
+      });
     });
 
-    it('permits historical absent deliveries but rejects gateway payloads', () => {
-      expect(AdminPaymentLedgerDetail.parse({ ...entry, notifications: { buyer: null, platformAdmin: null } })).toMatchObject({ voucherBatchId: id, notifications: { buyer: null, platformAdmin: null } });
-      expect(AdminPaymentLedgerDetail.safeParse({ ...entry, payment: { gateway: 'STRIPE', externalReference: 'ref_123', settledAt: '2026-01-01T00:00:00.000Z', gatewayPayload: { secret: 'no' } } }).success).toBe(false);
+    it("requires the backend-owned operational state in ledger entries", () => {
+      expect(
+        AdminPaymentLedgerDetail.safeParse({
+          ...entry,
+          operationalState: "ACCREDITED",
+        }).success,
+      ).toBe(true);
+      expect(
+        AdminPaymentLedgerDetail.safeParse({
+          ...entry,
+          operationalState: "UNKNOWN",
+        }).success,
+      ).toBe(false);
+      const { operationalState: _operationalState, ...withoutState } = entry;
+      expect(AdminPaymentLedgerDetail.safeParse(withoutState).success).toBe(
+        false,
+      );
+    });
+
+    it("permits historical absent deliveries but rejects gateway payloads", () => {
+      expect(
+        AdminPaymentLedgerDetail.parse({
+          ...entry,
+          notifications: { buyer: null, platformAdmin: null },
+        }),
+      ).toMatchObject({
+        voucherBatchId: id,
+        notifications: { buyer: null, platformAdmin: null },
+      });
+      expect(
+        AdminPaymentLedgerDetail.safeParse({
+          ...entry,
+          payment: {
+            gateway: "STRIPE",
+            externalReference: "ref_123",
+            settledAt: "2026-01-01T00:00:00.000Z",
+            gatewayPayload: { secret: "no" },
+          },
+        }).success,
+      ).toBe(false);
     });
   });
-
 });

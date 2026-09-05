@@ -21,6 +21,7 @@ describe('AdminPaymentLedgerController', () => {
         page: 1,
         pageSize: 25,
         notificationRecipient: 'ANY',
+        sort: 'SETTLED_DESC',
       }),
     );
     expect(response.setHeader).toHaveBeenCalledWith(
