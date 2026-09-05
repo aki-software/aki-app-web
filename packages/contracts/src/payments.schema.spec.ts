@@ -140,9 +140,36 @@ describe("Payment Schemas", () => {
           totalPaid: 10.5,
           currentBalance: 2,
         }),
-      ).toMatchObject({ totalPaid: 10.5 });
-    });
-  });
+          ).toMatchObject({ totalPaid: 10.5 });
+        });
+
+        it("parses an administrative assignment without gateway facts", () => {
+          const transaction = {
+            id,
+            gateway: null,
+            externalReference: null,
+            status: "APPROVED",
+            amount: 0,
+            currency: "ARS",
+            createdAt: "2026-01-01T00:00:00.000Z",
+            plan: {
+              id,
+              name: "Lote de 5 vouchers",
+              voucherQuantity: 5,
+              priceUsd: 0,
+              isActive: true,
+            },
+          };
+          expect(PaymentTransaction.parse(transaction)).toEqual(transaction);
+          expect(
+            BillingHistory.parse({
+              transactions: [transaction],
+              totalPaid: 0,
+              currentBalance: 5,
+            }),
+          ).toMatchObject({ transactions: [transaction] });
+        });
+      });
 
   describe("commercial snapshots", () => {
     it("uses exact money and decimal values", () => {

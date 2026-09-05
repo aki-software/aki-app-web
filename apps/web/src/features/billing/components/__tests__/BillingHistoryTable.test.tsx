@@ -69,6 +69,43 @@ describe("BillingHistoryTable", () => {
     expect(screen.getAllByText("Plan 7")).not.toHaveLength(0);
   });
 
+  it("shows an administrative assignment without attributing it to a payment gateway", () => {
+    const administrativeTransaction: PaymentTransaction = {
+      id: "33333333-3333-4333-8333-333333333333",
+      gateway: null,
+      externalReference: null,
+      status: "APPROVED",
+      amount: 0,
+      currency: "ARS",
+      createdAt: "2026-01-02T00:00:00.000Z",
+      plan: {
+        id: "44444444-4444-4444-8444-444444444444",
+        name: "Lote de 5 vouchers",
+        voucherQuantity: 5,
+        priceUsd: 0,
+        isActive: true,
+      },
+    };
+
+    render(<BillingHistoryTable transactions={[administrativeTransaction]} />);
+
+    expect(screen.getAllByText("Asignación administrativa")).not.toHaveLength(0);
+    expect(screen.getAllByText("Lote de 5 vouchers")).not.toHaveLength(0);
+    expect(screen.getAllByText(/\$\s?0,00/)).not.toHaveLength(0);
+    expect(screen.queryByText("Stripe")).toBeNull();
+    expect(screen.queryByText("Mercado Pago")).toBeNull();
+
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Ver detalle de compra" })[0],
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Detalle de compra" });
+    expect(dialog).toHaveTextContent("Origen");
+    expect(dialog).toHaveTextContent("Asignación administrativa");
+    expect(dialog).toHaveTextContent("Referencia");
+    expect(dialog).toHaveTextContent("No aplica");
+  });
+
   it("opens a purchase detail dialog with only commercial fields", () => {
     render(<BillingHistoryTable transactions={transactions} />);
 

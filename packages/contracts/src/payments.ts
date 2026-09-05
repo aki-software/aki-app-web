@@ -55,8 +55,8 @@ export type PaymentEventStatus = z.infer<typeof PaymentEventStatus>;
 
 export const PaymentTransaction = z.object({
   id: z.string().uuid(),
-  gateway: PaymentGateway,
-  externalReference: z.string(),
+  gateway: PaymentGateway.nullable(),
+  externalReference: z.string().nullable(),
   status: PaymentEventStatus,
   amount: z.number().nonnegative(),
   currency: z.string(),

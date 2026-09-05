@@ -49,14 +49,17 @@ function PurchaseDetail({ transaction, onClose }: PurchaseDetailProps) {
           value={formatPaymentAmount(transaction.amount, transaction.currency)}
         />
         <DetailField
-          label="Método de pago"
+          label={transaction.gateway === null ? "Origen" : "Método de pago"}
           value={paymentGatewayLabel(transaction.gateway)}
         />
         <DetailField
           label="Estado"
           value={paymentStatusLabel(transaction.status)}
         />
-        <DetailField label="Referencia" value={transaction.externalReference} />
+        <DetailField
+          label="Referencia"
+          value={transaction.externalReference ?? "No aplica"}
+        />
       </dl>
     </PaymentDialog>
   );

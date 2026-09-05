@@ -25,12 +25,7 @@ import {
   VoucherStatus,
 } from '../vouchers/entities/voucher.enums.js';
 import { PaymentReconciliationService } from './services/payment-reconciliation.service.js';
-import type {
-  BillingHistory,
-  CommercialSnapshot,
-  PaymentGateway,
-  PaymentEventStatus,
-} from '@akit/contracts';
+import type { BillingHistory, CommercialSnapshot } from '@akit/contracts';
 
 export interface VerifyPurchaseResult {
   success: boolean;
@@ -183,11 +178,15 @@ export class PaymentsService {
       0,
     );
 
-    const transactions = batches.map((batch) => ({
+    const transactions: BillingHistory['transactions'] = batches.map((batch) => ({
       id: batch.id,
-      gateway: batch.paymentProvider as PaymentGateway,
-      externalReference: batch.paymentReference as string,
-      status: 'APPROVED' as PaymentEventStatus,
+      gateway:
+        batch.paymentProvider === 'MERCADO_PAGO' ||
+        batch.paymentProvider === 'STRIPE'
+          ? batch.paymentProvider
+          : null,
+      externalReference: batch.paymentReference,
+      status: 'APPROVED' as const,
       amount: Number(batch.totalPrice),
       currency: batch.currency,
       createdAt: batch.paidAt?.toISOString() ?? batch.createdAt.toISOString(),
