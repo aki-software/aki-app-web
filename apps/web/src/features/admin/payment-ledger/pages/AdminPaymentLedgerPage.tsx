@@ -127,7 +127,7 @@ function LedgerCards({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="divide-y divide-app-border md:hidden">
+    <div className="divide-y divide-app-border xl:hidden">
       {entries.map((entry) => (
         <article key={entry.voucherBatchId} className="space-y-3 p-4">
           <div className="flex items-start justify-between gap-3">
@@ -142,29 +142,13 @@ function LedgerCards({
             <StateBadge state={entry.operationalState} />
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm text-app-text-main">
-            <p>
-              <span className="app-label !text-xs">Fecha</span>
-              <br />
-              {entry.payment
-                ? formatPaymentDate(entry.payment.settledAt)
-                : "Sin liquidar"}
-            </p>
-            <p>
-              <span className="app-label !text-xs">Monto</span>
-              <br />
-              {formatPaymentAmount(
-                Number(entry.amount.value),
-                entry.amount.currency,
-              )}
-            </p>
-            <p>
-              <span className="app-label !text-xs">Pasarela</span>
-              <br />
-              {entry.payment ? paymentGatewayLabel(entry.payment.gateway) : "—"}
-            </p>
+            <p><span className="app-label !text-xs">Fecha</span><br />{entry.payment ? formatPaymentDate(entry.payment.settledAt) : "Sin liquidar"}</p>
+            <p><span className="app-label !text-xs">Monto</span><br />{formatPaymentAmount(Number(entry.amount.value), entry.amount.currency)}</p>
+            <p><span className="app-label !text-xs">Pasarela</span><br />{entry.payment ? paymentGatewayLabel(entry.payment.gateway) : "—"}</p>
+            <p><span className="app-label !text-xs">Acreditación</span><br />{entry.fulfillment.state === "FULFILLED" ? "Acreditada" : "Pendiente"}</p>
           </div>
           <Button
-            className="w-full px-3 py-2 text-xs"
+            className="min-h-11 w-full px-3 py-2 text-xs"
             variant="outline"
             onClick={() => onSelect(entry.voucherBatchId)}
           >
@@ -310,7 +294,7 @@ export function AdminPaymentLedgerPage() {
               entries={ledger.data.items}
               onSelect={ledger.selectBatch}
             />
-            <div className="hidden md:block">
+            <div className="hidden xl:block">
               <table className="w-full border-collapse text-left text-sm">
                 <thead className="bg-app-surface/40">
                   <tr className="border-b border-app-border">

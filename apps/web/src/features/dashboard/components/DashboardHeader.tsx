@@ -12,44 +12,49 @@ export const DashboardHeader = ({ title, onOpenMobileMenu }: DashboardHeaderProp
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="h-24 bg-app-surface backdrop-blur-2xl border-b border-app-border flex items-center justify-between px-8 md:px-12 z-10 sticky top-0">
-      <div className="flex items-center border-l-4 border-app-primary pl-6 ml-2">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-3 border-b border-app-border bg-app-surface px-4 backdrop-blur-2xl sm:h-20 sm:px-6 lg:px-8 xl:h-24 xl:px-12">
+      <div className="flex min-w-0 items-center gap-3 border-l-4 border-app-primary pl-3 sm:gap-4 sm:pl-4">
         <button
-          className="p-3 mr-6 rounded-xl bg-app-surface/80 border border-app-border text-app-text-muted md:hidden hover:text-app-primary transition-all"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-app-border bg-app-surface/80 text-app-text-muted transition-all hover:text-app-primary xl:hidden"
           onClick={onOpenMobileMenu}
           aria-label="Abrir menú"
         >
-          <Menu className="w-6 h-6" />
+          <Menu aria-hidden="true" className="h-6 w-6" />
         </button>
-        <div className="flex flex-col">
-          <div className="app-label opacity-70 mb-1">Panel Operativo</div>
-          <h1 className="text-xl font-display font-bold tracking-tight text-app-text-main">
+        <div className="min-w-0">
+          <div className="app-label mb-1 truncate opacity-70">Panel Operativo</div>
+          <h1 className="truncate text-lg font-display font-bold tracking-tight text-app-text-main sm:text-xl">
             {title}
           </h1>
         </div>
       </div>
 
-      <div className="flex items-center space-x-6 md:space-x-8">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4 lg:gap-6">
         <button
           onClick={toggleTheme}
-          className="p-4 rounded-xl bg-app-surface/80 border border-app-border text-app-text-muted hover:text-app-primary transition-all shadow-sm hover:scale-110 active:scale-95 text-xs font-semibold uppercase"
+          aria-label={theme === "dark" ? "Activar tema claro" : "Activar tema oscuro"}
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-app-border bg-app-surface/80 text-app-text-muted shadow-sm transition-all hover:text-app-primary hover:scale-110 active:scale-95"
           title={theme === "dark" ? "LUMEN MODE" : "NOX MODE"}
         >
-          {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {theme === "dark" ? <Sun aria-hidden="true" className="h-4 w-4" /> : <Moon aria-hidden="true" className="h-4 w-4" />}
         </button>
 
-        <div className="h-10 w-[1px] bg-app-border" />
+        <div className="hidden h-10 w-px bg-app-border sm:block" />
 
-        <div className="flex items-center space-x-4">
-          <div className="hidden sm:block text-right">
-            <div className="text-[11px] font-semibold text-app-text-main uppercase tracking-[0.12em]">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="hidden min-w-0 max-w-48 text-right lg:block">
+            <div className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-app-text-main">
               {user?.name ?? "Usuario"}
             </div>
-            <div className="app-data text-app-text-muted opacity-80">
+            <div className="app-data truncate text-app-text-muted opacity-80">
               {user?.email ?? "Sin email"}
             </div>
           </div>
-          <div className="w-12 h-12 rounded-[14px] bg-app-surface/80 border border-app-border flex items-center justify-center text-app-primary font-display font-bold shadow-sm text-lg">
+          <div
+            role="img"
+            aria-label={`Avatar de ${user?.name ?? "Usuario"}`}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-app-border bg-app-surface/80 font-display text-lg font-bold text-app-primary shadow-sm"
+          >
             {user?.name?.charAt(0).toUpperCase() || "A"}
           </div>
         </div>
