@@ -10,6 +10,7 @@ import {
   metrics,
   overview,
   plan,
+  platformPurchaseSummary,
   session,
   voucher,
   voucherBatch,
@@ -144,6 +145,8 @@ async function fulfillApi(
     return json({ data: [voucherBatch], count: 1, page: 1, limit: 6 });
       if (pathname === "/payments/purchase-summary" && role === "institution")
         return json(institutionPurchaseSummary);
+      if (pathname === "/payments/purchase-summary" && role === "admin")
+        return json(platformPurchaseSummary);
       if (pathname === "/payments/plans" || pathname === "/admin/pricing-plans")
     return json([plan]);
   if (pathname === "/payments/history")
