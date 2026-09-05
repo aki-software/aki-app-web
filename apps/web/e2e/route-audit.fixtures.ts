@@ -190,6 +190,18 @@ export const overview = {
   ],
   resultsDistribution: [{ categoryId: "R", name: "Realista", count: 1 }],
 };
+export const institutionPurchaseSummary = {
+  scope: "INSTITUTION" as const,
+  institutionName: institution.name,
+  generatedAt: "2026-03-10T00:00:00.000Z",
+  currentWindow: { from: "2026-03-03T00:00:00.000Z", to: "2026-03-10T00:00:00.000Z", days: 7 as const },
+  priorWindow: { from: "2026-02-24T00:00:00.000Z", to: "2026-03-03T00:00:00.000Z", days: 7 as const },
+  current: { accreditedPurchaseCount: 1, accreditedVoucherCount: 10, accreditedAmountByCurrency: [{ currency: "USD", amount: "25.00" }] },
+  prior: { accreditedPurchaseCount: 0, accreditedVoucherCount: 0, accreditedAmountByCurrency: [] },
+  alerts: { paidButNotFulfilledCount: 0, notificationAttentionCount: 0 },
+  latestAccreditation: { accreditedAt: "2026-03-01T00:01:00.000Z", voucherCount: 10, amount: { currency: "USD", amount: "25.00" } },
+};
+
 export const adminOverview = {
   totalSessions: 1,
   totalHistoricalVouchers: 10,
