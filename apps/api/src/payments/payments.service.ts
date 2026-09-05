@@ -178,26 +178,28 @@ export class PaymentsService {
       0,
     );
 
-    const transactions: BillingHistory['transactions'] = batches.map((batch) => ({
-      id: batch.id,
-      gateway:
-        batch.paymentProvider === 'MERCADO_PAGO' ||
-        batch.paymentProvider === 'STRIPE'
-          ? batch.paymentProvider
-          : null,
-      externalReference: batch.paymentReference,
-      status: 'APPROVED' as const,
-      amount: Number(batch.totalPrice),
-      currency: batch.currency,
-      createdAt: batch.paidAt?.toISOString() ?? batch.createdAt.toISOString(),
-      plan: {
-        id: batch.id, // Using batch ID as plan ID mock since we don't store planId in batch
-        name: `Lote de ${batch.quantity} vouchers`,
-        voucherQuantity: batch.quantity,
-        priceUsd: Number(batch.totalPrice),
-        isActive: true,
-      },
-    }));
+    const transactions: BillingHistory['transactions'] = batches.map(
+      (batch) => ({
+        id: batch.id,
+        gateway:
+          batch.paymentProvider === 'MERCADO_PAGO' ||
+          batch.paymentProvider === 'STRIPE'
+            ? batch.paymentProvider
+            : null,
+        externalReference: batch.paymentReference,
+        status: 'APPROVED' as const,
+        amount: Number(batch.totalPrice),
+        currency: batch.currency,
+        createdAt: batch.paidAt?.toISOString() ?? batch.createdAt.toISOString(),
+        plan: {
+          id: batch.id, // Using batch ID as plan ID mock since we don't store planId in batch
+          name: `Lote de ${batch.quantity} vouchers`,
+          voucherQuantity: batch.quantity,
+          priceUsd: Number(batch.totalPrice),
+          isActive: true,
+        },
+      }),
+    );
 
     const currentBalance = await this.dataSource.manager.count(Voucher, {
       where: {
