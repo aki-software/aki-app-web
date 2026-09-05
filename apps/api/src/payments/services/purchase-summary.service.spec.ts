@@ -1,3 +1,7 @@
+import { Test } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Institution } from '../../institutions/entities/institution.entity';
+import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity';
 import { PurchaseSummaryService } from './purchase-summary.service';
 
 const now = new Date('2026-02-01T00:00:00.000Z');
@@ -7,6 +11,29 @@ type QueryBuilderResult = {
 };
 
 describe('PurchaseSummaryService', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(now);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('resolves with only its two repository providers', async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        PurchaseSummaryService,
+        { provide: getRepositoryToken(VoucherBatch), useValue: {} },
+        { provide: getRepositoryToken(Institution), useValue: {} },
+      ],
+    }).compile();
+
+    expect(module.get(PurchaseSummaryService)).toBeInstanceOf(
+      PurchaseSummaryService,
+    );
+  });
+
   it('rejects an unavailable institution before creating aggregate queries', async () => {
     const createQueryBuilder = jest.fn(() => {
       throw new Error('aggregate query should not run');
@@ -14,7 +41,6 @@ describe('PurchaseSummaryService', () => {
     const service = new PurchaseSummaryService(
       { createQueryBuilder } as never,
       { findOne: jest.fn().mockResolvedValue(null) } as never,
-      () => now,
     );
 
     await expect(
@@ -50,7 +76,6 @@ describe('PurchaseSummaryService', () => {
     const service = new PurchaseSummaryService(
       batchRepository as never,
       institutionRepository as never,
-      () => now,
     );
     await service.get(
       { periodDays: 7 },
@@ -103,7 +128,6 @@ describe('PurchaseSummaryService', () => {
     await new PurchaseSummaryService(
       platform.repository as never,
       {} as never,
-      () => now,
     ).get({ periodDays: 7 }, { scope: 'PLATFORM' });
     const platformConditions = (
       platform.repository.createQueryBuilder.mock
@@ -123,7 +147,6 @@ describe('PurchaseSummaryService', () => {
     await new PurchaseSummaryService(
       institution.repository as never,
       { findOne: jest.fn().mockResolvedValue({ name: 'A.kit' }) } as never,
-      () => now,
     ).get({ periodDays: 7 }, { scope: 'INSTITUTION', institutionId: id });
     const institutionConditions = (
       institution.repository.createQueryBuilder.mock
@@ -187,7 +210,6 @@ describe('PurchaseSummaryService', () => {
     const service = new PurchaseSummaryService(
       repository as never,
       {} as never,
-      () => now,
     );
     const summary = await service.get({ periodDays: 7 }, { scope: 'PLATFORM' });
     expect(summary).toMatchObject({
