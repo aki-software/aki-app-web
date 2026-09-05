@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { PlatformDashboardSummary } from "../PlatformDashboardSummary";
@@ -83,7 +83,60 @@ describe("PlatformDashboardSummary", () => {
     expect(screen.getByText("Datos de sesiones no disponibles.")).toBeDefined();
   });
 
-  it("uses text-based controls with comfortable target sizing and no technical copy", () => {
+  it("dismisses alerts independently by type and exposes accessible close controls", () => {
+    renderSummary();
+    const purchaseClose = screen.getByRole("button", { name: "Cerrar alerta de compras pendientes de acreditación" });
+    const notificationClose = screen.getByRole("button", { name: "Cerrar alerta de notificaciones de compra" });
+    const institutionClose = screen.getByRole("button", { name: "Cerrar alerta institucional" });
+
+    for (const closeButton of [purchaseClose, notificationClose, institutionClose]) {
+      expect(closeButton.className).toContain("min-h-11");
+      expect(closeButton.className).toContain("min-w-11");
+    }
+
+    fireEvent.click(purchaseClose);
+    expect(screen.queryByText("1 compra pendiente de acreditación")).toBeNull();
+    expect(screen.getByText("2 notificaciones de compra no enviadas")).toBeDefined();
+    expect(screen.getByText("1 alerta institucional pendiente")).toBeDefined();
+  });
+
+  it("keeps a dismissed alert hidden at the same count but re-shows it when the count changes", () => {
+    const { rerender } = renderSummary();
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar alerta de compras pendientes de acreditación" }));
+
+    rerender(
+      <MemoryRouter>
+        <PlatformDashboardSummary
+          purchaseData={purchaseData}
+          purchaseLoading={false}
+          purchaseError={null}
+          onRetry={vi.fn()}
+          triageCount={3}
+          institutionAlertsCount={1}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText("1 compra pendiente de acreditación")).toBeNull();
+
+    rerender(
+      <MemoryRouter>
+        <PlatformDashboardSummary
+          purchaseData={{
+            ...purchaseData,
+            alerts: { ...purchaseData.alerts, paidButNotFulfilledCount: 2 },
+          }}
+          purchaseLoading={false}
+          purchaseError={null}
+          onRetry={vi.fn()}
+          triageCount={3}
+          institutionAlertsCount={1}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("2 compras pendientes de acreditación")).toBeDefined();
+  });
+
+  it("uses text-based alert links with no technical copy", () => {
     renderSummary();
     for (const link of screen.getAllByRole("link")) {
       expect(link.className).toContain("min-h-11");

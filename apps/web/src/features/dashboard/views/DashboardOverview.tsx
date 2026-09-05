@@ -103,14 +103,17 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             institutionAlertsCount={displayStats.alerts.length}
           />
 
-          <details className="group rounded-2xl border border-app-border bg-app-surface/50">
-            <summary className="flex min-h-11 cursor-pointer items-center px-5 py-3 text-sm font-bold text-app-text-main marker:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary">
-              Ver detalle operativo de vouchers y canales
-            </summary>
+          <section
+            aria-labelledby="operational-detail-heading"
+            className="rounded-2xl border border-app-border bg-app-surface/50"
+          >
+            <h3 id="operational-detail-heading" className="px-5 py-3 text-sm font-bold text-app-text-main">
+              Detalle operativo de vouchers y canales
+            </h3>
             <div className="border-t border-app-border p-4 sm:p-6">
               <OverviewHighlights {...displayStats} />
             </div>
-          </details>
+          </section>
       <div className="grid grid-cols-1 gap-6 xl:gap-8">
         {isAdmin && adminStats ? (
           <DashboardWidget

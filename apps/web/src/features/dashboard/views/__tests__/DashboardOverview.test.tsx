@@ -236,10 +236,11 @@ describe("DashboardOverview", () => {
       expect(screen.getByText("Tasa de finalización")).toBeDefined();
     });
 
-        it("keeps operational details collapsed by default", () => {
-          renderWithRouter(<DashboardOverview />);
-          const details = screen.getByText("Ver detalle operativo de vouchers y canales").closest("details");
-          expect(details).not.toHaveAttribute("open");
+        it("keeps operational details permanently visible in a labelled section", () => {
+          const { container } = renderWithRouter(<DashboardOverview />);
+          expect(screen.getByRole("heading", { name: "Detalle operativo de vouchers y canales" })).toBeDefined();
+          expect(container.querySelector("details")).toBeNull();
+          expect(screen.getByText("Vouchers generados")).toBeDefined();
         });
 
         it("renders QuickActions and ActivityFeed", async () => {

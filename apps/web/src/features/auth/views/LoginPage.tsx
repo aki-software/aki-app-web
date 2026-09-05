@@ -1,5 +1,5 @@
 import { LogIn, Moon, Sun } from "lucide-react";
-import { useState, useEffect, useRef, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Input } from "../../../components/atoms/Input";
@@ -35,24 +35,10 @@ export function LoginPage() {
     return null;
   });
   const [darkMode] = useState(true); 
-  const redirectToRef = useRef(() => {
-    try {
-      const voluntary = sessionStorage.getItem('voluntary_logout');
-      if (voluntary === 'true') {
-        sessionStorage.removeItem('voluntary_logout');
-        return "/dashboard";
-      }
-    } catch (e) {
-      console.error("Error reading voluntary_logout", e);
-    }
-    return (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/dashboard";
-  });
-
-  // Navegar solo cuando isAuthenticated realmente se actualizó, evitando race condition
+  // Navigate only after authentication changes to avoid a login race condition.
   useEffect(() => {
-    const target = redirectToRef.current();
-    if (isAuthenticated && target) {
-      navigate(target, { replace: true });
+    if (isAuthenticated) {
+      navigate(APP_ROUTES.DASHBOARD.ROOT, { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
