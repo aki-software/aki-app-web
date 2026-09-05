@@ -62,9 +62,34 @@ describe('AdminPaymentLedgerService', () => {
         actualVoucherCount: 2,
         discrepancy: -1,
       },
+      operationalState: 'PENDING_ACCREDITATION',
       notifications: { buyer: null, platformAdmin: null },
     });
     expect(entry).not.toHaveProperty('contextSnapshot');
+  });
+
+  it('maps authoritative fulfillment and notification facts to operational state', () => {
+    const service = new AdminPaymentLedgerService({} as never);
+    const map = (value: typeof row) =>
+      (
+        Reflect.get(service, 'entry') as (input: typeof row) => {
+          operationalState: string;
+        }
+      ).call(service, value).operationalState;
+
+    expect(map({ ...row, fulfilledAt: null } as never)).toBe(
+      'PENDING_ACCREDITATION',
+    );
+    expect(
+      map({
+        ...row,
+        actualVoucherCount: '3',
+        buyerDeliveryStatus: 'DEAD_LETTER',
+      } as never),
+    ).toBe('ACCREDITED_NOTIFICATION_ATTENTION');
+    expect(map({ ...row, actualVoucherCount: '1' } as never)).toBe(
+      'PENDING_ACCREDITATION',
+    );
   });
 
   it('returns 404 when the paid batch is absent', async () => {

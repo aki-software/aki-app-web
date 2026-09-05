@@ -6,7 +6,9 @@ import {
   type AdminPaymentLedgerQuery as AdminPaymentLedgerQueryType,
 } from "@akit/contracts";
 
-function queryParams(query: AdminPaymentLedgerQueryType): Record<string, string> {
+function queryParams(
+  query: AdminPaymentLedgerQueryType,
+): Record<string, string> {
   return Object.fromEntries(
     Object.entries(query).map(([key, value]) => [key, String(value)]),
   );
@@ -25,7 +27,7 @@ export const paymentLedgerApi = {
     );
     return AdminPaymentLedgerDetail.parse(response);
   },
-  createQuery(page: number) {
-    return AdminPaymentLedgerQuery.parse({ page });
+  createQuery(query: Partial<AdminPaymentLedgerQueryType>) {
+    return AdminPaymentLedgerQuery.parse({ pageSize: 6, ...query });
   },
 };

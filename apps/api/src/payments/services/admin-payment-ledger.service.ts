@@ -33,6 +33,10 @@ interface LedgerRow {
   gateway: 'MERCADO_PAGO' | 'STRIPE' | null;
   externalReference: string | null;
   settledAt: Date | null;
+  operationalState:
+    | 'ACCREDITED'
+    | 'PENDING_ACCREDITATION'
+    | 'ACCREDITED_NOTIFICATION_ATTENTION';
   buyerDeliveryId: string | null;
   buyerDeliveryStatus:
     | 'PENDING'
@@ -135,8 +139,6 @@ export class AdminPaymentLedgerService {
         "adminDelivery.voucherBatchId = batch.id AND adminDelivery.recipientKind = 'PLATFORM_ADMIN'",
       )
       .where("batch.status = 'PAID'")
-      .orderBy('batch.fulfilledAt', 'DESC', 'NULLS LAST')
-      .addOrderBy('batch.id', 'DESC')
       .select([
         'batch.id AS "voucherBatchId"',
         'batch.totalPrice AS "totalPrice"',
@@ -156,6 +158,7 @@ export class AdminPaymentLedgerService {
         'payment.gateway AS "gateway"',
         'payment.externalPaymentId AS "externalReference"',
         'payment.createdAt AS "settledAt"',
+        `${this.operationalStateExpression()} AS "operationalState"`,
         ...this.deliverySelect('buyer'),
         ...this.deliverySelect('admin'),
       ]);
@@ -165,6 +168,12 @@ export class AdminPaymentLedgerService {
       builder.andWhere('batch.ownerInstitutionId = :institutionId', {
         institutionId: query.institutionId,
       });
+    if (query.institutionName) {
+      const institutionName = query.institutionName.replace(/[\\%_]/g, '\\$&');
+      builder.andWhere("institution.name ILIKE :institutionName ESCAPE '\\'", {
+        institutionName: `%${institutionName}%`,
+      });
+    }
     if (query.fulfillmentState === 'FULFILLED')
       builder.andWhere('batch.fulfilledAt IS NOT NULL');
     if (query.fulfillmentState === 'PENDING')
@@ -172,7 +181,46 @@ export class AdminPaymentLedgerService {
     this.range(builder, 'payment.createdAt', 'settled', query);
     this.range(builder, 'batch.fulfilledAt', 'fulfilled', query);
     if (query.notificationStatus) this.notificationFilter(builder, query);
+    this.order(builder, query);
     return builder;
+  }
+
+  private operationalStateExpression() {
+    const actualVoucherCount =
+      '(SELECT COUNT(*) FROM vouchers voucher WHERE voucher.batch_id = batch.id)';
+    return `CASE
+      WHEN payment.id IS NOT NULL
+        AND batch.fulfilledAt IS NOT NULL
+        AND ${actualVoucherCount} = batch.quantity
+        AND (buyerDelivery.status IN ('RETRYABLE_FAILED', 'DEAD_LETTER') OR adminDelivery.status IN ('RETRYABLE_FAILED', 'DEAD_LETTER'))
+        THEN 'ACCREDITED_NOTIFICATION_ATTENTION'
+      WHEN payment.id IS NOT NULL
+        AND batch.fulfilledAt IS NOT NULL
+        AND ${actualVoucherCount} = batch.quantity
+        THEN 'ACCREDITED'
+      ELSE 'PENDING_ACCREDITATION'
+    END`;
+  }
+
+  private order(
+    builder: SelectQueryBuilder<VoucherBatch>,
+    query: AdminPaymentLedgerQuery,
+  ) {
+    const sorts = {
+      SETTLED: 'payment.createdAt',
+      INSTITUTION: 'institution.name',
+      PLAN: "checkout.commercialSnapshot ->> 'planName'",
+      AMOUNT: 'batch.totalPrice',
+      GATEWAY: 'payment.gateway',
+      OPERATIONAL_STATE: this.operationalStateExpression(),
+    } as const;
+    const [field, direction] = query.sort.split(/_(?=[^_]+$)/) as [
+      keyof typeof sorts,
+      'ASC' | 'DESC',
+    ];
+    builder
+      .orderBy(sorts[field], direction, 'NULLS LAST')
+      .addOrderBy('batch.id', 'ASC');
   }
 
   private deliverySelect(prefix: 'buyer' | 'admin') {
@@ -266,6 +314,11 @@ export class AdminPaymentLedgerService {
         actualVoucherCount,
         discrepancy: actualVoucherCount - expectedVoucherCount,
       },
+      operationalState: this.operationalState(
+        row,
+        actualVoucherCount,
+        expectedVoucherCount,
+      ),
       notifications: {
         buyer: this.delivery(row, 'buyer'),
         platformAdmin: this.delivery(row, 'admin'),
@@ -300,6 +353,29 @@ export class AdminPaymentLedgerService {
             }
           : null,
     };
+  }
+
+  private operationalState(
+    row: LedgerRow,
+    actualVoucherCount: number,
+    expectedVoucherCount: number,
+  ): AdminPaymentLedgerEntry['operationalState'] {
+    if (
+      !row.paymentEventId ||
+      !row.fulfilledAt ||
+      actualVoucherCount !== expectedVoucherCount
+    ) {
+      return 'PENDING_ACCREDITATION';
+    }
+    if (
+      row.buyerDeliveryStatus === 'RETRYABLE_FAILED' ||
+      row.buyerDeliveryStatus === 'DEAD_LETTER' ||
+      row.adminDeliveryStatus === 'RETRYABLE_FAILED' ||
+      row.adminDeliveryStatus === 'DEAD_LETTER'
+    ) {
+      return 'ACCREDITED_NOTIFICATION_ATTENTION';
+    }
+    return 'ACCREDITED';
   }
 
   private recipient(
