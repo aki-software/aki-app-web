@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { ReactNode, useEffect, useCallback, useRef } from "react";
+import { ReactNode, useCallback, useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 
@@ -26,6 +26,7 @@ export const Modal = ({
 }: ModalProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
+  const titleId = useId();
   useEscapeKey(onClose, !isOpen || isLoading);
 
   const sizeClasses = {
@@ -68,6 +69,7 @@ export const Modal = ({
       ref={dialogRef}
       tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 sm:p-6 animate-in fade-in duration-300"
+      aria-labelledby={titleId}
       aria-modal="true"
       role="dialog"
     >
@@ -90,7 +92,10 @@ export const Modal = ({
                 {subtitle || "Configuración"}
               </p>
             </div>
-            <h3 className="text-xl font-black text-app-text-main truncate tracking-tight">
+            <h3
+              id={titleId}
+              className="text-xl font-black text-app-text-main truncate tracking-tight"
+            >
               {title}
             </h3>
           </div>

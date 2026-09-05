@@ -17,7 +17,11 @@ import { Spinner } from "../../../components/atoms/Spinner";
 import { formatMoney } from "../utils/money";
 
 export function BillingDashboard() {
-  const { data: history, isLoading: isLoadingHistory } = useBillingHistory();
+  const {
+    data: history,
+    isLoading: isLoadingHistory,
+    refetch: refetchHistory,
+  } = useBillingHistory();
   const { data: plans, isLoading: isLoadingPlans } = usePricingPlans();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -43,9 +47,7 @@ export function BillingDashboard() {
     checkoutAttemptId && !isCheckoutTerminal && !isTrackingDismissed,
   );
   const isPaidFulfillmentPendingAfterPolling = Boolean(
-    checkoutStatus?.paymentState === "PAID" &&
-      isExhausted &&
-      !checkoutError,
+    checkoutStatus?.paymentState === "PAID" && isExhausted && !checkoutError,
   );
 
   const handleDismissTracking = () => {
@@ -69,6 +71,15 @@ export function BillingDashboard() {
     }
   }, [checkoutAttemptId, checkoutStatus]);
 
+  useEffect(() => {
+    if (
+      checkoutStatus?.paymentState === "PAID" &&
+      checkoutStatus.fulfillmentState === "FULFILLED"
+    ) {
+      void refetchHistory();
+    }
+  }, [checkoutStatus, refetchHistory]);
+
   const handleBuyPlan = (planId: string) => {
     setSelectedPlanId(planId);
     setIsModalOpen(true);
@@ -81,11 +92,11 @@ export function BillingDashboard() {
         <div>
           <span className="app-label !text-app-primary">Operaciones</span>
           <h2 className="text-4xl md:text-5xl font-display font-bold text-app-text-main tracking-tight leading-none mt-2">
-            Saldo y Vouchers
+            Compras y saldo
           </h2>
           <p className="mt-3 text-sm font-medium text-app-text-muted max-w-lg leading-relaxed">
             Adquirí nuevos lotes de vouchers para tu institución y consultá tus
-            compras.
+            compras y saldo.
           </p>
         </div>
         <div className="flex-shrink-0">
@@ -142,7 +153,7 @@ export function BillingDashboard() {
           {isPaidFulfillmentPendingAfterPolling && (
             <Alert
               type="warning"
-              message="Pago confirmado. La emisión de vouchers sigue pendiente. Reintentá la consulta y no realices otro pago."
+              message="La compra se está acreditando y se actualizará automáticamente. No realices otro pago."
             />
           )}
           {!checkoutError &&
@@ -164,7 +175,7 @@ export function BillingDashboard() {
                       ? "Emisión bloqueada. Contactá a soporte."
                       : checkoutStatus.fulfillmentState === "REVOKED"
                         ? "Vouchers revocados."
-                        : "Pago confirmado. Emitiendo vouchers…"
+                        : "La compra se está acreditando y se actualizará automáticamente."
                   : ["FAILED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(
                         checkoutStatus.paymentState,
                       )
