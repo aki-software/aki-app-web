@@ -55,7 +55,7 @@ export function AdminPricingPlansPage() {
           </h3>
         </div>
         
-        <div className="flex-1 p-0 overflow-x-auto">
+        <div className="flex-1 p-0">
           {isLoading ? (
             <div className="flex h-64 flex-col items-center justify-center gap-4 text-app-text-muted">
               <Spinner size="md" className="border-app-primary" />
@@ -67,63 +67,44 @@ export function AdminPricingPlansPage() {
               <p className="text-sm mt-1">Hacé clic en 'Crear Plan' para agregar el primero.</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-max">
-              <thead>
-                <tr className="border-b border-app-border bg-app-surface/20">
-                  <th className="py-4 px-6 app-label tracking-wider uppercase">Nombre del Plan</th>
-                  <th className="py-4 px-6 app-label tracking-wider uppercase">Cantidad Vouchers</th>
-                  <th className="py-4 px-6 app-label tracking-wider uppercase">Precio (USD)</th>
-                  <th className="py-4 px-6 app-label tracking-wider uppercase">Estado</th>
-                  <th className="py-4 px-6 app-label tracking-wider uppercase text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-app-border">
+            <>
+              <div className="divide-y divide-app-border xl:hidden">
                 {plans.map((plan) => (
-                  <tr key={plan.id} className="group hover:bg-app-surface/50 transition-colors">
-                    <td className="py-4 px-6">
-                      <span className="text-sm font-semibold text-app-text-main">{plan.name}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-sm font-semibold text-app-text-main">{plan.voucherQuantity}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-sm font-bold text-app-primary font-display">${plan.priceUsd}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-1.5">
-                        {plan.isActive ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-status-success/10 text-status-success border border-status-success/20">
-                            <Check className="w-3.5 h-3.5" /> Activo
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-app-text-muted/10 text-app-text-muted border border-app-border">
-                            <X className="w-3.5 h-3.5" /> Inactivo
-                          </span>
-                        )}
+                  <article key={plan.id} className="space-y-4 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <h4 className="break-words text-sm font-semibold text-app-text-main">{plan.name}</h4>
+                        <p className="mt-1 text-sm text-app-text-muted">{plan.voucherQuantity} vouchers</p>
                       </div>
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex justify-end gap-3">
-                        <button 
-                          onClick={() => handleOpenModal(plan)}
-                          className="p-2 rounded-xl text-app-text-muted hover:text-app-primary hover:bg-app-primary/10 transition-colors"
-                          title="Editar"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(plan.id)}
-                          className="p-2 rounded-xl text-app-text-muted hover:text-status-error hover:bg-status-error/10 transition-colors"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      {plan.isActive ? (
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-status-success/20 bg-status-success/10 px-3 py-1 text-xs font-bold text-status-success"><Check className="h-3.5 w-3.5" aria-hidden="true" />Activo</span>
+                      ) : (
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-app-border bg-app-text-muted/10 px-3 py-1 text-xs font-bold text-app-text-muted"><X className="h-3.5 w-3.5" aria-hidden="true" />Inactivo</span>
+                      )}
+                    </div>
+                    <p className="font-display text-lg font-bold text-app-primary">${plan.priceUsd}</p>
+                    <div className="flex gap-3">
+                      <button onClick={() => handleOpenModal(plan)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-app-text-muted transition-colors hover:bg-app-primary/10 hover:text-app-primary" aria-label={`Editar plan ${plan.name}`}><Edit2 className="h-4 w-4" aria-hidden="true" /></button>
+                      <button onClick={() => handleDelete(plan.id)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-app-text-muted transition-colors hover:bg-status-error/10 hover:text-status-error" aria-label={`Eliminar plan ${plan.name}`}><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
+                    </div>
+                  </article>
                 ))}
-              </tbody>
-            </table>
+              </div>
+              <div className="hidden overflow-x-auto xl:block">
+                <table className="w-full text-left border-collapse">
+                  <thead><tr className="border-b border-app-border bg-app-surface/20"><th className="py-4 px-6 app-label tracking-wider uppercase">Nombre del Plan</th><th className="py-4 px-6 app-label tracking-wider uppercase">Cantidad Vouchers</th><th className="py-4 px-6 app-label tracking-wider uppercase">Precio (USD)</th><th className="py-4 px-6 app-label tracking-wider uppercase">Estado</th><th className="py-4 px-6 app-label tracking-wider uppercase text-right">Acciones</th></tr></thead>
+                  <tbody className="divide-y divide-app-border">
+                    {plans.map((plan) => (
+                      <tr key={plan.id} className="group hover:bg-app-surface/50 transition-colors">
+                        <td className="py-4 px-6"><span className="text-sm font-semibold text-app-text-main">{plan.name}</span></td><td className="py-4 px-6"><span className="text-sm font-semibold text-app-text-main">{plan.voucherQuantity}</span></td><td className="py-4 px-6"><span className="font-display text-sm font-bold text-app-primary">${plan.priceUsd}</span></td>
+                        <td className="py-4 px-6">{plan.isActive ? <span className="inline-flex items-center gap-1.5 rounded-full border border-status-success/20 bg-status-success/10 px-3 py-1 text-xs font-bold text-status-success"><Check className="h-3.5 w-3.5" aria-hidden="true" />Activo</span> : <span className="inline-flex items-center gap-1.5 rounded-full border border-app-border bg-app-text-muted/10 px-3 py-1 text-xs font-bold text-app-text-muted"><X className="h-3.5 w-3.5" aria-hidden="true" />Inactivo</span>}</td>
+                        <td className="py-4 px-6 text-right"><div className="flex justify-end gap-3"><button onClick={() => handleOpenModal(plan)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-app-text-muted transition-colors hover:bg-app-primary/10 hover:text-app-primary" aria-label={`Editar plan ${plan.name}`}><Edit2 className="h-4 w-4" aria-hidden="true" /></button><button onClick={() => handleDelete(plan.id)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-app-text-muted transition-colors hover:bg-status-error/10 hover:text-status-error" aria-label={`Eliminar plan ${plan.name}`}><Trash2 className="h-4 w-4" aria-hidden="true" /></button></div></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>

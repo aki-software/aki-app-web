@@ -101,7 +101,7 @@ export const SecuritySettings = () => {
         </div>
 
         {/* Acciones */}
-        <div className="mt-10 flex items-center justify-end gap-4 border-t border-app-border/50 pt-8">
+        <div className="mt-10 flex flex-col gap-4 border-t border-app-border/50 pt-8 sm:flex-row sm:items-center sm:justify-end">
           <Button 
             variant="outline" 
             onClick={() => {
@@ -110,7 +110,7 @@ export const SecuritySettings = () => {
               setSuccess(null);
             }} 
             disabled={loading}
-            className="!px-6 group"
+            className="w-full !px-6 group sm:w-auto"
           >
             <RotateCcw className="h-4 w-4 mr-2 group-hover:rotate-[-120deg] transition-transform duration-500" />
             Limpiar
@@ -119,7 +119,7 @@ export const SecuritySettings = () => {
           <Button 
             onClick={handleSave} 
             isLoading={loading}
-            className="!px-10 shadow-lg shadow-app-primary/20"
+            className="w-full !px-10 shadow-lg shadow-app-primary/20 sm:w-auto"
           >
             Actualizar Credenciales
           </Button>

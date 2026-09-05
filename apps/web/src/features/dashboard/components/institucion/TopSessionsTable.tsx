@@ -25,51 +25,75 @@ const getSessionStatusLabel = (s: TopSession) => s.reportUnlockedAt ? "Informe d
 export const TopSessionsTable = ({ sessions }: { sessions: TopSession[] }) => {
   const navigate = useNavigate();
 
-  return (
-    <div className="app-card !p-0 overflow-hidden shadow-2xl">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-app-bg/50 border-b border-app-border">
-            <tr>
-              <th className="px-6 py-5 app-label opacity-40">Paciente</th>
-              <th className="px-6 py-5 app-label opacity-40">Fecha</th>
-              <th className="px-6 py-5 app-label opacity-40">Canal</th>
-              <th className="px-6 py-5 app-label opacity-40">Estado</th>
-              <th className="px-6 py-5 app-label opacity-40 text-right">Detalle</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-app-border bg-app-surface">
-            {sessions.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-5">
-                  <EmptyState
-                    icon={<Filter className="h-10 w-10" />}
-                    title="Sin resultados"
-                    description="Todavía no hay tests registrados."
-                  />
-                </td>
-              </tr>
-            ) : (
-              sessions.map((s) => (
-                <tr key={s.id} className="hover:bg-app-surface/60 transition-colors">
-                  <td className="px-6 py-4 text-sm font-semibold text-app-text-main">{s.patientName}</td>
-                  <td className="px-6 py-4 text-xs text-app-text-muted">{formatShortDate(s.sessionDate ?? s.createdAt)}</td>
-                  <td className="px-6 py-4 text-xs text-app-text-muted">{getSessionChannel(s) === "VOUCHER" ? "Con voucher" : "Pago individual"}</td>
-                  <td className="px-6 py-4 text-xs text-app-text-muted">{getSessionStatusLabel(s)}</td>
-                  <td className="px-6 py-4 text-right">
+      const openSession = (id: string) => navigate(`/dashboard/sessions/${id}`);
+
+      return (
+        <div className="app-card !p-0 overflow-hidden shadow-2xl">
+          {sessions.length === 0 ? (
+            <div className="px-6 py-5">
+              <EmptyState
+                icon={<Filter className="h-10 w-10" />}
+                title="Sin resultados"
+                description="Todavía no hay tests registrados."
+              />
+            </div>
+          ) : (
+            <>
+              <div className="divide-y divide-app-border bg-app-surface md:hidden">
+                {sessions.map((s) => (
+                  <article key={s.id} className="space-y-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-app-text-main">{s.patientName}</p>
+                      <p className="mt-1 text-xs text-app-text-muted">{formatShortDate(s.sessionDate ?? s.createdAt)}</p>
+                    </div>
+                    <dl className="grid grid-cols-2 gap-3 text-xs text-app-text-muted">
+                      <div><dt className="app-label !text-[10px] opacity-50">Canal</dt><dd>{getSessionChannel(s) === "VOUCHER" ? "Con voucher" : "Pago individual"}</dd></div>
+                      <div><dt className="app-label !text-[10px] opacity-50">Estado</dt><dd>{getSessionStatusLabel(s)}</dd></div>
+                    </dl>
                     <button
-                      onClick={() => navigate(`/dashboard/sessions/${s.id}`)}
-                      className="inline-flex items-center rounded-xl border border-app-border bg-app-bg px-4 py-2 text-[10px] font-black uppercase tracking-widest text-app-text-main hover:border-app-primary hover:text-app-primary transition-all"
+                      onClick={() => openSession(s.id)}
+                      className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-app-border bg-app-bg px-4 py-2 text-[10px] font-black uppercase tracking-widest text-app-text-main transition-all hover:border-app-primary hover:text-app-primary"
+                      aria-label={`Abrir sesión de ${s.patientName}`}
                     >
-                      Abrir <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                      Abrir <ArrowRight className="ml-2 h-3.5 w-3.5" aria-hidden="true" />
                     </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+                  </article>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-app-bg/50 border-b border-app-border">
+                    <tr>
+                      <th className="px-6 py-5 app-label opacity-40">Paciente</th>
+                      <th className="px-6 py-5 app-label opacity-40">Fecha</th>
+                      <th className="px-6 py-5 app-label opacity-40">Canal</th>
+                      <th className="px-6 py-5 app-label opacity-40">Estado</th>
+                      <th className="px-6 py-5 app-label opacity-40 text-right">Detalle</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-app-border bg-app-surface">
+                    {sessions.map((s) => (
+                      <tr key={s.id} className="hover:bg-app-surface/60 transition-colors">
+                        <td className="px-6 py-4 text-sm font-semibold text-app-text-main">{s.patientName}</td>
+                        <td className="px-6 py-4 text-xs text-app-text-muted">{formatShortDate(s.sessionDate ?? s.createdAt)}</td>
+                        <td className="px-6 py-4 text-xs text-app-text-muted">{getSessionChannel(s) === "VOUCHER" ? "Con voucher" : "Pago individual"}</td>
+                        <td className="px-6 py-4 text-xs text-app-text-muted">{getSessionStatusLabel(s)}</td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => openSession(s.id)}
+                            className="inline-flex min-h-11 items-center rounded-xl border border-app-border bg-app-bg px-4 py-2 text-[10px] font-black uppercase tracking-widest text-app-text-main transition-all hover:border-app-primary hover:text-app-primary"
+                            aria-label={`Abrir sesión de ${s.patientName}`}
+                          >
+                            Abrir <ArrowRight className="ml-2 h-3.5 w-3.5" aria-hidden="true" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      );
 };
