@@ -140,11 +140,13 @@ describe("BillingDashboard", () => {
     render(<BillingDashboard />);
 
     expect(
-      screen.getByText("Pago confirmado. Emitiendo vouchers…"),
+      screen.getByText(
+        "La compra se está acreditando y se actualizará automáticamente.",
+      ),
     ).toBeDefined();
     expect(
       screen.getByText(
-        "Pago confirmado. La emisión de vouchers sigue pendiente. Reintentá la consulta y no realices otro pago.",
+        "La compra se está acreditando y se actualizará automáticamente. No realices otro pago.",
       ),
     ).toBeDefined();
     expect(
@@ -155,7 +157,7 @@ describe("BillingDashboard", () => {
     expect(
       screen.getByRole("button", { name: "Reintentar consulta" }),
     ).toBeEnabled();
-        expect(
+    expect(
       screen.getByText(
         "Confirmación en curso. Esperá antes de iniciar otra compra.",
       ),
@@ -170,6 +172,32 @@ describe("BillingDashboard", () => {
     );
     expect(screen.getByRole("button", { name: "Adquirir lote" })).toBeEnabled();
     expect(sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY)).toBeNull();
+  });
+
+  it("refetches billing history when a paid purchase is fulfilled", () => {
+    const refetchHistory = vi.fn();
+    (useBillingHistory as Mock).mockReturnValue({
+      data: null,
+      isLoading: false,
+      refetch: refetchHistory,
+    });
+    (usePricingPlans as Mock).mockReturnValue({ data: [], isLoading: false });
+    (useCheckoutAttemptStatus as Mock).mockReturnValue({
+      data: { paymentState: "PAID", fulfillmentState: "FULFILLED" },
+      isLoading: false,
+      isExhausted: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    window.history.replaceState(
+      {},
+      "",
+      "/billing?checkoutAttemptId=11111111-1111-4111-8111-111111111111",
+    );
+
+    render(<BillingDashboard />);
+
+    expect(refetchHistory).toHaveBeenCalledTimes(1);
   });
 
   it.each([
