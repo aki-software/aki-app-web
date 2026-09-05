@@ -7,6 +7,7 @@ export * from "./institutions.js";
 export * from "./categories.js";
 export * from "./common.js";
 export * from "./payments.js";
+export * from "./purchase-summary.js";
 export * from "./reports/index.js";
 
 // Explicit schema exports for test compatibility

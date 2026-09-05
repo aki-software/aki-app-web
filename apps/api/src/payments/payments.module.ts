@@ -5,6 +5,7 @@ import { PaymentsController } from './payments.controller.js';
 import { WebhookController } from './webhook.controller.js';
 import { AdminPricingController } from './admin-pricing.controller.js';
 import { AdminPaymentLedgerController } from './admin-payment-ledger.controller.js';
+import { PurchaseSummaryController } from './purchase-summary.controller.js';
 import { PaymentsService } from './payments.service.js';
 import { CheckoutService } from './services/checkout.service.js';
 import { WebhookProcessorService } from './services/webhook-processor.service.js';
@@ -19,6 +20,7 @@ import { PaymentFulfillmentOutbox } from './entities/payment-fulfillment-outbox.
 import { CheckoutAttempt } from './entities/checkout-attempt.entity.js';
 import { PaymentNotificationDelivery } from './entities/payment-notification-delivery.entity.js';
 import { VoucherBatch } from '../vouchers/entities/voucher-batch.entity.js';
+import { Institution } from '../institutions/entities/institution.entity.js';
 import { PaymentGatewayModule } from './payment-gateway.module.js';
 import { VoucherFulfillmentDispatcherService } from './services/voucher-fulfillment-dispatcher.service.js';
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
@@ -27,6 +29,7 @@ import { PaymentNotificationIntentService } from './services/payment-notificatio
 import { PaymentNotificationDeliveryStateService } from './services/payment-notification-delivery-state.service.js';
 import { PaymentNotificationExecutor } from './services/payment-notification-executor.service.js';
 import { AdminPaymentLedgerService } from './services/admin-payment-ledger.service.js';
+import { PurchaseSummaryService } from './services/purchase-summary.service.js';
 import {
   PAYMENT_NOTIFICATION_DELIVERY_EXECUTOR,
   PaymentNotificationProcessor,
@@ -46,6 +49,7 @@ import {
       PaymentFulfillmentOutbox,
       CheckoutAttempt,
       PaymentNotificationDelivery,
+      Institution,
     ]),
     BullModule.registerQueue({ name: 'voucher-fulfillment' }),
     BullModule.registerQueue({ name: PAYMENT_NOTIFICATION_DELIVERY_QUEUE }),
@@ -59,10 +63,12 @@ import {
     WebhookController,
     AdminPricingController,
     AdminPaymentLedgerController,
+    PurchaseSummaryController,
   ],
   providers: [
     PaymentsService,
     AdminPaymentLedgerService,
+    PurchaseSummaryService,
     GooglePlayAdapter,
     CheckoutService,
     WebhookProcessorService,
