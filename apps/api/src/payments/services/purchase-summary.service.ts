@@ -36,24 +36,23 @@ export class PurchaseSummaryService {
     private readonly batches: Repository<VoucherBatch>,
     @InjectRepository(Institution)
     private readonly institutions: Repository<Institution>,
-    private readonly clock: () => Date = () => new Date(),
   ) {}
 
-      async get(
-        query: PurchaseSummaryQuery,
-        scope: PurchaseSummaryScope,
-      ): Promise<PurchaseSummary> {
-        const institution =
-          scope.scope === 'INSTITUTION'
-            ? await this.institutions.findOne({
-                where: { id: scope.institutionId },
-              })
-            : null;
-        if (scope.scope === 'INSTITUTION' && !institution)
-          throw new ForbiddenException('Institution scope unavailable');
+  async get(
+    query: PurchaseSummaryQuery,
+    scope: PurchaseSummaryScope,
+  ): Promise<PurchaseSummary> {
+    const institution =
+      scope.scope === 'INSTITUTION'
+        ? await this.institutions.findOne({
+            where: { id: scope.institutionId },
+          })
+        : null;
+    if (scope.scope === 'INSTITUTION' && !institution)
+      throw new ForbiddenException('Institution scope unavailable');
 
-        const now = this.clock();
-        const current = this.window(now, query.periodDays, 1);
+    const now = this.currentTime();
+    const current = this.window(now, query.periodDays, 1);
     const prior = this.window(now, query.periodDays, 2);
     const [
       currentRows,
@@ -104,6 +103,10 @@ export class PurchaseSummaryService {
       prior: this.metricsResponse(priorRows),
       latestAccreditation: latest ? this.latestResponse(latest, false) : null,
     });
+  }
+
+  private currentTime(): Date {
+    return new Date();
   }
 
   private metrics(
