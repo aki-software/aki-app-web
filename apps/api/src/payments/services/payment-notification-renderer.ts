@@ -5,32 +5,22 @@ export type PaymentNotificationRenderInput = Pick<
   'recipientKind' | 'recipientNameSnapshot' | 'contextSnapshot'
 >;
 
-type BuyerRenderModel = {
-  recipientName: string;
+type PurchaseRenderModel = {
   institutionName: string;
   planName: string;
   voucherQuantity: number;
   chargedAmount: string | null;
   fulfilledAt: string;
   gateway: string | null;
-  paymentReference: string | null;
 };
 
-type AdminRenderModel = {
+type BuyerRenderModel = PurchaseRenderModel & {
   recipientName: string;
-  institutionId: string;
-  institutionName: string;
+};
+
+type AdminRenderModel = PurchaseRenderModel & {
   buyerName: string | null;
   buyerEmail: string | null;
-  pricingPlanId: string | null;
-  planName: string;
-  voucherQuantity: number;
-  chargedAmount: string | null;
-  voucherBatchId: string;
-  checkoutAttemptId: string | null;
-  gateway: string | null;
-  paymentReference: string | null;
-  fulfilledAt: string;
 };
 
 export type PaymentNotificationRender =
@@ -49,24 +39,23 @@ export function mapPaymentNotificationRender(
   delivery: PaymentNotificationRenderInput,
 ): PaymentNotificationRender {
   const { contextSnapshot: context } = delivery;
-  const shared = {
-    recipientName: display(delivery.recipientNameSnapshot) ?? 'Cliente',
+  const purchase = {
     institutionName: display(context.institution.name) ?? 'Tu institución',
     planName: display(context.commercial.planName) ?? 'Compra de vouchers',
     voucherQuantity: context.commercial.voucherQuantity,
     chargedAmount: formatAmount(context.charged),
     fulfilledAt: formatDate(context.fulfilledAt),
-    gateway: context.payment ? display(context.payment.gateway) : null,
-    paymentReference: context.payment
-      ? display(context.payment.externalReference)
-      : null,
+    gateway: context.payment ? formatGateway(context.payment.gateway) : null,
   };
 
   if (delivery.recipientKind === 'BUYER') {
     return {
       subject: 'Compra acreditada - A.kit',
       template: 'payment-confirmation-buyer.pug',
-      model: shared,
+      model: {
+        recipientName: display(delivery.recipientNameSnapshot) ?? 'Cliente',
+        ...purchase,
+      },
     };
   }
 
@@ -74,13 +63,9 @@ export function mapPaymentNotificationRender(
     subject: 'Nueva compra acreditada',
     template: 'payment-receipt-admin.pug',
     model: {
-      ...shared,
-      institutionId: context.institution.id,
+      ...purchase,
       buyerName: context.buyer ? display(context.buyer.name) : null,
       buyerEmail: context.buyer ? display(context.buyer.email) : null,
-      pricingPlanId: context.commercial.pricingPlanId,
-      voucherBatchId: context.voucherBatchId,
-      checkoutAttemptId: context.checkoutAttemptId,
     },
   };
 }
@@ -99,15 +84,36 @@ function formatAmount(
   ) {
     return null;
   }
+
   const minor = charged.amountMinor.padStart(3, '0');
-  const whole = minor.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return `${charged.currency} ${whole}.${minor.slice(-2)}`;
+  const whole = minor.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const cents = minor.slice(-2);
+  const localizedAmount = cents === '00' ? whole : `${whole},${cents}`;
+
+  return charged.currency === 'ARS'
+    ? `$${localizedAmount} ARS`
+    : `${localizedAmount} ${charged.currency}`;
+}
+
+function formatGateway(value: unknown): string | null {
+  const gateway = display(value);
+  if (!gateway) return null;
+  if (gateway === 'MERCADO_PAGO') return 'Mercado Pago';
+  if (gateway === 'STRIPE') return 'Stripe';
+  return gateway;
 }
 
 function formatDate(value: string): string {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime()))
+  if (Number.isNaN(date.getTime())) {
     return 'Fecha de acreditación no disponible';
-  const pad = (part: number) => String(part).padStart(2, '0');
-  return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}, ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`;
+  }
+
+  const formatted = new Intl.DateTimeFormat('es-AR', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    dateStyle: 'long',
+    timeStyle: 'short',
+    hourCycle: 'h23',
+  }).format(date);
+  return `${formatted} (hora de Argentina)`;
 }

@@ -4,29 +4,22 @@ block bodyContent
   tr
     td(style="padding:32px 40px 8px;")
       h1.text-primary(style=`margin:0 0 16px;font-size:24px;font-weight:800;color:${colors.primary.DEFAULT};`) Nueva compra acreditada
-      p(style=`margin:0 0 12px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Hola #{recipientName},
-      p(style=`margin:0 0 24px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Se acreditó una compra para #{institutionName}.
+      p(style=`margin:0 0 12px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Hola, equipo de A.kit,
+      p(style=`margin:0 0 24px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Se acreditó una compra para #{institutionName}. Podés consultar el detalle en Pagos y acreditaciones.
   tr
     td(style="padding:0 40px 32px;")
       table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`background:${colors.background.light};border:1px solid ${colors.surface.variantLight};border-radius:8px;`)
         tr
           td(style="padding:20px;")
-            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Institución: #{institutionName} (#{institutionId})
+            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Institución: #{institutionName}
             if buyerName
               p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Comprador: #{buyerName}
             if buyerEmail
               p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Email del comprador: #{buyerEmail}
             p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Plan: #{planName}
-            if pricingPlanId
-              p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) ID de plan: #{pricingPlanId}
-            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Vouchers esperados: #{voucherQuantity}
+            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Vouchers acreditados: #{voucherQuantity}
             if chargedAmount
               p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Importe cobrado: #{chargedAmount}
-            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Lote: #{voucherBatchId}
-            if checkoutAttemptId
-              p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Intento de checkout: #{checkoutAttemptId}
             if gateway
               p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Medio de pago: #{gateway}
-            if paymentReference
-              p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Referencia de pago: #{paymentReference}
             p(style=`margin:0;font-size:14px;color:${colors.text.secondary};`) Fecha de acreditación: #{fulfilledAt}
