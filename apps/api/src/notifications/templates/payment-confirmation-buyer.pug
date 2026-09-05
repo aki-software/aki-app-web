@@ -5,18 +5,19 @@ block bodyContent
     td(style="padding:32px 40px 8px;")
       h1.text-primary(style=`margin:0 0 16px;font-size:24px;font-weight:800;color:${colors.primary.DEFAULT};`) Compra acreditada
       p(style=`margin:0 0 12px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Hola #{recipientName},
-      p(style=`margin:0 0 12px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Tu compra para #{institutionName} fue acreditada correctamente.
-      p(style=`margin:0 0 24px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Adquiriste #{voucherQuantity} vouchers del plan #{planName}.
+      p(style=`margin:0 0 12px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Tu compra para #{institutionName} fue acreditada correctamente y tus vouchers ya están disponibles.
+      p(style=`margin:0 0 24px;font-size:15px;line-height:1.6;color:${colors.text.secondary};`) Podés consultar el detalle en Compras y saldo.
   tr
     td(style="padding:0 40px 32px;")
       table(role="presentation" width="100%" cellpadding="0" cellspacing="0" style=`background:${colors.background.light};border:1px solid ${colors.surface.variantLight};border-radius:8px;`)
         tr
           td(style="padding:20px;")
-            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Fecha de acreditación: #{fulfilledAt}
+            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Institución: #{institutionName}
+            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Plan: #{planName}
+            p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Vouchers acreditados: #{voucherQuantity}
             if chargedAmount
               p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Importe cobrado: #{chargedAmount}
             if gateway
               p(style=`margin:0 0 8px;font-size:14px;color:${colors.text.secondary};`) Medio de pago: #{gateway}
-            if paymentReference
-              p(style=`margin:0;font-size:14px;color:${colors.text.secondary};`) Referencia de pago: #{paymentReference}
+            p(style=`margin:0;font-size:14px;color:${colors.text.secondary};`) Fecha de acreditación: #{fulfilledAt}
       p(style=`margin:20px 0 0;font-size:13px;line-height:1.5;color:${colors.outline.light};`) Si necesitás ayuda, escribinos a #{supportEmail}.
