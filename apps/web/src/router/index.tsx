@@ -82,6 +82,11 @@ const AdminPricingPlansPage = lazy(() =>
     default: m.AdminPricingPlansPage,
   })),
 );
+const AdminPaymentLedgerPage = lazy(() =>
+  import("../features/admin/payment-ledger/pages/AdminPaymentLedgerPage").then(
+    (m) => ({ default: m.AdminPaymentLedgerPage }),
+  ),
+);
 
 function RootRedirect() {
   const { isAuthenticated } = useAuth();
@@ -249,6 +254,14 @@ export const router = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <AdminPricingPlansPage />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: APP_ROUTES.DASHBOARD.PAYMENT_LEDGER,
+                element: (
+                  <SuspenseWrapper>
+                    <AdminPaymentLedgerPage />
                   </SuspenseWrapper>
                 ),
               },

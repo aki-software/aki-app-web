@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 import {
   PaymentGateway,
   PricingPlan,
@@ -17,24 +17,31 @@ import {
   PaymentHistory,
   RemediationRequest,
   RemediationResponse,
-} from './payments';
+  PaymentNotificationRecipientKind,
+  PaymentNotificationDeliveryStatus,
+  PaymentNotificationErrorClassification,
+  PaymentNotificationContextSnapshotV1,
+  AdminPaymentLedgerQuery,
+  AdminPaymentLedgerPage,
+  AdminPaymentLedgerDetail,
+} from "./payments";
 
-const id = '123e4567-e89b-12d3-a456-426614174000';
-const usd = { amountMinor: '1050', currency: 'USD' };
+const id = "123e4567-e89b-12d3-a456-426614174000";
+const usd = { amountMinor: "1050", currency: "USD" };
 const mercadoPago = {
-  kind: 'COMPLETE',
+  kind: "COMPLETE",
   pricingPlanId: id,
-  planName: 'Basic',
+  planName: "Basic",
   voucherQuantity: 2,
   listedUsd: usd,
-  charged: { amountMinor: '160000', currency: 'ARS' },
-  gateway: 'MERCADO_PAGO',
-  fxRate: '152.380952',
-  fxQuotedAt: '2026-01-01T00:00:00.000Z',
-  fxSource: 'DOLAR_API_BLUE',
+  charged: { amountMinor: "160000", currency: "ARS" },
+  gateway: "MERCADO_PAGO",
+  fxRate: "152.380952",
+  fxQuotedAt: "2026-01-01T00:00:00.000Z",
+  fxSource: "DOLAR_API_BLUE",
 };
 const legacy = {
-  kind: 'LEGACY_PARTIAL',
+  kind: "LEGACY_PARTIAL",
   pricingPlanId: null,
   planName: null,
   voucherQuantity: null,
@@ -45,28 +52,35 @@ const legacy = {
   fxQuotedAt: null,
   fxSource: null,
   missingFields: [
-    'pricingPlanId', 'planName', 'voucherQuantity', 'listedUsd', 'charged',
-    'gateway', 'fxRate', 'fxQuotedAt', 'fxSource',
+    "pricingPlanId",
+    "planName",
+    "voucherQuantity",
+    "listedUsd",
+    "charged",
+    "gateway",
+    "fxRate",
+    "fxQuotedAt",
+    "fxSource",
   ],
 };
 
-describe('Payment Schemas', () => {
-  describe('PaymentGateway', () => {
-    it('should parse valid gateways', () => {
-      expect(PaymentGateway.parse('MERCADO_PAGO')).toBe('MERCADO_PAGO');
-      expect(PaymentGateway.parse('STRIPE')).toBe('STRIPE');
+describe("Payment Schemas", () => {
+  describe("PaymentGateway", () => {
+    it("should parse valid gateways", () => {
+      expect(PaymentGateway.parse("MERCADO_PAGO")).toBe("MERCADO_PAGO");
+      expect(PaymentGateway.parse("STRIPE")).toBe("STRIPE");
     });
 
-    it('should reject invalid gateways', () => {
-      expect(() => PaymentGateway.parse('PAYPAL')).toThrow();
+    it("should reject invalid gateways", () => {
+      expect(() => PaymentGateway.parse("PAYPAL")).toThrow();
     });
   });
 
-  describe('PricingPlan', () => {
-    it('should parse valid plan', () => {
+  describe("PricingPlan", () => {
+    it("should parse valid plan", () => {
       const validPlan = {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        name: 'Basic Plan',
+        id: "123e4567-e89b-12d3-a456-426614174000",
+        name: "Basic Plan",
         voucherQuantity: 100,
         priceUsd: 10.5,
         isActive: true,
@@ -75,63 +89,99 @@ describe('Payment Schemas', () => {
     });
   });
 
-  describe('CheckoutSessionRequest', () => {
-    it('should parse valid request', () => {
+  describe("CheckoutSessionRequest", () => {
+    it("should parse valid request", () => {
       const request = {
-        planId: '123e4567-e89b-12d3-a456-426614174000',
-        gateway: 'MERCADO_PAGO',
+        planId: "123e4567-e89b-12d3-a456-426614174000",
+        gateway: "MERCADO_PAGO",
       };
       expect(CheckoutSessionRequest.parse(request)).toEqual(request);
     });
   });
 
-  describe('CheckoutSessionResponse', () => {
-    it('requires a checkout attempt and rejects stale event identity', () => {
+  describe("CheckoutSessionResponse", () => {
+    it("requires a checkout attempt and rejects stale event identity", () => {
       const response = {
-        checkoutUrl: 'https://checkout.url',
+        checkoutUrl: "https://checkout.url",
         voucherBatchId: id,
         checkoutAttemptId: id,
       };
       expect(CheckoutSessionResponse.parse(response)).toEqual(response);
-      expect(CheckoutSessionResponse.safeParse({ ...response, paymentEventId: id }).success).toBe(false);
+      expect(
+        CheckoutSessionResponse.safeParse({ ...response, paymentEventId: id })
+          .success,
+      ).toBe(false);
     });
   });
 
-  describe('PaymentTransaction', () => {
-    it('should parse valid transaction', () => {
+  describe("PaymentTransaction", () => {
+    it("should parse valid transaction", () => {
       const transaction = {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        gateway: 'STRIPE',
-        externalReference: 'ext-ref-123',
-        status: 'APPROVED',
+        id: "123e4567-e89b-12d3-a456-426614174000",
+        gateway: "STRIPE",
+        externalReference: "ext-ref-123",
+        status: "APPROVED",
         amount: 10.5,
-        currency: 'USD',
+        currency: "USD",
         createdAt: new Date().toISOString(),
         plan: {
-          id: '123e4567-e89b-12d3-a456-426614174001',
-          name: 'Basic',
+          id: "123e4567-e89b-12d3-a456-426614174001",
+          name: "Basic",
           voucherQuantity: 100,
           priceUsd: 10.5,
           isActive: true,
         },
       };
       expect(PaymentTransaction.parse(transaction)).toEqual(transaction);
-      expect(PaymentEventStatus.parse('APPROVED')).toBe('APPROVED');
-      expect(BillingHistory.parse({
-        transactions: [transaction], totalPaid: 10.5, currentBalance: 2,
-      })).toMatchObject({ totalPaid: 10.5 });
-    });
-  });
+      expect(PaymentEventStatus.parse("APPROVED")).toBe("APPROVED");
+      expect(
+        BillingHistory.parse({
+          transactions: [transaction],
+          totalPaid: 10.5,
+          currentBalance: 2,
+        }),
+          ).toMatchObject({ totalPaid: 10.5 });
+        });
 
-  describe('commercial snapshots', () => {
-    it('uses exact money and decimal values', () => {
+        it("parses an administrative assignment without gateway facts", () => {
+          const transaction = {
+            id,
+            gateway: null,
+            externalReference: null,
+            status: "APPROVED",
+            amount: 0,
+            currency: "ARS",
+            createdAt: "2026-01-01T00:00:00.000Z",
+            plan: {
+              id,
+              name: "Lote de 5 vouchers",
+              voucherQuantity: 5,
+              priceUsd: 0,
+              isActive: true,
+            },
+          };
+          expect(PaymentTransaction.parse(transaction)).toEqual(transaction);
+          expect(
+            BillingHistory.parse({
+              transactions: [transaction],
+              totalPaid: 0,
+              currentBalance: 5,
+            }),
+          ).toMatchObject({ transactions: [transaction] });
+        });
+      });
+
+  describe("commercial snapshots", () => {
+    it("uses exact money and decimal values", () => {
       expect(Money.parse(usd)).toEqual(usd);
-      expect(ExactDecimal.parse('0.125')).toBe('0.125');
-      expect(Money.safeParse({ amountMinor: 1050, currency: 'usd' }).success).toBe(false);
-      expect(ExactDecimal.safeParse('1e2').success).toBe(false);
+      expect(ExactDecimal.parse("0.125")).toBe("0.125");
+      expect(
+        Money.safeParse({ amountMinor: 1050, currency: "usd" }).success,
+      ).toBe(false);
+      expect(ExactDecimal.safeParse("1e2").success).toBe(false);
     });
 
-    it('accepts Mercado Pago FX and Stripe USD snapshots', () => {
+    it("accepts Mercado Pago FX and Stripe USD snapshots", () => {
       expect(CommercialSnapshot.parse(mercadoPago)).toEqual(mercadoPago);
       const {
         fxRate: _fxRate,
@@ -139,39 +189,67 @@ describe('Payment Schemas', () => {
         fxSource: _fxSource,
         ...stripe
       } = mercadoPago;
-      expect(CommercialSnapshot.parse({
-        ...stripe, gateway: 'STRIPE', charged: usd,
-      })).toMatchObject({ gateway: 'STRIPE', charged: usd });
+      expect(
+        CommercialSnapshot.parse({
+          ...stripe,
+          gateway: "STRIPE",
+          charged: usd,
+        }),
+      ).toMatchObject({ gateway: "STRIPE", charged: usd });
     });
 
-    it('rejects incomplete provider facts and dishonest legacy facts', () => {
-      expect(CommercialSnapshot.safeParse({ ...mercadoPago, fxRate: '01.2' }).success).toBe(false);
-      expect(CommercialSnapshot.safeParse({ ...mercadoPago, fxQuotedAt: undefined }).success).toBe(false);
-      expect(CommercialSnapshot.safeParse({ ...mercadoPago, gateway: 'STRIPE' }).success).toBe(false);
+    it("rejects incomplete provider facts and dishonest legacy facts", () => {
+      expect(
+        CommercialSnapshot.safeParse({ ...mercadoPago, fxRate: "01.2" })
+          .success,
+      ).toBe(false);
+      expect(
+        CommercialSnapshot.safeParse({ ...mercadoPago, fxQuotedAt: undefined })
+          .success,
+      ).toBe(false);
+      expect(
+        CommercialSnapshot.safeParse({ ...mercadoPago, gateway: "STRIPE" })
+          .success,
+      ).toBe(false);
       expect(CommercialSnapshot.parse(legacy)).toEqual(legacy);
-      expect(CommercialSnapshot.safeParse({ ...legacy, planName: 'invented' }).success).toBe(false);
-      expect(CommercialSnapshot.safeParse({ ...legacy, missingFields: legacy.missingFields.slice(1) }).success).toBe(false);
-      expect(CommercialSnapshot.safeParse({
-        ...legacy,
-        missingFields: [...legacy.missingFields, 'planName'],
-      }).success).toBe(false);
+      expect(
+        CommercialSnapshot.safeParse({ ...legacy, planName: "invented" })
+          .success,
+      ).toBe(false);
+      expect(
+        CommercialSnapshot.safeParse({
+          ...legacy,
+          missingFields: legacy.missingFields.slice(1),
+        }).success,
+      ).toBe(false);
+      expect(
+        CommercialSnapshot.safeParse({
+          ...legacy,
+          missingFields: [...legacy.missingFields, "planName"],
+        }).success,
+      ).toBe(false);
     });
   });
 
-  describe('canonical payment lifecycle', () => {
+  describe("canonical payment lifecycle", () => {
     const status = {
-      paymentState: 'PAID',
-      fulfillmentState: 'FULFILLED',
-      provider: 'STRIPE',
-      providerFreshness: 'CURRENT',
-      observedAt: '2026-01-01T00:00:00.000Z',
-      staleAfter: '2026-01-01T01:00:00.000Z',
+      paymentState: "PAID",
+      fulfillmentState: "FULFILLED",
+      provider: "STRIPE",
+      providerFreshness: "CURRENT",
+      observedAt: "2026-01-01T00:00:00.000Z",
+      staleAfter: "2026-01-01T01:00:00.000Z",
       checkoutAttemptId: id,
       paymentEventId: id,
       voucherBatchId: id,
       commercialSnapshot: {
-        kind: 'COMPLETE', pricingPlanId: id, planName: 'Basic', voucherQuantity: 2,
-        listedUsd: usd, charged: usd, gateway: 'STRIPE',
+        kind: "COMPLETE",
+        pricingPlanId: id,
+        planName: "Basic",
+        voucherQuantity: 2,
+        listedUsd: usd,
+        charged: usd,
+        gateway: "STRIPE",
       },
       chargedTotal: usd,
       issuedVoucherCount: 2,
@@ -179,47 +257,333 @@ describe('Payment Schemas', () => {
       voucherDiscrepancy: 0,
     };
 
-    it('parses canonical states and the exact provider freshness timestamp matrix', () => {
-      expect(PaymentState.parse('UNKNOWN')).toBe('UNKNOWN');
-      expect(FulfillmentState.parse('BLOCKED')).toBe('BLOCKED');
-      expect(ProviderFreshness.parse('STALE')).toBe('STALE');
+    it("parses canonical states and the exact provider freshness timestamp matrix", () => {
+      expect(PaymentState.parse("UNKNOWN")).toBe("UNKNOWN");
+      expect(FulfillmentState.parse("BLOCKED")).toBe("BLOCKED");
+      expect(ProviderFreshness.parse("STALE")).toBe("STALE");
       expect(PaymentStatus.parse(status)).toEqual(status);
-      for (const providerFreshness of ['STALE', 'CURRENT']) {
-        expect(PaymentStatus.safeParse({ ...status, providerFreshness }).success).toBe(true);
+      for (const providerFreshness of ["STALE", "CURRENT"]) {
+        expect(
+          PaymentStatus.safeParse({ ...status, providerFreshness }).success,
+        ).toBe(true);
       }
-      for (const providerFreshness of ['UNAVAILABLE', 'NOT_OBSERVED']) {
-        expect(PaymentStatus.safeParse({ ...status, providerFreshness, observedAt: null, staleAfter: null }).success).toBe(true);
-        expect(PaymentStatus.safeParse({ ...status, providerFreshness }).success).toBe(false);
+      for (const providerFreshness of ["UNAVAILABLE", "NOT_OBSERVED"]) {
+        expect(
+          PaymentStatus.safeParse({
+            ...status,
+            providerFreshness,
+            observedAt: null,
+            staleAfter: null,
+          }).success,
+        ).toBe(true);
+        expect(
+          PaymentStatus.safeParse({ ...status, providerFreshness }).success,
+        ).toBe(false);
       }
-      expect(PaymentStatus.safeParse({ ...status, paymentState: 'APPROVED' }).success).toBe(false);
+      expect(
+        PaymentStatus.safeParse({ ...status, paymentState: "APPROVED" })
+          .success,
+      ).toBe(false);
     });
 
-    it('keeps cursor history currency-separated and excludes legacy scalar totals', () => {
-      const history = { transactions: [status], nextCursor: 'cursor:opaque', totalsByCurrency: [usd, { amountMinor: '2000', currency: 'ARS' }], currentBalance: 2 };
+    it("keeps cursor history currency-separated and excludes legacy scalar totals", () => {
+      const history = {
+        transactions: [status],
+        nextCursor: "cursor:opaque",
+        totalsByCurrency: [usd, { amountMinor: "2000", currency: "ARS" }],
+        currentBalance: 2,
+      };
       expect(PaymentHistory.parse(history)).toEqual(history);
-      expect(PaymentHistory.safeParse({ ...history, totalPaid: 30 }).success).toBe(false);
+      expect(
+        PaymentHistory.safeParse({ ...history, totalPaid: 30 }).success,
+      ).toBe(false);
     });
 
-    it('requires bounded non-URL provider remediation evidence', () => {
+    it("requires bounded non-URL provider remediation evidence", () => {
       const request = {
-        action: 'CONFIRM_EXTERNAL_FULL_REFUND_AND_REVOKE', institutionId: id,
-        reason: 'The provider confirmed the full refund and the vouchers require revocation.',
-        provider: 'STRIPE', providerCheckoutId: null, providerPaymentId: 'pi_123',
-        providerActionReferences: ['refund_123'], providerOccurredAt: '2026-01-01T00:00:00.000Z',
-        chargedTotal: usd, merchantReference: 'order_123',
+        action: "CONFIRM_EXTERNAL_FULL_REFUND_AND_REVOKE",
+        institutionId: id,
+        reason:
+          "The provider confirmed the full refund and the vouchers require revocation.",
+        provider: "STRIPE",
+        providerCheckoutId: null,
+        providerPaymentId: "pi_123",
+        providerActionReferences: ["refund_123"],
+        providerOccurredAt: "2026-01-01T00:00:00.000Z",
+        chargedTotal: usd,
+        merchantReference: "order_123",
       };
       expect(RemediationRequest.parse(request)).toEqual(request);
-      expect(RemediationRequest.safeParse({ ...request, providerActionReferences: [] }).success).toBe(false);
-      expect(RemediationRequest.safeParse({ ...request, providerActionReferences: ['https://provider.example/refund'] }).success).toBe(false);
-      expect(RemediationRequest.safeParse({ ...request, providerActionReferences: ['ftp://provider.example/refund'] }).success).toBe(false);
-      expect(RemediationRequest.safeParse({ ...request, providerPaymentId: 'malformed evidence' }).success).toBe(false);
-      expect(RemediationRequest.safeParse({ ...request, evidence: { secret: 'no' } }).success).toBe(false);
-      expect(RemediationResponse.parse({ decision: 'ACCEPTED', remediationId: id, auditId: id })).toEqual({ decision: 'ACCEPTED', remediationId: id, auditId: id });
+      expect(
+        RemediationRequest.safeParse({
+          ...request,
+          providerActionReferences: [],
+        }).success,
+      ).toBe(false);
+      expect(
+        RemediationRequest.safeParse({
+          ...request,
+          providerActionReferences: ["https://provider.example/refund"],
+        }).success,
+      ).toBe(false);
+      expect(
+        RemediationRequest.safeParse({
+          ...request,
+          providerActionReferences: ["ftp://provider.example/refund"],
+        }).success,
+      ).toBe(false);
+      expect(
+        RemediationRequest.safeParse({
+          ...request,
+          providerPaymentId: "malformed evidence",
+        }).success,
+      ).toBe(false);
+      expect(
+        RemediationRequest.safeParse({ ...request, evidence: { secret: "no" } })
+          .success,
+      ).toBe(false);
+      expect(
+        RemediationResponse.parse({
+          decision: "ACCEPTED",
+          remediationId: id,
+          auditId: id,
+        }),
+      ).toEqual({ decision: "ACCEPTED", remediationId: id, auditId: id });
     });
 
-    it('preserves the legacy APPROVED transaction shape', () => {
-      const transaction = { id, gateway: 'STRIPE', externalReference: 'legacy', status: 'APPROVED', amount: 10.5, currency: 'USD', createdAt: '2026-01-01T00:00:00.000Z', plan: { id, name: 'Basic', voucherQuantity: 2, priceUsd: 10.5, isActive: true } };
+    it("preserves the legacy APPROVED transaction shape", () => {
+      const transaction = {
+        id,
+        gateway: "STRIPE",
+        externalReference: "legacy",
+        status: "APPROVED",
+        amount: 10.5,
+        currency: "USD",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        plan: {
+          id,
+          name: "Basic",
+          voucherQuantity: 2,
+          priceUsd: 10.5,
+          isActive: true,
+        },
+      };
       expect(PaymentTransaction.parse(transaction)).toEqual(transaction);
+    });
+  });
+
+  describe("payment notification audit contracts", () => {
+    const notificationContext = {
+      version: 1,
+      voucherBatchId: id,
+      checkoutAttemptId: id,
+      paymentEventId: null,
+      institution: { id, name: "A.kit University" },
+      buyer: { userId: id, name: "Buyer", email: "buyer@example.com" },
+      commercial: { pricingPlanId: id, planName: "Plan", voucherQuantity: 2 },
+      charged: { amountMinor: "1050", currency: "USD" },
+      payment: {
+        gateway: "STRIPE",
+        externalReference: "ref_123",
+        settledAt: "2026-01-01T00:00:00.000Z",
+      },
+      fulfilledAt: "2026-01-02T00:00:00.000Z",
+    };
+    const summary = {
+      deliveryId: id,
+      status: "SENT",
+      attemptCount: 1,
+      enqueueAttemptCount: 1,
+      recipient: { userId: id, name: "Buyer", email: "buyer@example.com" },
+      queuedAt: "2026-01-02T00:00:00.000Z",
+      lastAttemptAt: "2026-01-02T00:00:00.000Z",
+      sentAt: "2026-01-02T00:00:00.000Z",
+      error: null,
+    };
+    const entry = {
+      voucherBatchId: id,
+      checkoutAttemptId: null,
+      paymentEventId: null,
+      institution: { id, name: "A.kit University" },
+      buyer: null,
+      commercial: { pricingPlanId: null, planName: null },
+      amount: { value: "10.50", currency: "USD" },
+      payment: null,
+      fulfillment: {
+        state: "PENDING",
+        fulfilledAt: null,
+        expectedVoucherCount: 2,
+        actualVoucherCount: 0,
+        discrepancy: -2,
+      },
+      operationalState: "PENDING_ACCREDITATION",
+      notifications: { buyer: null, platformAdmin: summary },
+    };
+
+    it("parses the delivery taxonomy and the required private v1 context", () => {
+      expect(PaymentNotificationRecipientKind.parse("PLATFORM_ADMIN")).toBe(
+        "PLATFORM_ADMIN",
+      );
+      expect(PaymentNotificationDeliveryStatus.parse("RETRYABLE_FAILED")).toBe(
+        "RETRYABLE_FAILED",
+      );
+      expect(
+        PaymentNotificationErrorClassification.parse("TRANSPORT_PERMANENT"),
+      ).toBe("TRANSPORT_PERMANENT");
+      expect(
+        PaymentNotificationContextSnapshotV1.parse(notificationContext),
+      ).toEqual(notificationContext);
+      expect(
+        PaymentNotificationContextSnapshotV1.safeParse({
+          ...notificationContext,
+          rawPayload: { token: "secret" },
+        }).success,
+      ).toBe(false);
+      expect(
+        PaymentNotificationContextSnapshotV1.safeParse({
+          ...notificationContext,
+          fulfilledAt: undefined,
+        }).success,
+      ).toBe(false);
+    });
+
+    it("supports the allowlisted scalable ledger filters and sorts", () => {
+      expect(AdminPaymentLedgerQuery.parse({})).toMatchObject({
+        page: 1,
+        pageSize: 25,
+        notificationRecipient: "ANY",
+        sort: "SETTLED_DESC",
+      });
+      expect(
+        AdminPaymentLedgerQuery.parse({
+          page: "2",
+          pageSize: "6",
+          institutionName: "  University  ",
+          sort: "AMOUNT_ASC",
+        }),
+      ).toMatchObject({
+        page: 2,
+        pageSize: 6,
+        institutionName: "University",
+        sort: "AMOUNT_ASC",
+      });
+      expect(AdminPaymentLedgerQuery.safeParse({ page: 0 }).success).toBe(
+        false,
+      );
+      expect(
+        AdminPaymentLedgerQuery.safeParse({
+          settledFrom: "2026-02-01T00:00:00.000Z",
+          settledTo: "2026-01-01T00:00:00.000Z",
+        }).success,
+      ).toBe(false);
+      expect(
+        AdminPaymentLedgerQuery.safeParse({ sort: "DROP_TABLE_ASC" }).success,
+      ).toBe(false);
+    });
+
+    it("accepts safe nullable historical summaries and rejects public unsafe fields", () => {
+      const page = {
+        items: [entry],
+        page: 1,
+        pageSize: 25,
+        total: 1,
+        totalPages: 1,
+        sort: "SETTLED_DESC",
+      };
+      expect(AdminPaymentLedgerPage.parse(page)).toEqual(page);
+      expect(AdminPaymentLedgerDetail.parse(entry)).toEqual(entry);
+      expect(
+        AdminPaymentLedgerPage.safeParse({
+          ...page,
+          rawContext: notificationContext,
+        }).success,
+      ).toBe(false);
+      expect(
+        AdminPaymentLedgerDetail.safeParse({
+          ...entry,
+          notifications: {
+            ...entry.notifications,
+            buyer: {
+              ...summary,
+              error: {
+                classification: "TRANSPORT_TRANSIENT",
+                message: "safe",
+                providerResponse: "secret",
+              },
+            },
+          },
+        }).success,
+      ).toBe(false);
+    });
+
+    it("accepts inclusive range boundaries and recipient-aware ABSENT filters", () => {
+      const boundary = "2026-01-01T00:00:00.000Z";
+      expect(
+        AdminPaymentLedgerQuery.parse({
+          settledFrom: boundary,
+          settledTo: boundary,
+        }),
+      ).toMatchObject({ settledFrom: boundary, settledTo: boundary });
+      expect(
+        AdminPaymentLedgerQuery.parse({
+          notificationRecipient: "ANY",
+          notificationStatus: "ABSENT",
+        }),
+      ).toMatchObject({
+        notificationRecipient: "ANY",
+        notificationStatus: "ABSENT",
+      });
+      expect(
+        AdminPaymentLedgerQuery.parse({
+          notificationRecipient: "BUYER",
+          notificationStatus: "ABSENT",
+        }),
+      ).toMatchObject({
+        notificationRecipient: "BUYER",
+        notificationStatus: "ABSENT",
+      });
+    });
+
+    it("requires the backend-owned operational state in ledger entries", () => {
+      expect(
+        AdminPaymentLedgerDetail.safeParse({
+          ...entry,
+          operationalState: "ACCREDITED",
+        }).success,
+      ).toBe(true);
+      expect(
+        AdminPaymentLedgerDetail.safeParse({
+          ...entry,
+          operationalState: "UNKNOWN",
+        }).success,
+      ).toBe(false);
+      const { operationalState: _operationalState, ...withoutState } = entry;
+      expect(AdminPaymentLedgerDetail.safeParse(withoutState).success).toBe(
+        false,
+      );
+    });
+
+    it("permits historical absent deliveries but rejects gateway payloads", () => {
+      expect(
+        AdminPaymentLedgerDetail.parse({
+          ...entry,
+          notifications: { buyer: null, platformAdmin: null },
+        }),
+      ).toMatchObject({
+        voucherBatchId: id,
+        notifications: { buyer: null, platformAdmin: null },
+      });
+      expect(
+        AdminPaymentLedgerDetail.safeParse({
+          ...entry,
+          payment: {
+            gateway: "STRIPE",
+            externalReference: "ref_123",
+            settledAt: "2026-01-01T00:00:00.000Z",
+            gatewayPayload: { secret: "no" },
+          },
+        }).success,
+      ).toBe(false);
     });
   });
 });

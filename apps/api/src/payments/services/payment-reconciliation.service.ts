@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   OnApplicationBootstrap,
+  OnModuleDestroy,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, MoreThanOrEqual, Repository } from 'typeorm';
@@ -14,11 +15,26 @@ import { WebhookProcessorService } from './webhook-processor.service.js';
 
 const RECONCILIATION_WINDOW_MS = 24 * 60 * 60 * 1000;
 const RECONCILIATION_ATTEMPT_LIMIT = 100;
+const DEFAULT_RECONCILIATION_INTERVAL_MS = 5 * 60 * 1000;
+const RECONCILIATION_COOLDOWN_MS = 30 * 1000;
 
-/** Performs one bounded recovery pass for approved Mercado Pago payments missed by webhooks. */
+function reconciliationIntervalMs(): number {
+  const configured = Number(process.env.PAYMENT_RECONCILIATION_INTERVAL_MS);
+  return Number.isSafeInteger(configured) && configured > 0
+    ? configured
+    : DEFAULT_RECONCILIATION_INTERVAL_MS;
+}
+
+/** Performs bounded recovery of approved Mercado Pago payments missed by webhooks. */
 @Injectable()
-export class PaymentReconciliationService implements OnApplicationBootstrap {
+export class PaymentReconciliationService
+  implements OnApplicationBootstrap, OnModuleDestroy
+{
   private readonly logger = new Logger(PaymentReconciliationService.name);
+  private reconciliationTimer?: NodeJS.Timeout;
+  private activeScan?: Promise<void>;
+  private readonly activeAttempts = new Map<string, Promise<void>>();
+  private readonly lastAttemptAt = new Map<string, number>();
 
   constructor(
     @Inject(PAYMENT_GATEWAY_MP)
@@ -29,15 +45,64 @@ export class PaymentReconciliationService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap(): void {
+    this.runScheduledReconciliation('startup');
+    this.reconciliationTimer = setInterval(() => {
+      this.runScheduledReconciliation('periodic');
+    }, reconciliationIntervalMs());
+    this.reconciliationTimer.unref();
+  }
+
+  onModuleDestroy(): void {
+    if (this.reconciliationTimer) clearInterval(this.reconciliationTimer);
+  }
+
+  reconcileRecentAttempts(): Promise<void> {
+    if (this.activeScan) return this.activeScan;
+
+    const scan = this.performRecentAttemptReconciliation().finally(() => {
+      this.activeScan = undefined;
+    });
+    this.activeScan = scan;
+    return scan;
+  }
+
+  reconcileAuthorizedAttempt(attempt: CheckoutAttempt): Promise<void> {
+    if (!this.isEligibleAttempt(attempt)) return Promise.resolve();
+
+    const active = this.activeAttempts.get(attempt.id);
+    if (active) return active;
+
+    const now = Date.now();
+    const lastAttemptAt = this.lastAttemptAt.get(attempt.id);
+    if (
+      lastAttemptAt !== undefined &&
+      now - lastAttemptAt < RECONCILIATION_COOLDOWN_MS
+    ) {
+      return Promise.resolve();
+    }
+
+    this.lastAttemptAt.set(attempt.id, now);
+    const reconciliation = this.reconcileAttempt(attempt)
+      .catch((error: unknown) => {
+        this.logAttemptFailure(attempt.id, error);
+      })
+      .finally(() => {
+        this.activeAttempts.delete(attempt.id);
+      });
+    this.activeAttempts.set(attempt.id, reconciliation);
+    return reconciliation;
+  }
+
+  private runScheduledReconciliation(source: 'startup' | 'periodic'): void {
     void this.reconcileRecentAttempts().catch((error: unknown) => {
       this.logger.error(
-        'Mercado Pago startup reconciliation failed',
+        `Mercado Pago ${source} reconciliation failed`,
         error instanceof Error ? error.stack : undefined,
       );
     });
   }
 
-  async reconcileRecentAttempts(): Promise<void> {
+  private async performRecentAttemptReconciliation(): Promise<void> {
     const attempts = await this.checkoutAttemptRepo.find({
       where: {
         gateway: 'MERCADO_PAGO',
@@ -53,30 +118,35 @@ export class PaymentReconciliationService implements OnApplicationBootstrap {
     });
 
     for (const attempt of attempts) {
-      try {
-        await this.reconcileAttempt(attempt);
-      } catch (error) {
-        this.logger.error(
-          `Mercado Pago reconciliation failed for checkout attempt ${attempt.id}`,
-          error instanceof Error ? error.stack : undefined,
-        );
-      }
+      await this.reconcileAuthorizedAttempt(attempt);
     }
   }
 
+  private isEligibleAttempt(attempt: CheckoutAttempt): boolean {
+    return (
+      attempt.gateway === 'MERCADO_PAGO' &&
+      (attempt.state === 'READY' || attempt.state === 'OUTCOME_UNKNOWN') &&
+      !!attempt.voucherBatchId &&
+      attempt.voucherBatch?.status === VoucherBatchStatus.PENDING &&
+      attempt.createdAt.getTime() >= Date.now() - RECONCILIATION_WINDOW_MS
+    );
+  }
+
   private async reconcileAttempt(attempt: CheckoutAttempt): Promise<void> {
-    if (!attempt.voucherBatchId) return;
+    const voucherBatchId = attempt.voucherBatchId;
+    if (!voucherBatchId) return;
 
     const payment =
       await this.mercadoPagoAdapter.findPaymentByMerchantReference?.(
-        attempt.voucherBatchId,
+        voucherBatchId,
       );
     if (
       !payment ||
       payment.status !== 'APPROVED' ||
-      payment.merchantReference !== attempt.voucherBatchId
-    )
+      payment.merchantReference !== voucherBatchId
+    ) {
       return;
+    }
 
     await this.webhookProcessor.settleVerifiedPayment({
       gateway: 'MERCADO_PAGO',
@@ -90,5 +160,12 @@ export class PaymentReconciliationService implements OnApplicationBootstrap {
         'utf8',
       ),
     });
+  }
+
+  private logAttemptFailure(attemptId: string, error: unknown): void {
+    this.logger.error(
+      `Mercado Pago reconciliation failed for checkout attempt ${attemptId}`,
+      error instanceof Error ? error.stack : undefined,
+    );
   }
 }

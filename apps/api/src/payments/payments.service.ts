@@ -24,12 +24,8 @@ import {
   VoucherBatchStatus,
   VoucherStatus,
 } from '../vouchers/entities/voucher.enums.js';
-import type {
-  BillingHistory,
-  CommercialSnapshot,
-  PaymentGateway,
-  PaymentEventStatus,
-} from '@akit/contracts';
+import { PaymentReconciliationService } from './services/payment-reconciliation.service.js';
+import type { BillingHistory, CommercialSnapshot } from '@akit/contracts';
 
 export interface VerifyPurchaseResult {
   success: boolean;
@@ -47,13 +43,14 @@ export class PaymentsService {
     private readonly sessionsMutationService: SessionsMutationService,
     private readonly googlePlayAdapter: GooglePlayAdapter,
     @InjectDataSource() private dataSource: DataSource,
+    private readonly paymentReconciliationService: PaymentReconciliationService,
   ) {}
 
   async getCheckoutAttemptStatus(
     checkoutAttemptId: string,
     principal: { userId: string; institutionId: string },
   ): Promise<PaymentStatus> {
-    const attempt = await this.dataSource.manager.findOne(CheckoutAttempt, {
+    let attempt = await this.dataSource.manager.findOne(CheckoutAttempt, {
       where: {
         id: checkoutAttemptId,
         buyerUserId: principal.userId,
@@ -62,6 +59,32 @@ export class PaymentsService {
       relations: { voucherBatch: true },
     });
     if (!attempt) throw new NotFoundException('Checkout attempt not found');
+
+    if (
+      attempt.gateway === 'MERCADO_PAGO' &&
+      (attempt.state === 'READY' || attempt.state === 'OUTCOME_UNKNOWN') &&
+      attempt.voucherBatch?.status === VoucherBatchStatus.PENDING
+    ) {
+      try {
+        await this.paymentReconciliationService.reconcileAuthorizedAttempt(
+          attempt,
+        );
+      } catch (error) {
+        this.logger.error(
+          'Mercado Pago status reconciliation failed',
+          error instanceof Error ? error.stack : undefined,
+        );
+      }
+      attempt = await this.dataSource.manager.findOne(CheckoutAttempt, {
+        where: {
+          id: checkoutAttemptId,
+          buyerUserId: principal.userId,
+          ownerInstitutionId: principal.institutionId,
+        },
+        relations: { voucherBatch: true },
+      });
+      if (!attempt) throw new NotFoundException('Checkout attempt not found');
+    }
 
     const paymentEvent = await this.dataSource.manager.findOne(PaymentEvent, {
       where: attempt.voucherBatchId
@@ -155,22 +178,28 @@ export class PaymentsService {
       0,
     );
 
-    const transactions = batches.map((batch) => ({
-      id: batch.id,
-      gateway: batch.paymentProvider as PaymentGateway,
-      externalReference: batch.paymentReference as string,
-      status: 'APPROVED' as PaymentEventStatus,
-      amount: Number(batch.totalPrice),
-      currency: batch.currency,
-      createdAt: batch.paidAt?.toISOString() ?? batch.createdAt.toISOString(),
-      plan: {
-        id: batch.id, // Using batch ID as plan ID mock since we don't store planId in batch
-        name: `Lote de ${batch.quantity} vouchers`,
-        voucherQuantity: batch.quantity,
-        priceUsd: Number(batch.totalPrice),
-        isActive: true,
-      },
-    }));
+    const transactions: BillingHistory['transactions'] = batches.map(
+      (batch) => ({
+        id: batch.id,
+        gateway:
+          batch.paymentProvider === 'MERCADO_PAGO' ||
+          batch.paymentProvider === 'STRIPE'
+            ? batch.paymentProvider
+            : null,
+        externalReference: batch.paymentReference,
+        status: 'APPROVED' as const,
+        amount: Number(batch.totalPrice),
+        currency: batch.currency,
+        createdAt: batch.paidAt?.toISOString() ?? batch.createdAt.toISOString(),
+        plan: {
+          id: batch.id, // Using batch ID as plan ID mock since we don't store planId in batch
+          name: `Lote de ${batch.quantity} vouchers`,
+          voucherQuantity: batch.quantity,
+          priceUsd: Number(batch.totalPrice),
+          isActive: true,
+        },
+      }),
+    );
 
     const currentBalance = await this.dataSource.manager.count(Voucher, {
       where: {

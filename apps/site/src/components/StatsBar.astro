@@ -9,14 +9,14 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-<section class="bg-bg py-12 md:py-16 border-t border-secondary/20 border-b border-secondary/20">
+<section class="bg-bg py-12 md:py-16 border-t border-secondary/20 border-b border-secondary/20" id="stats-bar">
   <div class="container">
     <div class="flex flex-wrap justify-center gap-8 md:gap-16 items-center reveal">
       {t.statsBar.items.map((item, index) => (
         <Fragment>
-          <div class="text-center">
-            <p class="font-display font-bold text-3xl md:text-4xl text-primary">{item.value}</p>
-            <p class="text-sm text-text-muted font-medium">{item.label}</p>
+          <div class="text-center group transition-transform duration-300 hover:scale-105 cursor-default">
+            <p class="font-display font-bold text-3xl md:text-4xl text-primary stat-counter tracking-tight group-hover:drop-shadow-[0_0_12px_rgba(15,107,104,0.3)] transition-all" data-value={item.value}>{item.value}</p>
+            <p class="text-sm text-text-muted font-medium mt-1">{item.label}</p>
           </div>
           {index < t.statsBar.items.length - 1 && (
             <div class="w-px h-12 bg-secondary/30 hidden md:block self-center" aria-hidden="true"></div>
@@ -28,13 +28,37 @@ const { t } = Astro.props;
 </section>
 
 <script>
+  const counters = document.querySelectorAll<HTMLElement>('.stat-counter');
+  let animated = false;
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
+        if (!animated) {
+          animated = true;
+          counters.forEach((el) => {
+            const raw = el.dataset.value || '';
+            const match = raw.match(/^(\d+)(.*)$/);
+            if (match) {
+              const targetNum = parseInt(match[1], 10);
+              const suffix = match[2];
+              let current = 0;
+              const stepTime = Math.max(25, Math.floor(1000 / targetNum));
+              const timer = setInterval(() => {
+                current += 1;
+                el.textContent = `${current}${suffix}`;
+                if (current >= targetNum) {
+                  clearInterval(timer);
+                  el.textContent = raw;
+                }
+              }, stepTime);
+            }
+          });
+        }
       }
     });
-  }, { threshold: 0.1 });
+  }, { threshold: 0.2 });
 
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 </script>

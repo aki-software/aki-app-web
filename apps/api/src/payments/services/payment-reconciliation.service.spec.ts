@@ -33,6 +33,7 @@ describe('PaymentReconciliationService', () => {
               voucherBatchId: 'batch-1',
               gateway: 'MERCADO_PAGO',
               state: 'READY',
+              createdAt: new Date(),
               voucherBatch: { status: 'PENDING' },
             },
           ],
@@ -117,8 +118,22 @@ describe('PaymentReconciliationService', () => {
     const { service, settlement } = createService({
       findPayment,
       attempts: [
-        { id: 'attempt-failed', voucherBatchId: 'batch-failed' },
-        { id: 'attempt-1', voucherBatchId: 'batch-1' },
+        {
+          id: 'attempt-failed',
+          voucherBatchId: 'batch-failed',
+          gateway: 'MERCADO_PAGO',
+          state: 'READY',
+          createdAt: new Date(),
+          voucherBatch: { status: 'PENDING' },
+        },
+        {
+          id: 'attempt-1',
+          voucherBatchId: 'batch-1',
+          gateway: 'MERCADO_PAGO',
+          state: 'READY',
+          createdAt: new Date(),
+          voucherBatch: { status: 'PENDING' },
+        },
       ],
     });
 
@@ -159,6 +174,88 @@ describe('PaymentReconciliationService', () => {
 
     expect(errorLogger).toHaveBeenCalledWith(
       'Mercado Pago startup reconciliation failed',
+      expect.any(String),
+    );
+    service.onModuleDestroy();
+    errorLogger.mockRestore();
+  });
+
+  it('runs periodic recovery without overlapping scans and clears its unrefed timer on destroy', async () => {
+    jest.useFakeTimers();
+    let resolveScan!: (attempts: object[]) => void;
+    const scan = new Promise<object[]>((resolve) => {
+      resolveScan = resolve;
+    });
+    const { service, repo } = createService({
+      find: jest.fn().mockReturnValueOnce(scan).mockResolvedValue([]),
+    });
+
+    service.onApplicationBootstrap();
+    await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
+
+    expect(repo.find).toHaveBeenCalledTimes(1);
+    resolveScan([]);
+    await scan;
+    await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
+    expect(repo.find).toHaveBeenCalledTimes(2);
+
+    service.onModuleDestroy();
+    await jest.advanceTimersByTimeAsync(10 * 60 * 1000);
+    expect(repo.find).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
+  it('single-flights and cools down reconciliation for an authorized unresolved attempt', async () => {
+    let resolvePayment!: (value: typeof approvedPayment) => void;
+    const findPayment = new Promise<typeof approvedPayment>((resolve) => {
+      resolvePayment = resolve;
+    });
+    const { service, adapter, settlement } = createService({
+      findPayment: jest.fn().mockReturnValue(findPayment),
+    });
+    const attempt = {
+      id: 'attempt-1',
+      gateway: 'MERCADO_PAGO',
+      state: 'READY',
+      createdAt: new Date(),
+      voucherBatchId: 'batch-1',
+      voucherBatch: { status: 'PENDING' },
+    };
+
+    const first = service.reconcileAuthorizedAttempt(attempt as never);
+    const second = service.reconcileAuthorizedAttempt(attempt as never);
+    expect(first).toBe(second);
+
+    resolvePayment(approvedPayment);
+    await first;
+    await service.reconcileAuthorizedAttempt(attempt as never);
+
+    expect(adapter.findPaymentByMerchantReference).toHaveBeenCalledTimes(1);
+    expect(settlement.settleVerifiedPayment).toHaveBeenCalledTimes(1);
+  });
+
+  it('contains provider failures for a single authorized reconciliation attempt', async () => {
+    const errorLogger = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+    const { service, settlement } = createService({
+      findPayment: jest.fn().mockRejectedValue(new Error('provider timeout')),
+    });
+
+    await expect(
+      service.reconcileAuthorizedAttempt({
+        id: 'attempt-1',
+        gateway: 'MERCADO_PAGO',
+        state: 'OUTCOME_UNKNOWN',
+        createdAt: new Date(),
+        voucherBatchId: 'batch-1',
+        voucherBatch: { status: 'PENDING' },
+      } as never),
+    ).resolves.toBeUndefined();
+
+    expect(settlement.settleVerifiedPayment).not.toHaveBeenCalled();
+    expect(errorLogger).toHaveBeenCalledWith(
+      'Mercado Pago reconciliation failed for checkout attempt attempt-1',
       expect.any(String),
     );
     errorLogger.mockRestore();

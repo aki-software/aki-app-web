@@ -61,12 +61,12 @@ export const translations = {
       subtitle: 'Descubrí cómo Orient A.KI transforma la orientación ocupacional.',
       tabs: { student: 'Para Estudiantes', institution: 'Para Instituciones' },
       studentSteps: [
-        { title: 'Clasificá imágenes', desc: 'Pasá las imágenes de actividades hacia la derecha si te interesan o hacia la izquierda para descartarlas. Cada swipe refleja tus intereses espontáneos sin filtros.' },
+        { title: 'Clasificá imágenes', desc: 'Elegís las imágenes que te gustan deslizando hacia la derecha o clickeando la tilde (<strong class="text-confirm font-bold text-base">✓</strong>), y descartás las que no te interesan deslizando a la izquierda o clickeando la equis (<strong class="text-destructive font-bold text-base">×</strong>).' },
         { title: 'Descubrí tu perfil', desc: 'El sistema analiza tus elecciones y calcula tu perfil ocupacional con las áreas que más se alinean a tus preferencias.' },
         { title: 'Obtené tu reporte', desc: 'Accedé a un PDF detallado con recomendaciones de carreras y ocupaciones basado en tus afinidades reales.' },
       ],
       institutionSteps: [
-        { title: 'Solicitá acceso', desc: 'Obtené tu cuenta para el Dashboard Institucional de Orient A.KI.' },
+        { title: 'Solicitá acceso', desc: 'Obtené tu cuenta para acceder a la plataforma institucional de Orient A.KI.' },
         { title: 'Generá vouchers', desc: 'Creá códigos únicos para que tus estudiantes accedan al reporte completo sin costo para ellos.' },
         { title: 'Monitoreá en vivo', desc: 'Accedé a analíticas de grupo en tiempo real y descargá reportes detallados en un clic.' },
       ],
@@ -84,9 +84,9 @@ export const translations = {
     },
     institutions: {
       badge: 'Para instituciones',
-      title: '¿Trabajás en una escuela\no sos orientador?',
-      desc: 'Gestioná grupos de estudiantes, generá vouchers y accedé a analytics en tiempo real. Todo desde un dashboard intuitivo.',
-      features: ['Gestión de grupos y sesiones masivas', 'Dashboard con analytics por institución', 'Vouchers y reportes personalizados'],
+      title: 'Si trabajás en una institución formativa\no sos orientador...',
+      desc: 'Gestioná a tus estudiantes o consultantes, enviales pases de acceso y revisá sus resultados al instante. Todo desde una plataforma simple y fácil de usar.',
+      features: ['Gestión de grupos y sesiones masivas', 'Panel de métricas institucionales en tiempo real', 'Vouchers y reportes personalizados'],
       cta: 'Solicitar una demo',
       form: { name: 'Nombre', email: 'Email', institution: 'Institución / Organización', submit: 'Solicitar demo', success: 'Gracias por tu interés. Te vamos a contactar a la brevedad.' },
       dashboard: 'Dashboard',
@@ -96,9 +96,10 @@ export const translations = {
     pricing: {
       title: 'Planes Institucionales',
       subtitle: 'Llevá la orientación ocupacional a tu colegio o consultorio.',
-      demo: { badge: 'Demo', label: 'Orient A.KI Demo', desc: 'Para probar la plataforma', features: ['Acceso al Dashboard Web', '3 vouchers gratis', 'Analíticas básicas', 'Soporte por email'], cta: 'Solicitar Demo' },
-      basic: { badge: '25', label: 'Orient A.KI 25', price: 'A convenir', desc: 'Para colegios y orientadores', features: ['25 vouchers', 'Dashboard completo', 'Analíticas detalladas', 'Soporte prioritario'], cta: 'Quiero 25 vouchers' },
-      pro: { badge: '50', label: 'Orient A.KI 50', price: 'A convenir', desc: 'Para instituciones y distritos', features: ['50 vouchers', 'Dashboard completo', 'Analíticas de cohortes', 'Soporte dedicado + onboarding'], cta: 'Quiero 50 vouchers' },
+      demo: { badge: 'Demo', label: 'Plan de Prueba', price: 'Consultar', desc: 'Comunicate con nosotros para conocer la plataforma.', features: ['Acceso guiado al Dashboard', 'Demostración de analíticas', 'Evaluación de viabilidad'], cta: 'Consultar por Demo' },
+      basic: { badge: '25', label: 'Plan <span class="font-display font-black text-secondary text-2xl">Δ</span>-AKI', price: 'Consultar', desc: 'Ideal para grupos pequeños y orientadores independientes.', features: ['25 vouchers de acceso', 'Dashboard completo', 'Analíticas detalladas', 'Soporte prioritario'], cta: 'Consultar Plan Δ-AKI' },
+      pro: { badge: '50', label: 'Plan <span class="font-display font-black text-primary text-2xl">Σ</span>-AKI', price: 'Consultar', desc: 'Pensado para instituciones y colegios medianos.', features: ['50 vouchers de acceso', 'Dashboard completo', 'Analíticas de cohortes', 'Soporte dedicado'], cta: 'Consultar Plan Σ-AKI' },
+      enterprise: { badge: '1000', label: 'Plan <span class="font-display font-black text-text text-2xl">Π</span>-AKI', price: 'Consultar', desc: 'Licencia anual para distritos o grandes instituciones.', features: ['1000 vouchers durante 1 año', 'Acceso irrestricto al Dashboard', 'Reportes de impacto', 'Onboarding institucional'], cta: 'Consultar Plan Π-AKI' },
     },
     faq: {
       title: 'Preguntas frecuentes',
@@ -140,11 +141,32 @@ export const translations = {
     socialProof: {
       badge: 'TEST OCUPACIONAL',
       title: 'Lo que dicen quienes ya lo probaron',
+      metric: {
+        value: 100,
+        title: '100% de recomendación',
+        subtitle: 'De los usuarios consultados recomendaría ORIENTA.KI a otra persona',
+      },
+      attributes: [
+        { label: 'Resultados fieles a tu personalidad', percentage: 94.1 },
+        { label: 'Fácil de usar e intuitiva', percentage: 100 },
+        { label: 'Práctica y sin vueltas', percentage: 64.7 },
+      ],
       testimonials: [
-        { quote: 'No te da muchas vueltas: es directa, dinámica y te da un panorama claro sin cuestionarios eternos.', author: 'Julieta', role: 'Estudiante, 17 años' },
-        { quote: 'Poder elegir imágenes libremente y sin prejuicios de profesiones ya establecidas hace que el test sea ágil y entretenido.', author: 'Martín', role: 'Joven profesional, 26 años' },
-        { quote: 'El sistema visual de swipe es súper intuitivo y lleva muy poco tiempo. Te da exactamente lo que necesitás.', author: 'Tomás', role: 'Profesional, 32 años' },
-        { quote: 'La facilidad para utilizar la app y la precisión de los resultados ayudan un montón a pensar el siguiente paso.', author: 'Carolina', role: 'Estudiante de secundaria' },
+        {
+          quote: 'Me encantó poder elegir imágenes sin los sesgos de las profesiones de siempre. Te conecta con tus intereses reales y no con un mandato o una etiqueta preestablecida.',
+          author: 'Estudiante / Usuario ORIENTA.KI',
+          role: 'Encuesta de validación',
+        },
+        {
+          quote: 'El informe final es súper preciso y detallado. No te tira generalidades: te da exactamente la claridad que necesitás para orientarte.',
+          author: 'Usuario ORIENTA.KI',
+          role: 'Encuesta de validación',
+        },
+        {
+          quote: 'La dinámica de swipe es genial. Es directa, no te da mil vueltas como los tests eternos y en pocos minutos tenés un resultado claro.',
+          author: 'Usuario ORIENTA.KI',
+          role: 'Encuesta de validación',
+        },
       ],
     },
     langSwitch: 'EN',
@@ -211,12 +233,12 @@ export const translations = {
       subtitle: 'Discover how A.ki transforms occupational guidance.',
       tabs: { student: 'For Students', institution: 'For Institutions' },
       studentSteps: [
-        { title: 'Swipe images', desc: 'Swipe right if an activity interests you, or left to skip. Spontaneous choices reflect genuine interests.' },
+        { title: 'Swipe images', desc: 'Choose the images you like by swiping right or clicking the checkmark (<strong class="text-confirm font-bold text-base">✓</strong>), and discard the ones you don\'t by swiping left or clicking the cross (<strong class="text-destructive font-bold text-base">×</strong>).' },
         { title: 'Discover your profile', desc: 'The system analyzes your choices and calculates your occupational profile based on aligned areas.' },
         { title: 'Get your report', desc: 'Receive a detailed PDF report with career and occupation recommendations based on real affinities.' },
       ],
       institutionSteps: [
-        { title: 'Request access', desc: 'Get your account for the custom A.ki Institutional Dashboard.' },
+        { title: 'Request access', desc: 'Get your account for the custom A.ki institutional platform.' },
         { title: 'Generate vouchers', desc: 'Create unique codes so your students can access the full report at no individual cost.' },
         { title: 'Monitor in real-time', desc: 'Access group analytics instantly and download detailed reports in one click.' },
       ],
@@ -234,9 +256,9 @@ export const translations = {
     },
     institutions: {
       badge: 'For institutions',
-      title: 'Do you work at a school\nor are you an advisor?',
-      desc: 'Manage student groups, generate vouchers and access real-time analytics. All from an intuitive dashboard.',
-      features: ['Group and mass session management', 'Per-institution analytics dashboard', 'Custom vouchers and reports'],
+      title: 'If you work at an educational institution\nor are a counselor...',
+      desc: 'Manage your students or clients, send them access passes, and review their results instantly. All from a simple and easy-to-use platform.',
+      features: ['Group and mass session management', 'Real-time institutional metrics dashboard', 'Custom vouchers and reports'],
       cta: 'Request a demo',
       form: { name: 'Name', email: 'Email', institution: 'Institution / Organization', submit: 'Request Demo', success: 'Thanks for your interest. We will contact you shortly.' },
       dashboard: 'Dashboard',
@@ -246,9 +268,10 @@ export const translations = {
     pricing: {
       title: 'Institutional Plans',
       subtitle: 'Bring occupational guidance to your school or private practice.',
-      demo: { badge: 'Demo', label: 'Orient A.KI Demo', desc: 'Try the platform', features: ['Web Dashboard Access', '3 free vouchers', 'Basic analytics', 'Email support'], cta: 'Request Demo' },
-      basic: { badge: '25', label: 'Orient A.KI 25', price: 'Custom', desc: 'For schools and counselors', features: ['25 vouchers', 'Full dashboard', 'Detailed analytics', 'Priority support'], cta: 'I want 25 vouchers' },
-      pro: { badge: '50', label: 'Orient A.KI 50', price: 'Custom', desc: 'For institutions and districts', features: ['50 vouchers', 'Full dashboard', 'Cohort analytics', 'Dedicated support + onboarding'], cta: 'I want 50 vouchers' },
+      demo: { badge: 'Demo', label: 'Trial Plan', price: 'Contact Us', desc: 'Try the platform', features: ['Guided Dashboard access', 'Analytics demonstration', 'Feasibility evaluation'], cta: 'Contact for Demo' },
+      basic: { badge: '25', label: 'Δ-AKI Plan', price: 'Contact Us', desc: 'Ideal for small groups and independent counselors.', features: ['25 access vouchers', 'Full dashboard', 'Detailed analytics', 'Priority support'], cta: 'Inquire Δ-AKI Plan' },
+      pro: { badge: '50', label: 'Σ-AKI Plan', price: 'Contact Us', desc: 'Designed for institutions and mid-sized schools.', features: ['50 access vouchers', 'Full dashboard', 'Cohort analytics', 'Dedicated support'], cta: 'Inquire Σ-AKI Plan' },
+      enterprise: { badge: '1000', label: 'Π-AKI Plan', price: 'Contact Us', desc: 'Annual license for districts or large schools.', features: ['1000 vouchers for 1 year', 'Unrestricted Dashboard access', 'Impact reports', 'Institutional onboarding'], cta: 'Inquire Π-AKI Plan' },
     },
     faq: {
       title: 'Frequently asked questions',
@@ -290,11 +313,32 @@ export const translations = {
     socialProof: {
       badge: 'OCCUPATIONAL TEST',
       title: 'What early testers are saying',
+      metric: {
+        value: 100,
+        title: '100% recommendation',
+        subtitle: 'Of surveyed users would recommend ORIENTA.KI to someone else',
+      },
+      attributes: [
+        { label: 'Results true to your personality', percentage: 94.1 },
+        { label: 'Easy to use and intuitive', percentage: 100 },
+        { label: 'Practical and straightforward', percentage: 64.7 },
+      ],
       testimonials: [
-        { quote: 'No endless questionnaires: it is straightforward, dynamic, and gives you clear insights in minutes.', author: 'Student (16-18 y/o)', role: 'User Evaluation' },
-        { quote: 'Choosing images freely without preset career biases makes the test intuitive and engaging.', author: 'User (25-30 y/o)', role: 'User Evaluation' },
-        { quote: 'The swipe format is clear and takes very little time. It gives you exactly what you need.', author: 'User (31-35 y/o)', role: 'User Evaluation' },
-        { quote: 'Easy to use and gives accurate results to plan your next educational or occupational steps.', author: 'High School Student', role: 'User Evaluation' },
+        {
+          quote: 'I loved being able to choose images without the bias of traditional professions. It connects you with your real interests, not with a pre-established mandate or label.',
+          author: 'Student / ORIENTA.KI User',
+          role: 'Validation Survey',
+        },
+        {
+          quote: 'The final report is super precise and detailed. It doesn’t give you generalities: it gives you exactly the clarity you need to find your direction.',
+          author: 'ORIENTA.KI User',
+          role: 'Validation Survey',
+        },
+        {
+          quote: 'The swipe dynamics are great. It is direct, doesn’t beat around the bush like never-ending tests, and in a few minutes you get a clear result.',
+          author: 'ORIENTA.KI User',
+          role: 'Validation Survey',
+        },
       ],
     },
     langSwitch: 'ES',

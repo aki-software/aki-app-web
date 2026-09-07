@@ -1,5 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { Job } from 'bullmq';
 import { DataSource } from 'typeorm';
@@ -11,6 +11,11 @@ import {
 import { VoucherBatchStatus } from '../../vouchers/entities/voucher.enums.js';
 import { VoucherCodeGenerator } from '../../vouchers/services/voucher-code-generator.service.js';
 import { PaymentFulfillmentOutbox } from '../entities/payment-fulfillment-outbox.entity.js';
+import { PaymentNotificationIntentService } from './payment-notification-intent.service.js';
+import {
+  PAYMENT_NOTIFICATION_DISPATCHER,
+  type PaymentNotificationDispatcher,
+} from './payment-notification-dispatcher.service.js';
 import {
   VOUCHER_FULFILLMENT_QUEUE,
   type VoucherFulfillmentJobPayload,
@@ -19,6 +24,8 @@ import {
 @Processor(VOUCHER_FULFILLMENT_QUEUE)
 @Injectable()
 export class VoucherFulfillmentProcessor extends WorkerHost {
+  private readonly logger = new Logger(VoucherFulfillmentProcessor.name);
+
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     @Inject(VoucherCodeGenerator)
@@ -26,6 +33,13 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
       VoucherCodeGenerator,
       'generateUniqueCode'
     >,
+    @Inject(PaymentNotificationIntentService)
+    private readonly paymentNotificationIntents: Pick<
+      PaymentNotificationIntentService,
+      'createForFirstFulfillment'
+    >,
+    @Inject(PAYMENT_NOTIFICATION_DISPATCHER)
+    private readonly paymentNotificationDispatcher: PaymentNotificationDispatcher,
   ) {
     super();
   }
@@ -33,12 +47,14 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
   async process(
     job: Pick<Job<VoucherFulfillmentJobPayload>, 'data'>,
   ): Promise<void> {
+    this.logger.debug(`stage=processing_started outboxId=${job.data.outboxId}`);
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     let batch: VoucherBatch | null | undefined;
     let outbox: PaymentFulfillmentOutbox | null | undefined;
+    let notificationDeliveryIds: string[] = [];
     try {
       outbox = await queryRunner.manager.findOne(PaymentFulfillmentOutbox, {
         where: { id: job.data.outboxId },
@@ -49,6 +65,9 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
       });
       if (!outbox || outbox.processedAt) {
         await queryRunner.rollbackTransaction();
+        this.logger.debug(
+          `stage=processing_idempotent_noop outboxId=${job.data.outboxId}`,
+        );
         return;
       }
 
@@ -63,6 +82,9 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
         outbox.processedAt = new Date();
         await queryRunner.manager.save(PaymentFulfillmentOutbox, outbox);
         await queryRunner.commitTransaction();
+        this.logger.log(
+          `stage=processing_completed outboxId=${job.data.outboxId}`,
+        );
         return;
       }
 
@@ -95,19 +117,40 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
       if (vouchers.length > 0) {
         await queryRunner.manager.save(Voucher, vouchers);
       }
-      batch.fulfilledAt = new Date();
-      outbox.processedAt = new Date();
+      const fulfilledAt = new Date();
+      notificationDeliveryIds =
+        await this.paymentNotificationIntents.createForFirstFulfillment(
+          queryRunner.manager,
+          batch,
+          fulfilledAt,
+        );
+      batch.fulfilledAt = fulfilledAt;
+      outbox.processedAt = fulfilledAt;
       await queryRunner.manager.save(VoucherBatch, batch);
       await queryRunner.manager.save(PaymentFulfillmentOutbox, outbox);
       await queryRunner.commitTransaction();
+      this.logger.log(
+        `stage=processing_completed outboxId=${job.data.outboxId}`,
+      );
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      this.logger.error(
+        `stage=processing_rolled_back outboxId=${job.data.outboxId}`,
+      );
       if (batch) batch.fulfilledAt = null;
       if (outbox) outbox.processedAt = null;
       throw error;
     } finally {
       if (!queryRunner.isReleased) await queryRunner.release();
     }
+
+    await Promise.allSettled(
+      notificationDeliveryIds.map((deliveryId) =>
+        Promise.resolve().then(() =>
+          this.paymentNotificationDispatcher.dispatchAfterCommit(deliveryId),
+        ),
+      ),
+    );
   }
 
   async handleCompatibilityPaymentCompleted(): Promise<void> {

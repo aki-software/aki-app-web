@@ -12,19 +12,34 @@ import { ActivityFeed } from "../components/overview/ActivityFeed";
 import { OverviewHighlights } from "../components/overview/OverviewHighlights";
 import { QuickActions } from "../components/overview/QuickActions";
 import { SessionsChart } from "../components/SessionsChart";
-import { HealthBar } from "../components/admin/HealthBar";
+import { PlatformDashboardSummary } from "../components/admin/PlatformDashboardSummary";
 import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 import { useAdminDashboardStats } from "../hooks/useAdminDashboardStats";
+import { usePurchaseSummary, type PurchaseSummaryPeriod } from "../hooks/usePurchaseSummary";
 import { fetchTriageSessions } from "../api/sessions.api";
 
 function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
   const { stats: adminStats, loading, periodDays, setPeriodDays } = useAdminDashboardStats();
-  const [triageCount, setTriageCount] = useState(0);
+  const [triageCount, setTriageCount] = useState<number | null>(null);
+  const isPurchasePeriod = [7, 30, 90].includes(periodDays);
+  const purchaseSummary = usePurchaseSummary(
+    periodDays as PurchaseSummaryPeriod,
+    isPurchasePeriod,
+  );
 
   useEffect(() => {
-    fetchTriageSessions({ limit: 1 }).then((res) => {
-      setTriageCount(res.meta.total);
-    });
+    let active = true;
+    void fetchTriageSessions({ limit: 1 }).then(
+      (res) => {
+        if (active) setTriageCount(res.meta.total);
+      },
+      () => {
+        if (active) setTriageCount(null);
+      },
+    );
+    return () => {
+      active = false;
+    };
   }, []);
 
   const sessionsSummary = useMemo(() => {
@@ -37,11 +52,7 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
     const factor = Math.pow(10, DECIMALS);
     const dailyAverage = Math.round((totalStarted / daysCount) * factor) / factor;
     
-    const peakDay = adminStats.sessionsActivity.reduce((best, item) => {
-      return item.count > best.count ? item : best;
-    }, adminStats.sessionsActivity[0]);
-
-    return { totalStarted, dailyAverage, peakDay };
+    return { totalStarted, dailyAverage };
   }, [adminStats]);
 
   if (loading) {
@@ -83,14 +94,26 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
         </div>
       </div>
 
-      {/* Centro de Mando: HealthBar */}
-      <HealthBar
-        completionRate={displayStats.completionRate}
-        alertsCount={displayStats.alerts.length}
-        triageCount={triageCount}
-      />
+          <PlatformDashboardSummary
+            purchaseData={purchaseSummary.data?.scope === "PLATFORM" ? purchaseSummary.data : null}
+            purchaseLoading={purchaseSummary.loading}
+            purchaseError={purchaseSummary.error}
+            onRetry={purchaseSummary.retry}
+            triageCount={triageCount}
+            institutionAlertsCount={displayStats.alerts.length}
+          />
 
-      <OverviewHighlights {...displayStats} />
+          <section
+            aria-labelledby="operational-detail-heading"
+            className="rounded-2xl border border-app-border bg-app-surface/50"
+          >
+            <h3 id="operational-detail-heading" className="px-5 py-3 text-sm font-bold text-app-text-main">
+              Detalle operativo de vouchers y canales
+            </h3>
+            <div className="border-t border-app-border p-4 sm:p-6">
+              <OverviewHighlights {...displayStats} />
+            </div>
+          </section>
       <div className="grid grid-cols-1 gap-6 xl:gap-8">
         {isAdmin && adminStats ? (
           <DashboardWidget
@@ -100,18 +123,24 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
           >
             {sessionsSummary && (
               <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-                <StatCard label="Total del periodo" value={sessionsSummary.totalStarted} />
+                <StatCard label="Total del período" value={sessionsSummary.totalStarted} />
                 <StatCard label="Promedio diario" value={sessionsSummary.dailyAverage} />
                 <StatCard
-                  label="Pico de actividad"
-                  value={`${sessionsSummary.peakDay.count} evaluaciones`}
-                  description={`Registradas el ${sessionsSummary.peakDay.date}`}
+                  label="Tasa de finalización"
+                  value={`${displayStats.completionRate}%`}
                 />
               </div>
             )}
-            <div className="h-[220px] sm:h-[260px] xl:h-[300px]">
-              <SessionsChart data={adminStats.sessionsActivity} />
-            </div>
+                {adminStats.sessionsActivity.length > 0 ? (
+                  <div className="h-[220px] sm:h-[260px] xl:h-[300px]">
+                    <SessionsChart data={adminStats.sessionsActivity} />
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="Sin sesiones en el período"
+                    description="No hay actividad de sesiones para mostrar en el período seleccionado."
+                  />
+                )}
           </DashboardWidget>
         ) : (
           <div className="col-span-full app-card !p-1 bg-app-surface/70 border-dashed">

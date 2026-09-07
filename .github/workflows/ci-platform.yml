@@ -2,37 +2,68 @@ name: Platform CI
 
 on:
   push:
-    branches: [main, dev, "feat/*"]
+    branches: [main, dev, "feat/*", "fix/*", "chore/*"]
   pull_request:
     branches: [main, dev]
   workflow_dispatch:
 
 jobs:
-  verify:
-    name: Verify Platform
+  # ── Detect which apps changed ─────────────────────────────────────
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
-
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+      site: ${{ steps.filter.outputs.site }}
+      contracts: ${{ steps.filter.outputs.contracts }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/contracts/**'
+              - 'packages/design-tokens/**'
+              - 'pnpm-lock.yaml'
+            web:
+              - 'apps/web/**'
+              - 'packages/contracts/**'
+              - 'packages/design-tokens/**'
+              - 'pnpm-lock.yaml'
+            site:
+              - 'apps/site/**'
+              - 'pnpm-lock.yaml'
+            contracts:
+              - 'packages/contracts/**'
+
+  # ── Shared setup step (reused by all app jobs) ────────────────────
+  setup:
+    name: Install & Cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
         with:
           run_install: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Setup Turbo Cache
+      - name: Cache Turbo
         uses: actions/cache@v4
         with:
           path: .turbo
@@ -40,20 +71,131 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - name: Lint
-        run: pnpm turbo run lint --cache-dir=".turbo"
+  # ── API: lint + test + build ──────────────────────────────────────
+  verify-api:
+    name: Verify API
+    needs: [changes, setup]
+    if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Build shared contracts for web tests
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Build contracts
         run: pnpm --filter @akit/contracts build
 
-      - name: Payment MVP tests
+      - name: Lint API
+        run: pnpm turbo run lint --filter=api --cache-dir=".turbo"
+
+      - name: Test API (payments foundation)
         run: >-
           pnpm --filter api test -- --runInBand
           src/payments/payments-security.foundation.spec.ts
           src/payments/services/checkout.service.spec.ts
           src/payments/services/webhook-processor.service.spec.ts
-          && pnpm --filter web test --
+
+      - name: Build API
+        run: pnpm turbo run build --filter=api --cache-dir=".turbo"
+
+  # ── Web: lint + test + build ──────────────────────────────────────
+  verify-web:
+    name: Verify Web
+    needs: [changes, setup]
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Build contracts
+        run: pnpm --filter @akit/contracts build
+
+      - name: Lint Web
+        run: pnpm turbo run lint --filter=web --cache-dir=".turbo"
+
+      - name: Test Web (billing)
+        run: >-
+          pnpm --filter web test --
           src/features/billing/pages/__tests__/BillingDashboard.test.tsx
 
-      - name: Build
-        run: pnpm turbo run build --cache-dir=".turbo"
+      - name: Build Web
+        run: pnpm turbo run build --filter=web --cache-dir=".turbo"
+
+  # ── Site: lint + build ────────────────────────────────────────────
+  verify-site:
+    name: Verify Site
+    needs: [changes, setup]
+    if: needs.changes.outputs.site == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Lint Site
+        run: pnpm turbo run lint --filter=@akit/site --cache-dir=".turbo"
+
+      - name: Build Site
+        run: pnpm turbo run build --filter=@akit/site --cache-dir=".turbo"

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { DashboardOverview } from "../DashboardOverview";
+import { InstitutionDashboardOverview } from "../InstitutionDashboardOverview";
 
 // Mock lucide-react with importOriginal to preserve all exports
 vi.mock("lucide-react", async (importOriginal) => {
@@ -28,6 +29,17 @@ vi.mock("../../../auth/hooks/useAuth", () => ({
 const mockUseAdminStats = vi.fn();
 vi.mock("../../hooks/useAdminDashboardStats", () => ({
   useAdminDashboardStats: () => mockUseAdminStats(),
+}));
+
+const mockInstitutionOverview = vi.fn();
+vi.mock("../../hooks/useInstitutionOverviewManager", () => ({
+  LOW_STOCK_ALERT_THRESHOLD: 3,
+  useInstitutionOverviewManager: () => mockInstitutionOverview(),
+}));
+
+const mockPurchaseSummary = vi.fn();
+vi.mock("../../hooks/usePurchaseSummary", () => ({
+  usePurchaseSummary: (...args: unknown[]) => mockPurchaseSummary(...args),
 }));
 
 // Mock dashboard.ts (re-exports everything) and sessions.api
@@ -126,6 +138,21 @@ describe("DashboardOverview", () => {
       data: [],
       meta: { total: 5, page: 1, limit: 1, flaggedCount: 3 },
     });
+    mockPurchaseSummary.mockReturnValue({
+      data: {
+        scope: "PLATFORM",
+        generatedAt: "2026-03-10T00:00:00.000Z",
+        currentWindow: { from: "2026-03-03T00:00:00.000Z", to: "2026-03-10T00:00:00.000Z", days: 7 },
+        priorWindow: { from: "2026-02-24T00:00:00.000Z", to: "2026-03-03T00:00:00.000Z", days: 7 },
+        current: { accreditedPurchaseCount: 1, accreditedVoucherCount: 10, purchasingInstitutionCount: 1, accreditedAmountByCurrency: [{ currency: "USD", amount: "25.00" }] },
+        prior: { accreditedPurchaseCount: 0, accreditedVoucherCount: 0, purchasingInstitutionCount: 0, accreditedAmountByCurrency: [] },
+        alerts: { paidButNotFulfilledCount: 0, notificationAttentionCount: 0 },
+        latestAccreditation: null,
+      },
+      loading: false,
+      error: null,
+      retry: vi.fn(),
+    });
   });
 
   describe("AdminDashboardOverview (admin role)", () => {
@@ -141,22 +168,82 @@ describe("DashboardOverview", () => {
       });
     });
 
-    it("renders HealthBar with completion rate, alerts, and triage indicators", async () => {
-      renderWithRouter(<DashboardOverview />);
-      expect(screen.getByText("Tasa de finalización")).toBeDefined();
-      expect(screen.getByText("Instituciones con alertas")).toBeDefined();
-      expect(screen.getByText("Sesiones pendientes de revisión")).toBeDefined();
+    describe("InstitutionDashboardOverview", () => {
+      const institutionState = {
+        loading: false,
+        overview: { topSessions: [], resultsDistribution: [] },
+        voucherStats: { available: 9, total: 12, vouchersRedeemedPeriod: 2, voucherRedemptionRatePeriod: 20, vouchersUnassignedAvailable: 3, vouchersExpiringSoon7d: 1 },
+        testsStats: { testsStartedPeriod: 0, testsCompletedPeriod: 0, reportsUnlockedPeriod: 0 },
+        showLowStockAlert: false,
+        handleDismissAlert: vi.fn(),
+        periodDays: 7,
+        setPeriodDays: vi.fn(),
+      };
+      const purchaseData = {
+        scope: "INSTITUTION" as const, institutionName: "A.kit", generatedAt: "2026-03-10T00:00:00.000Z",
+        currentWindow: { from: "2026-03-03T00:00:00.000Z", to: "2026-03-10T00:00:00.000Z", days: 7 as const },
+        priorWindow: { from: "2026-02-24T00:00:00.000Z", to: "2026-03-03T00:00:00.000Z", days: 7 as const },
+        current: { accreditedPurchaseCount: 1, accreditedVoucherCount: 12, accreditedAmountByCurrency: [] },
+        prior: { accreditedPurchaseCount: 0, accreditedVoucherCount: 0, accreditedAmountByCurrency: [] },
+        alerts: { paidButNotFulfilledCount: 1, notificationAttentionCount: 1 }, latestAccreditation: null,
+      };
+
+      it("shows exactly four primary voucher metrics for institution admins without an unsafe prior-zero comparison", () => {
+        mockUseAuth.mockReturnValue({ user: { role: "INSTITUTION_ADMIN", institutionId: "inst-1", name: "A.kit" } });
+        mockInstitutionOverview.mockReturnValue(institutionState);
+        mockPurchaseSummary.mockReturnValue({ data: purchaseData, loading: false, error: null, retry: vi.fn() });
+        renderWithRouter(<InstitutionDashboardOverview />);
+        expect(screen.getByText("Acreditados")).toBeDefined();
+        expect(screen.getAllByText(/Sin asignar/)).toHaveLength(1);
+        expect(screen.queryByText(/respecto del período anterior/)).toBeNull();
+        expect(screen.getByText("Última compra acreditada")).toBeDefined();
+      });
+
+      it("keeps therapist inventory behavior and never enables the purchase summary", () => {
+        mockUseAuth.mockReturnValue({ user: { role: "THERAPIST", institutionId: "inst-1", name: "Terapeuta" } });
+        mockInstitutionOverview.mockReturnValue(institutionState);
+        mockPurchaseSummary.mockReturnValue({ data: null, loading: false, error: null, retry: vi.fn() });
+        renderWithRouter(<InstitutionDashboardOverview />);
+        expect(screen.getByText("Sin asignar")).toBeDefined();
+        expect(screen.queryByText("Acreditados")).toBeNull();
+        expect(mockPurchaseSummary).toHaveBeenLastCalledWith(7, false);
+      });
     });
 
-    it("renders SessionsChart section with period summary", async () => {
+    it("enables the platform purchase summary and replaces the HealthBar", async () => {
+      renderWithRouter(<DashboardOverview />);
+      expect(screen.getByText("Vouchers acreditados")).toBeDefined();
+      expect(screen.getByText("Instituciones compradoras")).toBeDefined();
+      expect(screen.queryByText("Instituciones con alertas")).toBeNull();
+      expect(mockPurchaseSummary).toHaveBeenLastCalledWith(7, true);
+    });
+
+        it("shows triage success and unavailable state when the triage request fails", async () => {
+          const { unmount } = renderWithRouter(<DashboardOverview />);
+          await waitFor(() => expect(screen.getByText("5")).toBeDefined());
+          unmount();
+
+          mockFetchTriageSessions.mockRejectedValueOnce(new Error("offline"));
+          renderWithRouter(<DashboardOverview />);
+          await waitFor(() => expect(screen.getByText("Datos de sesiones no disponibles.")).toBeDefined());
+        });
+
+        it("renders SessionsChart section with period summary", async () => {
       renderWithRouter(<DashboardOverview />);
       expect(screen.getByText("Volumen de Evaluaciones Diarias")).toBeDefined();
-      expect(screen.getByText("Total del periodo")).toBeDefined();
+      expect(screen.getByText("Total del período")).toBeDefined();
       expect(screen.getByText("Promedio diario")).toBeDefined();
-      expect(screen.getByText("Pico de actividad")).toBeDefined();
+      expect(screen.getByText("Tasa de finalización")).toBeDefined();
     });
 
-    it("renders QuickActions and ActivityFeed", async () => {
+        it("keeps operational details permanently visible in a labelled section", () => {
+          const { container } = renderWithRouter(<DashboardOverview />);
+          expect(screen.getByRole("heading", { name: "Detalle operativo de vouchers y canales" })).toBeDefined();
+          expect(container.querySelector("details")).toBeNull();
+          expect(screen.getByText("Vouchers generados")).toBeDefined();
+        });
+
+        it("renders QuickActions and ActivityFeed", async () => {
       renderWithRouter(<DashboardOverview />);
       expect(screen.getByText("Centro de operación")).toBeDefined();
       expect(screen.getByText("Emitir lotes")).toBeDefined();

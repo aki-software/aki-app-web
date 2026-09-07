@@ -18,44 +18,41 @@ services:
     startCommand: pnpm --filter api run start:prod
     envVars:
       - key: PUPPETEER_CACHE_DIR
-        value: /opt/render/project/puppeteer
+        sync: false
       - key: PUPPETEER_EXECUTABLE_PATH
         sync: false
       - key: S3_ENDPOINT
         sync: false
       - key: S3_BUCKET
-        value: akit-private-reports
+        sync: false
       - key: S3_REGION
-        value: auto
+        sync: false
       - key: S3_ACCESS_KEY
         sync: false
       - key: S3_SECRET_KEY
         sync: false
       - key: NODE_ENV
-        value: production
-      # Variables de Base de Datos (Neon)
+        sync: false
       - key: DATABASE_HOST
         sync: false
       - key: DATABASE_PORT
-        value: "5432"
+        sync: false
       - key: DATABASE_USER
         sync: false
       - key: DATABASE_PASSWORD
         sync: false
       - key: DATABASE_NAME
         sync: false
-      # Variables JWT
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRATION
-        value: 8h
+        sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
-      # Mercado Pago staging payments
       - key: PAYMENT_GATEWAY
-        value: MERCADO_PAGO
+        sync: false
       - key: PAYMENT_SIMULATION
-        value: "false"
+        sync: false
       - key: PAYMENT_IDEMPOTENCY_SECRET
         sync: false
       - key: MP_ACCESS_TOKEN
@@ -66,26 +63,22 @@ services:
         sync: false
       - key: API_URL
         sync: false
-      # Variables de Redis (Upstash)
       - key: REDIS_URL
         sync: false
-      # Variables de Email
       - key: MAIL_TRANSPORT_TYPE
-        value: pro
+        sync: false
       - key: MAIL_PRO_HOST
         sync: false
       - key: MAIL_PRO_PORT
-        value: "465"
+        sync: false
       - key: MAIL_PRO_USER
         sync: false
       - key: MAIL_PRO_PASS
         sync: false
       - key: SMTP_FROM
-        value: akituvocacion@akituespacio.com.ar
-      # CORS
+        sync: false
       - key: CORS_ORIGIN
         sync: false
-      # Auth Inicial (Semillas)
       - key: ADMIN_USER
         sync: false
       - key: ADMIN_PASS
@@ -112,59 +105,67 @@ services:
     startCommand: pnpm --filter api run start:prod
     envVars:
       - key: PUPPETEER_CACHE_DIR
-        value: /opt/render/project/puppeteer
+        sync: false
       - key: PUPPETEER_EXECUTABLE_PATH
         sync: false
       - key: S3_ENDPOINT
         sync: false
       - key: S3_BUCKET
-        value: akit-private-reports
+        sync: false
       - key: S3_REGION
-        value: auto
+        sync: false
       - key: S3_ACCESS_KEY
         sync: false
       - key: S3_SECRET_KEY
         sync: false
       - key: NODE_ENV
-        value: production
-      # Variables de Base de Datos (Neon)
+        sync: false
       - key: DATABASE_HOST
         sync: false
       - key: DATABASE_PORT
-        value: "5432"
+        sync: false
       - key: DATABASE_USER
         sync: false
       - key: DATABASE_PASSWORD
         sync: false
       - key: DATABASE_NAME
         sync: false
-      # Variables JWT
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRATION
-        value: 8h
+        sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
-      # Variables de Redis (Upstash)
+      - key: PAYMENT_GATEWAY
+        sync: false
+      - key: PAYMENT_SIMULATION
+        sync: false
+      - key: PAYMENT_IDEMPOTENCY_SECRET
+        sync: false
+      - key: MP_ACCESS_TOKEN
+        sync: false
+      - key: MP_WEBHOOK_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: API_URL
+        sync: false
       - key: REDIS_URL
         sync: false
-      # Variables de Email
       - key: MAIL_TRANSPORT_TYPE
-        value: pro
+        sync: false
       - key: MAIL_PRO_HOST
         sync: false
       - key: MAIL_PRO_PORT
-        value: "465"
+        sync: false
       - key: MAIL_PRO_USER
         sync: false
       - key: MAIL_PRO_PASS
         sync: false
       - key: SMTP_FROM
-        value: akituvocacion@akituespacio.com.ar
-      # CORS
+        sync: false
       - key: CORS_ORIGIN
         sync: false
-      # Auth Inicial (Semillas)
       - key: ADMIN_USER
         sync: false
       - key: ADMIN_PASS

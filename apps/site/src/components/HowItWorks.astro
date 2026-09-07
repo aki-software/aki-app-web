@@ -88,7 +88,7 @@ const institutionIcons = [
               <Fragment set:html={studentIcons[index]} />
             </div>
             <h3 class="font-display font-bold text-xl text-text mb-4">{step.title}</h3>
-            <p class="text-sm text-text-muted leading-relaxed">{step.desc}</p>
+            <p class="text-sm text-text-muted leading-relaxed" set:html={step.desc}></p>
           </div>
         </div>
       ))}
@@ -108,7 +108,7 @@ const institutionIcons = [
               <Fragment set:html={institutionIcons[index]} />
             </div>
             <h3 class="font-display font-bold text-xl text-text mb-4">{step.title}</h3>
-            <p class="text-sm text-text-muted leading-relaxed">{step.desc}</p>
+            <p class="text-sm text-text-muted leading-relaxed" set:html={step.desc}></p>
           </div>
         </div>
       ))}

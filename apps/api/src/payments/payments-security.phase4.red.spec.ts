@@ -11,6 +11,7 @@ import {
   type VoucherFulfillmentQueue,
   VoucherFulfillmentDispatcherService,
 } from './services/voucher-fulfillment-dispatcher.service.js';
+import type { PaymentNotificationDispatcher } from './services/payment-notification-dispatcher.service.js';
 import { VoucherFulfillmentProcessor } from './services/voucher-fulfillment.processor.js';
 import { VoucherCodeGenerator } from '../vouchers/services/voucher-code-generator.service.js';
 
@@ -36,6 +37,70 @@ describe('payments security refactor phase 4 RED', () => {
     const [, payload] = queue.add.mock.calls[0];
     expect(payload).toEqual({ outboxId: 'outbox-1' });
   });
+
+  it('enqueues a new job when no job exists for a pending outbox', async () => {
+    const queue = {
+      getJob: jest.fn().mockResolvedValue(undefined),
+      add: jest.fn().mockResolvedValue(undefined),
+    };
+    const dispatcher = createDispatcher(queue);
+
+    await dispatcher.dispatchAfterCommit({
+      id: 'outbox-absent',
+      voucherBatchId: 'batch-1',
+    });
+
+    expect(queue.getJob).toHaveBeenCalledWith('outbox-absent');
+    expect(queue.add).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['failed', 'completed'])(
+    'removes a retained %s job before re-enqueueing its pending outbox',
+    async (state) => {
+      const terminalJob = {
+        getState: jest.fn().mockResolvedValue(state),
+        remove: jest.fn().mockResolvedValue(undefined),
+      };
+      const queue = {
+        getJob: jest.fn().mockResolvedValue(terminalJob),
+        add: jest.fn().mockResolvedValue(undefined),
+      };
+      const dispatcher = createDispatcher(queue);
+
+      await dispatcher.dispatchAfterCommit({
+        id: 'outbox-terminal',
+        voucherBatchId: 'batch-1',
+      });
+
+      expect(terminalJob.remove).toHaveBeenCalledTimes(1);
+      expect(queue.add).toHaveBeenCalledWith(
+        'voucher-fulfillment',
+        { outboxId: 'outbox-terminal' },
+        expect.objectContaining({ jobId: 'outbox-terminal' }),
+      );
+    },
+  );
+
+  it.each(['waiting', 'active', 'delayed'])(
+    'does not duplicate a %s job for a pending outbox',
+    async (state) => {
+      const queue = {
+        getJob: jest.fn().mockResolvedValue({
+          getState: jest.fn().mockResolvedValue(state),
+          remove: jest.fn(),
+        }),
+        add: jest.fn().mockResolvedValue(undefined),
+      };
+      const dispatcher = createDispatcher(queue);
+
+      await dispatcher.dispatchAfterCommit({
+        id: 'outbox-in-flight',
+        voucherBatchId: 'batch-1',
+      });
+
+      expect(queue.add).not.toHaveBeenCalled();
+    },
+  );
 
   it('keeps an already-settled payment durable when queue enqueue fails after commit', async () => {
     const queue = {
@@ -159,6 +224,30 @@ describe('payments security refactor phase 4 RED', () => {
     expect(fixture.transaction.commitTransaction).toHaveBeenCalledTimes(1);
   });
 
+  it('dispatches every inserted notification only after commit and release, even when one throws synchronously', async () => {
+    const fixture = createWorkerFixture({
+      notificationDeliveryIds: ['delivery-1', 'delivery-2'],
+    });
+    fixture.dispatcher.dispatchAfterCommit.mockImplementation((id: string) => {
+      expect(fixture.transaction.commitTransaction).toHaveBeenCalled();
+      expect(fixture.transaction.release).toHaveBeenCalled();
+      if (id === 'delivery-1') throw new Error('queue unavailable');
+      return Promise.resolve();
+    });
+
+    await expect(
+      fixture.processor.process({ data: { outboxId: 'outbox-1' } }),
+    ).resolves.toBeUndefined();
+
+    expect(fixture.dispatcher.dispatchAfterCommit).toHaveBeenCalledTimes(2);
+    expect(fixture.dispatcher.dispatchAfterCommit).toHaveBeenCalledWith(
+      'delivery-1',
+    );
+    expect(fixture.dispatcher.dispatchAfterCommit).toHaveBeenCalledWith(
+      'delivery-2',
+    );
+  });
+
   it('creates only the missing vouchers when a PAID batch already has a partial set', async () => {
     const fixture = createWorkerFixture({ existingVoucherCount: 1 });
 
@@ -266,6 +355,7 @@ function createWorkerFixture(
     outbox?: Partial<PaymentFulfillmentOutbox>;
     saveError?: Error;
     existingVoucherCount?: number;
+    notificationDeliveryIds?: string[];
   } = {},
 ) {
   const batch = {
@@ -303,6 +393,14 @@ function createWorkerFixture(
         : jest.fn().mockResolvedValue(undefined),
     },
   };
+  const notificationIntents = {
+    createForFirstFulfillment: jest
+      .fn()
+      .mockResolvedValue(overrides.notificationDeliveryIds ?? []),
+  };
+  const dispatcher = {
+    dispatchAfterCommit: jest.fn().mockResolvedValue(undefined),
+  } as jest.Mocked<PaymentNotificationDispatcher>;
   const codes = {
     generateUniqueCode: jest
       .fn()
@@ -316,31 +414,45 @@ function createWorkerFixture(
     outbox,
     codes,
     transaction,
+    dispatcher,
     processor: createProcessor(
       {
         createQueryRunner: jest.fn().mockReturnValue(transaction),
       } as unknown as DataSource,
       codes,
+      notificationIntents,
+      dispatcher,
     ),
   };
 }
 
 function createDispatcher(
-  queue: VoucherFulfillmentQueue,
+  queue: Pick<VoucherFulfillmentQueue, 'add'> &
+    Partial<VoucherFulfillmentQueue>,
   outboxRepository?: Pick<Repository<PaymentFulfillmentOutbox>, 'find'>,
 ) {
   const { VoucherFulfillmentDispatcherService } = fulfillmentContracts();
   expect(VoucherFulfillmentDispatcherService).toBeDefined();
-  return new VoucherFulfillmentDispatcherService!(queue, outboxRepository);
+  return new VoucherFulfillmentDispatcherService!(
+    { getJob: jest.fn().mockResolvedValue(undefined), ...queue },
+    outboxRepository,
+  );
 }
 
 function createProcessor(
   dataSource: DataSource,
   codes: Pick<VoucherCodeGenerator, 'generateUniqueCode'>,
+  notificationIntents: { createForFirstFulfillment: jest.Mock },
+  dispatcher: PaymentNotificationDispatcher,
 ) {
   const { VoucherFulfillmentProcessor } = fulfillmentContracts();
   expect(VoucherFulfillmentProcessor).toBeDefined();
-  return new VoucherFulfillmentProcessor!(dataSource, codes);
+  return new VoucherFulfillmentProcessor!(
+    dataSource,
+    codes,
+    notificationIntents,
+    dispatcher,
+  );
 }
 
 function fulfillmentContracts(): {

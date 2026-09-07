@@ -13,7 +13,13 @@ export interface VoucherFulfillmentJobPayload {
   outboxId: string;
 }
 
+export interface VoucherFulfillmentQueueJob {
+  getState(): Promise<string>;
+  remove(): Promise<void>;
+}
+
 export interface VoucherFulfillmentQueue {
+  getJob(id: string): Promise<VoucherFulfillmentQueueJob | undefined>;
   add(
     name: string,
     data: VoucherFulfillmentJobPayload,
@@ -40,8 +46,8 @@ export class VoucherFulfillmentDispatcherService implements OnApplicationBootstr
 
   async onApplicationBootstrap(): Promise<void> {
     if (!this.recoveryPromise) {
-      this.recoveryPromise = this.recoverPending().catch((error: unknown) => {
-        this.logger.error('Voucher fulfillment recovery enqueue failed', error);
+      this.recoveryPromise = this.recoverPending().catch(() => {
+        this.logger.error('stage=recovery_enqueue_failed');
       });
     }
     await this.recoveryPromise;
@@ -50,6 +56,17 @@ export class VoucherFulfillmentDispatcherService implements OnApplicationBootstr
   async dispatchAfterCommit(
     outbox: Pick<PaymentFulfillmentOutbox, 'id' | 'voucherBatchId'>,
   ): Promise<void> {
+    const existingJob = await this.queue.getJob(outbox.id);
+    if (existingJob) {
+      const state = await existingJob.getState();
+      if (state === 'failed' || state === 'completed') {
+        await existingJob.remove();
+        this.logger.warn(`stage=terminal_queue_recovery outboxId=${outbox.id}`);
+      } else {
+        return;
+      }
+    }
+
     await this.queue.add(
       VOUCHER_FULFILLMENT_JOB,
       { outboxId: outbox.id },

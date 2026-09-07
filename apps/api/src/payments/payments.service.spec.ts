@@ -8,18 +8,37 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsService } from './payments.service';
 import { SessionsQueryService } from '../sessions/services/sessions-query.service';
 import { SessionsMutationService } from '../sessions/services/sessions-mutation.service';
-import { PaymentStatus, SessionPaymentStatus } from '@akit/contracts';
+import {
+  BillingHistory,
+  PaymentStatus,
+  SessionPaymentStatus,
+} from '@akit/contracts';
 import { CheckoutAttempt } from './entities/checkout-attempt.entity';
 import { PaymentEvent } from './entities/payment-event.entity';
 import { VoucherBatchStatus } from '../vouchers/entities/voucher.enums';
 import { GooglePlayAdapter } from './google-play.adapter';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { SessionOwnerResolverService } from '../sessions/services/session-owner-resolver.service';
+import { PaymentReconciliationService } from './services/payment-reconciliation.service';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
+  let dataSource: {
+    manager: {
+      find: jest.Mock;
+      count: jest.Mock;
+      findOne: jest.Mock;
+    };
+  };
 
   beforeEach(async () => {
+    dataSource = {
+      manager: {
+        find: jest.fn().mockResolvedValue([]),
+        count: jest.fn().mockResolvedValue(0),
+        findOne: jest.fn(),
+      },
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentsService,
@@ -54,13 +73,11 @@ describe('PaymentsService', () => {
         },
         {
           provide: getDataSourceToken(),
-          useValue: {
-            manager: {
-              find: jest.fn().mockResolvedValue([]),
-              count: jest.fn().mockResolvedValue(0),
-              findOne: jest.fn(),
-            },
-          },
+          useValue: dataSource,
+        },
+        {
+          provide: PaymentReconciliationService,
+          useValue: { reconcileAuthorizedAttempt: jest.fn() },
         },
       ],
     }).compile();
@@ -151,6 +168,56 @@ describe('PaymentsService', () => {
       ).not.toHaveBeenCalled();
     });
 
+    it('opportunistically reconciles an authorized unresolved Mercado Pago attempt and reloads fresh state', async () => {
+      const unresolvedAttempt = {
+        id: attemptId,
+        buyerUserId: userId,
+        ownerInstitutionId: institutionId,
+        gateway: 'MERCADO_PAGO',
+        state: 'READY',
+        voucherBatchId: '44444444-4444-4444-8444-444444444444',
+        commercialSnapshot: {
+          kind: 'COMPLETE',
+          pricingPlanId: '55555555-5555-4555-8555-555555555555',
+          planName: 'Persisted plan',
+          voucherQuantity: 3,
+          listedUsd: { amountMinor: '1000', currency: 'USD' },
+          charged: { amountMinor: '1000', currency: 'ARS' },
+          gateway: 'MERCADO_PAGO',
+          fxRate: '1',
+          fxQuotedAt: '2026-01-01T00:00:00.000Z',
+          fxSource: 'TEST_SOURCE',
+        },
+        voucherBatch: { status: VoucherBatchStatus.PENDING },
+      };
+      const settledAttempt = {
+        ...unresolvedAttempt,
+        voucherBatch: {
+          status: VoucherBatchStatus.PAID,
+          quantity: 3,
+          fulfilledAt: new Date('2026-01-02T00:00:00.000Z'),
+        },
+      };
+      const findOne = (service as any).dataSource.manager.findOne as jest.Mock;
+      findOne
+        .mockResolvedValueOnce(unresolvedAttempt)
+        .mockResolvedValueOnce(settledAttempt)
+        .mockResolvedValueOnce({
+          id: '66666666-6666-4666-8666-666666666666',
+          status: 'APPROVED',
+        });
+      const reconciliation = (service as any)
+        .paymentReconciliationService as jest.Mocked<PaymentReconciliationService>;
+
+      await expect(
+        service.getCheckoutAttemptStatus(attemptId, { userId, institutionId }),
+      ).resolves.toMatchObject({ paymentState: 'PAID' });
+      expect(reconciliation.reconcileAuthorizedAttempt).toHaveBeenCalledWith(
+        unresolvedAttempt,
+      );
+      expect(findOne).toHaveBeenCalledTimes(3);
+    });
+
     it('returns the same not found result for foreign and unknown attempts', async () => {
       const findOne = (service as any).dataSource.manager.findOne as jest.Mock;
       findOne.mockResolvedValue(null);
@@ -191,6 +258,57 @@ describe('PaymentsService', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('getBillingHistory', () => {
+    it('returns a manual paid batch as a zero-value administrative assignment', async () => {
+      const institutionId = '33333333-3333-4333-8333-333333333333';
+      const batch = {
+        id: '44444444-4444-4444-8444-444444444444',
+        ownerInstitutionId: institutionId,
+        status: VoucherBatchStatus.PAID,
+        quantity: 5,
+        totalPrice: '0',
+        currency: 'ARS',
+        paymentProvider: null,
+        paymentReference: null,
+        paidAt: new Date('2026-01-02T00:00:00.000Z'),
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      };
+      dataSource.manager.find.mockResolvedValue([batch]);
+      dataSource.manager.count.mockResolvedValue(5);
+
+      const result = await service.getBillingHistory(institutionId);
+
+      expect(result).toEqual({
+        transactions: [
+          expect.objectContaining({
+            id: batch.id,
+            gateway: null,
+            externalReference: null,
+            status: 'APPROVED',
+            amount: 0,
+            currency: 'ARS',
+            createdAt: '2026-01-02T00:00:00.000Z',
+            plan: expect.objectContaining({
+              name: 'Lote de 5 vouchers',
+              voucherQuantity: 5,
+              priceUsd: 0,
+            }),
+          }),
+        ],
+        totalPaid: 0,
+        currentBalance: 5,
+      });
+      expect(BillingHistory.safeParse(result).success).toBe(true);
+      expect(dataSource.manager.find).toHaveBeenCalledWith(expect.anything(), {
+        where: {
+          ownerInstitutionId: institutionId,
+          status: VoucherBatchStatus.PAID,
+        },
+        order: { paidAt: 'DESC' },
+      });
     });
   });
 
@@ -488,6 +606,7 @@ function createVerificationFixture(
       getAndroidPublisher: jest.fn().mockResolvedValue(publisher),
     } as never,
     { manager: { find: jest.fn(), count: jest.fn() } } as never,
+    { reconcileAuthorizedAttempt: jest.fn() } as never,
   );
 
   return {
