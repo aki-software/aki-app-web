@@ -140,6 +140,20 @@ export function LedgerDetail({ entry }: LedgerDetailProps) {
     <div className="space-y-6">
       <dl className="grid gap-4 sm:grid-cols-2">
         <Field label="Institución">{entry.institution.name}</Field>
+        <Field label="Datos de facturación">
+          <span className="block">
+            Razón Social: {entry.institution.legalName || "No configurado"}
+          </span>
+          <span className="block">
+            CUIT: {entry.institution.taxId || "No configurado"}
+          </span>
+          <span className="block">
+            Condición IVA: {entry.institution.taxCondition || "No configurado"}
+          </span>
+          <span className="block">
+            Domicilio: {entry.institution.billingAddress || "No configurado"}
+          </span>
+        </Field>
         <Field label="Comprador">{buyerName}</Field>
         <Field label="Correo del comprador">
           {entry.buyer?.email ?? "Sin datos"}

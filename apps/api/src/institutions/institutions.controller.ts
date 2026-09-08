@@ -144,4 +144,25 @@ export class InstitutionsController {
       activationEmailSent,
     };
   }
+
+  @Get(':id')
+  @UseGuards(InstitutionOwnerGuard)
+  async findOne(@Param('id') id: string) {
+    const institution = await this.institutionsService.findOneOrFail(id);
+    return this.institutionPresenterService.toInstitutionResponse(institution);
+  }
+
+  @Patch(':id/billing-profile')
+  @UseGuards(InstitutionOwnerGuard)
+  async updateBillingProfile(
+    @Param('id') id: string,
+    @Body()
+    payload: import('./dto/update-billing-profile.dto.js').UpdateBillingProfileDto,
+  ) {
+    const institution = await this.institutionsService.updateBillingProfile(
+      id,
+      payload,
+    );
+    return this.institutionPresenterService.toInstitutionResponse(institution);
+  }
 }

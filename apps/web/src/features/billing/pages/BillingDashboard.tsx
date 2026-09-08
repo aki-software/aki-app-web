@@ -12,6 +12,8 @@ import { CurrentBalance } from "../components/CurrentBalance";
 import { BillingHistoryTable } from "../components/BillingHistoryTable";
 import { BuyVouchersModal } from "../components/BuyVouchersModal";
 import { PlanCard } from "../components/PlanCard";
+import { BillingProfileCard } from "../components/BillingProfileCard";
+import { useInstitutionProfile } from "../hooks/useInstitutionProfile";
 import { ShoppingCart } from "lucide-react";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { formatMoney } from "../utils/money";
@@ -23,6 +25,7 @@ export function BillingDashboard() {
     refetch: refetchHistory,
   } = useBillingHistory();
   const { data: plans, isLoading: isLoadingPlans } = usePricingPlans();
+  const { data: profile } = useInstitutionProfile();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isTrackingDismissed, setIsTrackingDismissed] = useState(false);
@@ -81,6 +84,14 @@ export function BillingDashboard() {
   }, [checkoutStatus, refetchHistory]);
 
   const handleBuyPlan = (planId: string) => {
+    const hasMissingData = !profile?.legalName || !profile?.taxId || !profile?.taxCondition || !profile?.billingAddress;
+    
+    if (hasMissingData) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // TODO: could add a toast here
+      return;
+    }
+    
     setSelectedPlanId(planId);
     setIsModalOpen(true);
   };
@@ -103,6 +114,8 @@ export function BillingDashboard() {
           <CurrentBalance balance={currentBalance} />
         </div>
       </div>
+
+      <BillingProfileCard />
 
       {checkoutAttemptId && (
         <section

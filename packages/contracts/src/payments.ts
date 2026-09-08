@@ -490,7 +490,12 @@ export const AdminPaymentLedgerEntry = z
     voucherBatchId: uuid,
     checkoutAttemptId: uuid.nullable(),
     paymentEventId: uuid.nullable(),
-    institution: safeIdentity,
+    institution: safeIdentity.extend({
+      legalName: z.string().nullable().optional(),
+      taxId: z.string().nullable().optional(),
+      taxCondition: z.string().nullable().optional(),
+      billingAddress: z.string().nullable().optional(),
+    }),
     buyer: safeRecipientSnapshot.nullable(),
     commercial: safeCommercialSnapshot,
     amount: z
