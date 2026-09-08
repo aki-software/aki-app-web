@@ -52,6 +52,10 @@ export class InstitutionsService {
     const institution = this.institutionRepository.create({
       name: input.name.trim(),
       billingEmail: input.billingEmail?.trim() || null,
+      legalName: input.legalName?.trim() || null,
+      taxId: input.taxId?.trim() || null,
+      taxCondition: input.taxCondition?.trim() || null,
+      billingAddress: input.billingAddress?.trim() || null,
       responsibleTherapistUserId: input.responsibleTherapistUserId ?? null,
       isActive: true,
     });
@@ -99,5 +103,19 @@ export class InstitutionsService {
       where: { id },
     });
     await this.institutionRepository.softRemove(institution);
+  }
+
+  async updateBillingProfile(
+    id: string,
+    data: import('./dto/update-billing-profile.dto.js').UpdateBillingProfileDto,
+  ): Promise<Institution> {
+    const institution = await this.findOneOrFail(id);
+    institution.updateBillingProfile(
+      data.legalName.trim(),
+      data.taxId.trim(),
+      data.taxCondition.trim(),
+      data.billingAddress.trim(),
+    );
+    return await this.institutionRepository.save(institution);
   }
 }

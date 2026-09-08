@@ -20,6 +20,22 @@ export class CreateInstitutionDto {
   billingEmail?: string;
 
   @IsOptional()
+  @IsString()
+  legalName?: string;
+
+  @IsOptional()
+  @IsString()
+  taxId?: string;
+
+  @IsOptional()
+  @IsString()
+  taxCondition?: string;
+
+  @IsOptional()
+  @IsString()
+  billingAddress?: string;
+
+  @IsOptional()
   @IsUUID()
   responsibleTherapistUserId?: string | null;
 }

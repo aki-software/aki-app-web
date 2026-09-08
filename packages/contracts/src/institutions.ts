@@ -2,6 +2,10 @@ export interface InstitutionResponse {
   id: string;
   name: string;
   billingEmail: string | null;
+  legalName: string | null;
+  taxId: string | null;
+  taxCondition: string | null;
+  billingAddress: string | null;
   isActive: boolean;
   createdAt: string | Date;
   responsibleTherapistUserId?: string | null;
@@ -68,10 +72,21 @@ export interface CreateInstitutionDto {
   name: string;
   email: string;
   billingEmail?: string;
+  legalName?: string;
+  taxId?: string;
+  taxCondition?: string;
+  billingAddress?: string;
   responsibleTherapistUserId?: string;
 }
 
 export interface UpdateInstitutionDto {
   name?: string;
   billingEmail?: string;
+}
+
+export interface UpdateBillingProfileDto {
+  legalName: string;
+  taxId: string;
+  taxCondition: string;
+  billingAddress: string;
 }

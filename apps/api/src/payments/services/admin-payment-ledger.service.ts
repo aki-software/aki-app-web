@@ -23,6 +23,10 @@ interface LedgerRow {
   actualVoucherCount: string;
   institutionId: string;
   institutionName: string;
+  institutionLegalName: string | null;
+  institutionTaxId: string | null;
+  institutionTaxCondition: string | null;
+  institutionBillingAddress: string | null;
   checkoutAttemptId: string | null;
   pricingPlanId: string | null;
   planName: string | null;
@@ -148,6 +152,10 @@ export class AdminPaymentLedgerService {
         '(SELECT COUNT(*) FROM vouchers voucher WHERE voucher.batch_id = batch.id) AS "actualVoucherCount"',
         'institution.id AS "institutionId"',
         'institution.name AS "institutionName"',
+        'institution.legalName AS "institutionLegalName"',
+        'institution.taxId AS "institutionTaxId"',
+        'institution.taxCondition AS "institutionTaxCondition"',
+        'institution.billingAddress AS "institutionBillingAddress"',
         'checkout.id AS "checkoutAttemptId"',
         'checkout.commercialSnapshot ->> \'pricingPlanId\' AS "pricingPlanId"',
         'checkout.commercialSnapshot ->> \'planName\' AS "planName"',
@@ -289,7 +297,14 @@ export class AdminPaymentLedgerService {
       voucherBatchId: row.voucherBatchId,
       checkoutAttemptId: row.checkoutAttemptId,
       paymentEventId: row.paymentEventId,
-      institution: { id: row.institutionId, name: row.institutionName.trim() },
+      institution: {
+        id: row.institutionId,
+        name: row.institutionName.trim(),
+        legalName: row.institutionLegalName,
+        taxId: row.institutionTaxId,
+        taxCondition: row.institutionTaxCondition,
+        billingAddress: row.institutionBillingAddress,
+      },
       buyer: this.recipient(row.buyerId, row.buyerName, row.buyerEmail),
       commercial: {
         pricingPlanId: this.uuid(row.pricingPlanId),
