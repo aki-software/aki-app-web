@@ -75,7 +75,7 @@ export const Modal = ({
     >
       {/* Backdrop con Blur Lux */}
       <div
-        className="absolute inset-0 bg-app-bg/80 backdrop-blur-md transition-opacity"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={handleBackdropClick}
       />
 
