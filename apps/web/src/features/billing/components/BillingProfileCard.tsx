@@ -3,6 +3,7 @@ import { Edit2, Building2 } from "lucide-react";
 import { useUpdateBillingProfile } from "../hooks/useInstitutionProfile";
 import { Button } from "../../../components/atoms/Button";
 import { Spinner } from "../../../components/atoms/Spinner";
+import { Modal } from "../../../components/atoms/Modal";
 import type { UpdateBillingProfileDto, InstitutionResponse } from "@akit/contracts";
 
 interface BillingProfileCardProps {
@@ -14,7 +15,7 @@ interface BillingProfileCardProps {
 export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfileCardProps) {
   const { mutateAsync: updateProfile, isMutating } = useUpdateBillingProfile();
   
-  const hasMissingData = profile ? (!profile.legalName || !profile.taxId || !profile.taxCondition || !profile.billingAddress) : false;
+  const hasMissingData = profile ? (!profile.legalName || !profile.taxId || !profile.taxCondition || !profile.billingAddress || !profile.billingCity || !profile.billingProvince || !profile.billingPhone) : false;
   
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UpdateBillingProfileDto>({
@@ -22,6 +23,9 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
     taxId: "",
     taxCondition: "",
     billingAddress: "",
+    billingCity: "",
+    billingProvince: "",
+    billingPhone: "",
   });
 
   // Sync state when profile is loaded
@@ -32,6 +36,9 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
         taxId: profile.taxId || "",
         taxCondition: profile.taxCondition || "",
         billingAddress: profile.billingAddress || "",
+        billingCity: profile.billingCity || "",
+        billingProvince: profile.billingProvince || "",
+        billingPhone: profile.billingPhone || "",
       });
       setIsEditing(true);
     }
@@ -53,6 +60,9 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
       taxId: profile.taxId || "",
       taxCondition: profile.taxCondition || "",
       billingAddress: profile.billingAddress || "",
+      billingCity: profile.billingCity || "",
+      billingProvince: profile.billingProvince || "",
+      billingPhone: profile.billingPhone || "",
     });
     setIsEditing(true);
   };
@@ -68,16 +78,55 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
     setIsEditing(false);
   };
 
-  if (isEditing) {
-    return (
-      <div className="app-card border border-app-border p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Building2 className="w-5 h-5 text-app-primary" />
-          <h3 className="text-lg font-display font-semibold text-app-text-main">
-            Editar datos de facturación
-          </h3>
+  return (
+    <>
+      <div className="app-card border border-app-border p-6 flex flex-col justify-between items-start md:flex-row md:items-center gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Building2 className="w-5 h-5 text-app-primary" />
+            <h3 className="text-lg font-display font-semibold text-app-text-main">
+              Datos de facturación
+            </h3>
+          </div>
+          {hasMissingData ? (
+            <p className="text-sm text-app-text-muted max-w-lg">
+              Por favor, completá los datos de facturación para poder adquirir nuevos lotes de vouchers.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-3 text-sm text-app-text-main">
+              <div><span className="text-app-text-muted">Razón Social:</span> {profile.legalName}</div>
+              <div><span className="text-app-text-muted">CUIT:</span> {profile.taxId}</div>
+              <div><span className="text-app-text-muted">Condición IVA:</span> {profile.taxCondition}</div>
+              <div><span className="text-app-text-muted">Domicilio:</span> {profile.billingAddress}, {profile.billingCity}, {profile.billingProvince}</div>
+              <div><span className="text-app-text-muted">Celular:</span> {profile.billingPhone}</div>
+            </div>
+          )}
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <Button variant={hasMissingData ? "primary" : "outline"} onClick={handleEdit} className="shrink-0">
+          <Edit2 className="w-4 h-4 mr-2" />
+          {hasMissingData ? "Completar datos" : "Editar datos"}
+        </Button>
+      </div>
+
+      <Modal
+        isOpen={isEditing}
+        onClose={handleCancel}
+        title="Datos de facturación"
+        subtitle="Administración"
+        size="lg"
+        isLoading={isMutating}
+        footer={
+          <>
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={isMutating}>
+              Cancelar
+            </Button>
+            <Button type="submit" form="billing-form" isLoading={isMutating}>
+              Guardar
+            </Button>
+          </>
+        }
+      >
+        <form id="billing-form" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="space-y-1 text-sm">
               <span className="font-medium text-app-text-muted">Razón Social</span>
@@ -96,8 +145,10 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
                 type="text"
                 value={formData.taxId}
                 onChange={(e) => setFormData((prev) => ({ ...prev, taxId: e.target.value }))}
+                pattern="^\d{2}-?\d{8}-?\d{1}$"
+                title="El CUIT debe tener 11 dígitos, con o sin guiones (ej: 20-12345678-9)"
                 className="w-full rounded-xl border border-app-border bg-app-bg px-3 py-2 text-sm text-app-text-main outline-none focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
-                placeholder="Sin guiones"
+                placeholder="20-12345678-9"
               />
             </label>
             <label className="space-y-1 text-sm">
@@ -116,7 +167,7 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
               </select>
             </label>
             <label className="space-y-1 text-sm">
-              <span className="font-medium text-app-text-muted">Domicilio Fiscal</span>
+              <span className="font-medium text-app-text-muted">Domicilio (Calle y Número)</span>
               <input
                 required
                 type="text"
@@ -125,46 +176,39 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
                 className="w-full rounded-xl border border-app-border bg-app-bg px-3 py-2 text-sm text-app-text-main outline-none focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
               />
             </label>
-          </div>
-          <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={isMutating}>
-              Cancelar
-            </Button>
-            <Button type="submit" isLoading={isMutating}>
-              Guardar
-            </Button>
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-app-text-muted">Ciudad</span>
+              <input
+                required
+                type="text"
+                value={formData.billingCity}
+                onChange={(e) => setFormData((prev) => ({ ...prev, billingCity: e.target.value }))}
+                className="w-full rounded-xl border border-app-border bg-app-bg px-3 py-2 text-sm text-app-text-main outline-none focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
+              />
+            </label>
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-app-text-muted">Provincia</span>
+              <input
+                required
+                type="text"
+                value={formData.billingProvince}
+                onChange={(e) => setFormData((prev) => ({ ...prev, billingProvince: e.target.value }))}
+                className="w-full rounded-xl border border-app-border bg-app-bg px-3 py-2 text-sm text-app-text-main outline-none focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
+              />
+            </label>
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-app-text-muted">Celular / Teléfono</span>
+              <input
+                required
+                type="tel"
+                value={formData.billingPhone}
+                onChange={(e) => setFormData((prev) => ({ ...prev, billingPhone: e.target.value }))}
+                className="w-full rounded-xl border border-app-border bg-app-bg px-3 py-2 text-sm text-app-text-main outline-none focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
+              />
+            </label>
           </div>
         </form>
-      </div>
-    );
-  }
-
-  return (
-    <div className="app-card border border-app-border p-6 flex flex-col justify-between items-start md:flex-row md:items-center gap-4">
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <Building2 className="w-5 h-5 text-app-primary" />
-          <h3 className="text-lg font-display font-semibold text-app-text-main">
-            Datos de facturación
-          </h3>
-        </div>
-        {hasMissingData ? (
-          <p className="text-sm text-app-text-muted max-w-lg">
-            Por favor, completá los datos de facturación para poder adquirir nuevos lotes de vouchers.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-3 text-sm text-app-text-main">
-            <div><span className="text-app-text-muted">Razón Social:</span> {profile.legalName}</div>
-            <div><span className="text-app-text-muted">CUIT:</span> {profile.taxId}</div>
-            <div><span className="text-app-text-muted">Condición IVA:</span> {profile.taxCondition}</div>
-            <div><span className="text-app-text-muted">Domicilio:</span> {profile.billingAddress}</div>
-          </div>
-        )}
-      </div>
-      <Button variant={hasMissingData ? "primary" : "outline"} onClick={handleEdit} className="shrink-0">
-        <Edit2 className="w-4 h-4 mr-2" />
-        {hasMissingData ? "Completar datos" : "Editar datos"}
-      </Button>
-    </div>
+      </Modal>
+    </>
   );
 }

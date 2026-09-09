@@ -6,6 +6,9 @@ export interface InstitutionResponse {
   taxId: string | null;
   taxCondition: string | null;
   billingAddress: string | null;
+  billingCity: string | null;
+  billingProvince: string | null;
+  billingPhone: string | null;
   isActive: boolean;
   createdAt: string | Date;
   responsibleTherapistUserId?: string | null;
@@ -76,6 +79,9 @@ export interface CreateInstitutionDto {
   taxId?: string;
   taxCondition?: string;
   billingAddress?: string;
+  billingCity?: string;
+  billingProvince?: string;
+  billingPhone?: string;
   responsibleTherapistUserId?: string;
 }
 
@@ -89,4 +95,7 @@ export interface UpdateBillingProfileDto {
   taxId: string;
   taxCondition: string;
   billingAddress: string;
+  billingCity: string;
+  billingProvince: string;
+  billingPhone: string;
 }

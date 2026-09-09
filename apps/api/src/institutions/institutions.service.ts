@@ -115,6 +115,9 @@ export class InstitutionsService {
       data.taxId.trim(),
       data.taxCondition.trim(),
       data.billingAddress.trim(),
+      data.billingCity.trim(),
+      data.billingProvince.trim(),
+      data.billingPhone.trim(),
     );
     return await this.institutionRepository.save(institution);
   }

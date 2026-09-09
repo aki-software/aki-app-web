@@ -35,6 +35,15 @@ export class Institution {
   @Column({ name: 'billing_address', type: 'text', nullable: true })
   billingAddress!: string | null;
 
+  @Column({ name: 'billing_city', type: 'varchar', nullable: true })
+  billingCity!: string | null;
+
+  @Column({ name: 'billing_province', type: 'varchar', nullable: true })
+  billingProvince!: string | null;
+
+  @Column({ name: 'billing_phone', type: 'varchar', nullable: true })
+  billingPhone!: string | null;
+
   @Column({
     name: 'responsible_therapist_user_id',
     type: 'uuid',
@@ -79,10 +88,16 @@ export class Institution {
     taxId: string | null,
     taxCondition: string | null,
     billingAddress: string | null,
+    billingCity: string | null,
+    billingProvince: string | null,
+    billingPhone: string | null,
   ) {
     this.legalName = legalName;
     this.taxId = taxId;
     this.taxCondition = taxCondition;
     this.billingAddress = billingAddress;
+    this.billingCity = billingCity;
+    this.billingProvince = billingProvince;
+    this.billingPhone = billingPhone;
   }
 }
