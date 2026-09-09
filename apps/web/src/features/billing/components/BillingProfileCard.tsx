@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit2, Building2 } from "lucide-react";
 import { useInstitutionProfile, useUpdateBillingProfile } from "../hooks/useInstitutionProfile";
 import { Button } from "../../../components/atoms/Button";
@@ -8,6 +8,9 @@ import type { UpdateBillingProfileDto } from "@akit/contracts";
 export function BillingProfileCard() {
   const { data: profile, isLoading, refetch } = useInstitutionProfile();
   const { mutateAsync: updateProfile, isMutating } = useUpdateBillingProfile();
+  
+  const hasMissingData = profile ? (!profile.legalName || !profile.taxId || !profile.taxCondition || !profile.billingAddress) : false;
+  
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UpdateBillingProfileDto>({
     legalName: "",
@@ -15,6 +18,19 @@ export function BillingProfileCard() {
     taxCondition: "",
     billingAddress: "",
   });
+
+  // Sync state when profile is loaded
+  useEffect(() => {
+    if (profile && hasMissingData) {
+      setFormData({
+        legalName: profile.legalName || "",
+        taxId: profile.taxId || "",
+        taxCondition: profile.taxCondition || "",
+        billingAddress: profile.billingAddress || "",
+      });
+      setIsEditing(true);
+    }
+  }, [profile, hasMissingData]);
 
   if (isLoading) {
     return (
@@ -46,8 +62,6 @@ export function BillingProfileCard() {
     await refetch();
     setIsEditing(false);
   };
-
-  const hasMissingData = !profile.legalName || !profile.taxId || !profile.taxCondition || !profile.billingAddress;
 
   if (isEditing) {
     return (
