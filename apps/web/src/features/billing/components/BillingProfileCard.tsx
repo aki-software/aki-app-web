@@ -66,8 +66,8 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
 
   return (
     <>
-      <div className="max-w-4xl app-card border border-app-border p-6 flex flex-col justify-between items-start md:flex-row md:items-center gap-4">
-        <div>
+      <div className="app-card border border-app-border p-6 flex flex-col gap-4 items-start">
+        <div className="w-full">
           <div className="flex items-center gap-2 mb-2">
             <Building2 className="w-5 h-5 text-app-primary" />
             <h3 className="text-lg font-display font-semibold text-app-text-main">
@@ -75,15 +75,15 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
             </h3>
           </div>
           {hasMissingData ? (
-            <p className="text-sm text-app-text-muted max-w-lg">
+            <p className="text-sm text-app-text-muted">
               Por favor, completá los datos de facturación para poder adquirir nuevos lotes de vouchers.
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-3 text-sm text-app-text-main">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 mt-3 text-sm text-app-text-main">
               <div><span className="text-app-text-muted">Razón Social:</span> {profile.legalName}</div>
               <div><span className="text-app-text-muted">CUIT:</span> {profile.taxId}</div>
               <div><span className="text-app-text-muted">Condición IVA:</span> {profile.taxCondition}</div>
-              <div><span className="text-app-text-muted">Domicilio:</span> {profile.billingAddress}, {profile.billingCity}, {profile.billingProvince}</div>
+              <div className="sm:col-span-2"><span className="text-app-text-muted">Domicilio:</span> {profile.billingAddress}, {profile.billingCity}, {profile.billingProvince}</div>
               <div><span className="text-app-text-muted">Celular:</span> {profile.billingPhone}</div>
             </div>
           )}

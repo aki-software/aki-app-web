@@ -8,7 +8,8 @@ export class UpdateBillingProfileDto {
   @IsString()
   @IsNotEmpty()
   @Matches(/^\d{2}-?\d{8}-?\d{1}$/, {
-    message: 'El CUIT debe tener 11 dígitos, con o sin guiones (ej: 20-12345678-9).',
+    message:
+      'El CUIT debe tener 11 dígitos, con o sin guiones (ej: 20-12345678-9).',
   })
   taxId!: string;
 

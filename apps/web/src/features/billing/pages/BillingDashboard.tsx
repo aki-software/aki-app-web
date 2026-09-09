@@ -117,11 +117,13 @@ export function BillingDashboard() {
         </div>
       </div>
 
-      <BillingProfileCard 
-        profile={profile} 
-        isLoading={isLoadingProfile} 
-        refetch={refetchProfile} 
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <BillingProfileCard 
+          profile={profile} 
+          isLoading={isLoadingProfile} 
+          refetch={refetchProfile} 
+        />
+      </div>
 
       {checkoutAttemptId && (
         <section
