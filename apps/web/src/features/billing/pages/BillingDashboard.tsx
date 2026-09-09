@@ -25,7 +25,7 @@ export function BillingDashboard() {
     refetch: refetchHistory,
   } = useBillingHistory();
   const { data: plans, isLoading: isLoadingPlans } = usePricingPlans();
-  const { data: profile } = useInstitutionProfile();
+  const { data: profile, isLoading: isLoadingProfile, refetch: refetchProfile } = useInstitutionProfile();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isTrackingDismissed, setIsTrackingDismissed] = useState(false);
@@ -114,7 +114,11 @@ export function BillingDashboard() {
         </div>
       </div>
 
-      <BillingProfileCard />
+      <BillingProfileCard 
+        profile={profile} 
+        isLoading={isLoadingProfile} 
+        refetch={refetchProfile} 
+      />
 
       {checkoutAttemptId && (
         <section
