@@ -19,7 +19,7 @@ export function useInstitutionProfile() {
     setError(null);
     try {
       const res = await apiClient.get<InstitutionResponse>(`/institutions/${institutionId}`);
-      setData(res.data);
+      setData(res);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
@@ -51,7 +51,7 @@ export function useUpdateBillingProfile() {
         `/institutions/${institutionId}/billing-profile`,
         payload
       );
-      return res.data;
+      return res;
     } catch (err) {
       const typedErr = err instanceof Error ? err : new Error(String(err));
       setError(typedErr);
