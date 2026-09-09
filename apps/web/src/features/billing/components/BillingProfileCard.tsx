@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Edit2, Building2 } from "lucide-react";
 import { useUpdateBillingProfile } from "../hooks/useInstitutionProfile";
 import { Button } from "../../../components/atoms/Button";
@@ -28,21 +28,7 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
     billingPhone: "",
   });
 
-  // Sync state when profile is loaded
-  useEffect(() => {
-    if (profile && hasMissingData) {
-      setFormData({
-        legalName: profile.legalName || "",
-        taxId: profile.taxId || "",
-        taxCondition: profile.taxCondition || "",
-        billingAddress: profile.billingAddress || "",
-        billingCity: profile.billingCity || "",
-        billingProvince: profile.billingProvince || "",
-        billingPhone: profile.billingPhone || "",
-      });
-      setIsEditing(true);
-    }
-  }, [profile, hasMissingData]);
+  // Removed auto-open useEffect based on user feedback
 
   if (isLoading) {
     return (
@@ -80,7 +66,7 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
 
   return (
     <>
-      <div className="app-card border border-app-border p-6 flex flex-col justify-between items-start md:flex-row md:items-center gap-4">
+      <div className="max-w-4xl app-card border border-app-border p-6 flex flex-col justify-between items-start md:flex-row md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Building2 className="w-5 h-5 text-app-primary" />
