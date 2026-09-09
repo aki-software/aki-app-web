@@ -29,6 +29,7 @@ export function BillingDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isTrackingDismissed, setIsTrackingDismissed] = useState(false);
+  const [showBillingError, setShowBillingError] = useState(false);
   const [checkoutAttemptId] = useState(
     () =>
       new URLSearchParams(window.location.search).get("checkoutAttemptId") ||
@@ -87,11 +88,12 @@ export function BillingDashboard() {
     const hasMissingData = !profile?.legalName || !profile?.taxId || !profile?.taxCondition || !profile?.billingAddress;
     
     if (hasMissingData) {
+      setShowBillingError(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      // TODO: could add a toast here
       return;
     }
     
+    setShowBillingError(false);
     setSelectedPlanId(planId);
     setIsModalOpen(true);
   };
@@ -214,6 +216,15 @@ export function BillingDashboard() {
             Planes de vouchers
           </h3>
         </div>
+
+        {showBillingError && (
+          <div className="mb-6">
+            <Alert
+              type="error"
+              message="Tenés que completar los datos del perfil de facturación arriba antes de poder adquirir lotes."
+            />
+          </div>
+        )}
 
         {isPurchaseLocked && (
           <p className="mb-4 text-sm font-medium text-app-text-muted">
