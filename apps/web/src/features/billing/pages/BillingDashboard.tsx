@@ -29,6 +29,7 @@ export function BillingDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isTrackingDismissed, setIsTrackingDismissed] = useState(false);
+  const [showBillingError, setShowBillingError] = useState(false);
   const [checkoutAttemptId] = useState(
     () =>
       new URLSearchParams(window.location.search).get("checkoutAttemptId") ||
@@ -87,10 +88,12 @@ export function BillingDashboard() {
     const hasMissingData = !profile?.legalName || !profile?.taxId || !profile?.taxCondition || !profile?.billingAddress;
     
     if (hasMissingData) {
+      setShowBillingError(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     
+    setShowBillingError(false);
     setSelectedPlanId(planId);
     setIsModalOpen(true);
   };
@@ -211,11 +214,18 @@ export function BillingDashboard() {
 
       {/* 1. Plans */}
       <div>
-        <div className="mb-5">
-          <p className="app-label !text-app-primary mb-1">Lotes disponibles</p>
-          <h3 className="text-xl font-display font-bold text-app-text-main">
-            Planes de vouchers
-          </h3>
+        <div className="mb-5 flex flex-col md:flex-row md:justify-between md:items-end gap-3">
+          <div>
+            <p className="app-label !text-app-primary mb-1">Lotes disponibles</p>
+            <h3 className="text-xl font-display font-bold text-app-text-main">
+              Planes de vouchers
+            </h3>
+          </div>
+          {showBillingError && (
+            <div className="text-sm font-medium text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
+              Completá tus datos de facturación primero
+            </div>
+          )}
         </div>
 
         {isPurchaseLocked && (
