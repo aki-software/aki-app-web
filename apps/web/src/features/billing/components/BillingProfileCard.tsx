@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { Edit2, Building2 } from "lucide-react";
-import { useInstitutionProfile, useUpdateBillingProfile } from "../hooks/useInstitutionProfile";
+import { useUpdateBillingProfile } from "../hooks/useInstitutionProfile";
 import { Button } from "../../../components/atoms/Button";
 import { Spinner } from "../../../components/atoms/Spinner";
-import type { UpdateBillingProfileDto } from "@akit/contracts";
+import type { UpdateBillingProfileDto, InstitutionResponse } from "@akit/contracts";
 
-export function BillingProfileCard() {
-  const { data: profile, isLoading, refetch } = useInstitutionProfile();
+interface BillingProfileCardProps {
+  profile: InstitutionResponse | null;
+  isLoading: boolean;
+  refetch: () => Promise<void>;
+}
+
+export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfileCardProps) {
   const { mutateAsync: updateProfile, isMutating } = useUpdateBillingProfile();
   
   const hasMissingData = profile ? (!profile.legalName || !profile.taxId || !profile.taxCondition || !profile.billingAddress) : false;
