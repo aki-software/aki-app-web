@@ -64,6 +64,9 @@ export async function fetchInstitutions(): Promise<InstitutionOption[]> {
       taxId: institution.taxId ?? null,
       taxCondition: institution.taxCondition ?? null,
       billingAddress: institution.billingAddress ?? null,
+      billingCity: institution.billingCity ?? null,
+      billingProvince: institution.billingProvince ?? null,
+      billingPhone: institution.billingPhone ?? null,
     }));
   } catch (error) {
     console.error("Error fetching institutions:", error);

@@ -85,7 +85,7 @@ export function BillingDashboard() {
   }, [checkoutStatus, refetchHistory]);
 
   const handleBuyPlan = (planId: string) => {
-    const hasMissingData = !profile?.legalName || !profile?.taxId || !profile?.taxCondition || !profile?.billingAddress;
+    const hasMissingData = !profile?.legalName || !profile?.taxId || !profile?.taxCondition || !profile?.billingAddress || !profile?.billingCity || !profile?.billingProvince || !profile?.billingPhone;
     
     if (hasMissingData) {
       setShowBillingError(true);
