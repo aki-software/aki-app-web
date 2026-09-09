@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit2, Building2 } from "lucide-react";
 import { useUpdateBillingProfile } from "../hooks/useInstitutionProfile";
 import { Button } from "../../../components/atoms/Button";
@@ -10,14 +10,18 @@ interface BillingProfileCardProps {
   profile: InstitutionResponse | null;
   isLoading: boolean;
   refetch: () => Promise<void>;
+  externalIsOpen?: boolean;
+  onExternalClose?: () => void;
 }
 
-export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfileCardProps) {
+export function BillingProfileCard({ profile, isLoading, refetch, externalIsOpen, onExternalClose }: BillingProfileCardProps) {
   const { mutateAsync: updateProfile, isMutating } = useUpdateBillingProfile();
   
   const hasMissingData = profile ? (!profile.legalName || !profile.taxId || !profile.taxCondition || !profile.billingAddress || !profile.billingCity || !profile.billingProvince || !profile.billingPhone) : false;
   
-  const [isEditing, setIsEditing] = useState(false);
+  const [internalIsEditing, setInternalIsEditing] = useState(false);
+  const isEditing = externalIsOpen !== undefined ? externalIsOpen : internalIsEditing;
+  
   const [formData, setFormData] = useState<UpdateBillingProfileDto>({
     legalName: "",
     taxId: "",
@@ -28,7 +32,20 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
     billingPhone: "",
   });
 
-  // Removed auto-open useEffect based on user feedback
+  // Sync formData when modal is opened externally
+  useEffect(() => {
+    if (externalIsOpen && profile) {
+      setFormData({
+        legalName: profile.legalName || "",
+        taxId: profile.taxId || "",
+        taxCondition: profile.taxCondition || "",
+        billingAddress: profile.billingAddress || "",
+        billingCity: profile.billingCity || "",
+        billingProvince: profile.billingProvince || "",
+        billingPhone: profile.billingPhone || "",
+      });
+    }
+  }, [externalIsOpen, profile]);
 
   if (isLoading) {
     return (
@@ -50,18 +67,20 @@ export function BillingProfileCard({ profile, isLoading, refetch }: BillingProfi
       billingProvince: profile.billingProvince || "",
       billingPhone: profile.billingPhone || "",
     });
-    setIsEditing(true);
+    setInternalIsEditing(true);
   };
 
   const handleCancel = () => {
-    setIsEditing(false);
+    setInternalIsEditing(false);
+    onExternalClose?.();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateProfile(formData);
     await refetch();
-    setIsEditing(false);
+    setInternalIsEditing(false);
+    onExternalClose?.();
   };
 
   return (

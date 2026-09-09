@@ -29,7 +29,7 @@ export function BillingDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isTrackingDismissed, setIsTrackingDismissed] = useState(false);
-  const [showBillingError, setShowBillingError] = useState(false);
+  const [isBillingProfileModalOpen, setIsBillingProfileModalOpen] = useState(false);
   const [checkoutAttemptId] = useState(
     () =>
       new URLSearchParams(window.location.search).get("checkoutAttemptId") ||
@@ -42,6 +42,19 @@ export function BillingDashboard() {
     error: checkoutError,
     refetch: refreshCheckout,
   } = useCheckoutAttemptStatus(checkoutAttemptId);
+
+  // Sync to sessionStorage
+  useEffect(() => {
+    if (checkoutAttemptId) {
+      sessionStorage.setItem(CHECKOUT_ATTEMPT_STORAGE_KEY, checkoutAttemptId);
+      // Optional: remove it from URL so refreshing doesn't keep it forever
+      const newUrl = new URL(window.location.href);
+      if (newUrl.searchParams.has("checkoutAttemptId")) {
+        newUrl.searchParams.delete("checkoutAttemptId");
+        window.history.replaceState({}, "", newUrl.toString());
+      }
+    }
+  }, [checkoutAttemptId]);
 
   const currentBalance = history?.currentBalance || 0;
   const isCheckoutTerminal = Boolean(
@@ -88,12 +101,11 @@ export function BillingDashboard() {
     const hasMissingData = !profile?.legalName || !profile?.taxId || !profile?.taxCondition || !profile?.billingAddress || !profile?.billingCity || !profile?.billingProvince || !profile?.billingPhone;
     
     if (hasMissingData) {
-      setShowBillingError(true);
+      setIsBillingProfileModalOpen(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     
-    setShowBillingError(false);
     setSelectedPlanId(planId);
     setIsModalOpen(true);
   };
@@ -122,6 +134,8 @@ export function BillingDashboard() {
           profile={profile} 
           isLoading={isLoadingProfile} 
           refetch={refetchProfile} 
+          externalIsOpen={isBillingProfileModalOpen}
+          onExternalClose={() => setIsBillingProfileModalOpen(false)}
         />
       </div>
 
@@ -223,11 +237,6 @@ export function BillingDashboard() {
               Planes de vouchers
             </h3>
           </div>
-          {showBillingError && (
-            <div className="text-sm font-medium text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
-              Completá tus datos de facturación primero
-            </div>
-          )}
         </div>
 
         {isPurchaseLocked && (
