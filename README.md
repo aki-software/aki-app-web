@@ -29,16 +29,10 @@ Dado que este proyecto es un **Monorepo**, toda la documentación técnica detal
 
 ### 📚 Documentos Core
 
-- 🐳 **[Setup del Entorno Local](docs/setup-local.md):** Cómo levantar Docker Compose (Postgres, Redis, MailHog) y correr el comando maestro de Turborepo.
+- 🐳 **[Setup del Entorno Local](docs/getting-started.md):** Cómo levantar Docker Compose (Postgres, Redis, Mailpit) y correr los scripts de inicialización.
 - ⚙️ **[Arquitectura Global y Agentes](docs/architecture.md):** Reglas base del proyecto y cómo interactuar con los Agentes AI (UX, UI, Code).
-- 🧩 **[Contratos (SSOT & Zod Pipeline)](docs/contracts-ssot.md):** Explicación de cómo usamos `zod` y `quicktype-core` para generar modelos hacia Android e inyectar tipos seguros en React y NestJS.
-- ☁️ **[Infraestructura y Despliegue (Production)](docs/infra-deployment.md):** Arquitectura Cloud Serverless detallando Vercel, Render, Neon DB, Firebase y Google Play Console.
-- 📜 **[API & Swagger (Zod to OpenAPI)](docs/api-swagger.md):** Estrategia y protocolo de generación automática de OpenAPI specs a partir de Zod sin ensuciar controladores.
-- 🤖 **[Scripts y Automatización](docs/scripts-automation.md):** Comandos y herramientas transversales (Turborepo, Initializers).
-
-### 💻 Aplicaciones Individuales
-
-- 🔙 **[API Backend (NestJS)](docs/api-backend.md):** Stack técnico en profundidad (TypeORM, BullMQ, AWS S3), flujos de asincronía y convenciones de controladores.
+- 🧩 **[Contratos (SSOT & Zod Pipeline)](docs/contracts.md):** Explicación de cómo usamos `zod` y `quicktype-core` para generar modelos hacia Android e inyectar tipos seguros en React y NestJS.
+- 📜 **[API Backend](docs/api.md):** Convenciones de controladores, seguridad y endpoints de la API.
 - 💰 **[Monetización del Informe sin Voucher](docs/report-unlock-monetization.md):** Plan de implementación del unlock pagado, contrato backend/Android y setup de Play Console.
 - 🎨 **[Web Frontend (React+Vite)](docs/web-frontend.md):** Detalles sobre Tailwind v4, Vitest, JSDOM y arquitectura Feature-first.
 - *(Para la App Móvil, consultar el repositorio hermano `CotejoApp` que cuenta con su propia documentación `README.md` a profundidad).*
