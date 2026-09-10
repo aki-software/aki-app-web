@@ -161,7 +161,7 @@ export class InstitutionBillingProfile1788904290150 implements MigrationInterfac
       `ALTER TYPE "public"."users_role_enum" RENAME TO "users_role_enum_old"`,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."users_role_enum" AS ENUM('ADMIN', 'THERAPIST', 'INSTITUTION_ADMIN')`,
+      `CREATE TYPE "public"."users_role_enum" AS ENUM('ADMIN', 'THERAPIST', 'INSTITUTION_ADMIN', 'PATIENT')`,
     );
     await queryRunner.query(
       `ALTER TABLE "users" ALTER COLUMN "role" DROP DEFAULT`,

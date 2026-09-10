@@ -8,4 +8,32 @@ export class UpdateInstitutionDto {
   @IsOptional()
   @IsEmail()
   billingEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  legalName?: string;
+
+  @IsOptional()
+  @IsString()
+  taxId?: string;
+
+  @IsOptional()
+  @IsString()
+  taxCondition?: string;
+
+  @IsOptional()
+  @IsString()
+  billingAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  billingCity?: string;
+
+  @IsOptional()
+  @IsString()
+  billingProvince?: string;
+
+  @IsOptional()
+  @IsString()
+  billingPhone?: string;
 }
