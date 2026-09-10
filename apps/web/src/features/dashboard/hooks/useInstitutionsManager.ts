@@ -47,7 +47,14 @@ export const useInstitutionsManager = () => {
     return true;
   };
 
-  const handleUpdate = async (id: string, form: { name: string; billingEmail?: string }) => {
+  const handleUpdate = async (id: string, form: {
+    name: string;
+    billingEmail?: string;
+    legalName?: string;
+    taxId?: string;
+    taxCondition?: string;
+    billingAddress?: string;
+  }) => {
     notify("", false);
     setSaving(true);
     const updated = await updateInstitution(id, form);

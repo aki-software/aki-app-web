@@ -1,109 +1,96 @@
-import { type FormEvent, useState } from "react";
+import { useState, type FormEvent } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Input } from "../../../../components/atoms/Input";
-import { Button } from "../../../../components/atoms/Button";
 import { Modal } from "../../../../components/atoms/Modal";
-import { type InstitutionOption } from "../../api/dashboard";
+import { Button } from "../../../../components/atoms/Button";
+import { Input } from "../../../../components/atoms/Input";
+import { initialFormState, type EntityFormState } from "./CreateEntityForm.types";
 
-interface EditForm {
-  name: string;
-  billingEmail: string;
-  legalName: string;
-  taxId: string;
-  taxCondition: string;
-  billingAddress: string;
-}
-
-interface InstitutionEditModalProps {
-  institution: InstitutionOption;
+interface CreateInstitutionModalProps {
+  isOpen: boolean;
   onClose: () => void;
-  onSave: (
-    id: string,
-    form: {
-      name: string;
-      billingEmail?: string;
-      legalName?: string;
-      taxId?: string;
-      taxCondition?: string;
-      billingAddress?: string;
-    }
-  ) => Promise<void>;
+  onSubmit: (form: EntityFormState) => Promise<boolean>;
   saving: boolean;
 }
 
-export const InstitutionEditModal = ({
-  institution,
+export function CreateInstitutionModal({
+  isOpen,
   onClose,
-  onSave,
+  onSubmit,
   saving,
-}: InstitutionEditModalProps) => {
-  const [form, setForm] = useState<EditForm>({
-    name: institution.name,
-    billingEmail: institution.billingEmail || "",
-    legalName: institution.legalName || "",
-    taxId: institution.taxId || "",
-    taxCondition: institution.taxCondition || "",
-    billingAddress: institution.billingAddress || "",
-  });
+}: CreateInstitutionModalProps) {
+  const [form, setForm] = useState<EntityFormState>(initialFormState);
   const [showBilling, setShowBilling] = useState(false);
 
-  const update = (field: keyof EditForm, value: string) =>
+  const update = (field: keyof EntityFormState, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return;
-    await onSave(institution.id, {
-      name: form.name,
-      billingEmail: form.billingEmail || undefined,
-      legalName: form.legalName || undefined,
-      taxId: form.taxId || undefined,
-      taxCondition: form.taxCondition || undefined,
-      billingAddress: form.billingAddress || undefined,
-    });
+    const success = await onSubmit(form);
+    if (success) {
+      setForm(initialFormState);
+      setShowBilling(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (saving) return;
+    setForm(initialFormState);
+    setShowBilling(false);
+    onClose();
   };
 
   return (
     <Modal
-      isOpen={true}
-      onClose={onClose}
-      title="Editar institución"
-      subtitle="Gestion de Clientes"
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Nueva institución"
+      subtitle="Gestión de Clientes"
       size="lg"
       isLoading={saving}
       footer={
         <>
-          <Button variant="outline" type="button" onClick={onClose} disabled={saving}>
+          <Button variant="outline" type="button" onClick={handleClose} disabled={saving}>
             Cancelar
           </Button>
           <Button onClick={handleSubmit} isLoading={saving}>
-            Guardar cambios
+            Crear institución
           </Button>
         </>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic fields */}
+      <form id="create-institution-form" onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
-            id="edit-inst-name"
+            id="inst-name"
             label="Nombre de la institución"
             value={form.name}
             onChange={(e) => update("name", e.target.value)}
             required
             autoFocus
+            placeholder="Ej. Centro de Orientación Norte"
           />
           <Input
-            id="edit-inst-email"
-            label="Email de facturación"
+            id="inst-email"
+            label="Email de acceso"
             type="email"
-            value={form.billingEmail}
-            onChange={(e) => update("billingEmail", e.target.value)}
-            placeholder="facturacion@institucion.com"
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+            required
+            placeholder="admin@institucion.com"
           />
+          <div className="sm:col-span-2">
+            <Input
+              id="inst-billing-email"
+              label="Email de facturación (opcional)"
+              type="email"
+              value={form.billingEmail}
+              onChange={(e) => update("billingEmail", e.target.value)}
+              placeholder="facturacion@institucion.com"
+            />
+          </div>
         </div>
 
-        {/* Billing accordion */}
         <div className="rounded-xl border border-app-border">
           <button
             type="button"
@@ -123,16 +110,19 @@ export const InstitutionEditModal = ({
 
           {showBilling && (
             <div className="border-t border-app-border px-4 pb-4 pt-4">
+              <p className="mb-4 text-xs text-app-text-muted">
+                Si no los completás ahora, la institución deberá ingresarlos al momento de su primera compra.
+              </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Input
-                  id="edit-inst-legal-name"
-                  label="Razon Social"
+                  id="inst-legal-name"
+                  label="Razón Social"
                   value={form.legalName}
                   onChange={(e) => update("legalName", e.target.value)}
-                  placeholder="Ej. Asociacion Civil..."
+                  placeholder="Ej. Asociación Civil..."
                 />
                 <Input
-                  id="edit-inst-tax-id"
+                  id="inst-tax-id"
                   label="CUIT"
                   value={form.taxId}
                   onChange={(e) => update("taxId", e.target.value)}
@@ -140,13 +130,13 @@ export const InstitutionEditModal = ({
                 />
                 <div className="space-y-1 text-sm">
                   <label
-                    htmlFor="edit-inst-tax-condition"
+                    htmlFor="inst-tax-condition"
                     className="font-medium text-app-text-muted block"
                   >
-                    Condicion frente al IVA
+                    Condición frente al IVA
                   </label>
                   <select
-                    id="edit-inst-tax-condition"
+                    id="inst-tax-condition"
                     value={form.taxCondition}
                     onChange={(e) => update("taxCondition", e.target.value)}
                     className="w-full rounded-xl border border-app-border bg-app-bg px-3 py-2 text-sm text-app-text-main outline-none focus:border-app-primary focus:ring-2 focus:ring-app-primary/25"
@@ -159,7 +149,7 @@ export const InstitutionEditModal = ({
                   </select>
                 </div>
                 <Input
-                  id="edit-inst-billing-address"
+                  id="inst-billing-address"
                   label="Domicilio Fiscal"
                   value={form.billingAddress}
                   onChange={(e) => update("billingAddress", e.target.value)}
@@ -171,4 +161,4 @@ export const InstitutionEditModal = ({
       </form>
     </Modal>
   );
-};
+}
