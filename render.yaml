@@ -12,9 +12,8 @@ services:
     buildCommand: >-
       pnpm install &&
       pnpm --filter api exec puppeteer browsers install chrome &&
-      pnpm run build --filter api &&
-      pnpm --filter api run db:bootstrap &&
-      pnpm --filter api run seed:admin
+      pnpm run build --filter api
+    preDeployCommand: pnpm --filter api run migration:run
     startCommand: pnpm --filter api run start:prod
     envVars:
       - key: PUPPETEER_CACHE_DIR
@@ -99,9 +98,8 @@ services:
     buildCommand: >-
       pnpm install &&
       pnpm --filter api exec puppeteer browsers install chrome &&
-      pnpm run build --filter api &&
-      pnpm --filter api run db:bootstrap &&
-      pnpm --filter api run seed:admin
+      pnpm run build --filter api
+    preDeployCommand: pnpm --filter api run migration:run
     startCommand: pnpm --filter api run start:prod
     envVars:
       - key: PUPPETEER_CACHE_DIR

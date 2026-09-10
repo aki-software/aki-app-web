@@ -79,12 +79,13 @@ Las variables de Web y Site son públicas, pero igualmente se configuran por ent
 
 ```powershell
 Copy-Item apps/site/.env.example apps/site/.env
+Copy-Item apps/web/.env.example apps/web/.env.local
 ```
 
-Para Web, creá `apps/web/.env.local` y definí al menos:
+En `apps/web/.env.local` la URL base de la API debe apuntar a:
 
 ```dotenv
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:3000/api/v1
 ```
 
 Nunca pongas contraseñas, tokens o API keys en variables `VITE_*` o `PUBLIC_*`: esos valores terminan en el navegador o en el HTML generado.
@@ -129,23 +130,29 @@ docker compose down
 
 No uses `docker compose down -v` salvo que quieras borrar las bases y volúmenes locales.
 
-## 5. Inicializar la base de datos
+## 5. Inicializar la base de datos local
 
-Desde `apps/api`:
+Una vez levantados los contenedores de Docker, podés inicializar la base de datos local ejecutando el script correspondiente desde la raíz del repositorio:
 
+**En Windows (PowerShell):**
 ```powershell
-Set-Location ../../apps/api
-pnpm db:setup:local
+.\scripts\bootstrap-db.ps1
 ```
 
-Ese comando ejecuta migraciones, carga el diccionario y crea el usuario inicial. Para tareas puntuales también existen:
-
-```powershell
-pnpm db:bootstrap
-pnpm seed:admin
+**En Linux / macOS:**
+```bash
+./scripts/bootstrap-db.sh
 ```
 
-`db:bootstrap` prepara el esquema y datos base. `seed:admin` crea o actualiza los datos administrativos iniciales. No ejecutes `db:reset` sobre una base que necesites conservar.
+*(O alternativamente vía pnpm: `pnpm --filter api run db:setup:local`)*
+
+Este script ejecuta:
+1. **`migration:run`**: Aplica todas las migraciones TypeORM.
+2. **`seed:dictionary`**: Carga las 12 categorías y las 220 combinaciones vocacionales.
+3. **`seed:admin`**: Crea el usuario administrador local con las credenciales de tu archivo `.env`.
+
+> [!WARNING]
+> Estos scripts son **exclusivamente para desarrollo local**. Nunca deben ejecutarse contra una base de datos de producción con datos reales. No ejecutes `db:reset` sobre una base que necesites conservar.
 
 ## 6. Levantar las aplicaciones
 
