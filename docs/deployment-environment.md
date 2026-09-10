@@ -105,7 +105,6 @@ Los webhooks deben apuntar a:
 | `S3_REGION`                 | Recomendada                                     | Privada     | Debe ser `auto` para R2. Default: `auto`.                                                        |
 | `REPORT_STORAGE_PREFIX`     | Opcional                                        | Privada     | Prefijo para las claves de objetos.                                                              |
 | `PUPPETEER_EXECUTABLE_PATH` | Obligatoria en ejecución normal/Docker          | Privada     | Ruta al navegador Chromium/Chrome instalado.                                                     |
-| `SERVERLESS`                | Obligatoria sólo en serverless                  | Privada     | `true` activa el flujo de Chromium empaquetado.                                                  |
 | `PUPPETEER_CACHE_DIR`       | Configuración de Render                         | Privada     | Directorio de cache; actualmente lo configura Render, pero la aplicación no lo lee directamente. |
 
 ### Email y notificaciones
@@ -126,17 +125,15 @@ Los webhooks deben apuntar a:
 
 ### Seed inicial
 
-Para ejecutar el seed inicial del admin e institución, configurar:
+Para ejecutar el seed inicial del admin, configurar:
 
 | Variable                     | Estado                                                  | Tipo        |
 | ---------------------------- | ------------------------------------------------------- | ----------- |
-| `ADMIN_USER`                 | Recomendada para el seed                                | Secreto     |
-| `ADMIN_PASS`                 | Recomendada para el seed                                | **Secreto** |
-| `ADMIN_NAME`                 | Opcional                                                | Privada     |
+| `ADMIN_USER`                 | Recomendada para el seed (email del admin)              | Secreto     |
+| `ADMIN_PASS`                 | Recomendada para el seed (contraseña del admin)         | **Secreto** |
+| `ADMIN_NAME`                 | Opcional (nombre visible del admin)                     | Privada     |
 | `SEED_MATERIAL_TEORICO_PATH` | Opcional, pero debe ir con `SEED_TRES_AREAS_PATH`       | Privada     |
 | `SEED_TRES_AREAS_PATH`       | Opcional, pero debe ir con `SEED_MATERIAL_TEORICO_PATH` | Privada     |
-
-Las variables `SEED_ADMIN_*` y `SEED_INSTITUTION_*` están en la plantilla, pero no son leídas por el código mantenido actualmente. Deben considerarse documentación histórica hasta que el seed las consuma explícitamente.
 
 ## 2. Web: `apps/web`
 
