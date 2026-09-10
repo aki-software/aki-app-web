@@ -20,16 +20,16 @@ interface BatchDetailDrawerProps {
 export const BatchDetailDrawer = ({ batchId, detail, loading, error, isAdmin, currentPage, totalPages, onPageChange, onClose }: BatchDetailDrawerProps) => {
   return (
     <>
-      <button type="button" onClick={onClose} className="fixed inset-0 z-40 bg-app-bg/90 backdrop-blur-sm" />
-      <aside className="fixed right-0 top-0 z-50 h-full w-full max-w-2xl overflow-y-auto border-l border-app-border bg-app-surface p-6 shadow-2xl slide-in-from-right duration-300">
-        <div className="sticky top-0 z-10 mb-6 flex items-center justify-between border-b border-app-border bg-app-surface/95 pb-4 backdrop-blur">
+      <button type="button" onClick={onClose} className="fixed inset-0 z-40 bg-black/20 backdrop-blur-md transition-opacity" />
+      <aside className="fixed right-0 top-0 z-50 h-full w-full max-w-2xl overflow-y-auto border-l border-modal-border bg-modal-bg p-6 shadow-2xl slide-in-from-right duration-300">
+        <div className="sticky top-0 z-10 mb-6 flex items-center justify-between border-b border-modal-border bg-modal-bg/95 pb-4 backdrop-blur">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-app-text-muted">Detalle de lote</p>
             <h3 className="mt-1 text-xl font-black text-app-text-main">
               {detail?.name || `Lote ${detail?.shortCode || (detail?.batchId ?? batchId).slice(0, 8).toUpperCase()}`}
             </h3>
           </div>
-          <button onClick={onClose} className="rounded-xl border border-app-border bg-app-bg p-2.5 text-app-text-muted hover:text-app-primary">
+          <button onClick={onClose} className="rounded-xl border border-modal-border bg-app-bg p-2.5 text-app-text-muted hover:text-app-primary">
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>

@@ -1,86 +1,102 @@
-import { CategoryDistributionData } from "@akit/contracts";
+import { CategoryDistributionData } from '@akit/contracts';
 import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Cell,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from "recharts";
-
-
+  ResponsiveContainer,
+  Treemap,
+  Tooltip,
+} from 'recharts';
 
 interface ResultsDistributionChartProps {
   data: CategoryDistributionData[];
 }
 
-export function ResultsDistributionChart({
-  data,
-}: ResultsDistributionChartProps) {
-  // Sort data by count descending for a better BarChart visualization
+const COLORS = [
+  '#1a8a87', // Primary
+  '#c4851e', // Secondary
+  '#6aad6e', // Tertiary
+  '#a78bfa',
+  '#e879f9',
+  '#2dd4bf',
+];
+
+interface CustomizedContentProps {
+  root?: { children?: unknown[] };
+  depth?: number;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  index?: number;
+  colors: string[];
+  name?: string;
+}
+
+const CustomizedContent = (props: CustomizedContentProps) => {
+  const { root, depth = 0, x = 0, y = 0, width = 0, height = 0, index = 0, colors, name } = props;
+
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        style={{
+          fill: depth < 2 ? colors[Math.floor((index / root.children.length) * 6)] : '#ffffff00',
+          stroke: 'var(--color-app-bg)',
+          strokeWidth: 2,
+          strokeOpacity: 0.8,
+        }}
+      />
+      {width > 50 && height > 30 && (
+        <text
+          x={x + width / 2}
+          y={y + height / 2}
+          textAnchor="middle"
+          fill="#fff"
+          fontSize={12}
+          fontWeight={700}
+        >
+          {name}
+        </text>
+      )}
+    </g>
+  );
+};
+
+export function ResultsDistributionChart({ data }: ResultsDistributionChartProps) {
   const sortedData = [...data].sort((a, b) => b.count - a.count);
 
   return (
-    <div className="h-full w-full min-w-0 overflow-hidden">
+    <div className="h-full w-full min-w-0 overflow-hidden rounded-xl">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={sortedData}
-          layout="vertical"
-          margin={{ top: 8, right: 12, left: 8, bottom: 8 }}
+        <Treemap
+          width={400}
+          height={200}
+          data={sortedData as unknown as Array<Record<string, unknown>>}
+          dataKey="count"
+          aspectRatio={4 / 3}
+          stroke="#fff"
+          fill="var(--color-app-primary)"
+          content={<CustomizedContent colors={COLORS} />}
         >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            horizontal={true}
-            vertical={false}
-            stroke="var(--color-app-border)"
-          />
-          <XAxis type="number" hide />
-          <YAxis
-            dataKey="name"
-            type="category"
-            width={88}
-            tickFormatter={(value: string) =>
-              value.length > 12 ? `${value.slice(0, 12)}...` : value
-            }
-            tick={{
-              fontSize: 10,
-              fill: "var(--color-app-text-muted)",
-              fontWeight: 700,
-            }}
-            axisLine={false}
-            tickLine={false}
-          />
           <Tooltip
+            cursor={false}
+            wrapperStyle={{ zIndex: 100, opacity: 1, outline: 'none' }}
             contentStyle={{
-              backgroundColor: "var(--color-app-surface)",
-              borderRadius: "16px",
-              border: "1px solid var(--color-app-border)",
-              color: "var(--color-app-text-main)",
-              boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-              fontSize: "12px",
-              fontWeight: "900",
+              backgroundColor: 'var(--color-app-bg)',
+              borderRadius: '16px',
+              border: '1px solid var(--color-app-border)',
+              color: 'var(--color-app-text-main)',
+              boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.2)',
+              fontSize: '12px',
+              fontWeight: '900',
+              padding: '12px 16px',
             }}
-            itemStyle={{ color: "var(--color-app-primary)" }}
-            cursor={{ fill: "var(--color-app-bg)", opacity: 0.4 }}
+            itemStyle={{ color: 'var(--color-app-primary)', fontWeight: 900 }}
           />
-          <Bar 
-            dataKey="count" 
-            radius={[0, 8, 8, 0]} 
-            barSize={14}
-            label={{ position: 'right', fill: 'var(--color-app-text-main)', fontSize: 10, fontWeight: 700 }}
-          >
-            {sortedData.map((_, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill="var(--color-app-primary)"
-                fillOpacity={Math.max(1 - index * 0.15, 0.4)}
-              />
-            ))}
-          </Bar>
-        </BarChart>
+        </Treemap>
       </ResponsiveContainer>
     </div>
   );
 }
+
