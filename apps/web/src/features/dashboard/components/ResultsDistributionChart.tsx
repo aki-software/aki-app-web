@@ -41,7 +41,10 @@ const CustomizedContent = (props: CustomizedContentProps) => {
         width={width}
         height={height}
         style={{
-          fill: depth < 2 ? colors[Math.floor((index / root.children.length) * 6)] : '#ffffff00',
+          fill:
+            depth < 2 && root?.children?.length
+              ? colors[Math.floor((index / root.children.length) * 6) % colors.length]
+              : '#ffffff00',
           stroke: 'var(--color-app-bg)',
           strokeWidth: 2,
           strokeOpacity: 0.8,
