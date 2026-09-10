@@ -2,12 +2,13 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g pnpm
+ENV PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false
+RUN npm install -g pnpm@10.28.2
 
 # 1. Pruner Stage - Isolate target workspace dependencies
 FROM base AS pruner
 WORKDIR /app
-RUN yarn global add turbo
+RUN npm install -g turbo@^2
 COPY . .
 RUN turbo prune --scope=web --docker
 
@@ -19,7 +20,7 @@ WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --config.manage-package-manager-versions=false
 
 # Build the project
 COPY --from=pruner /app/out/full/ .
