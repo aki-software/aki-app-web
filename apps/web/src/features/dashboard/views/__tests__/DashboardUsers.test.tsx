@@ -105,7 +105,7 @@ describe("DashboardUsers", () => {
 
   it("defaults to 'Instituciones' tab showing institution content", async () => {
     renderWithRouter(<DashboardUsers />);
-    expect(screen.getByText("Alta de instituciones y sus respectivas cuentas de acceso.")).toBeDefined();
+    expect(screen.getByText("Gestion de instituciones y sus cuentas de acceso.")).toBeDefined();
     expect(screen.getByText("Instituciones Registradas")).toBeDefined();
     expect(screen.getByText("Test Institution A")).toBeDefined();
     expect(screen.getByText("Test Institution B")).toBeDefined();
@@ -121,7 +121,7 @@ describe("DashboardUsers", () => {
     });
     expect(screen.getByText("Dr. Jones")).toBeDefined();
     // Institution content should not show
-    expect(screen.queryByText("Alta de instituciones y sus respectivas cuentas de acceso.")).toBeNull();
+    expect(screen.queryByText("Gestion de instituciones y sus cuentas de acceso.")).toBeNull();
   });
 
   it("shows empty state when no therapists are found", async () => {
@@ -136,7 +136,7 @@ describe("DashboardUsers", () => {
 
   it("preserves existing institution CRUD on first tab", async () => {
     renderWithRouter(<DashboardUsers />);
-    expect(screen.getByText("Alta de instituciones y sus respectivas cuentas de acceso.")).toBeDefined();
+    expect(screen.getByText("Gestion de instituciones y sus cuentas de acceso.")).toBeDefined();
     expect(screen.getByText("Instituciones Registradas")).toBeDefined();
     expect(screen.getByText("Test Institution A")).toBeDefined();
     expect(screen.getByText("Test Institution B")).toBeDefined();
@@ -169,7 +169,7 @@ describe("DashboardUsers — URL param behavior", () => {
 
   it("defaults to 'Instituciones' tab when no URL param", () => {
     render(<MemoryRouter><DashboardUsers /></MemoryRouter>);
-    expect(screen.getByText("Alta de instituciones y sus respectivas cuentas de acceso.")).toBeDefined();
+    expect(screen.getByText("Gestion de instituciones y sus cuentas de acceso.")).toBeDefined();
   });
 
   it("reads 'tab=professionals' from URL and shows professionals tab", async () => {
@@ -195,7 +195,7 @@ describe("DashboardUsers — URL param behavior", () => {
       </MemoryRouter>
     );
     // Should show institutions tab initially since tab=institutions
-    expect(screen.getByText("Alta de instituciones y sus respectivas cuentas de acceso.")).toBeDefined();
+    expect(screen.getByText("Gestion de instituciones y sus cuentas de acceso.")).toBeDefined();
   });
 
   it("switching to professionals tab sets tab param in URL", async () => {

@@ -26,16 +26,16 @@ export function BottomSheet({ isOpen, onClose, children, title }: BottomSheetPro
     <>
       <div 
         data-testid="bottom-sheet-backdrop"
-        className={`fixed inset-0 z-50 bg-black/60 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed inset-0 z-50 bg-black/20 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
       <div
         ref={sheetRef}
-        className={`fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-3xl bg-app-bg shadow-[0_-8px_30px_rgba(0,0,0,0.12)] border-t border-app-border transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
         style={{ maxHeight: '90vh' }}
       >
         <div className="flex h-12 items-center justify-center pt-2 pb-4">
-          <div className="h-1.5 w-12 rounded-full bg-slate-300" />
+          <div className="h-1.5 w-12 rounded-full bg-app-border" />
         </div>
         
         {title && (

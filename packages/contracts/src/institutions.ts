@@ -53,16 +53,10 @@ export interface InstitutionOverviewResponse {
       individual: { started: number; completed: number; reportsUnlocked: number };
     };
   };
-  topSessions: Array<{
-    id: string;
-    patientName: string;
-    createdAt: string | null;
-    sessionDate: string | null;
-    hollandCode: string;
-    paymentStatus: string;
-    voucherCode: string | null;
-    reportUnlockedAt: string | null;
-    resultsCount: number;
+  testsTrend: Array<{
+    date: string; // YYYY-MM-DD
+    started: number;
+    completed: number;
   }>;
   resultsDistribution: Array<{
     categoryId: string;
@@ -88,6 +82,13 @@ export interface CreateInstitutionDto {
 export interface UpdateInstitutionDto {
   name?: string;
   billingEmail?: string;
+  legalName?: string;
+  taxId?: string;
+  taxCondition?: string;
+  billingAddress?: string;
+  billingCity?: string;
+  billingProvince?: string;
+  billingPhone?: string;
 }
 
 export interface UpdateBillingProfileDto {

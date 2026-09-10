@@ -1,5 +1,5 @@
-import { Building2, Users, Search } from "lucide-react";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Building2, Plus, Users, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useInstitutionsManager } from "../hooks/useInstitutionsManager";
@@ -7,9 +7,8 @@ import { Alert } from "../../../components/atoms/Alert";
 import { Select } from "../../../components/atoms/Select";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { Pagination } from "../../../components/molecules/Pagination";
-import { CreateEntityForm } from "../components/users/CreateEntityForm";
-import { initialFormState } from "../components/users/CreateEntityForm.types";
-import { InstitutionCard } from "../components/users/InstitutionCard";
+import { CreateInstitutionModal } from "../components/users/CreateInstitutionModal";
+import { InstitutionTableRow } from "../components/users/InstitutionTableRow";
 import { InstitutionEditModal } from "../components/users/InstitutionEditModal";
 import { type InstitutionOption } from "../api/dashboard";
 import { fetchTherapists, type TherapistOption } from "../api/users.api";
@@ -73,9 +72,9 @@ export function DashboardUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "PENDING">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
-  const [formState, setFormState] = useState(initialFormState);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editingInst, setEditingInst] = useState<InstitutionOption | null>(null);
-  const [activeAsyncId, setActiveAsyncId] = useState<string | null>(null); // Para spinners de la card
+  const [activeAsyncId, setActiveAsyncId] = useState<string | null>(null);
 
   const [therapistSearchQuery, setTherapistSearchQuery] = useState("");
   const [therapistStatusFilter, setTherapistStatusFilter] = useState<"ALL" | "ACTIVE" | "PENDING">("ALL");
@@ -86,16 +85,24 @@ export function DashboardUsers() {
   useEffect(() => { setCurrentPage(1); }, [statusFilter, searchQuery]);
   useEffect(() => { setTherapistCurrentPage(1); }, [therapistStatusFilter, therapistSearchQuery, therapistOrderFilter]);
 
-  const onSubmitCreate = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!formState.name.trim() || !formState.email.trim()) {
-      return notify("Nombre y email son requeridos.", true);
+  const onSubmitCreate = async (form: { name: string; email: string; billingEmail: string }) => {
+    if (!form.name.trim() || !form.email.trim()) {
+      notify("Nombre y email son requeridos.", true);
+      return false;
     }
-    const success = await handleCreate(formState.name, formState.email, formState.billingEmail);
-    if (success) setFormState(initialFormState);
+    const success = await handleCreate(form.name, form.email, form.billingEmail);
+    if (success) setCreateModalOpen(false);
+    return !!success;
   };
 
-  const onSubmitUpdate = async (id: string, form: { name: string; billingEmail?: string }) => {
+  const onSubmitUpdate = async (id: string, form: {
+    name: string;
+    billingEmail?: string;
+    legalName?: string;
+    taxId?: string;
+    taxCondition?: string;
+    billingAddress?: string;
+  }) => {
     const success = await handleUpdate(id, form);
     if (success) setEditingInst(null);
   };
@@ -182,27 +189,28 @@ export function DashboardUsers() {
         </button>
       </div>
 
-      {/* Tab Content: Institutions */}
       {activeTab === "institutions" && (
         <>
-          <div>
-            <h2 className="text-2xl font-display font-bold text-app-text-main tracking-tight">Instituciones</h2>
-            <p className="mt-1 text-sm text-app-text-muted">Alta de instituciones y sus respectivas cuentas de acceso.</p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-app-text-main tracking-tight">Instituciones</h2>
+              <p className="mt-1 text-sm text-app-text-muted">Gestion de instituciones y sus cuentas de acceso.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCreateModalOpen(true)}
+              className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-app-primary px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-app-primary/90 hover:shadow-lg hover:shadow-app-primary/20 active:scale-95"
+            >
+              <Plus className="h-4 w-4" />
+              Nueva institución
+            </button>
           </div>
 
           <Alert type="success" message={message || ""} />
           <Alert type="error" message={error || ""} />
 
-          <CreateEntityForm
-            formState={formState}
-            setFormState={setFormState}
-            saving={saving && !editingInst}
-            onSubmit={onSubmitCreate}
-            isEditing={false}
-          />
-
           <div className="app-card !p-6">
-            <div className="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+            <div className="mb-5 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
               <div className="flex items-center">
                 <Building2 className="mr-2 h-5 w-5 text-app-primary" />
                 <h3 className="font-semibold text-app-text-main whitespace-nowrap">Instituciones Registradas</h3>
@@ -216,7 +224,7 @@ export function DashboardUsers() {
                     placeholder="Buscar por nombre o email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-[52px] pl-10 pr-4 rounded-2xl border border-app-border bg-app-surface text-sm font-medium text-app-text-main placeholder:text-app-text-muted/60 outline-none transition-all focus:border-app-primary focus:ring-4 focus:ring-app-primary/5"
+                    className="w-full h-[44px] pl-10 pr-4 rounded-xl border border-app-border bg-app-surface text-sm font-medium text-app-text-main placeholder:text-app-text-muted/60 outline-none transition-all focus:border-app-primary focus:ring-4 focus:ring-app-primary/5"
                   />
                 </div>
                 <div className="w-full sm:w-48">
@@ -241,37 +249,56 @@ export function DashboardUsers() {
                   No se encontraron instituciones
                 </p>
                 <p className="mt-2 text-xs text-app-text-muted/40 max-w-md">
-                  Intentá cambiar los filtros o el término de búsqueda.
+                  Intenta cambiar los filtros o el termino de busqueda.
                 </p>
               </div>
             ) : (
-              <div className="min-h-[500px] flex flex-col justify-between">
-                <div className="space-y-3">
-                  {pageItems.map((inst) => (
-                    <InstitutionCard
-                      key={inst.id}
-                      institution={inst}
-                      onEdit={() => setEditingInst(inst)}
-                      onToggleStatus={() => handleToggleStatus(inst)}
-                      onDelete={() => onCardAction(handleDelete(inst), inst.id)}
-                      onResendActivation={() => inst.responsibleTherapistUserId && onCardAction(handleResendActivation(inst.responsibleTherapistUserId), inst.id)}
-                      isResendingActivation={activeAsyncId === inst.id}
-                      onCreateOperationalAccount={(data) => onCardAction(handleCreateOperational(data.institutionId, data.email), inst.id)}
-                      isCreatingOperationalAccount={activeAsyncId === inst.id}
-                      onOpenOverview={(s) => navigate(`/dashboard/institutions/${s.id}`, { state: { institutionName: s.name } })}
-                    />
-                  ))}
+              <div className="min-h-[400px] flex flex-col justify-between">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-app-border/60">
+                        <th className="px-4 pb-3 text-xs font-semibold uppercase tracking-wider text-app-text-muted/60">Institución</th>
+                        <th className="px-4 pb-3 text-xs font-semibold uppercase tracking-wider text-app-text-muted/60">Responsable</th>
+                        <th className="px-4 pb-3 text-xs font-semibold uppercase tracking-wider text-app-text-muted/60">Estado</th>
+                        <th className="px-4 pb-3 text-xs font-semibold uppercase tracking-wider text-app-text-muted/60 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pageItems.map((inst) => (
+                        <InstitutionTableRow
+                          key={inst.id}
+                          institution={inst}
+                          onEdit={() => setEditingInst(inst)}
+                          onToggleStatus={() => handleToggleStatus(inst)}
+                          onDelete={() => onCardAction(handleDelete(inst), inst.id)}
+                          onResendActivation={() => inst.responsibleTherapistUserId && onCardAction(handleResendActivation(inst.responsibleTherapistUserId), inst.id)}
+                          isResendingActivation={activeAsyncId === inst.id}
+                          onCreateOperationalAccount={(data) => onCardAction(handleCreateOperational(data.institutionId, data.email), inst.id)}
+                          isCreatingOperationalAccount={activeAsyncId === inst.id}
+                          onOpenOverview={(s) => navigate(`/dashboard/institutions/${s.id}`, { state: { institutionName: s.name } })}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
                 <div className="pt-4 border-t border-app-border/40 mt-auto">
-                  <Pagination 
-                    currentPage={currentPage} 
-                    totalPages={totalPages} 
-                    onPageChange={setCurrentPage} 
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
                   />
                 </div>
               </div>
             )}
           </div>
+
+          <CreateInstitutionModal
+            isOpen={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+            onSubmit={onSubmitCreate}
+            saving={saving && !editingInst}
+          />
 
           {editingInst && (
             <InstitutionEditModal
