@@ -20,6 +20,7 @@ import { CreateOperationalAccountDto } from './dto/create-operational-account.dt
 import { InstitutionOverviewQueryDto } from './dto/institution-overview-query.dto.js';
 import { UpdateInstitutionDto } from './dto/update-institution.dto.js';
 import { UpdateInstitutionStatusDto } from './dto/update-institution-status.dto.js';
+import { UpdateBillingProfileDto } from './dto/update-billing-profile.dto.js';
 import { InstitutionsService } from './institutions.service.js';
 import type {
   InstitutionOverviewResponse,
@@ -156,8 +157,7 @@ export class InstitutionsController {
   @UseGuards(InstitutionOwnerGuard)
   async updateBillingProfile(
     @Param('id') id: string,
-    @Body()
-    payload: import('./dto/update-billing-profile.dto.js').UpdateBillingProfileDto,
+    @Body() payload: UpdateBillingProfileDto,
   ) {
     const institution = await this.institutionsService.updateBillingProfile(
       id,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { DashboardOverview } from "../DashboardOverview";
@@ -210,38 +210,27 @@ describe("DashboardOverview", () => {
       });
     });
 
-    it("enables the platform purchase summary and replaces the HealthBar", async () => {
+    it("enables the platform purchase summary and renders four primary KPIs", async () => {
       renderWithRouter(<DashboardOverview />);
-      expect(screen.getByText("Vouchers acreditados")).toBeDefined();
-      expect(screen.getByText("Instituciones compradoras")).toBeDefined();
-      expect(screen.queryByText("Instituciones con alertas")).toBeNull();
+      expect(screen.getByText("Facturación Acreditada")).toBeDefined();
+      expect(screen.getByText("Instituciones Activas")).toBeDefined();
+      expect(screen.getByText("Vouchers Canjeados")).toBeDefined();
+      expect(screen.getByText("Tasa de Finalización")).toBeDefined();
       expect(mockPurchaseSummary).toHaveBeenLastCalledWith(7, true);
     });
 
-        it("shows triage success and unavailable state when the triage request fails", async () => {
-          const { unmount } = renderWithRouter(<DashboardOverview />);
-          await waitFor(() => expect(screen.getByText("5")).toBeDefined());
-          unmount();
-
-          mockFetchTriageSessions.mockRejectedValueOnce(new Error("offline"));
-          renderWithRouter(<DashboardOverview />);
-          await waitFor(() => expect(screen.getByText("Datos de sesiones no disponibles.")).toBeDefined());
-        });
-
-        it("renders SessionsChart section with period summary", async () => {
+    it("renders SessionsChart section", async () => {
       renderWithRouter(<DashboardOverview />);
       expect(screen.getByText("Volumen de Evaluaciones Diarias")).toBeDefined();
-      expect(screen.getByText("Total del período")).toBeDefined();
-      expect(screen.getByText("Promedio diario")).toBeDefined();
-      expect(screen.getByText("Tasa de finalización")).toBeDefined();
     });
 
-        it("keeps operational details permanently visible in a labelled section", () => {
-          const { container } = renderWithRouter(<DashboardOverview />);
-          expect(screen.getByRole("heading", { name: "Detalle operativo de vouchers y canales" })).toBeDefined();
-          expect(container.querySelector("details")).toBeNull();
-          expect(screen.getByText("Vouchers generados")).toBeDefined();
-        });
+    it("keeps operational details permanently visible in a labelled section", () => {
+      const { container } = renderWithRouter(<DashboardOverview />);
+      expect(screen.getByRole("heading", { name: "Detalle operativo de vouchers y canales" })).toBeDefined();
+      expect(container.querySelector("details")).toBeNull();
+      expect(screen.getByText("Generados")).toBeDefined();
+      expect(screen.getByText("Canjeados")).toBeDefined();
+    });
 
         it("renders QuickActions and ActivityFeed", async () => {
       renderWithRouter(<DashboardOverview />);

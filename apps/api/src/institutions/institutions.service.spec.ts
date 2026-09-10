@@ -91,6 +91,10 @@ describe('InstitutionsService', () => {
         billingEmail: 'billing@test.com',
         responsibleTherapistUserId: null,
         isActive: true,
+        billingAddress: null,
+        legalName: null,
+        taxCondition: null,
+        taxId: null,
       });
       expect(repository.save).toHaveBeenCalledWith(mockInst);
       expect(result).toBe(mockInst);

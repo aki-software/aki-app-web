@@ -8,6 +8,15 @@ import {
 } from 'typeorm';
 import { Session } from './session.entity.js';
 
+/**
+ * RETENTION STRATEGY:
+ * Individual `session_swipes` are transactional logs used specifically to calculate
+ * `session_metrics` (fatigue, rush, selectivity, etc.) at the end of a session.
+ * Once these metrics are calculated and consolidated, the swipe-level data becomes obsolete.
+ *
+ * Recommended cleanup strategy (e.g., via cron job or background worker):
+ * DELETE FROM session_swipes WHERE timestamp < NOW() - INTERVAL '30 days';
+ */
 @Entity('session_swipes')
 export class SessionSwipe {
   @PrimaryGeneratedColumn()

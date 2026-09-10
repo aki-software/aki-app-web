@@ -7,7 +7,7 @@ import { usePurchaseSummary, type PurchaseSummaryPeriod } from "../hooks/usePurc
 import { LowStockAlert } from "../components/institucion/LowStockAlert";
 import { InstitutionPurchaseSummary } from "../components/institucion/InstitutionPurchaseSummary";
 import { purchaseComparison } from "../utils/purchase-summary-presenters";
-import { TopSessionsTable } from "../components/institucion/TopSessionsTable";
+import { TestsTrendChart } from "../components/TestsTrendChart";
 import { StatCard } from "../../../components/atoms/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
 import { ResultsDistributionChart } from "../components/ResultsDistributionChart";
@@ -192,14 +192,18 @@ export function InstitutionDashboardOverview() {
           />
         </div>
         
-        <div className="mt-8">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <h3 className="text-xl font-black tracking-tight text-app-text-main">
-              Tests recientes
-            </h3>
-          </div>
-          <TopSessionsTable sessions={overview?.topSessions ?? []} />
-        </div>
+        {overview?.testsTrend && overview.testsTrend.length > 0 && (
+          <DashboardWidget
+            title="Evolución"
+            description="Cantidad de tests iniciados y completados en el período."
+            icon={TrendingUp}
+            iconColorClass="text-app-primary"
+          >
+            <div className="h-[260px]">
+              <TestsTrendChart data={overview.testsTrend} />
+            </div>
+          </DashboardWidget>
+        )}
         
         {overview?.resultsDistribution && overview.resultsDistribution.length > 0 && (
           <DashboardWidget
