@@ -29,12 +29,18 @@ RUN pnpm turbo run build --filter=api...
 # Setup the production image
 FROM base AS runner
 
+# Install Chromium for Puppeteer PDF generation
+RUN apk add --no-cache chromium
+
 # Don't run production as root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
 USER nestjs
 
 WORKDIR /app
+
+# Set Puppeteer executable path to the installed Chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Copy the built output from the builder stage
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
