@@ -7,6 +7,8 @@ const developmentOrigins = [
   'http://127.0.0.1:4321',
 ];
 
+const cloudflarePagesPattern = /^https:\/\/([a-zA-Z0-9-]+\.)?aki-app-web\.pages\.dev$/;
+
 export function createCorsOptions(
   environment: NodeJS.ProcessEnv = process.env,
 ): CorsOptions {
@@ -24,7 +26,11 @@ export function createCorsOptions(
 
   return {
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        cloudflarePagesPattern.test(origin)
+      ) {
         callback(null, true);
         return;
       }
