@@ -107,8 +107,8 @@ docker compose ps
 
 URLs útiles:
 
-| Servicio     | URL / puerto             |
-| ------------ | ------------------------ |
+| Servicio     | URL / puerto               |
+| ------------ | -------------------------- |
 | PostgreSQL   | `localhost:5432`         |
 | Redis        | `localhost:6379`         |
 | Mailpit SMTP | `localhost:1025`         |
@@ -135,11 +135,13 @@ No uses `docker compose down -v` salvo que quieras borrar las bases y volúmenes
 Una vez levantados los contenedores de Docker, podés inicializar la base de datos local ejecutando el script correspondiente desde la raíz del repositorio:
 
 **En Windows (PowerShell):**
+
 ```powershell
 .\scripts\bootstrap-db.ps1
 ```
 
 **En Linux / macOS:**
+
 ```bash
 ./scripts/bootstrap-db.sh
 ```
@@ -147,6 +149,7 @@ Una vez levantados los contenedores de Docker, podés inicializar la base de dat
 *(O alternativamente vía pnpm: `pnpm --filter api run db:setup:local`)*
 
 Este script ejecuta:
+
 1. **`migration:run`**: Aplica todas las migraciones TypeORM.
 2. **`seed:dictionary`**: Carga las 12 categorías y las 220 combinaciones vocacionales.
 3. **`seed:admin`**: Crea el usuario administrador local con las credenciales de tu archivo `.env`.
