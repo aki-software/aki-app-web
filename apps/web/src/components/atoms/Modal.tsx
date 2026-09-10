@@ -73,18 +73,18 @@ export const Modal = ({
       aria-modal="true"
       role="dialog"
     >
-      {/* Backdrop con Blur Lux */}
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/20 backdrop-blur-md transition-opacity"
         onClick={handleBackdropClick}
       />
 
       {/* Contenedor del Modal */}
       <div
-        className={`relative flex max-h-[calc(100vh-2rem)] w-full ${sizeClasses[size]} flex-col overflow-hidden rounded-2xl border border-app-border bg-app-bg shadow-[0_24px_48px_-16px_rgba(0,0,0,0.45)] animate-in zoom-in-95 duration-200`}
+        className={`relative flex max-h-[calc(100vh-2rem)] w-full ${sizeClasses[size]} flex-col overflow-hidden rounded-2xl border border-modal-border bg-modal-bg shadow-[0_24px_48px_-16px_rgba(0,0,0,0.35)] animate-in zoom-in-95 duration-200`}
       >
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-app-border px-6 py-5 sm:px-8">
+        <div className="flex items-start justify-between border-b border-modal-border px-6 py-5 sm:px-8 bg-modal-bg">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <div className="h-1.5 w-6 bg-app-primary rounded-full" />
@@ -104,20 +104,20 @@ export const Modal = ({
             disabled={isLoading}
             aria-label="Cerrar modal"
             title="Cerrar modal"
-            className="rounded-full p-2 text-app-text-muted hover:bg-app-bg hover:text-app-text-main transition-colors disabled:opacity-30"
+            className="rounded-full p-2 text-app-text-muted hover:bg-app-surface hover:text-app-text-main transition-colors disabled:opacity-30"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar bg-modal-bg">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-4 border-t border-app-border px-6 py-4 sm:px-8">
+          <div className="flex items-center justify-end gap-4 border-t border-modal-border px-6 py-4 sm:px-8 bg-modal-bg">
             {footer}
           </div>
         )}

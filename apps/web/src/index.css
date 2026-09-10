@@ -29,6 +29,10 @@
   --color-app-text-muted: rgba(29, 25, 20, 0.78);
   --color-app-text-soft: rgba(29, 25, 20, 0.92);
 
+  /* ── Modal & Elevation surface tokens ── */
+  --color-modal-bg: var(--color-surface-light);
+  --color-modal-border: rgba(122, 135, 131, 0.28);
+
   /* ── Semantic action tokens ── */
   --color-app-confirm: #43A047;
   --color-app-destructive: #E53935;
@@ -91,6 +95,10 @@
     --color-app-text-main: #f5f1ec;
     --color-app-text-muted: rgba(245, 241, 236, 0.62);
     --color-app-text-soft: rgba(245, 241, 236, 0.78);
+
+    /* ── Modal & Elevation surface tokens (dark) ── */
+    --color-modal-bg: var(--color-surface-dark);
+    --color-modal-border: rgba(255, 255, 255, 0.12);
 
     --color-category-art: #a78bfa;
     --color-category-hum: #e879f9;
