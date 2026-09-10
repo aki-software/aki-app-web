@@ -4,6 +4,7 @@ import { getPaymentReadiness } from './payments/config/payment-configuration.js'
 @Controller()
 export class HealthController {
   @Get('health')
+  @Get('api/v1/health')
   @HttpCode(HttpStatus.OK)
   checkHealth() {
     return {
