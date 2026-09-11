@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   AdminPaymentLedgerDetail,
@@ -88,8 +88,9 @@ export class AdminPaymentLedgerService {
   constructor(
     @InjectRepository(VoucherBatch)
     private readonly batches: Repository<VoucherBatch>,
+    @Optional()
     @InjectRepository(PaymentEvent)
-    private readonly paymentEvents: Repository<PaymentEvent>,
+    private readonly paymentEvents?: Repository<PaymentEvent>,
   ) {}
 
   async list(query: AdminPaymentLedgerQuery) {
@@ -116,10 +117,12 @@ export class AdminPaymentLedgerService {
       .getRawOne<LedgerRow>();
     if (row) return AdminPaymentLedgerDetail.parse(this.entry(row));
 
-    const b2cRow = await this.b2cQuery({ sort: 'SETTLED_DESC' } as any)
-      .andWhere('payment.id = :voucherBatchId', { voucherBatchId })
-      .getRawOne<LedgerRow>();
-    if (b2cRow) return AdminPaymentLedgerDetail.parse(this.entry(b2cRow));
+    if (this.paymentEvents) {
+      const b2cRow = await this.b2cQuery({ sort: 'SETTLED_DESC' } as any)
+        .andWhere('payment.id = :voucherBatchId', { voucherBatchId })
+        .getRawOne<LedgerRow>();
+      if (b2cRow) return AdminPaymentLedgerDetail.parse(this.entry(b2cRow));
+    }
 
     throw new NotFoundException('Payment ledger batch not found');
   }

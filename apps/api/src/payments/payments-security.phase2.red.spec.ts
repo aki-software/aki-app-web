@@ -519,13 +519,14 @@ function validProductionEnvironment(
     FRONTEND_URL: 'https://app.akit.example',
     API_URL: 'https://api.akit.example',
     REDIS_HOST: 'redis.akit.example',
-    STRIPE_SECRET_KEY: 'stripe-secret-placeholder',
-    STRIPE_WEBHOOK_SECRET: 'stripe-webhook-secret-placeholder',
-    MP_ACCESS_TOKEN: 'mercado-pago-access-placeholder',
-    MP_WEBHOOK_SECRET: 'mercado-pago-webhook-placeholder',
+    STRIPE_SECRET_KEY: 'sk_live_1234567890123456',
+    STRIPE_WEBHOOK_SECRET: 'whsec_1234567890123456',
+    MP_ACCESS_TOKEN: 'APP_USR-1234567890123456',
+    MP_WEBHOOK_SECRET: 'mp_webhook_secret_1234567890',
     GOOGLE_PLAY_PACKAGE_NAME: 'com.akit.mobile',
     GOOGLE_PLAY_REPORT_SKU: CANONICAL_REPORT_SKU,
     GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64: 'eyJ0eXBlIjoic2VydmljZV9hY2NvdW50In0=',
+    PAYMENT_IDEMPOTENCY_SECRET: 'payment-idempotency-secret-test-key-32ch',
     ...overrides,
   };
 }
