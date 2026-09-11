@@ -11,8 +11,7 @@ export function mapToCreateDto(
   payload: CompleteSessionDto,
   context: ResolvedOwnerContext,
 ): CreateSessionDto {
-  const { user, voucher, fallbackOwner, inferredPatientName, isTherapistUser } =
-    context;
+  const { user, voucher, inferredPatientName, isTherapistUser } = context;
 
   const payloadTherapistUserId = nullIfBlank(payload.therapistUserId);
   const payloadInstitutionId = nullIfBlank(payload.institutionId);
@@ -46,17 +45,18 @@ export function mapToCreateDto(
         : payloadTherapistUserId ||
           voucher?.ownerUserId ||
           (isTherapistUser ? (user?.id ?? undefined) : undefined) ||
-          fallbackOwner?.id ||
           undefined,
-    channel:
-      !isTherapistUser && !voucher ? SessionChannel.GOOGLE_PLAY : undefined,
+    channel: voucher
+      ? SessionChannel.VOUCHER
+      : !isTherapistUser
+        ? SessionChannel.GOOGLE_PLAY
+        : SessionChannel.DIRECT_WEB,
     institutionId:
       !isTherapistUser && !voucher
         ? undefined
         : payloadInstitutionId ||
           voucher?.ownerInstitutionId ||
           user?.institutionId ||
-          fallbackOwner?.institutionId ||
           undefined,
     patientId:
       (payloadPatientId ?? undefined) ||
