@@ -34,13 +34,17 @@ interface LedgerRow {
   buyerName: string | null;
   buyerEmail: string | null;
   paymentEventId: string | null;
-  gateway: 'MERCADO_PAGO' | 'STRIPE' | null;
+  gateway: 'MERCADO_PAGO' | 'STRIPE' | 'GOOGLE_PLAY' | null;
   externalReference: string | null;
   settledAt: Date | null;
   operationalState:
     | 'ACCREDITED'
     | 'PENDING_ACCREDITATION'
     | 'ACCREDITED_NOTIFICATION_ATTENTION';
+  /** Set for B2C Google Play ledger entries. */
+  sessionId: string | null;
+  /** Acquisition channel: B2B for institution voucher batches, B2C for Google Play. */
+  channel: 'B2B' | 'B2C';
   buyerDeliveryId: string | null;
   buyerDeliveryStatus:
     | 'PENDING'
@@ -166,6 +170,9 @@ export class AdminPaymentLedgerService {
         'payment.gateway AS "gateway"',
         'payment.externalPaymentId AS "externalReference"',
         'payment.createdAt AS "settledAt"',
+        // B2B voucher-batch entries never have a session link; channel is always B2B.
+        'NULL::uuid AS "sessionId"',
+        '\'B2B\' AS "channel"',
         `${this.operationalStateExpression()} AS "operationalState"`,
         ...this.deliverySelect('buyer'),
         ...this.deliverySelect('admin'),
@@ -297,6 +304,8 @@ export class AdminPaymentLedgerService {
       voucherBatchId: row.voucherBatchId,
       checkoutAttemptId: row.checkoutAttemptId,
       paymentEventId: row.paymentEventId,
+      sessionId: this.uuid(row.sessionId ?? null) ?? undefined,
+      channel: row.channel,
       institution: {
         id: row.institutionId,
         name: row.institutionName.trim(),

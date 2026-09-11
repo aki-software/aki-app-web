@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class GooglePlayFinancialTracking1789100000000
-  implements MigrationInterface
-{
+export class GooglePlayFinancialTracking1789100000000 implements MigrationInterface {
   name = 'GooglePlayFinancialTracking1789100000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
