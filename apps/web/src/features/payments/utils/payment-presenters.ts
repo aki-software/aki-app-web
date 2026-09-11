@@ -11,6 +11,7 @@ export function paymentGatewayLabel(gateway: PaymentGateway | null): string {
   if (gateway === null) return "Asignación administrativa";
   if (gateway === "MERCADO_PAGO") return "Mercado Pago";
   if (gateway === "STRIPE") return "Stripe";
+  if (gateway === "GOOGLE_PLAY") return "Google Play";
 
   const exhaustiveGateway: never = gateway;
   return exhaustiveGateway;
