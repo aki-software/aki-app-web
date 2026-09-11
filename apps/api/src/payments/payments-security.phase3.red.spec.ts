@@ -38,9 +38,11 @@ describe('payments security refactor phase 3 RED', () => {
   });
 
   it('keeps ordinary JSON checkout route bodies parseable while raw webhook capture is enabled', async () => {
-    const initiateCheckout = jest
-      .fn()
-      .mockResolvedValue({ checkoutUrl: 'https://pay.akit.example' });
+    const initiateCheckout = jest.fn().mockResolvedValue({
+      checkoutUrl: 'https://pay.akit.example',
+      voucherBatchId: '11111111-1111-4111-8111-111111111111',
+      checkoutAttemptId: '22222222-2222-4222-8222-222222222222',
+    });
     const controller = new PaymentsController(
       {} as never,
       { initiateCheckout } as never,

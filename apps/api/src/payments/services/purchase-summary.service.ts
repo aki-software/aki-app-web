@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   PurchaseSummaryResponse,
@@ -41,8 +41,9 @@ export class PurchaseSummaryService {
     private readonly batches: Repository<VoucherBatch>,
     @InjectRepository(Institution)
     private readonly institutions: Repository<Institution>,
+    @Optional()
     @InjectRepository(PaymentEvent)
-    private readonly paymentEvents: Repository<PaymentEvent>,
+    private readonly paymentEvents?: Repository<PaymentEvent>,
   ) {}
 
   async get(
@@ -274,6 +275,9 @@ export class PurchaseSummaryService {
     from: Date;
     to: Date;
   }): Promise<GooglePlayMetricRow | undefined> {
+    if (!this.paymentEvents) {
+      return Promise.resolve(undefined);
+    }
     return this.paymentEvents
       .createQueryBuilder('event')
       .select('COUNT(*)', 'accreditedCount')

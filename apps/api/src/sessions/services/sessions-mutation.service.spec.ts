@@ -219,7 +219,7 @@ describe('SessionsMutationService completion boundary', () => {
     expect(service.create).toHaveBeenCalledWith(
       expect.objectContaining({
         patientId: undefined,
-        therapistUserId: '92177e63-49f2-46f8-a76f-406fd8f8b438',
+        therapistUserId: undefined,
         institutionId: undefined,
       }),
       expect.anything(),
@@ -317,7 +317,7 @@ describe('SessionsMutationService completion boundary', () => {
     },
   );
 
-  it('persists authenticated patient and fallback owner despite conflicting client IDs', async () => {
+  it('persists authenticated patient without therapist owner for B2C despite conflicting client IDs', async () => {
     const resolver = {
       resolveContext: jest.fn().mockResolvedValue({
         inferredPatientName: 'Patient',
@@ -355,7 +355,7 @@ describe('SessionsMutationService completion boundary', () => {
     expect(service.create).toHaveBeenCalledWith(
       expect.objectContaining({
         patientId: '6ed5f206-2c2f-4d5c-b1d3-376454b4a19c',
-        therapistUserId: '92177e63-49f2-46f8-a76f-406fd8f8b438',
+        therapistUserId: undefined,
         institutionId: undefined,
       }),
       expect.anything(),
