@@ -3,7 +3,7 @@ import { z } from "zod";
 const uuid = z.string().uuid();
 const datetime = z.string().datetime();
 
-export const PaymentGateway = z.enum(["MERCADO_PAGO", "STRIPE"]);
+export const PaymentGateway = z.enum(["MERCADO_PAGO", "STRIPE", "GOOGLE_PLAY"]);
 export type PaymentGateway = z.infer<typeof PaymentGateway>;
 
 export const Money = z
@@ -147,6 +147,7 @@ export const CommercialSnapshot = z.union([
     })
     .strict(),
   completeSnapshot.extend({ gateway: z.literal("STRIPE") }).strict(),
+  completeSnapshot.extend({ gateway: z.literal("GOOGLE_PLAY") }).strict(),
   legacySnapshot,
 ]);
 export type CommercialSnapshot = z.infer<typeof CommercialSnapshot>;
@@ -490,6 +491,10 @@ export const AdminPaymentLedgerEntry = z
     voucherBatchId: uuid,
     checkoutAttemptId: uuid.nullable(),
     paymentEventId: uuid.nullable(),
+    /** Present on B2C Google Play entries; absent on B2B voucher-batch entries. */
+    sessionId: uuid.optional(),
+    /** Payment channel attribution. B2B = institution batch purchase; B2C = individual Google Play unlock. */
+    channel: z.enum(["B2B", "B2C"]).default("B2B"),
     institution: safeIdentity.extend({
       legalName: z.string().nullable().optional(),
       taxId: z.string().nullable().optional(),
