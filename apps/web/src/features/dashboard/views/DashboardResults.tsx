@@ -30,6 +30,7 @@ export function DashboardResults() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [channelFilter, setChannelFilter] = useState<string>("ALL");
   const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>({});
   const [trends, setTrends] = useState<BehavioralTrends | null>(null);
   const [trendsLoading, setTrendsLoading] = useState(false);
@@ -62,6 +63,10 @@ export function DashboardResults() {
       if (statusFilter === "STARTED" && completed) return false;
       if (statusFilter === "COMPLETED" && !completed) return false;
       if (statusFilter === "REPORT_UNLOCKED" && !unlocked) return false;
+
+      if (channelFilter === "GOOGLE_PLAY" && session.channel !== "GOOGLE_PLAY") return false;
+      if (channelFilter === "VOUCHER" && session.channel !== "VOUCHER") return false;
+
       if (!term) return true;
 
       return [
@@ -79,7 +84,7 @@ export function DashboardResults() {
     return Object.entries(groups).map(([name, list]) => {
       return [name, list.sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime())] as const;
     }).sort((a, b) => new Date(b[1][0].sessionDate).getTime() - new Date(a[1][0].sessionDate).getTime());
-  }, [searchTerm, sessions, statusFilter]);
+  }, [searchTerm, sessions, statusFilter, channelFilter]);
 
   const filteredSessionsCount = useMemo(
     () => groupedSessions.reduce((acc, [, list]) => acc + list.length, 0),
@@ -173,7 +178,7 @@ export function DashboardResults() {
 
       <div className="space-y-6">
         <div className="grid gap-4 lg:grid-cols-4 items-end">
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-2">
              <span className="app-label mb-2 block">Buscar</span>
              <SearchInput
               value={searchTerm}
@@ -181,6 +186,17 @@ export function DashboardResults() {
               placeholder="Buscar paciente, código vocacional, terapeuta u organización..."
             />
           </div>
+
+          <Select
+            label="Origen / Canal"
+            value={channelFilter}
+            onChange={(e) => setChannelFilter(e.target.value)}
+            options={[
+              { value: "ALL", label: "Todos los orígenes" },
+              { value: "VOUCHER", label: "Institucional (Voucher)" },
+              { value: "GOOGLE_PLAY", label: "App Móvil (Google Play)" }
+            ]}
+          />
 
           <Select
             label="Estado"

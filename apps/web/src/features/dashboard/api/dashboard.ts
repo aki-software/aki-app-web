@@ -39,6 +39,7 @@ export async function fetchDashboardStats(days?: number): Promise<DashboardStats
       channelBreakdown: data.channelBreakdown ?? {
         voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
         individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+        googlePlay: { started: 0, completed: 0, reportsUnlocked: 0, revenueUsd: 0 },
       },
       sessionsActivity: data.sessionsActivity ?? [],
       resultsDistribution: data.resultsDistribution ?? [],
@@ -65,6 +66,7 @@ export async function fetchDashboardStats(days?: number): Promise<DashboardStats
       channelBreakdown: {
         voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
         individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+        googlePlay: { started: 0, completed: 0, reportsUnlocked: 0, revenueUsd: 0 },
       },
       sessionsActivity: [],
       resultsDistribution: [],

@@ -60,8 +60,9 @@ function Identifier({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-function recipientName(recipient: { name: string; email: string } | null) {
+function recipientName(recipient: { name: string; email: string | null } | null) {
   if (!recipient) return "Sin destinatario registrado";
+  if (!recipient.email) return recipient.name;
   return recipient.name === recipient.email
     ? recipient.email
     : `${recipient.name} · ${recipient.email}`;
@@ -139,19 +140,19 @@ export function LedgerDetail({ entry }: LedgerDetailProps) {
   return (
     <div className="space-y-6">
       <dl className="grid gap-4 sm:grid-cols-2">
-        <Field label="Institución">{entry.institution.name}</Field>
+        <Field label="Institución">{entry.institution?.name ?? "Usuario B2C (App Móvil)"}</Field>
         <Field label="Datos de facturación">
           <span className="block">
-            Razón Social: {entry.institution.legalName || "No configurado"}
+            Razón Social: {entry.institution?.legalName || "No configurado"}
           </span>
           <span className="block">
-            CUIT: {entry.institution.taxId || "No configurado"}
+            CUIT: {entry.institution?.taxId || "No configurado"}
           </span>
           <span className="block">
-            Condición IVA: {entry.institution.taxCondition || "No configurado"}
+            Condición IVA: {entry.institution?.taxCondition || "No configurado"}
           </span>
           <span className="block">
-            Domicilio: {entry.institution.billingAddress || "No configurado"}
+            Domicilio: {entry.institution?.billingAddress || "No configurado"}
           </span>
         </Field>
         <Field label="Comprador">{buyerName}</Field>
@@ -162,10 +163,12 @@ export function LedgerDetail({ entry }: LedgerDetailProps) {
           {entry.commercial.planName ?? "Plan no disponible"}
         </Field>
         <Field label="Total">
-          {formatPaymentAmount(
-            Number(entry.amount.value),
-            entry.amount.currency,
-          )}
+          {entry.channel === "B2B"
+            ? formatPaymentAmount(
+                Number(entry.amount.value),
+                entry.amount.currency,
+              )
+            : "No informado (gestionado por App Store)"}
         </Field>
         <Field label="Método de pago">
           {entry.payment
@@ -177,24 +180,36 @@ export function LedgerDetail({ entry }: LedgerDetailProps) {
             ? formatPaymentTimestamp(entry.payment.settledAt)
             : "Sin pago liquidado"}
         </Field>
-        <Field label="Acreditación">
-          <span className="block">
-            {accredited ? "Acreditación completada" : "Acreditación pendiente"}
-          </span>
-          <span className="block">
-            {entry.fulfillment.actualVoucherCount} vouchers acreditados
-          </span>
-        </Field>
-        {entry.fulfillment.discrepancy !== 0 ? (
-          <div className="sm:col-span-2" role="alert">
-            <dt className="app-label !text-xs text-status-error">Atención</dt>
-            <Value>
-              Se esperaban {entry.fulfillment.expectedVoucherCount} vouchers y
-              se acreditaron {entry.fulfillment.actualVoucherCount} (diferencia:{" "}
-              {entry.fulfillment.discrepancy}).
-            </Value>
-          </div>
-        ) : null}
+        
+        {entry.channel === "B2B" ? (
+          <>
+            <Field label="Acreditación">
+              <span className="block">
+                {accredited ? "Acreditación completada" : "Acreditación pendiente"}
+              </span>
+              <span className="block">
+                {entry.fulfillment.actualVoucherCount} vouchers acreditados
+              </span>
+            </Field>
+            {entry.fulfillment.discrepancy !== 0 ? (
+              <div className="sm:col-span-2" role="alert">
+                <dt className="app-label !text-xs text-status-error">Atención</dt>
+                <Value>
+                  Se esperaban {entry.fulfillment.expectedVoucherCount} vouchers y
+                  se acreditaron {entry.fulfillment.actualVoucherCount} (diferencia:{" "}
+                  {entry.fulfillment.discrepancy}).
+                </Value>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <Field label="Estado">
+            <span className="block text-status-success font-medium">
+              Reporte individual desbloqueado
+            </span>
+          </Field>
+        )}
+
         <Field label="Fecha de acreditación">
           {entry.fulfillment.fulfilledAt
             ? formatPaymentTimestamp(entry.fulfillment.fulfilledAt)
@@ -202,16 +217,18 @@ export function LedgerDetail({ entry }: LedgerDetailProps) {
         </Field>
       </dl>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Delivery
-          title="Notificación al comprador"
-          delivery={entry.notifications.buyer}
-        />
-        <Delivery
-          title="Notificación a administración"
-          delivery={entry.notifications.platformAdmin}
-        />
-      </div>
+      {entry.channel === "B2B" ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Delivery
+            title="Notificación al comprador"
+            delivery={entry.notifications.buyer}
+          />
+          <Delivery
+            title="Notificación a administración"
+            delivery={entry.notifications.platformAdmin}
+          />
+        </div>
+      ) : null}
 
       <details className="rounded-lg border border-app-border p-3">
         <summary className="cursor-pointer font-semibold text-app-text-main focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary">
@@ -231,7 +248,7 @@ export function LedgerDetail({ entry }: LedgerDetailProps) {
             label="ID de evento de pago"
             value={entry.paymentEventId}
           />
-          <Identifier label="ID de institución" value={entry.institution.id} />
+          <Identifier label="ID de institución" value={entry.institution?.id ?? null} />
           <Identifier
             label="ID de aviso al comprador"
             value={entry.notifications.buyer?.deliveryId ?? null}

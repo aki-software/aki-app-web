@@ -164,7 +164,7 @@ export class PurchaseSummaryService {
     return this.scoped(scope)
       .andWhere("batch.status = 'PAID'")
       .andWhere(
-        `(NOT EXISTS (SELECT 1 FROM payment_event payment WHERE payment."voucherBatchId" = batch.id AND payment.status = 'APPROVED') OR batch.fulfilledAt IS NULL OR (SELECT COUNT(*) FROM vouchers voucher WHERE voucher.batch_id = batch.id) <> batch.quantity)`,
+        `( (CAST(batch.totalPrice AS DECIMAL) > 0 AND NOT EXISTS (SELECT 1 FROM payment_event payment WHERE payment."voucherBatchId" = batch.id AND payment.status = 'APPROVED')) OR batch.fulfilledAt IS NULL OR (SELECT COUNT(*) FROM vouchers voucher WHERE voucher.batch_id = batch.id) <> batch.quantity )`,
       )
       .select('COUNT(*)', 'count')
       .getRawOne<CountRow>();

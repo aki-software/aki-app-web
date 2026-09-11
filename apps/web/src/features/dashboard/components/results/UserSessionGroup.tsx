@@ -18,11 +18,11 @@ const paymentLabel = (status: string) => {
 const sourceLabel = (session: SessionData) => {
   if (session.institutionName) return session.institutionName;
   if (session.therapistName) return `Terapeuta: ${session.therapistName}`;
-  return "Sin asignación";
+  return "App Móvil (B2C)";
 };
 
 const voucherUsageLabel = (session: SessionData) => 
-  session.voucherCode ? `Con voucher (${session.voucherCode})` : "Sin voucher";
+  session.voucherCode ? `Con voucher (${session.voucherCode})` : "Compra In-App";
 
 // ------------------------------------------------------------------
 
@@ -63,9 +63,7 @@ export function UserSessionGroup({
               {userName}
             </div>
             <div className="app-label mt-1 sm:mt-2 opacity-60 truncate">
-              {lastSession.paymentStatus === "PAID" && !lastSession.institutionName
-                ? "Pago individual / Sin asignación"
-                : sourceLabel(lastSession)}
+              {sourceLabel(lastSession)}
             </div>
           </div>
         </div>
@@ -139,15 +137,26 @@ export function UserSessionGroup({
 
 
 
-                    <span
-                      className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
-                        session.paymentStatus === "PAID"
-                          ? "text-status-success border-status-success/20 bg-status-success/5"
-                          : "text-app-primary border-app-primary/20 bg-app-primary/5"
-                      }`}
-                    >
-                      {paymentLabel(session.paymentStatus)}
-                    </span>
+                    {session.channel === "VOUCHER" || session.voucherCode ? (
+                      <span className="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border text-app-primary border-app-primary/20 bg-app-primary/5 flex items-center gap-1.5">
+                        🎟️ Voucher: {session.voucherCode || 'LOTE'}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border text-[#00a173] border-[#00a173]/20 bg-[#00a173]/5 flex items-center gap-1.5">
+                          📱 App Móvil
+                        </span>
+                        <span
+                          className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
+                            session.paymentStatus === "PAID"
+                              ? "text-status-success border-status-success/20 bg-status-success/5"
+                              : "text-status-warning border-status-warning/20 bg-status-warning/5"
+                          }`}
+                        >
+                          {paymentLabel(session.paymentStatus)}
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   {/* Fila inferior: Info detallada */}

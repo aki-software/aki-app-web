@@ -6,6 +6,7 @@ import {
   In,
   Not,
   IsNull,
+  Raw,
   SelectQueryBuilder,
 } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
@@ -42,6 +43,10 @@ export class SessionsQueryService {
 
     if (role === UserRole.ADMIN) {
       where.voucherId = IsNull();
+      // Platform admins must not see B2C sessions unless they are the designated individual test owner
+      where.channel = Raw(
+        (alias) => `(${alias} != 'GOOGLE_PLAY' OR ${alias} IS NULL)`,
+      );
       return where;
     }
 
