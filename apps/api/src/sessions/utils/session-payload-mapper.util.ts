@@ -1,6 +1,9 @@
 import { CompleteSessionDto } from '../dto/complete-session.dto.js';
 import { CreateSessionDto } from '../dto/create-session.dto.js';
-import { SessionPaymentStatus } from '../entities/session.entity.js';
+import {
+  SessionChannel,
+  SessionPaymentStatus,
+} from '../entities/session.entity.js';
 import { ResolvedOwnerContext } from '../interfaces/resolved-owner-context.interface.js';
 import { calculateHollandProfile } from './psychometrics.util.js';
 
@@ -34,14 +37,19 @@ export function mapToCreateDto(
 
   return {
     id: payloadId || undefined,
+    // B2C individual sessions (no therapist user, no voucher) get therapistUserId = null
+    // and an explicit GOOGLE_PLAY channel. This removes the previous fallback to
+    // getOrCreateIndividualTestsOwner() / ADMIN_USER ghost ownership.
     therapistUserId:
       !isTherapistUser && !voucher
-        ? fallbackOwner?.id || undefined
+        ? undefined // explicitly null — do not assign any owner
         : payloadTherapistUserId ||
           voucher?.ownerUserId ||
           (isTherapistUser ? (user?.id ?? undefined) : undefined) ||
           fallbackOwner?.id ||
           undefined,
+    channel:
+      !isTherapistUser && !voucher ? SessionChannel.GOOGLE_PLAY : undefined,
     institutionId:
       !isTherapistUser && !voucher
         ? undefined
