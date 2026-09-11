@@ -339,7 +339,7 @@ export type PaymentNotificationErrorClassification = z.infer<
 
 const safeIdentity = z.object({ id: uuid, name: z.string().min(1) }).strict();
 const safeRecipientSnapshot = z
-  .object({ userId: uuid, name: z.string().min(1), email: z.string().email() })
+  .object({ userId: uuid, name: z.string().min(1), email: z.string().email().nullable() })
   .strict();
 const safeCommercialSnapshot = z
   .object({
@@ -425,6 +425,7 @@ export const AdminPaymentLedgerQuery = z
     page: z.coerce.number().int().min(1).max(1_000_000).default(1),
     pageSize: z.coerce.number().int().min(1).max(100).default(25),
     fulfillmentState: z.enum(["PENDING", "FULFILLED"]).optional(),
+    channel: z.enum(["B2B", "B2C"]).optional(),
     notificationRecipient: z
       .enum(["ANY", "BUYER", "PLATFORM_ADMIN"])
       .default("ANY"),
@@ -500,7 +501,7 @@ export const AdminPaymentLedgerEntry = z
       taxId: z.string().nullable().optional(),
       taxCondition: z.string().nullable().optional(),
       billingAddress: z.string().nullable().optional(),
-    }),
+    }).optional(),
     buyer: safeRecipientSnapshot.nullable(),
     commercial: safeCommercialSnapshot,
     amount: z

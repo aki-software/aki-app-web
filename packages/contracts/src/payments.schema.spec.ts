@@ -404,6 +404,7 @@ describe("Payment Schemas", () => {
       voucherBatchId: id,
       checkoutAttemptId: null,
       paymentEventId: null,
+      channel: "B2B",
       institution: { id, name: "A.kit University" },
       buyer: null,
       commercial: { pricingPlanId: null, planName: null },
