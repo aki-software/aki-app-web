@@ -3,7 +3,7 @@ import { z } from "zod";
 const uuid = z.string().uuid();
 const datetime = z.string().datetime();
 
-export const PaymentGateway = z.enum(["MERCADO_PAGO", "STRIPE"]);
+export const PaymentGateway = z.enum(["MERCADO_PAGO", "STRIPE", "GOOGLE_PLAY"]);
 export type PaymentGateway = z.infer<typeof PaymentGateway>;
 
 export const Money = z
@@ -147,6 +147,7 @@ export const CommercialSnapshot = z.union([
     })
     .strict(),
   completeSnapshot.extend({ gateway: z.literal("STRIPE") }).strict(),
+  completeSnapshot.extend({ gateway: z.literal("GOOGLE_PLAY") }).strict(),
   legacySnapshot,
 ]);
 export type CommercialSnapshot = z.infer<typeof CommercialSnapshot>;
@@ -338,7 +339,7 @@ export type PaymentNotificationErrorClassification = z.infer<
 
 const safeIdentity = z.object({ id: uuid, name: z.string().min(1) }).strict();
 const safeRecipientSnapshot = z
-  .object({ userId: uuid, name: z.string().min(1), email: z.string().email() })
+  .object({ userId: uuid, name: z.string().min(1), email: z.string().email().nullable() })
   .strict();
 const safeCommercialSnapshot = z
   .object({
@@ -424,6 +425,7 @@ export const AdminPaymentLedgerQuery = z
     page: z.coerce.number().int().min(1).max(1_000_000).default(1),
     pageSize: z.coerce.number().int().min(1).max(100).default(25),
     fulfillmentState: z.enum(["PENDING", "FULFILLED"]).optional(),
+    channel: z.enum(["B2B", "B2C"]).optional(),
     notificationRecipient: z
       .enum(["ANY", "BUYER", "PLATFORM_ADMIN"])
       .default("ANY"),
@@ -490,12 +492,16 @@ export const AdminPaymentLedgerEntry = z
     voucherBatchId: uuid,
     checkoutAttemptId: uuid.nullable(),
     paymentEventId: uuid.nullable(),
+    /** Present on B2C Google Play entries; absent on B2B voucher-batch entries. */
+    sessionId: uuid.optional(),
+    /** Payment channel attribution. B2B = institution batch purchase; B2C = individual Google Play unlock. */
+    channel: z.enum(["B2B", "B2C"]).default("B2B"),
     institution: safeIdentity.extend({
       legalName: z.string().nullable().optional(),
       taxId: z.string().nullable().optional(),
       taxCondition: z.string().nullable().optional(),
       billingAddress: z.string().nullable().optional(),
-    }),
+    }).optional(),
     buyer: safeRecipientSnapshot.nullable(),
     commercial: safeCommercialSnapshot,
     amount: z

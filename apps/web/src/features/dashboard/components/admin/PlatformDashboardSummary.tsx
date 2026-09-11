@@ -94,6 +94,12 @@ export function PlatformDashboardSummary({
       )
     : null;
 
+  let revenueDescription = purchaseUnavailable ? purchaseStatusDescription : amountComparison ?? amount.description;
+  if (!purchaseUnavailable && adminStats?.channelBreakdown?.googlePlay) {
+    const b2cRevenue = adminStats.channelBreakdown.googlePlay.revenueUsd || 0;
+    revenueDescription = `${revenueDescription} · Incluye B2C (App Móvil): USD ${b2cRevenue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
   // Nivel 1: Alertas en Tiempo Real (Acción Requerida)
   const expiringVoucherAlert = adminStats?.alerts?.find(a => a.id === 'vouchers-expiring');
   
@@ -164,7 +170,7 @@ export function PlatformDashboardSummary({
             icon={CircleDollarSign}
             label="Facturación Acreditada"
             value={amount.value}
-            description={purchaseUnavailable ? purchaseStatusDescription : amountComparison ?? amount.description}
+            description={revenueDescription}
             valueColor="text-app-primary"
           />
           <StatCard

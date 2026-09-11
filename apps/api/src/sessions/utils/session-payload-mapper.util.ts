@@ -1,6 +1,9 @@
 import { CompleteSessionDto } from '../dto/complete-session.dto.js';
 import { CreateSessionDto } from '../dto/create-session.dto.js';
-import { SessionPaymentStatus } from '../entities/session.entity.js';
+import {
+  SessionChannel,
+  SessionPaymentStatus,
+} from '../entities/session.entity.js';
 import { ResolvedOwnerContext } from '../interfaces/resolved-owner-context.interface.js';
 import { calculateHollandProfile } from './psychometrics.util.js';
 
@@ -8,8 +11,7 @@ export function mapToCreateDto(
   payload: CompleteSessionDto,
   context: ResolvedOwnerContext,
 ): CreateSessionDto {
-  const { user, voucher, fallbackOwner, inferredPatientName, isTherapistUser } =
-    context;
+  const { user, voucher, inferredPatientName, isTherapistUser } = context;
 
   const payloadTherapistUserId = nullIfBlank(payload.therapistUserId);
   const payloadInstitutionId = nullIfBlank(payload.institutionId);
@@ -34,21 +36,27 @@ export function mapToCreateDto(
 
   return {
     id: payloadId || undefined,
+    // B2C individual sessions (no therapist user, no voucher) get therapistUserId = null
+    // and an explicit GOOGLE_PLAY channel. This removes the previous fallback to
+    // getOrCreateIndividualTestsOwner() / ADMIN_USER ghost ownership.
     therapistUserId:
       !isTherapistUser && !voucher
-        ? fallbackOwner?.id || undefined
+        ? undefined // explicitly null — do not assign any owner
         : payloadTherapistUserId ||
           voucher?.ownerUserId ||
           (isTherapistUser ? (user?.id ?? undefined) : undefined) ||
-          fallbackOwner?.id ||
           undefined,
+    channel: voucher
+      ? SessionChannel.VOUCHER
+      : !isTherapistUser
+        ? SessionChannel.GOOGLE_PLAY
+        : SessionChannel.DIRECT_WEB,
     institutionId:
       !isTherapistUser && !voucher
         ? undefined
         : payloadInstitutionId ||
           voucher?.ownerInstitutionId ||
           user?.institutionId ||
-          fallbackOwner?.institutionId ||
           undefined,
     patientId:
       (payloadPatientId ?? undefined) ||

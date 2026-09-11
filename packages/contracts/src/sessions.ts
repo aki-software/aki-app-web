@@ -122,6 +122,7 @@ export const sessionApiSchema = z.object({
   createdAt: z.union([z.string(), z.instanceof(Date), z.number()]).optional(),
   totalTimeMs: z.union([z.string(), z.number()]).optional(),
   paymentStatus: z.string().optional(),
+  channel: z.string().nullable().optional(),
   reportUnlockedAt: z.string().nullable().optional(),
   results: z.array(sessionResultDataSchema).optional(),
   swipes: z.array(sessionSwipeDataSchema).optional(),
@@ -139,6 +140,7 @@ export interface SessionData {
   sessionDate: string | Date | number;
   totalTimeMs: number;
   paymentStatus: string;
+  channel?: string | null;
   institutionName: string | null;
   therapistName: string | null;
   voucherCode: string | null;
