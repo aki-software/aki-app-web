@@ -7,7 +7,8 @@ const developmentOrigins = [
   'http://127.0.0.1:4321',
 ];
 
-const cloudflarePagesPattern = /^https:\/\/([a-zA-Z0-9-]+\.)?aki-app-web\.pages\.dev$/;
+const cloudflarePagesPattern =
+  /^https:\/\/([a-zA-Z0-9-]+\.)?aki-app-web\.pages\.dev$/;
 
 export function createCorsOptions(
   environment: NodeJS.ProcessEnv = process.env,
@@ -37,7 +38,14 @@ export function createCorsOptions(
 
       callback(new Error('Not allowed by CORS'));
     },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE , OPTIONS',
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+    ],
     credentials: true,
   };
 }

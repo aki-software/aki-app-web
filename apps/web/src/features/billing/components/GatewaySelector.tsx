@@ -21,6 +21,11 @@ const gatewayDetails: Record<
     description: "Tarjetas y Saldo (AR)",
     Icon: Wallet,
   },
+  GOOGLE_PLAY: {
+    name: "Google Play",
+    description: "App Store (Android)",
+    Icon: CreditCard, // Or Smartphone if available
+  },
 };
 
 export function GatewaySelector({

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { BarChart3, Edit2, Mail, MoreHorizontal, Power, RefreshCw, Trash2, UserPlus } from "lucide-react";
+import { Building2, BarChart3, Edit2, Mail, MoreHorizontal, Power, RefreshCw, Trash2, UserPlus } from "lucide-react";
 import type { InstitutionOption } from "../../api/dashboard";
 import { ActivationBadge } from "../../../../components/atoms/StatusBadge";
 import { Modal } from "../../../../components/atoms/Modal";
@@ -10,6 +10,7 @@ interface Props {
   onToggleStatus: (institution: InstitutionOption) => void;
   onDelete?: (institution: InstitutionOption) => void;
   onOpenOverview?: (institution: InstitutionOption) => void;
+  onViewDetail?: (institution: InstitutionOption) => void;
   onResendActivation?: (institution: InstitutionOption) => void;
   isResendingActivation?: boolean;
   onCreateOperationalAccount?: (args: { institutionId: string; email: string }) => Promise<void>;
@@ -22,6 +23,7 @@ export function InstitutionTableRow({
   onToggleStatus,
   onDelete,
   onOpenOverview,
+  onViewDetail,
   onResendActivation,
   isResendingActivation,
   onCreateOperationalAccount,
@@ -138,6 +140,18 @@ export function InstitutionTableRow({
                   {/* Backdrop */}
                   <div className="fixed inset-0 z-10" onClick={closeMenu} />
                   <div className="absolute right-0 z-20 mt-1 w-52 rounded-xl border border-app-border bg-app-surface shadow-lg py-1">
+                    {/* View Details */}
+                    {onViewDetail && (
+                      <button
+                        type="button"
+                        onClick={() => { closeMenu(); onViewDetail(institution); }}
+                        className="flex w-full items-center gap-2.5 px-3 py-2 text-xs text-app-text-main hover:bg-app-bg transition-colors"
+                      >
+                        <Building2 className="h-3.5 w-3.5 text-app-text-muted" />
+                        Ver detalles
+                      </button>
+                    )}
+
                     {/* Resend activation */}
                     {canResendActivation && (
                       <button

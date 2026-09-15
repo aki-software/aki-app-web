@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   PurchaseSummaryResponse,
@@ -8,6 +8,7 @@ import {
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Institution } from '../../institutions/entities/institution.entity.js';
 import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
+import { PaymentEvent } from '../entities/payment-event.entity.js';
 
 export type PurchaseSummaryScope =
   | { scope: 'PLATFORM' }
@@ -29,6 +30,10 @@ type LatestRow = {
   amount: string;
 };
 
+type GooglePlayMetricRow = {
+  accreditedCount: string;
+};
+
 @Injectable()
 export class PurchaseSummaryService {
   constructor(
@@ -36,6 +41,9 @@ export class PurchaseSummaryService {
     private readonly batches: Repository<VoucherBatch>,
     @InjectRepository(Institution)
     private readonly institutions: Repository<Institution>,
+    @Optional()
+    @InjectRepository(PaymentEvent)
+    private readonly paymentEvents?: Repository<PaymentEvent>,
   ) {}
 
   async get(
@@ -62,6 +70,8 @@ export class PurchaseSummaryService {
       paidAlert,
       notificationAlert,
       latest,
+      currentGooglePlay,
+      priorGooglePlay,
     ] = await Promise.all([
       this.metrics(current, scope),
       this.purchasingInstitutionCount(current, scope),
@@ -70,6 +80,13 @@ export class PurchaseSummaryService {
       this.paidButNotFulfilled(scope),
       this.notificationAttention(scope),
       this.latest(scope),
+      // Google Play metrics are platform-only: B2C events have no institution scope.
+      scope.scope === 'PLATFORM'
+        ? this.googlePlayMetrics(current)
+        : Promise.resolve(null),
+      scope.scope === 'PLATFORM'
+        ? this.googlePlayMetrics(prior)
+        : Promise.resolve(null),
     ]);
     const base = {
       generatedAt: now.toISOString(),
@@ -87,10 +104,12 @@ export class PurchaseSummaryService {
         current: this.metricsResponse(
           currentRows,
           currentInstitutionCount?.count ?? '0',
+          currentGooglePlay,
         ),
         prior: this.metricsResponse(
           priorRows,
           priorInstitutionCount?.count ?? '0',
+          priorGooglePlay,
         ),
         latestAccreditation: latest ? this.latestResponse(latest, true) : null,
       });
@@ -146,7 +165,7 @@ export class PurchaseSummaryService {
     return this.scoped(scope)
       .andWhere("batch.status = 'PAID'")
       .andWhere(
-        `(NOT EXISTS (SELECT 1 FROM payment_event payment WHERE payment."voucherBatchId" = batch.id AND payment.status = 'APPROVED') OR batch.fulfilledAt IS NULL OR (SELECT COUNT(*) FROM vouchers voucher WHERE voucher.batch_id = batch.id) <> batch.quantity)`,
+        `( (CAST(batch.totalPrice AS DECIMAL) > 0 AND NOT EXISTS (SELECT 1 FROM payment_event payment WHERE payment."voucherBatchId" = batch.id AND payment.status = 'APPROVED')) OR batch.fulfilledAt IS NULL OR (SELECT COUNT(*) FROM vouchers voucher WHERE voucher.batch_id = batch.id) <> batch.quantity )`,
       )
       .select('COUNT(*)', 'count')
       .getRawOne<CountRow>();
@@ -222,12 +241,16 @@ export class PurchaseSummaryService {
   private metricsResponse(
     rows: MetricRow[],
     purchasingInstitutionCount?: string,
+    googlePlay?: GooglePlayMetricRow | null,
   ) {
+    const googlePlayCount = Number(googlePlay?.accreditedCount ?? 0);
     const totals = {
-      accreditedPurchaseCount: rows.reduce(
-        (sum, row) => sum + Number(row.accreditedPurchaseCount),
-        0,
-      ),
+      // Include Google Play B2C accreditations in platform-wide counts.
+      accreditedPurchaseCount:
+        rows.reduce(
+          (sum, row) => sum + Number(row.accreditedPurchaseCount),
+          0,
+        ) + googlePlayCount,
       accreditedVoucherCount: rows.reduce(
         (sum, row) => sum + Number(row.accreditedVoucherCount),
         0,
@@ -243,6 +266,25 @@ export class PurchaseSummaryService {
           ...totals,
           purchasingInstitutionCount: Number(purchasingInstitutionCount),
         };
+  }
+
+  /** Counts Google Play PaymentEvent records with status='APPROVED' that were
+   *  created within the given time window.  These are B2C individual unlocks and
+   *  are always platform-scoped (no institution owns them). */
+  private googlePlayMetrics(window: {
+    from: Date;
+    to: Date;
+  }): Promise<GooglePlayMetricRow | undefined> {
+    if (!this.paymentEvents) {
+      return Promise.resolve(undefined);
+    }
+    return this.paymentEvents
+      .createQueryBuilder('event')
+      .select('COUNT(*)', 'accreditedCount')
+      .where("event.gateway = 'GOOGLE_PLAY'")
+      .andWhere("event.status = 'APPROVED'")
+      .andWhere('event.createdAt >= :from AND event.createdAt < :to', window)
+      .getRawOne<GooglePlayMetricRow>();
   }
 
   private latestResponse(row: LatestRow, platform: boolean) {

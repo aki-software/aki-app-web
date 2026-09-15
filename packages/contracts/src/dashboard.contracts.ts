@@ -23,12 +23,20 @@ export interface DashboardStatsResponse {
 export interface DashboardChannelBreakdown {
   voucher: DashboardChannelMetrics;
   individual: DashboardChannelMetrics;
+  googlePlay: DashboardChannelMetrics & { revenueUsd: number };
 }
 
 export interface DashboardChannelMetrics {
   started: number;
   completed: number;
   reportsUnlocked: number;
+}
+
+export interface GooglePlayRevenueSummary {
+  /** Number of individual report unlocks settled via Google Play in the period. */
+  accreditedCount: number;
+  /** Total gross revenue in USD (or platform base currency) for the period. */
+  revenueUsd: number;
 }
 
 export interface SessionActivityData {
