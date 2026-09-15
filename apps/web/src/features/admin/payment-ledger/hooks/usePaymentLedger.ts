@@ -14,6 +14,7 @@ type LedgerFilters = Pick<
   | "settledTo"
   | "fulfillmentState"
   | "notificationStatus"
+  | "channel"
 >;
 
 const INITIAL_FILTERS: LedgerFilters = {};

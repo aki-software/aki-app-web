@@ -25,6 +25,17 @@ export enum SessionStatus {
   ABANDONED = 'ABANDONED',
 }
 
+/** Identifies the acquisition channel for the session.
+ *  VOUCHER: redeemed via a B2B institution voucher.
+ *  GOOGLE_PLAY: purchased individually via Android in-app billing (B2C).
+ *  DIRECT_WEB: purchased individually via the web checkout (B2C).
+ *  NULL: legacy sessions created before this column was introduced. */
+export enum SessionChannel {
+  VOUCHER = 'VOUCHER',
+  GOOGLE_PLAY = 'GOOGLE_PLAY',
+  DIRECT_WEB = 'DIRECT_WEB',
+}
+
 @Entity('sessions')
 @Index('IDX_sessions_institution_id', ['institutionId'])
 @Index('IDX_sessions_therapist_user_id', ['therapistUserId'])
@@ -141,6 +152,15 @@ export class Session {
     nullable: true,
   })
   paymentReference!: string | null;
+
+  /** Acquisition channel for this session. NULL for legacy sessions. */
+  @Column({
+    name: 'channel',
+    type: 'varchar',
+    length: 32,
+    nullable: true,
+  })
+  channel!: SessionChannel | null;
 
   @OneToMany('SessionResult', 'session', {
     cascade: true,
