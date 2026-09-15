@@ -110,6 +110,7 @@ function normalizeSession(session: SessionApi): SessionData {
     sessionDate: session.createdAt || new Date(0).toISOString(),
     totalTimeMs: Number(session.totalTimeMs) || 0,
     paymentStatus: session.paymentStatus || "UNKNOWN",
+    channel: session.channel ?? null,
     institutionName: session.institution?.name ?? null,
     therapistName: session.therapist?.name ?? null,
     voucherCode: session.voucher?.code ?? null,

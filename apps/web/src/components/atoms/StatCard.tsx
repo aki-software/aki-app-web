@@ -1,5 +1,6 @@
 import { type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { useCountUp } from "../../hooks/useCountUp";
 
 interface StatCardProps {
   icon?: LucideIcon | ReactNode;
@@ -27,6 +28,8 @@ export function StatCard({
   className,
 }: StatCardProps) {
   const resolvedColor = valueColorProp ?? colorClass;
+  
+  const displayValue = useCountUp(value);
 
   const renderIcon = (className: string) => {
     if (!icon) return null;
@@ -52,7 +55,7 @@ export function StatCard({
         </div>
         <div className="flex items-baseline gap-2">
           <span className={`app-value !text-3xl font-black tracking-tighter leading-none ${resolvedColor.includes('text-app-text-muted') ? 'text-app-text-main' : resolvedColor}`}>
-            {value}
+            {displayValue}
           </span>
           {unit && (
             <span className="text-[10px] font-black text-app-text-muted/60 uppercase tracking-widest">

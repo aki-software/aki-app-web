@@ -10,7 +10,6 @@ describe('PdfService deterministic rendering boundary', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env.SERVERLESS;
   });
 
   afterEach(() => {

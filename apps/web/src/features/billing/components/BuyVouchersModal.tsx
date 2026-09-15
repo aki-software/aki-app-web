@@ -68,7 +68,7 @@ export function BuyVouchersModal({
   return (
     <div className="fixed inset-0 z-[100] flex justify-end">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-black/20 backdrop-blur-md animate-in fade-in duration-300 transition-opacity"
         onClick={onClose}
       />
 

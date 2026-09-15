@@ -12,8 +12,7 @@ describe('createCorsOptions', () => {
 
     let allowed = false;
     originOption(origin, (error, result) => {
-      expect(error).toBeNull();
-      allowed = result === true;
+      allowed = !error && result === true;
     });
     return allowed;
   };
@@ -55,5 +54,28 @@ describe('createCorsOptions', () => {
     origin('https://untrusted.vercel.app', (error) => {
       expect(error).toEqual(new Error('Not allowed by CORS'));
     });
+  });
+
+  it('allows aki-app-web.pages.dev preview origins', () => {
+    expect(
+      isOriginAllowed(
+        { NODE_ENV: 'production', CORS_ORIGIN: 'https://qa.example.com' },
+        'https://dev.aki-app-web.pages.dev',
+      ),
+    ).toBe(true);
+
+    expect(
+      isOriginAllowed(
+        { NODE_ENV: 'production', CORS_ORIGIN: 'https://qa.example.com' },
+        'https://a394e5c4.aki-app-web.pages.dev',
+      ),
+    ).toBe(true);
+
+    expect(
+      isOriginAllowed(
+        { NODE_ENV: 'production', CORS_ORIGIN: 'https://qa.example.com' },
+        'https://unrelated.pages.dev',
+      ),
+    ).toBe(false);
   });
 });

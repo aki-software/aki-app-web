@@ -32,8 +32,6 @@ function renderSummary(props: Partial<React.ComponentProps<typeof PlatformDashbo
         purchaseLoading={false}
         purchaseError={null}
         onRetry={vi.fn()}
-        triageCount={3}
-        institutionAlertsCount={1}
         {...props}
       />
     </MemoryRouter>,
@@ -43,10 +41,9 @@ function renderSummary(props: Partial<React.ComponentProps<typeof PlatformDashbo
 describe("PlatformDashboardSummary", () => {
   it("renders exactly four primary metrics and separate conditional alerts", () => {
     renderSummary();
-    expect(screen.getAllByText(/Vouchers acreditados|Monto acreditado|Instituciones compradoras|Sesiones por revisar/)).toHaveLength(4);
-    expect(screen.getByText("1 compra pendiente de acreditación")).toBeDefined();
-    expect(screen.getByText("2 notificaciones de compra no enviadas")).toBeDefined();
-    expect(screen.getByText("1 alerta institucional pendiente")).toBeDefined();
+    expect(screen.getAllByText(/Facturación Acreditada|Vouchers Canjeados|Tasa de Finalización|Instituciones Activas/)).toHaveLength(4);
+    expect(screen.getByText("1 pago(s) pendiente(s) de acreditación")).toBeDefined();
+    expect(screen.getByText("2 notificación(es) de pago fallida(s)")).toBeDefined();
   });
 
   it("does not combine multiple currencies", () => {
@@ -58,51 +55,45 @@ describe("PlatformDashboardSummary", () => {
         ] },
       },
     });
-    const amountCard = screen.getByText("Monto acreditado").closest(".app-card");
+    const amountCard = screen.getByText("Facturación Acreditada").closest(".app-card");
     expect(screen.getByText("2 monedas")).toBeDefined();
     expect(amountCard).not.toHaveTextContent(/respecto del período anterior/);
   });
 
-      it("uses plural institution alert copy", () => {
-        renderSummary({ institutionAlertsCount: 2 });
-        expect(screen.getByText("2 alertas institucionales pendientes")).toBeDefined();
-      });
+  it("shows loading copy while purchase metrics load", () => {
+    renderSummary({ purchaseData: null, purchaseLoading: true });
+    // Tasa de Finalización and Vouchers Activos vs Canjeados show "—" when adminStats is null,
+    // and Facturación Acreditada and Instituciones Activas show "Cargando compras…"
+    expect(screen.getAllByText("Cargando compras…")).toHaveLength(2);
+    expect(screen.queryByText("Datos no disponibles.")).toBeNull();
+  });
 
-      it("shows loading copy while purchase metrics load", () => {
-        renderSummary({ purchaseData: null, purchaseLoading: true });
-        expect(screen.getAllByText("Cargando compras…")).toHaveLength(3);
-        expect(screen.queryByText("Datos de compras no disponibles.")).toBeNull();
-      });
-
-      it("shows unavailable values and a retry control when purchase metrics fail", () => {
+  it("shows unavailable values and a retry control when purchase metrics fail", () => {
     const onRetry = vi.fn();
-    renderSummary({ purchaseData: null, purchaseError: new Error("failed"), onRetry, triageCount: null });
+    renderSummary({ purchaseData: null, purchaseError: new Error("failed"), onRetry });
     expect(screen.getByRole("alert")).toHaveTextContent("métricas de compras no están disponibles");
     screen.getByRole("button", { name: "Reintentar" }).click();
     expect(onRetry).toHaveBeenCalledOnce();
-    expect(screen.getByText("Datos de sesiones no disponibles.")).toBeDefined();
   });
 
   it("dismisses alerts independently by type and exposes accessible close controls", () => {
     renderSummary();
-    const purchaseClose = screen.getByRole("button", { name: "Cerrar alerta de compras pendientes de acreditación" });
-    const notificationClose = screen.getByRole("button", { name: "Cerrar alerta de notificaciones de compra" });
-    const institutionClose = screen.getByRole("button", { name: "Cerrar alerta institucional" });
+    const closeButtons = screen.getAllByRole("button", { name: "Cerrar alerta" });
+    expect(closeButtons.length).toBe(2); // one for purchase, one for notification
 
-    for (const closeButton of [purchaseClose, notificationClose, institutionClose]) {
+    for (const closeButton of closeButtons) {
       expect(closeButton.className).toContain("min-h-11");
       expect(closeButton.className).toContain("min-w-11");
     }
 
-    fireEvent.click(purchaseClose);
-    expect(screen.queryByText("1 compra pendiente de acreditación")).toBeNull();
-    expect(screen.getByText("2 notificaciones de compra no enviadas")).toBeDefined();
-    expect(screen.getByText("1 alerta institucional pendiente")).toBeDefined();
+    fireEvent.click(closeButtons[0]);
+    expect(screen.queryByText("1 pago(s) pendiente(s) de acreditación")).toBeNull();
   });
 
   it("keeps a dismissed alert hidden at the same count but re-shows it when the count changes", () => {
     const { rerender } = renderSummary();
-    fireEvent.click(screen.getByRole("button", { name: "Cerrar alerta de compras pendientes de acreditación" }));
+    const closeButtons = screen.getAllByRole("button", { name: "Cerrar alerta" });
+    fireEvent.click(closeButtons[0]);
 
     rerender(
       <MemoryRouter>
@@ -111,12 +102,10 @@ describe("PlatformDashboardSummary", () => {
           purchaseLoading={false}
           purchaseError={null}
           onRetry={vi.fn()}
-          triageCount={3}
-          institutionAlertsCount={1}
         />
       </MemoryRouter>,
     );
-    expect(screen.queryByText("1 compra pendiente de acreditación")).toBeNull();
+    expect(screen.queryByText("1 pago(s) pendiente(s) de acreditación")).toBeNull();
 
     rerender(
       <MemoryRouter>
@@ -128,12 +117,10 @@ describe("PlatformDashboardSummary", () => {
           purchaseLoading={false}
           purchaseError={null}
           onRetry={vi.fn()}
-          triageCount={3}
-          institutionAlertsCount={1}
         />
       </MemoryRouter>,
     );
-    expect(screen.getByText("2 compras pendientes de acreditación")).toBeDefined();
+    expect(screen.getByText("2 pago(s) pendiente(s) de acreditación")).toBeDefined();
   });
 
   it("uses text-based alert links with no technical copy", () => {

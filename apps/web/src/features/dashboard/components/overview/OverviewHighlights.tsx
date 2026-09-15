@@ -1,10 +1,8 @@
 import { DashboardChannelBreakdown } from "@akit/contracts";
 import { Target, TrendingUp } from "lucide-react";
-import { StatCard } from "../../../../components/atoms/StatCard";
 
 interface Props {
   periodLabel: string;
-  totalHistoricalVouchers: number;
   vouchersGeneratedPeriod: number;
   vouchersRedeemedPeriod: number;
   testsCompletedPeriod: number;
@@ -25,7 +23,6 @@ const MiniStat = ({ label, value }: { label: string; value: string | number }) =
 
 export function OverviewHighlights({
   periodLabel,
-  totalHistoricalVouchers,
   vouchersGeneratedPeriod,
   vouchersRedeemedPeriod,
   testsCompletedPeriod,
@@ -112,39 +109,7 @@ export function OverviewHighlights({
             </div>
           </div>
 
-          {/* Reemplazamos el map por nuestras StatCards reutilizables */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
-            <StatCard 
-              label="Total histórico de Vouchers" 
-              value={totalHistoricalVouchers} 
-              description="Acumulado histórico total desde el lanzamiento de la plataforma."
-              className="rounded-2xl border border-app-primary/20 bg-app-primary/5 px-4 py-4 md:col-span-2"
-            />
-            <StatCard 
-              label="Vouchers generados" 
-              value={vouchersGeneratedPeriod} 
-              description="Vouchers creados para instituciones o terapeutas."
-              className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
-            />
-            <StatCard 
-              label="Vouchers canjeados" 
-              value={vouchersRedeemedPeriod} 
-              description="Vouchers utilizados por pacientes durante el periodo."
-              className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
-            />
-            <StatCard 
-              label="Tests completados" 
-              value={testsCompletedPeriod} 
-              description="Evaluaciones finalizadas con resultados disponibles."
-              className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
-            />
-            <StatCard 
-              label="Informes desbloqueados" 
-              value={reportsUnlockedPeriod} 
-              description="Informes listos para consulta o entrega."
-              className="rounded-2xl border border-app-border/70 bg-app-surface/70 px-4 py-4"
-            />
-          </div>
+          {/* Eliminadas las 5 tarjetas redundantes (StatCard) para simplificar Nivel 3 */}
         </div>
       </div>
 

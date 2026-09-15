@@ -152,28 +152,6 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
       return this.browserLaunching;
     }
 
-    if (process.env.SERVERLESS === 'true') {
-      const chromium = await import('@sparticuz/chromium');
-      const puppeteerCore = await import('puppeteer-core');
-
-      this.browserLaunching = puppeteerCore
-        .launch({
-          args: chromium.default.args,
-          executablePath: await chromium.default.executablePath(),
-          headless: chromium.default.headless,
-        })
-        .then((browser) => {
-          this.browser = browser as unknown as Browser;
-          return this.browser;
-        })
-        .catch((error) => {
-          this.browserLaunching = undefined;
-          throw error;
-        });
-
-      return this.browserLaunching;
-    }
-
     const puppeteer = await import('puppeteer-core');
     const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
     if (!executablePath) {

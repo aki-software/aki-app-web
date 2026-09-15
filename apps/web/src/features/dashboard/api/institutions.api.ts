@@ -60,6 +60,13 @@ export async function fetchInstitutions(): Promise<InstitutionOption[]> {
       responsibleTherapistActive:
         institution.responsibleTherapistActive ?? false,
       activationEmailSent: institution.activationEmailSent,
+      legalName: institution.legalName ?? null,
+      taxId: institution.taxId ?? null,
+      taxCondition: institution.taxCondition ?? null,
+      billingAddress: institution.billingAddress ?? null,
+      billingCity: institution.billingCity ?? null,
+      billingProvince: institution.billingProvince ?? null,
+      billingPhone: institution.billingPhone ?? null,
     }));
   } catch (error) {
     console.error("Error fetching institutions:", error);

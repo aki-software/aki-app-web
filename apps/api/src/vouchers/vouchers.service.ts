@@ -190,14 +190,11 @@ export class VouchersService {
     }
   }
 
-  private async createBatch(
-    ownership: {
-      ownerType: VoucherOwnerType;
-      ownerUserId: string | null;
-      ownerInstitutionId: string | null;
-    },
-    quantity: number,
-  ): Promise<VoucherBatch> {
+  private async createBatch(ownership: {
+    ownerType: VoucherOwnerType;
+    ownerUserId: string | null;
+    ownerInstitutionId: string | null;
+  }): Promise<VoucherBatch> {
     const shortCode = await this.codeGenerator.generateUniqueBatchCode();
     return await this.voucherBatchRepository.save(
       this.voucherBatchRepository.create({
@@ -208,6 +205,7 @@ export class VouchersService {
         totalPrice: '0',
         status: VoucherBatchStatus.PAID,
         paidAt: new Date(),
+        fulfilledAt: new Date(),
       }),
     );
   }

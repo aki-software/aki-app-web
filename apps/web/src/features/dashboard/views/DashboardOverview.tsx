@@ -1,10 +1,8 @@
 import { BarChart3, Calendar, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { getFormattedCurrentDate } from "../../../utils/date";
 import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashboard.constants";
 import { Spinner } from "../../../components/atoms/Spinner";
-import { StatCard } from "../../../components/atoms/StatCard";
 import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
 import { PeriodSelector } from "../../../components/molecules/PeriodSelector";
 import { EmptyState } from "../../../components/molecules/EmptyState";
@@ -16,44 +14,14 @@ import { PlatformDashboardSummary } from "../components/admin/PlatformDashboardS
 import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 import { useAdminDashboardStats } from "../hooks/useAdminDashboardStats";
 import { usePurchaseSummary, type PurchaseSummaryPeriod } from "../hooks/usePurchaseSummary";
-import { fetchTriageSessions } from "../api/sessions.api";
 
 function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
   const { stats: adminStats, loading, periodDays, setPeriodDays } = useAdminDashboardStats();
-  const [triageCount, setTriageCount] = useState<number | null>(null);
   const isPurchasePeriod = [7, 30, 90].includes(periodDays);
   const purchaseSummary = usePurchaseSummary(
     periodDays as PurchaseSummaryPeriod,
     isPurchasePeriod,
   );
-
-  useEffect(() => {
-    let active = true;
-    void fetchTriageSessions({ limit: 1 }).then(
-      (res) => {
-        if (active) setTriageCount(res.meta.total);
-      },
-      () => {
-        if (active) setTriageCount(null);
-      },
-    );
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const sessionsSummary = useMemo(() => {
-
-    if (!adminStats || adminStats.sessionsActivity.length === 0) return null;
-
-    const totalStarted = adminStats.sessionsActivity.reduce((acc, item) => acc + item.count, 0);
-    const daysCount = adminStats.sessionsActivity.length;
-    const DECIMALS = 1;
-    const factor = Math.pow(10, DECIMALS);
-    const dailyAverage = Math.round((totalStarted / daysCount) * factor) / factor;
-    
-    return { totalStarted, dailyAverage };
-  }, [adminStats]);
 
   if (loading) {
     return (
@@ -84,7 +52,6 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <PeriodSelector value={periodDays} onChange={setPeriodDays} />
           <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-app-surface/80 border border-app-border backdrop-blur-xl">
             <Calendar className="h-4 w-4 text-app-text-muted opacity-40" />
             <span className="app-label !text-[10px] opacity-60 uppercase">
@@ -99,8 +66,8 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             purchaseLoading={purchaseSummary.loading}
             purchaseError={purchaseSummary.error}
             onRetry={purchaseSummary.retry}
-            triageCount={triageCount}
-            institutionAlertsCount={displayStats.alerts.length}
+            adminStats={displayStats}
+            periodSelector={<PeriodSelector value={periodDays} onChange={setPeriodDays} />}
           />
 
           <section
@@ -121,16 +88,6 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             description={`${uiTexts.widgets.sessions.description} ${displayStats.periodLabel.toLowerCase()}.`}
             icon={BarChart3}
           >
-            {sessionsSummary && (
-              <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-                <StatCard label="Total del período" value={sessionsSummary.totalStarted} />
-                <StatCard label="Promedio diario" value={sessionsSummary.dailyAverage} />
-                <StatCard
-                  label="Tasa de finalización"
-                  value={`${displayStats.completionRate}%`}
-                />
-              </div>
-            )}
                 {adminStats.sessionsActivity.length > 0 ? (
                   <div className="h-[220px] sm:h-[260px] xl:h-[300px]">
                     <SessionsChart data={adminStats.sessionsActivity} />

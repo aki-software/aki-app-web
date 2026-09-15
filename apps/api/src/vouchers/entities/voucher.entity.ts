@@ -37,6 +37,7 @@ export function createAvailableVoucher(
 ])
 @Index('IDX_vouchers_batch_id', ['batchId'])
 @Index('IDX_vouchers_status', ['status'])
+@Index('IDX_vouchers_status_redeemed_at', ['status', 'redeemedAt'])
 export class Voucher {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

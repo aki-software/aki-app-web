@@ -21,7 +21,7 @@ describe("Modal Component", () => {
     const dialog = screen.getByRole("dialog");
     expect(container.contains(dialog)).toBe(false);
     expect(dialog).toHaveClass("items-center");
-    expect(dialog.lastElementChild).toHaveClass("bg-app-bg");
+    expect(dialog.lastElementChild).toHaveClass("bg-modal-bg");
     expect(screen.getByText("Modal Content")).toBeDefined();
   });
 

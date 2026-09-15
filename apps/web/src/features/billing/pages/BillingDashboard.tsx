@@ -12,6 +12,8 @@ import { CurrentBalance } from "../components/CurrentBalance";
 import { BillingHistoryTable } from "../components/BillingHistoryTable";
 import { BuyVouchersModal } from "../components/BuyVouchersModal";
 import { PlanCard } from "../components/PlanCard";
+import { BillingProfileCard } from "../components/BillingProfileCard";
+import { useInstitutionProfile } from "../hooks/useInstitutionProfile";
 import { ShoppingCart } from "lucide-react";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { formatMoney } from "../utils/money";
@@ -23,9 +25,11 @@ export function BillingDashboard() {
     refetch: refetchHistory,
   } = useBillingHistory();
   const { data: plans, isLoading: isLoadingPlans } = usePricingPlans();
+  const { data: profile, isLoading: isLoadingProfile, refetch: refetchProfile } = useInstitutionProfile();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isTrackingDismissed, setIsTrackingDismissed] = useState(false);
+  const [isBillingProfileModalOpen, setIsBillingProfileModalOpen] = useState(false);
   const [checkoutAttemptId] = useState(
     () =>
       new URLSearchParams(window.location.search).get("checkoutAttemptId") ||
@@ -38,6 +42,19 @@ export function BillingDashboard() {
     error: checkoutError,
     refetch: refreshCheckout,
   } = useCheckoutAttemptStatus(checkoutAttemptId);
+
+  // Sync to sessionStorage
+  useEffect(() => {
+    if (checkoutAttemptId) {
+      sessionStorage.setItem(CHECKOUT_ATTEMPT_STORAGE_KEY, checkoutAttemptId);
+      // Optional: remove it from URL so refreshing doesn't keep it forever
+      const newUrl = new URL(window.location.href);
+      if (newUrl.searchParams.has("checkoutAttemptId")) {
+        newUrl.searchParams.delete("checkoutAttemptId");
+        window.history.replaceState({}, "", newUrl.toString());
+      }
+    }
+  }, [checkoutAttemptId]);
 
   const currentBalance = history?.currentBalance || 0;
   const isCheckoutTerminal = Boolean(
@@ -81,6 +98,14 @@ export function BillingDashboard() {
   }, [checkoutStatus, refetchHistory]);
 
   const handleBuyPlan = (planId: string) => {
+    const hasMissingData = !profile?.legalName || !profile?.taxId || !profile?.taxCondition || !profile?.billingAddress || !profile?.billingCity || !profile?.billingProvince || !profile?.billingPhone;
+    
+    if (hasMissingData) {
+      setIsBillingProfileModalOpen(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    
     setSelectedPlanId(planId);
     setIsModalOpen(true);
   };
@@ -102,6 +127,16 @@ export function BillingDashboard() {
         <div className="flex-shrink-0">
           <CurrentBalance balance={currentBalance} />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <BillingProfileCard 
+          profile={profile} 
+          isLoading={isLoadingProfile} 
+          refetch={refetchProfile} 
+          externalIsOpen={isBillingProfileModalOpen}
+          onExternalClose={() => setIsBillingProfileModalOpen(false)}
+        />
       </div>
 
       {checkoutAttemptId && (
@@ -195,11 +230,13 @@ export function BillingDashboard() {
 
       {/* 1. Plans */}
       <div>
-        <div className="mb-5">
-          <p className="app-label !text-app-primary mb-1">Lotes disponibles</p>
-          <h3 className="text-xl font-display font-bold text-app-text-main">
-            Planes de vouchers
-          </h3>
+        <div className="mb-5 flex flex-col md:flex-row md:justify-between md:items-end gap-3">
+          <div>
+            <p className="app-label !text-app-primary mb-1">Lotes disponibles</p>
+            <h3 className="text-xl font-display font-bold text-app-text-main">
+              Planes de vouchers
+            </h3>
+          </div>
         </div>
 
         {isPurchaseLocked && (

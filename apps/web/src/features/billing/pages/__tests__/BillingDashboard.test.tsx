@@ -29,6 +29,25 @@ vi.mock("../../hooks/useBilling", () => ({
   useCheckout: vi.fn(() => ({ mutateAsync: vi.fn(), isMutating: false })),
 }));
 
+vi.mock("../../hooks/useInstitutionProfile", () => ({
+  useInstitutionProfile: vi.fn(() => ({
+    data: {
+      legalName: "Test",
+      taxId: "Test",
+      taxCondition: "Test",
+      billingAddress: "Test"
+    },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn()
+  })),
+  useUpdateBillingProfile: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+    isMutating: false,
+    error: null
+  }))
+}));
+
 vi.mock("lucide-react", async (importOriginal) => {
   const actual =
     await importOriginal<

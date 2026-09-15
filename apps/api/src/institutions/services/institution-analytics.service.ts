@@ -159,15 +159,33 @@ export class InstitutionAnalyticsService {
       if (s.reportUnlockedAt) channelBreakdown[channel].reportsUnlocked++;
     }
 
-    const topSessions = await this.sessionRepository.find({
-      where: {
-        institutionId,
-        voucherId: Not(IsNull()),
-      },
-      relations: ['voucher', 'results'],
-      order: { createdAt: 'DESC' },
-      take: 10,
-    });
+    const testsTrendMap = new Map<
+      string,
+      { started: number; completed: number }
+    >();
+    for (let i = 0; i <= days; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      testsTrendMap.set(dateStr, { started: 0, completed: 0 });
+    }
+
+    for (const s of periodSessions) {
+      if (s.createdAt) {
+        const dateStr = s.createdAt.toISOString().split('T')[0];
+        if (testsTrendMap.has(dateStr)) {
+          const entry = testsTrendMap.get(dateStr)!;
+          entry.started++;
+          if (s.hollandCode) {
+            entry.completed++;
+          }
+        }
+      }
+    }
+
+    const testsTrend = Array.from(testsTrendMap.entries())
+      .map(([date, data]) => ({ date, ...data }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     const categories = await this.categoriesService.findAll();
     const categoryNames = new Map(
@@ -235,17 +253,7 @@ export class InstitutionAnalyticsService {
         channelBreakdown,
       },
       resultsDistribution,
-      topSessions: topSessions.map((s) => ({
-        id: s.id,
-        patientName: s.patientName,
-        createdAt: s.createdAt?.toISOString() ?? null,
-        sessionDate: s.sessionDate?.toISOString() ?? null,
-        hollandCode: s.hollandCode ?? '',
-        paymentStatus: s.paymentStatus,
-        voucherCode: s.voucher?.code ?? null,
-        reportUnlockedAt: s.reportUnlockedAt?.toISOString() ?? null,
-        resultsCount: s.results?.length ?? 0,
-      })),
+      testsTrend,
     };
   }
 }

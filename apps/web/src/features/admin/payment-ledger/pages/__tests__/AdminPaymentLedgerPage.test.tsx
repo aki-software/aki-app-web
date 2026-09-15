@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AdminPaymentLedgerPage } from "../AdminPaymentLedgerPage";
 
 const entry: AdminPaymentLedgerEntry = {
+  channel: "B2B",
   voucherBatchId: "11111111-1111-4111-8111-111111111111",
   checkoutAttemptId: null,
   paymentEventId: null,

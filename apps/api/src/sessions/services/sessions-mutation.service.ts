@@ -9,7 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, QueryFailedError, DataSource } from 'typeorm';
 import { CreateSessionDto } from '../dto/create-session.dto.js';
-import { Session } from '../entities/session.entity.js';
+import { Session, SessionStatus } from '../entities/session.entity.js';
 import { SessionResult } from '../entities/session-result.entity.js';
 import { SessionSwipe } from '../entities/session-swipe.entity.js';
 import type { QueueAdapter } from '../../common/adapters/queue.adapter.js';
@@ -62,10 +62,13 @@ export class SessionsMutationService {
     let savedSession: Session;
     try {
       savedSession = await this.dataSource.transaction(async (manager) => {
+        const isCompleted = resultsDto && resultsDto.length > 0;
         const session = manager.create(Session, {
           ...sessionFields,
           syncKey: idempotencyKey ?? null,
           expectedReportSku: REPORT_UNLOCK_SKU,
+          status: isCompleted ? SessionStatus.COMPLETED : SessionStatus.STARTED,
+          completedAt: isCompleted ? new Date() : null,
         });
         const inserted = await manager.save(Session, session);
         if (resultsDto?.length)

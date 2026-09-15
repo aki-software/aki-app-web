@@ -76,7 +76,7 @@ export class AdminDashboardRepository {
       SELECT
         (SELECT COUNT(*) FROM sessions) AS "totalSessions",
         (SELECT COALESCE(SUM(COALESCE(total_time_ms, 0)), 0) FROM sessions) AS "totalTimeMs",
-        (SELECT COUNT(DISTINCT session_id) FROM session_results) AS "completedSessions"
+        (SELECT COUNT(*) FROM sessions WHERE status = 'COMPLETED') AS "completedSessions"
       `,
     );
 
@@ -92,10 +92,9 @@ export class AdminDashboardRepository {
       `
       SELECT
         (SELECT COUNT(*) FROM sessions WHERE created_at >= $1) AS "started",
-        (SELECT COUNT(DISTINCT sr.session_id)
-         FROM session_results sr
-         JOIN sessions s ON s.id = sr.session_id
-         WHERE s.created_at >= $1) AS "completed",
+        (SELECT COUNT(*)
+         FROM sessions
+         WHERE created_at >= $1 AND status = 'COMPLETED') AS "completed",
         (SELECT COUNT(*)
          FROM sessions
          WHERE report_unlocked_at IS NOT NULL
@@ -104,22 +103,22 @@ export class AdminDashboardRepository {
          FROM sessions
          WHERE created_at >= $1
            AND (voucher_id IS NOT NULL OR payment_status = $2)) AS "voucherStarted",
-        (SELECT COUNT(DISTINCT sr.session_id)
-         FROM session_results sr
-         JOIN sessions s ON s.id = sr.session_id
-         WHERE s.created_at >= $1
-           AND (s.voucher_id IS NOT NULL OR s.payment_status = $2)) AS "voucherCompleted",
+        (SELECT COUNT(*)
+         FROM sessions
+         WHERE created_at >= $1
+           AND status = 'COMPLETED'
+           AND (voucher_id IS NOT NULL OR payment_status = $2)) AS "voucherCompleted",
         (SELECT COUNT(*)
          FROM sessions
          WHERE report_unlocked_at IS NOT NULL
            AND report_unlocked_at >= $1
            AND (voucher_id IS NOT NULL OR payment_status = $2)) AS "voucherReportsUnlocked",
-        (SELECT COUNT(DISTINCT sr.session_id)
-         FROM session_results sr
-         JOIN sessions s ON s.id = sr.session_id
-         WHERE s.created_at >= $1
-           AND s.voucher_id IS NULL
-           AND s.payment_status != $2) AS "individualCompleted"
+        (SELECT COUNT(*)
+         FROM sessions
+         WHERE created_at >= $1
+           AND status = 'COMPLETED'
+           AND voucher_id IS NULL
+           AND payment_status != $2) AS "individualCompleted"
       `,
       [periodStart, SessionPaymentStatus.VOUCHER_REDEEMED],
     );
@@ -322,15 +321,7 @@ export class AdminDashboardRepository {
     const countRow = await this.sessionRepository
       .createQueryBuilder('session')
       .where('session.createdAt < :dayAgo', { dayAgo })
-      .andWhere((qb) => {
-        const subquery = qb
-          .subQuery()
-          .select('1')
-          .from('session_results', 'sr')
-          .where('sr.session_id = session.id')
-          .getQuery();
-        return `NOT EXISTS (${subquery})`;
-      })
+      .andWhere('session.status = :status', { status: 'STARTED' })
       .select('COUNT(*)', 'count')
       .getRawOne<{ count: string }>();
 

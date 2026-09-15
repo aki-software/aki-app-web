@@ -52,6 +52,10 @@ export class InstitutionsService {
     const institution = this.institutionRepository.create({
       name: input.name.trim(),
       billingEmail: input.billingEmail?.trim() || null,
+      legalName: input.legalName?.trim() || null,
+      taxId: input.taxId?.trim() || null,
+      taxCondition: input.taxCondition?.trim() || null,
+      billingAddress: input.billingAddress?.trim() || null,
       responsibleTherapistUserId: input.responsibleTherapistUserId ?? null,
       isActive: true,
     });
@@ -74,10 +78,36 @@ export class InstitutionsService {
   }
 
   async update(id: string, data: UpdateInstitutionDto): Promise<Institution> {
-    await this.institutionRepository.update(id, {
-      name: data.name?.trim(),
-      billingEmail: data.billingEmail?.trim() || null,
-    });
+    const updatePayload: Record<string, any> = {};
+    if (data.name !== undefined) updatePayload.name = data.name.trim();
+    if (data.billingEmail !== undefined) {
+      updatePayload.billingEmail = data.billingEmail.trim() || null;
+    }
+    if (data.legalName !== undefined) {
+      updatePayload.legalName = data.legalName.trim() || null;
+    }
+    if (data.taxId !== undefined) {
+      updatePayload.taxId = data.taxId.trim() || null;
+    }
+    if (data.taxCondition !== undefined) {
+      updatePayload.taxCondition = data.taxCondition.trim() || null;
+    }
+    if (data.billingAddress !== undefined) {
+      updatePayload.billingAddress = data.billingAddress.trim() || null;
+    }
+    if (data.billingCity !== undefined) {
+      updatePayload.billingCity = data.billingCity.trim() || null;
+    }
+    if (data.billingProvince !== undefined) {
+      updatePayload.billingProvince = data.billingProvince.trim() || null;
+    }
+    if (data.billingPhone !== undefined) {
+      updatePayload.billingPhone = data.billingPhone.trim() || null;
+    }
+
+    if (Object.keys(updatePayload).length > 0) {
+      await this.institutionRepository.update(id, updatePayload);
+    }
 
     return await this.institutionRepository.findOneOrFail({
       where: { id },
@@ -99,5 +129,22 @@ export class InstitutionsService {
       where: { id },
     });
     await this.institutionRepository.softRemove(institution);
+  }
+
+  async updateBillingProfile(
+    id: string,
+    data: import('./dto/update-billing-profile.dto.js').UpdateBillingProfileDto,
+  ): Promise<Institution> {
+    const institution = await this.findOneOrFail(id);
+    institution.updateBillingProfile(
+      data.legalName.trim(),
+      data.taxId.trim(),
+      data.taxCondition.trim(),
+      data.billingAddress.trim(),
+      data.billingCity.trim(),
+      data.billingProvince.trim(),
+      data.billingPhone.trim(),
+    );
+    return await this.institutionRepository.save(institution);
   }
 }

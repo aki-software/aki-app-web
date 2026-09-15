@@ -20,6 +20,7 @@ import { CreateOperationalAccountDto } from './dto/create-operational-account.dt
 import { InstitutionOverviewQueryDto } from './dto/institution-overview-query.dto.js';
 import { UpdateInstitutionDto } from './dto/update-institution.dto.js';
 import { UpdateInstitutionStatusDto } from './dto/update-institution-status.dto.js';
+import { UpdateBillingProfileDto } from './dto/update-billing-profile.dto.js';
 import { InstitutionsService } from './institutions.service.js';
 import type {
   InstitutionOverviewResponse,
@@ -143,5 +144,25 @@ export class InstitutionsController {
       ),
       activationEmailSent,
     };
+  }
+
+  @Get(':id')
+  @UseGuards(InstitutionOwnerGuard)
+  async findOne(@Param('id') id: string) {
+    const institution = await this.institutionsService.findOneOrFail(id);
+    return this.institutionPresenterService.toInstitutionResponse(institution);
+  }
+
+  @Patch(':id/billing-profile')
+  @UseGuards(InstitutionOwnerGuard)
+  async updateBillingProfile(
+    @Param('id') id: string,
+    @Body() payload: UpdateBillingProfileDto,
+  ) {
+    const institution = await this.institutionsService.updateBillingProfile(
+      id,
+      payload,
+    );
+    return this.institutionPresenterService.toInstitutionResponse(institution);
   }
 }
