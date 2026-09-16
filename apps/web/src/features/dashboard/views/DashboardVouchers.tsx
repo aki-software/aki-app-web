@@ -1,33 +1,43 @@
+import type { VoucherBatchDetailResponse } from "@akit/contracts";
 import { AlertTriangle, Layers3 } from "lucide-react";
-import { useState, useEffect, useMemo, FormEvent } from "react";
-import { useAuth } from "../../auth/hooks/useAuth";
-import { PERIOD_DAYS, DETAIL_ITEMS_PER_PAGE } from "../constants/vouchers.constants";
-import { useVoucherList, calculateTotalPages } from "../hooks/useVoucherList";
-import { useVoucherStats } from "../hooks/useVoucherStats";
-import { useVoucherForm } from "../hooks/useVoucherForm";
-import { useVoucherActions } from "../hooks/useVoucherActions";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Alert } from "../../../components/atoms/Alert";
 import { Modal } from "../../../components/atoms/Modal";
-import { VoucherEmitForm } from "../components/vouchers/VoucherEmitForm";
-import { VoucherStatsCards } from "../components/vouchers/VoucherStatsCards";
-import { VoucherSessionsTable } from "../components/vouchers/VoucherSessionsTable";
+import { useAuth } from "../../auth/hooks/useAuth";
+import {
+    fetchVoucherBatchDetail,
+    fetchVoucherSessions,
+} from "../api/dashboard";
+import type { SessionData } from "../api/sessions.api";
 import { BatchDetailDrawer } from "../components/vouchers/BatchDetailDrawer";
+import { VoucherBatchesGrid } from "../components/vouchers/VoucherBatchesGrid";
+import { VoucherEmitForm } from "../components/vouchers/VoucherEmitForm";
+import { VoucherSessionsTable } from "../components/vouchers/VoucherSessionsTable";
 import { VouchersFilterBar } from "../components/vouchers/VouchersFilterBar";
 import { VouchersIndividualTable } from "../components/vouchers/VouchersIndividualTable";
-import { VoucherBatchesGrid } from "../components/vouchers/VoucherBatchesGrid";
-import { fetchVoucherBatchDetail, fetchVoucherSessions } from "../api/dashboard";
-import type { SessionData } from "../api/sessions.api";
-import type { VoucherBatchDetailResponse } from "@akit/contracts";
+import { VoucherStatsCards } from "../components/vouchers/VoucherStatsCards";
+import {
+    DETAIL_ITEMS_PER_PAGE,
+    PERIOD_DAYS,
+} from "../constants/vouchers.constants";
+import { useVoucherActions } from "../hooks/useVoucherActions";
+import { useVoucherForm } from "../hooks/useVoucherForm";
+import { calculateTotalPages, useVoucherList } from "../hooks/useVoucherList";
+import { useVoucherStats } from "../hooks/useVoucherStats";
 
 export function DashboardVouchers() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const isAdmin = user?.role?.toUpperCase() === "ADMIN";
 
   // Messages State
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(
+    new Set(),
+  );
 
   // 1. Stats & Metadata Hook
   const statsManager = useVoucherStats(user, isAdmin);
@@ -40,39 +50,52 @@ export function DashboardVouchers() {
     (msg) => {
       setSuccessMessage(msg);
       setErrorMessage(null);
-      setReloadToken(prev => prev + 1);
+      setReloadToken((prev) => prev + 1);
       statsManager.refreshStats();
     },
     (msg) => {
       setErrorMessage(msg);
       setSuccessMessage(null);
-    }
+    },
   );
 
   // 4. List & Filters State
   const [viewMode, setViewMode] = useState<"BATCHES" | "INDIVIDUAL">("BATCHES");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "AVAILABLE" | "USED" | "EXPIRED">("ALL");
-  const [expirationFilter, setExpirationFilter] = useState<"ALL" | "EXPIRING_7D" | "NO_EXPIRATION">("ALL");
+  const [statusFilter, setStatusFilter] = useState<
+    "ALL" | "AVAILABLE" | "USED" | "EXPIRED"
+  >("ALL");
+  const [expirationFilter, setExpirationFilter] = useState<
+    "ALL" | "EXPIRING_7D" | "NO_EXPIRATION"
+  >(() => {
+    const param = searchParams.get("expiration");
+    return param === "EXPIRING_7D" || param === "NO_EXPIRATION" ? param : "ALL";
+  });
   const [clientFilter, setClientFilter] = useState("ALL");
 
-  const filters = useMemo(() => ({
-    searchTerm, 
-    statusFilter, 
-    expirationFilter, 
-    clientFilter
-  }), [searchTerm, statusFilter, expirationFilter, clientFilter]);
+  const filters = useMemo(
+    () => ({
+      searchTerm,
+      statusFilter,
+      expirationFilter,
+      clientFilter,
+    }),
+    [searchTerm, statusFilter, expirationFilter, clientFilter],
+  );
 
   const listManager = useVoucherList(filters, viewMode, reloadToken);
 
   // UI Local State
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
-  const [selectedBatchDetail, setSelectedBatchDetail] = useState<VoucherBatchDetailResponse | null>(null);
+  const [selectedBatchDetail, setSelectedBatchDetail] =
+    useState<VoucherBatchDetailResponse | null>(null);
   const [batchDetailLoading, setBatchDetailLoading] = useState(false);
   const [batchDetailError, setBatchDetailError] = useState<string | null>(null);
   const [batchDetailPage, setBatchDetailPage] = useState(1);
-  const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(null);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(
+    null,
+  );
   const [voucherSessions, setVoucherSessions] = useState<SessionData[]>([]);
   const [loadingVoucherSessions, setLoadingVoucherSessions] = useState(false);
 
@@ -93,7 +116,8 @@ export function DashboardVouchers() {
           limit: DETAIL_ITEMS_PER_PAGE,
         });
         if (isActive) {
-          if (!detail) setBatchDetailError("No se pudo cargar el detalle del lote.");
+          if (!detail)
+            setBatchDetailError("No se pudo cargar el detalle del lote.");
           else setSelectedBatchDetail(detail);
         }
       } catch {
@@ -103,7 +127,9 @@ export function DashboardVouchers() {
       }
     };
     load();
-    return () => { isActive = false; };
+    return () => {
+      isActive = false;
+    };
   }, [selectedBatchId, batchDetailPage]);
 
   const handleLoadVoucherSessions = async (voucherId: string) => {
@@ -113,7 +139,7 @@ export function DashboardVouchers() {
       setVoucherSessions(sessions);
       setSelectedVoucherId(voucherId);
     } catch {
-      setErrorMessage('No se pudieron cargar las sesiones del voucher');
+      setErrorMessage("No se pudieron cargar las sesiones del voucher");
     } finally {
       setLoadingVoucherSessions(false);
     }
@@ -124,7 +150,7 @@ export function DashboardVouchers() {
     if (result) {
       setSuccessMessage(formManager.success); // Use message from hook
       setShowCreateForm(false);
-      setReloadToken(prev => prev + 1);
+      setReloadToken((prev) => prev + 1);
       statsManager.refreshStats();
     } else {
       setErrorMessage(formManager.error);
@@ -140,17 +166,19 @@ export function DashboardVouchers() {
     );
   }
 
-  const visibleAlerts = statsManager.alerts.filter(a => !dismissedAlerts.has(a.message));
+  const visibleAlerts = statsManager.alerts.filter(
+    (a) => !dismissedAlerts.has(a.message),
+  );
 
   return (
     <div className="space-y-10 animate-in">
       {visibleAlerts.length > 0 && (
         <div className="space-y-3">
           {visibleAlerts.map((alert, idx) => (
-            <Alert 
-              key={idx} 
-              type={alert.severity === 'critical' ? "error" : "warning"} 
-              message={alert.message} 
+            <Alert
+              key={idx}
+              type={alert.severity === "critical" ? "error" : "warning"}
+              message={alert.message}
               icon={<AlertTriangle />}
               onClose={() => {
                 const next = new Set(dismissedAlerts);
@@ -165,7 +193,7 @@ export function DashboardVouchers() {
       <VoucherStatsCards
         isAdmin={isAdmin}
         showCreateForm={showCreateForm}
-        onToggleForm={() => setShowCreateForm(prev => !prev)}
+        onToggleForm={() => setShowCreateForm((prev) => !prev)}
         stats={statsManager.stats}
         periodDays={PERIOD_DAYS}
       />
@@ -192,24 +220,28 @@ export function DashboardVouchers() {
           saving={formManager.saving}
           errorMessage={formManager.error}
           successMessage={formManager.success}
-          resetMessages={() => { formManager.resetFormMessages(); setErrorMessage(null); setSuccessMessage(null); }}
+          resetMessages={() => {
+            formManager.resetFormMessages();
+            setErrorMessage(null);
+            setSuccessMessage(null);
+          }}
         />
       </Modal>
 
       <div className="space-y-8">
         <VouchersFilterBar
-            isAdmin={isAdmin}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            expirationFilter={expirationFilter}
-            setExpirationFilter={setExpirationFilter}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            clientFilter={clientFilter}
-            setClientFilter={setClientFilter}
-            clientOptions={statsManager.clientOptions}
+          isAdmin={isAdmin}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          expirationFilter={expirationFilter}
+          setExpirationFilter={setExpirationFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          clientFilter={clientFilter}
+          setClientFilter={setClientFilter}
+          clientOptions={statsManager.clientOptions}
         />
 
         {viewMode === "BATCHES" ? (
@@ -227,7 +259,9 @@ export function DashboardVouchers() {
             currentPage={listManager.currentPage}
             totalPages={listManager.individualTotalPages}
             onPageChange={listManager.setCurrentPage}
-            onVoucherUpdated={() => { if (!actionManager.actionBusy) setReloadToken(p => p + 1); }}
+            onVoucherUpdated={() => {
+              if (!actionManager.actionBusy) setReloadToken((p) => p + 1);
+            }}
             onViewSessions={handleLoadVoucherSessions}
             actionManager={actionManager}
           />
@@ -244,7 +278,11 @@ export function DashboardVouchers() {
           currentPage={batchDetailPage}
           totalPages={batchDetailTotalPages}
           onPageChange={setBatchDetailPage}
-          onClose={() => { setSelectedBatchId(null); setSelectedBatchDetail(null); setBatchDetailPage(1); }}
+          onClose={() => {
+            setSelectedBatchId(null);
+            setSelectedBatchDetail(null);
+            setBatchDetailPage(1);
+          }}
         />
       )}
 
@@ -260,4 +298,3 @@ export function DashboardVouchers() {
     </div>
   );
 }
-

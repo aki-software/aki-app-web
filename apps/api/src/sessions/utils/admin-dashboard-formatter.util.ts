@@ -1,10 +1,10 @@
 import {
-  AdminActivityItem,
-  CategoryResponse,
-  DashboardStatsPayload,
-  RawRecentSessionRow,
-  RawSessionsActivityRow,
-  RawTopCategoryRow,
+    AdminActivityItem,
+    CategoryResponse,
+    DashboardStatsPayload,
+    RawRecentSessionRow,
+    RawSessionsActivityRow,
+    RawTopCategoryRow,
 } from '@akit/contracts';
 import { SessionPaymentStatus } from '../entities/session.entity.js';
 
@@ -214,7 +214,7 @@ function calculateAlerts(context: {
       title: 'Vouchers próximos a vencer',
       description: `${context.expiringSoonVouchers} voucher(es) vencen en los próximos 7 días.`,
       actionLabel: 'Revisar vouchers',
-      actionPath: '/dashboard/vouchers',
+      actionPath: '/dashboard/vouchers?expiration=EXPIRING_7D',
     });
   }
 
