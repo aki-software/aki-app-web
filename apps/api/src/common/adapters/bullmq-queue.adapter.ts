@@ -1,10 +1,10 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
 import { InMemoryQueueAdapter } from './in-memory-queue.adapter.js';
 import { applyQueueDefaults } from './queue-defaults.js';
+import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
 
 @Injectable()
 export class BullMQQueueAdapter implements QueueAdapter {
