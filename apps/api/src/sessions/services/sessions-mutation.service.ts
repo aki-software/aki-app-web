@@ -43,7 +43,7 @@ export class SessionsMutationService {
 
   async create(
     createSessionDto: CreateSessionDto,
-    options?: { idempotencyKey?: string },
+    options?: { idempotencyKey?: string; patientEmail?: string | null },
   ): Promise<{ session: Session; duplicated: boolean }> {
     const idempotencyKey = options?.idempotencyKey?.trim();
     const existing = idempotencyKey
@@ -65,6 +65,7 @@ export class SessionsMutationService {
         const isCompleted = resultsDto && resultsDto.length > 0;
         const session = manager.create(Session, {
           ...sessionFields,
+          patientEmail: options?.patientEmail ?? null,
           syncKey: idempotencyKey ?? null,
           expectedReportSku: REPORT_UNLOCK_SKU,
           status: isCompleted ? SessionStatus.COMPLETED : SessionStatus.STARTED,
@@ -185,6 +186,10 @@ export class SessionsMutationService {
       trustedPayload.patientName,
     );
     const createSessionDto = mapToCreateDto(trustedPayload, context);
+    const patientEmail =
+      authenticatedPatient && identity?.userId
+        ? identity.email?.trim().toLowerCase() || null
+        : null;
     if (payloadVoucherCode)
       createSessionDto.paymentStatus = SessionPaymentStatus.PENDING;
     const syncKey = buildSyncKey(payloadId, payloadUserId, payload.startedAt);
@@ -194,6 +199,7 @@ export class SessionsMutationService {
       );
     const { session, duplicated } = await this.create(createSessionDto, {
       idempotencyKey: syncKey ?? undefined,
+      patientEmail,
     });
     if (payloadVoucherCode) {
       await this.voucherRedemptionService.redeemVoucher(

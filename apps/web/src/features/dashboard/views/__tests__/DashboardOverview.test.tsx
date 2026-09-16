@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { DashboardOverview } from "../DashboardOverview";
@@ -107,6 +107,7 @@ const mockStats = {
   testsCompletedPeriod: 30,
   voucherRedemptionRatePeriod: 50,
   reportsUnlockedPeriod: 20,
+  individualPendingReports: 5,
   channelBreakdown: {
     voucher: { started: 20, completed: 15, reportsUnlocked: 10 },
     individual: { started: 20, completed: 15, reportsUnlocked: 10 },
@@ -146,7 +147,7 @@ describe("DashboardOverview", () => {
         priorWindow: { from: "2026-02-24T00:00:00.000Z", to: "2026-03-03T00:00:00.000Z", days: 7 },
         current: { accreditedPurchaseCount: 1, accreditedVoucherCount: 10, purchasingInstitutionCount: 1, accreditedAmountByCurrency: [{ currency: "USD", amount: "25.00" }] },
         prior: { accreditedPurchaseCount: 0, accreditedVoucherCount: 0, purchasingInstitutionCount: 0, accreditedAmountByCurrency: [] },
-        alerts: { paidButNotFulfilledCount: 0, notificationAttentionCount: 0 },
+         alerts: { paidButNotFulfilledCount: 1, notificationAttentionCount: 2 },
         latestAccreditation: null,
       },
       loading: false,
@@ -224,12 +225,10 @@ describe("DashboardOverview", () => {
       expect(screen.getByText("Volumen de Evaluaciones Diarias")).toBeDefined();
     });
 
-    it("keeps operational details permanently visible in a labelled section", () => {
+    it("keeps operational details available on demand", () => {
       const { container } = renderWithRouter(<DashboardOverview />);
-      expect(screen.getByRole("heading", { name: "Detalle operativo de vouchers y canales" })).toBeDefined();
-      expect(container.querySelector("details")).toBeNull();
-      expect(screen.getByText("Generados")).toBeDefined();
-      expect(screen.getByText("Canjeados")).toBeDefined();
+      expect(screen.getByText("Ver detalle operativo de vouchers y canales")).toBeDefined();
+      expect(container.querySelector("details")?.open).toBe(false);
     });
 
         it("renders QuickActions and ActivityFeed", async () => {
@@ -239,14 +238,45 @@ describe("DashboardOverview", () => {
       expect(screen.getByText("Buscar sesiones")).toBeDefined();
     });
 
-    it("does NOT render ResultsDistributionChart", async () => {
+    it("renders direct-session results distribution and pending reports", async () => {
       renderWithRouter(<DashboardOverview />);
-      expect(screen.queryByText("Resultados predominantes")).toBeNull();
+      expect(screen.getByText("Resultados predominantes")).toBeDefined();
+      expect(screen.getByText("Sesiones directas pendientes")).toBeDefined();
     });
 
-    it("does NOT render AdminAlerts component", async () => {
+    it("renders operational alerts with an action", async () => {
       renderWithRouter(<DashboardOverview />);
-      expect(screen.queryByText("Alertas Operativas")).toBeNull();
+      expect(screen.getByText("Alertas Operativas")).toBeDefined();
+      expect(screen.getByText("Test alert")).toBeDefined();
+      expect(screen.getByRole("button", { name: "Ver" })).toBeDefined();
+    });
+
+    it("centralizes purchase alerts without duplicating them in the KPI summary", () => {
+      renderWithRouter(<DashboardOverview />);
+
+      expect(screen.getByText("Acreditaciones pendientes")).toBeDefined();
+      expect(screen.getByText("Notificaciones de pago fallidas")).toBeDefined();
+      expect(screen.getByRole("button", { name: "Revisar pagos" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Revisar notificaciones" })).toBeDefined();
+      expect(screen.getByText("1 acreditación(es) pendiente(s).")).toBeDefined();
+      expect(screen.queryByText("1 pago(s) pendiente(s) de acreditación")).toBeNull();
+    });
+
+    it("prioritizes payment actions over report actions when both need attention", () => {
+      renderWithRouter(<DashboardOverview />);
+
+      expect(screen.getByRole("button", { name: "Revisar pagos" })).toBeDefined();
+      expect(screen.queryByText("Revisar informes")).toBeNull();
+    });
+
+
+    it("allows an operational alert to be dismissed", () => {
+      renderWithRouter(<DashboardOverview />);
+
+      fireEvent.click(screen.getAllByRole("button", { name: "Descartar alerta" })[0]);
+
+      expect(screen.queryByText("Test alert")).toBeNull();
+      expect(screen.getByText("2 incidencia(s)")).toBeDefined();
     });
 
     it("shows loading spinner with correct text when loading", async () => {

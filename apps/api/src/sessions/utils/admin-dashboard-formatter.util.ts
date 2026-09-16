@@ -36,10 +36,12 @@ export function buildOverviewPayload(input: {
     voucherCompleted: string;
     voucherReportsUnlocked: string;
     individualCompleted: string;
+    individualPendingReports?: string;
   };
   dailyActivityRows: RawSessionsActivityRow[];
   resultsDistribution: DashboardStatsPayload['resultsDistribution'];
   activity: AdminActivityItem[];
+  failedJobsCount?: number;
 }): DashboardStatsPayload {
   const totalSessions = parseIntSafe(input.sessionTotals.totalSessions);
   const completedSessions = parseIntSafe(input.sessionTotals.completedSessions);
@@ -76,6 +78,9 @@ export function buildOverviewPayload(input: {
   const individualCompletedCount = parseIntSafe(
     input.periodSessionStats.individualCompleted,
   );
+  const individualPendingReports = parseIntSafe(
+    input.periodSessionStats.individualPendingReports ?? '0',
+  );
 
   const sessionsActivity = formatDailyActivity(
     input.dailyActivityRows,
@@ -87,6 +92,7 @@ export function buildOverviewPayload(input: {
     stalledSessions: input.stalledSessionsCount,
     issuedVouchersPeriod: vouchersGeneratedPeriod,
     voucherRedemptionRatePeriod,
+    failedJobsCount: input.failedJobsCount ?? 0,
   });
 
   return {
@@ -113,6 +119,7 @@ export function buildOverviewPayload(input: {
           periodBasicStats.reportsUnlocked - periodVoucherStats.reportsUnlocked,
       },
     },
+    individualPendingReports,
     sessionsActivity,
     resultsDistribution: input.resultsDistribution,
     alerts,
@@ -197,10 +204,22 @@ function calculateAlerts(context: {
   stalledSessions: number;
   issuedVouchersPeriod: number;
   voucherRedemptionRatePeriod: number;
+  failedJobsCount: number;
 }): DashboardStatsPayload['alerts'] {
   const alerts: DashboardStatsPayload['alerts'] = [];
   const lowRedemptionRateThreshold = 15;
   const minIssuedForRateAlert = 5;
+
+  if (context.failedJobsCount > 0) {
+    alerts.push({
+      id: 'queue-failed-jobs',
+      severity: 'critical',
+      title: 'Errores en colas de procesamiento',
+      description: `${context.failedJobsCount} job(s) fallidos en las colas de email, PDF o informes. Requieren revisión.`,
+      actionLabel: 'Ver actividad',
+      actionPath: '/dashboard/activity',
+    });
+  }
 
   if (context.expiringSoonVouchers > 0) {
     alerts.push({
@@ -209,7 +228,7 @@ function calculateAlerts(context: {
       title: 'Vouchers próximos a vencer',
       description: `${context.expiringSoonVouchers} voucher(es) vencen en los próximos 7 días.`,
       actionLabel: 'Revisar vouchers',
-      actionPath: '/dashboard/vouchers',
+      actionPath: '/dashboard/vouchers?expiration=EXPIRING_7D',
     });
   }
 

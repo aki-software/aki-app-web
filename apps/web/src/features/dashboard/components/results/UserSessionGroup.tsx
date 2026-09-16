@@ -1,17 +1,28 @@
-import { Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard } from "lucide-react";
-import { SessionPaymentStatus } from "../../api/dashboard";
-import type { SessionData } from "../../api/dashboard";
-import { formatDate, formatDuration } from "../../../../utils/date";
+import {
+    Building2,
+    Calendar,
+    ChevronDown,
+    ChevronRight,
+    Clock,
+    CreditCard,
+    Mail,
+} from "lucide-react";
 import { Button } from "../../../../components/atoms/Button";
+import { formatDate, formatDuration } from "../../../../utils/date";
+import type { SessionData } from "../../api/dashboard";
+import { SessionPaymentStatus } from "../../api/dashboard";
 import { CATEGORY_COLORS } from "../../constants/category-colors";
-
 
 const paymentLabel = (status: string) => {
   switch (status) {
-    case SessionPaymentStatus.PAID: return "Pago";
-    case SessionPaymentStatus.VOUCHER_REDEEMED: return "Voucher";
-    case SessionPaymentStatus.PENDING: return "Pendiente";
-    default: return status;
+    case SessionPaymentStatus.PAID:
+      return "Pago";
+    case SessionPaymentStatus.VOUCHER_REDEEMED:
+      return "Voucher";
+    case SessionPaymentStatus.PENDING:
+      return "Pendiente";
+    default:
+      return status;
   }
 };
 
@@ -21,13 +32,16 @@ const sourceLabel = (session: SessionData) => {
   return "App Móvil (B2C)";
 };
 
-const voucherUsageLabel = (session: SessionData) => 
-  session.voucherCode ? `Con voucher (${session.voucherCode})` : "Compra In-App";
+const voucherUsageLabel = (session: SessionData) =>
+  session.voucherCode
+    ? `Con voucher (${session.voucherCode})`
+    : "Compra In-App";
 
 // ------------------------------------------------------------------
 
 interface Props {
   userName: string;
+  patientEmail: string | null;
   userSessions: SessionData[];
   isExpanded: boolean;
   onToggle: () => void;
@@ -36,6 +50,7 @@ interface Props {
 
 export function UserSessionGroup({
   userName,
+  patientEmail,
   userSessions,
   isExpanded,
   onToggle,
@@ -46,7 +61,9 @@ export function UserSessionGroup({
   return (
     <div
       className={`app-card overflow-hidden transition-all duration-500 mb-6 p-0 group ${
-        isExpanded ? "ring-2 ring-app-primary/20 shadow-2xl scale-[1.005]" : "shadow-lg hover:shadow-2xl hover:scale-[1.002]"
+        isExpanded
+          ? "ring-2 ring-app-primary/20 shadow-2xl scale-[1.005]"
+          : "shadow-lg hover:shadow-2xl hover:scale-[1.002]"
       }`}
     >
       {/* ─── HEADER DEL ACORDEÓN (Resumen del Paciente) ─── */}
@@ -54,16 +71,31 @@ export function UserSessionGroup({
         onClick={onToggle}
         className="flex cursor-pointer items-center px-5 py-5 sm:px-10 sm:py-8 transition-colors hover:bg-app-bg/10 select-none"
       >
-        <div className="flex-[2] flex items-center">
+        <div className="min-w-0 flex-[2] flex items-center">
           <div className="mr-4 sm:mr-8 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-[1.5rem] bg-app-bg border border-app-border font-black text-app-primary shadow-sm text-lg sm:text-xl group-hover:scale-105 transition-transform duration-500 flex-shrink-0">
             {userName.charAt(0).toUpperCase()}
           </div>
-          <div className="min-w-0">
-            <div className="app-value !text-lg sm:!text-xl group-hover:text-app-primary transition-colors truncate">
+          <div className="min-w-0 flex-1">
+            <div
+              className="app-value !text-lg sm:!text-xl group-hover:text-app-primary transition-colors break-words"
+              title={userName}
+            >
               {userName}
             </div>
-            <div className="app-label mt-1 sm:mt-2 opacity-60 truncate">
-              {sourceLabel(lastSession)}
+            <div
+              className="mt-1 sm:mt-2 flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-app-text-muted/80"
+              title={patientEmail ?? "Email no disponible"}
+            >
+              <Mail className="h-3 w-3 shrink-0 opacity-70" />
+              <span className="truncate">
+                {patientEmail ?? "Email no disponible"}
+              </span>
+            </div>
+            <div className="app-label mt-1 truncate opacity-60">
+              {lastSession.paymentStatus === "PAID" &&
+              !lastSession.institutionName
+                ? "Pago individual / Sin asignación"
+                : sourceLabel(lastSession)}
             </div>
           </div>
         </div>
@@ -79,8 +111,14 @@ export function UserSessionGroup({
         </div>
 
         <div className="flex w-10 sm:w-12 justify-end">
-          <div className={`rounded-xl p-2 sm:p-3 transition-all ${isExpanded ? "bg-app-primary text-white shadow-lg" : "text-app-text-muted group-hover:bg-app-bg"}`}>
-            {isExpanded ? <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" /> : <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />}
+          <div
+            className={`rounded-xl p-2 sm:p-3 transition-all ${isExpanded ? "bg-app-primary text-white shadow-lg" : "text-app-text-muted group-hover:bg-app-bg"}`}
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
+            ) : (
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+            )}
           </div>
         </div>
       </div>
@@ -95,10 +133,11 @@ export function UserSessionGroup({
                 className="flex flex-col gap-6 sm:gap-10 px-5 py-6 sm:px-10 sm:py-10 lg:flex-row lg:items-center lg:justify-between group/session hover:bg-app-surface transition-colors"
               >
                 <div className="flex flex-col gap-4 sm:gap-6">
-                  
                   {/* Fila superior: Tags e info principal */}
                   <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-                    <span className="app-label opacity-70">Ronda {userSessions.length - idx}</span>
+                    <span className="app-label opacity-70">
+                      Ronda {userSessions.length - idx}
+                    </span>
 
                     {/* Holland code con color */}
                     {session.hollandCode && session.hollandCode !== "N/A" && (
@@ -114,8 +153,11 @@ export function UserSessionGroup({
                               key={`${letter}-${i}`}
                               className="inline-flex items-center justify-center h-6 w-6 rounded-lg text-[10px] font-black uppercase tracking-wider"
                               style={{
-                                backgroundColor: color ? `color-mix(in srgb, ${color.color} 12%, transparent)` : "var(--color-app-bg)",
-                                color: color?.color ?? "var(--color-app-text-muted)",
+                                backgroundColor: color
+                                  ? `color-mix(in srgb, ${color.color} 12%, transparent)`
+                                  : "var(--color-app-bg)",
+                                color:
+                                  color?.color ?? "var(--color-app-text-muted)",
                               }}
                               title={catKey ?? letter}
                             >
@@ -135,11 +177,9 @@ export function UserSessionGroup({
                       {formatDuration(session.totalTimeMs)}
                     </span>
 
-
-
                     {session.channel === "VOUCHER" || session.voucherCode ? (
                       <span className="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border text-app-primary border-app-primary/20 bg-app-primary/5 flex items-center gap-1.5">
-                        🎟️ Voucher: {session.voucherCode || 'LOTE'}
+                        🎟️ Voucher: {session.voucherCode || "LOTE"}
                       </span>
                     ) : (
                       <>
@@ -162,14 +202,29 @@ export function UserSessionGroup({
                   {/* Fila inferior: Info detallada */}
                   <div className="flex flex-wrap gap-8">
                     {[
-                      { icon: Building2, label: "Origen", val: sourceLabel(session) },
-                      { icon: CreditCard, label: "Voucher", val: voucherUsageLabel(session) },
+                      {
+                        icon: Building2,
+                        label: "Origen",
+                        val: sourceLabel(session),
+                      },
+                      {
+                        icon: CreditCard,
+                        label: "Voucher",
+                        val: voucherUsageLabel(session),
+                      },
                     ].map((info, i) => (
-                      <div key={i} className="flex items-center gap-3 group/info">
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 group/info"
+                      >
                         <info.icon className="h-5 w-5 text-app-text-muted opacity-70 group-hover/info:text-app-primary transition-colors" />
                         <div className="flex flex-col">
-                          <span className="app-label !text-[9px] opacity-70 mb-0.5">{info.label}</span>
-                          <span className="text-[11px] font-bold text-app-text-main uppercase tracking-wider">{info.val}</span>
+                          <span className="app-label !text-[9px] opacity-70 mb-0.5">
+                            {info.label}
+                          </span>
+                          <span className="text-[11px] font-bold text-app-text-main uppercase tracking-wider">
+                            {info.val}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -193,4 +248,4 @@ export function UserSessionGroup({
       )}
     </div>
   );
-};
+}

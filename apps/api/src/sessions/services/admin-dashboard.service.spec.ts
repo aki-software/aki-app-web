@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdminDashboardService } from './admin-dashboard.service.js';
 import { CategoriesService } from '../../categories/categories.service.js';
+import { BullMQQueueAdapter } from '../../common/adapters/bullmq-queue.adapter.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
 import { AdminDashboardRepository } from '../repositories/admin-dashboard.repository.js';
+import { AdminDashboardService } from './admin-dashboard.service.js';
 
 jest.mock('../utils/admin-dashboard-formatter.util.js', () => ({
   getPeriodStart: jest.fn().mockReturnValue(new Date('2024-01-25T00:00:00Z')),
@@ -34,6 +35,10 @@ describe('AdminDashboardService', () => {
     getRecentSessionRows: jest.fn().mockResolvedValue([]),
   };
 
+  const bullMQAdapterMock = {
+    getFailedJobsCount: jest.fn().mockResolvedValue(0),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -44,6 +49,7 @@ describe('AdminDashboardService', () => {
           provide: AdminDashboardRepository,
           useValue: dashboardRepositoryMock,
         },
+        { provide: BullMQQueueAdapter, useValue: bullMQAdapterMock },
       ],
     }).compile();
 

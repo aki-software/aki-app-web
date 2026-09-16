@@ -1,37 +1,59 @@
+import type { BehavioralTrends } from "@akit/contracts";
 import { FileSpreadsheet, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from "../../../components/atoms/Button";
+import { Select } from "../../../components/atoms/Select";
+import { Spinner } from "../../../components/atoms/Spinner";
+import { StatCard } from "../../../components/atoms/StatCard";
+import { SearchInput } from "../../../components/molecules/SearchInput";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { fetchSessionsList, type SessionData } from "../api/dashboard";
 import { fetchBehavioralTrends } from "../api/sessions.api";
-import type { BehavioralTrends } from "@akit/contracts";
-import { STATUS_OPTIONS, RESULTS_UI_TEXTS, type StatusFilter } from "../constants/results.constants";
-import { Button } from "../../../components/atoms/Button";
-import { Spinner } from "../../../components/atoms/Spinner";
-import { Select } from "../../../components/atoms/Select";
-import { SearchInput } from "../../../components/molecules/SearchInput";
-import { StatCard } from "../../../components/atoms/StatCard";
+import { BehavioralTrendsSection } from "../components/results/BehavioralTrendsSection";
 import { UserSessionGroup } from "../components/results/UserSessionGroup";
 import { TriageList } from "../components/triage/TriageList";
-import { BehavioralTrendsSection } from "../components/results/BehavioralTrendsSection";
+import {
+    RESULTS_UI_TEXTS,
+    STATUS_OPTIONS,
+    type SourceFilter,
+    type StatusFilter,
+} from "../constants/results.constants";
 
 const hasSessionResult = (s: SessionData) => (s.results?.length ?? 0) > 0;
 const isReportUnlocked = (s: SessionData) => Boolean(s.reportUnlockedAt);
 
 export function DashboardResults() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  
-  const isInstitution = !!user?.institutionId && user.role?.toUpperCase() !== "ADMIN";
-  const isTherapist = user?.role?.toUpperCase() === "THERAPIST" || user?.role?.toUpperCase() === "PSYCHOLOGIST";
+
+  const isInstitution =
+    !!user?.institutionId && user.role?.toUpperCase() !== "ADMIN";
+  const isTherapist =
+    user?.role?.toUpperCase() === "THERAPIST" ||
+    user?.role?.toUpperCase() === "PSYCHOLOGIST";
   const uiTexts = RESULTS_UI_TEXTS;
 
   const [sessions, setSessions] = useState<SessionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const initialStatus = searchParams.get("status");
+  const initialSource = searchParams.get("source");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    initialStatus === "STARTED" ||
+      initialStatus === "COMPLETED" ||
+      initialStatus === "REPORT_UNLOCKED"
+      ? initialStatus
+      : "ALL",
+  );
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>(
+    initialSource === "direct" ? "DIRECT" : "ALL",
+  );
   const [channelFilter, setChannelFilter] = useState<string>("ALL");
-  const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>({});
+  const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>(
+    {},
+  );
   const [trends, setTrends] = useState<BehavioralTrends | null>(null);
   const [trendsLoading, setTrendsLoading] = useState(false);
 
@@ -59,72 +81,126 @@ export function DashboardResults() {
     const filtered = sessions.filter((session) => {
       const completed = hasSessionResult(session);
       const unlocked = isReportUnlocked(session);
+      const direct = !session.voucherCode;
 
       if (statusFilter === "STARTED" && completed) return false;
       if (statusFilter === "COMPLETED" && !completed) return false;
       if (statusFilter === "REPORT_UNLOCKED" && !unlocked) return false;
-
-      if (channelFilter === "GOOGLE_PLAY" && session.channel !== "GOOGLE_PLAY") return false;
-      if (channelFilter === "VOUCHER" && session.channel !== "VOUCHER") return false;
-
+      if (sourceFilter === "DIRECT" && !direct) return false;
+      if (channelFilter === "GOOGLE_PLAY" && session.channel !== "GOOGLE_PLAY")
+        return false;
+      if (channelFilter === "VOUCHER" && session.channel !== "VOUCHER")
+        return false;
       if (!term) return true;
 
       return [
-        session.patientName, session.hollandCode, session.paymentStatus,
-        session.institutionName, session.therapistName, session.voucherCode,
-      ].filter(Boolean).some((value) => String(value).toLowerCase().includes(term));
+        session.patientName,
+        session.patientEmail,
+        session.hollandCode,
+        session.paymentStatus,
+        session.institutionName,
+        session.therapistName,
+        session.voucherCode,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term));
     });
 
-    const groups: Record<string, SessionData[]> = {};
+    const groups = new Map<
+      string,
+      {
+        userName: string;
+        patientEmail: string | null;
+        sessions: SessionData[];
+      }
+    >();
     filtered.forEach((session) => {
-      if (!groups[session.patientName]) groups[session.patientName] = [];
-      groups[session.patientName].push(session);
+      const identityKey = `${session.patientName}\u0000${session.patientEmail ?? ""}`;
+      const group = groups.get(identityKey);
+      if (group) {
+        group.sessions.push(session);
+        return;
+      }
+      groups.set(identityKey, {
+        userName: session.patientName,
+        patientEmail: session.patientEmail ?? null,
+        sessions: [session],
+      });
     });
 
-    return Object.entries(groups).map(([name, list]) => {
-      return [name, list.sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime())] as const;
-    }).sort((a, b) => new Date(b[1][0].sessionDate).getTime() - new Date(a[1][0].sessionDate).getTime());
-  }, [searchTerm, sessions, statusFilter, channelFilter]);
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        sessions: group.sessions.sort(
+          (a, b) =>
+            new Date(b.sessionDate).getTime() -
+            new Date(a.sessionDate).getTime(),
+        ),
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.sessions[0].sessionDate).getTime() -
+          new Date(a.sessions[0].sessionDate).getTime(),
+      );
+  }, [searchTerm, sessions, sourceFilter, statusFilter, channelFilter]);
 
   const filteredSessionsCount = useMemo(
-    () => groupedSessions.reduce((acc, [, list]) => acc + list.length, 0),
-    [groupedSessions]
+    () =>
+      groupedSessions.reduce((acc, group) => acc + group.sessions.length, 0),
+    [groupedSessions],
   );
 
   const handleExportCSV = () => {
     const csvRows = [];
-    csvRows.push(['Paciente', 'Fecha', 'Codigo Vocacional', 'Voucher', 'Estado', 'Institucion', 'Terapeuta'].join(','));
+    csvRows.push(
+      [
+        "Paciente",
+        "Email",
+        "Fecha",
+        "Codigo Vocacional",
+        "Voucher",
+        "Estado",
+        "Institucion",
+        "Terapeuta",
+      ].join(","),
+    );
 
-    groupedSessions.forEach(([, userSessions]) => {
+    groupedSessions.forEach(({ sessions: userSessions }) => {
       userSessions.forEach((session) => {
-        const date = new Date(session.sessionDate).toLocaleDateString('es-AR');
-        const status = session.reportUnlockedAt ? 'Reporte Desbloqueado' : (session.results?.length ? 'Completado' : 'Iniciado');
-        csvRows.push([
-          `"${session.patientName}"`,
-          `"${date}"`,
-          `"${session.hollandCode}"`,
-          `"${session.voucherCode || '-'}"`,
-          `"${status}"`,
-          `"${session.institutionName || '-'}"`,
-          `"${session.therapistName || '-'}"`
-        ].join(','));
+        const date = new Date(session.sessionDate).toLocaleDateString("es-AR");
+        const status = session.reportUnlockedAt
+          ? "Reporte Desbloqueado"
+          : session.results?.length
+            ? "Completado"
+            : "Iniciado";
+        csvRows.push(
+          [
+            `"${session.patientName}"`,
+            `"${session.patientEmail || "-"}"`,
+            `"${date}"`,
+            `"${session.hollandCode}"`,
+            `"${session.voucherCode || "-"}"`,
+            `"${status}"`,
+            `"${session.institutionName || "-"}"`,
+            `"${session.therapistName || "-"}"`,
+          ].join(","),
+        );
       });
     });
 
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `exportacion-tests-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `exportacion-tests-${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
-  
+
   return (
     <div className="space-y-10">
-
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-[11px] font-semibold text-app-text-muted/70 uppercase tracking-[0.15em]">
         <span>Dashboard</span>
@@ -138,10 +214,16 @@ export function DashboardResults() {
             {uiTexts.header.title}
           </h2>
           <p className="mt-2 text-sm font-medium text-app-text-muted max-w-2xl leading-relaxed">
-            {isInstitution ? uiTexts.header.subtitleInstitution : uiTexts.header.subtitleAdmin}
+            {isInstitution
+              ? uiTexts.header.subtitleInstitution
+              : uiTexts.header.subtitleAdmin}
           </p>
         </div>
-        <Button variant="outline" className="px-6 shadow-sm" onClick={handleExportCSV}>
+        <Button
+          variant="outline"
+          className="px-6 shadow-sm"
+          onClick={handleExportCSV}
+        >
           <FileSpreadsheet className="mr-3 h-4 w-4 text-status-success" />
           Exportar Reporte
         </Button>
@@ -169,21 +251,27 @@ export function DashboardResults() {
 
       <div className="flex flex-wrap gap-4">
         <div className="min-w-[200px]">
-          <StatCard label={uiTexts.metrics.patients} value={groupedSessions.length} />
+          <StatCard
+            label={uiTexts.metrics.patients}
+            value={groupedSessions.length}
+          />
         </div>
         <div className="min-w-[200px]">
-          <StatCard label={uiTexts.metrics.tests} value={filteredSessionsCount} />
+          <StatCard
+            label={uiTexts.metrics.tests}
+            value={filteredSessionsCount}
+          />
         </div>
       </div>
 
       <div className="space-y-6">
         <div className="grid gap-4 lg:grid-cols-4 items-end">
           <div className="lg:col-span-2">
-             <span className="app-label mb-2 block">Buscar</span>
-             <SearchInput
+            <span className="app-label mb-2 block">Buscar</span>
+            <SearchInput
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar paciente, código vocacional, terapeuta u organización..."
+              placeholder="Buscar paciente, email, código vocacional, terapeuta u organización..."
             />
           </div>
 
@@ -194,7 +282,7 @@ export function DashboardResults() {
             options={[
               { value: "ALL", label: "Todos los orígenes" },
               { value: "VOUCHER", label: "Institucional (Voucher)" },
-              { value: "GOOGLE_PLAY", label: "App Móvil (Google Play)" }
+              { value: "GOOGLE_PLAY", label: "App Móvil (Google Play)" },
             ]}
           />
 
@@ -206,8 +294,21 @@ export function DashboardResults() {
           />
         </div>
 
-        <div className="rounded-2xl border border-app-border bg-app-surface px-4 py-3 text-xs font-semibold text-app-text-muted">
-          Mostrando {filteredSessionsCount} test(s) de {sessions.length} total(es).
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-app-border bg-app-surface px-4 py-3 text-xs font-semibold text-app-text-muted">
+          <span>
+            Mostrando {filteredSessionsCount} test(s) de {sessions.length}{" "}
+            total(es).
+            {sourceFilter === "DIRECT" && " Sólo sesiones directas."}
+          </span>
+          {sourceFilter === "DIRECT" && (
+            <button
+              type="button"
+              onClick={() => setSourceFilter("ALL")}
+              className="rounded-lg px-2 py-1 text-app-primary transition-colors hover:bg-app-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+            >
+              Quitar filtro
+            </button>
+          )}
         </div>
         <div className="min-h-[400px]">
           {loading ? (
@@ -217,12 +318,17 @@ export function DashboardResults() {
           ) : groupedSessions.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center text-app-text-muted">
               <Search className="mb-4 h-10 w-10 text-app-text-muted/30" />
-              <p className="text-sm font-bold uppercase tracking-widest mb-3">{uiTexts.emptyState}</p>
-              {(searchTerm || statusFilter !== "ALL") && (
+              <p className="text-sm font-bold uppercase tracking-widest mb-3">
+                {uiTexts.emptyState}
+              </p>
+              {(searchTerm ||
+                statusFilter !== "ALL" ||
+                sourceFilter !== "ALL") && (
                 <button
                   onClick={() => {
                     setSearchTerm("");
                     setStatusFilter("ALL");
+                    setSourceFilter("ALL");
                   }}
                   className="px-4 py-2 rounded-xl text-xs font-bold bg-app-primary/10 text-app-primary border border-app-primary/20 hover:bg-app-primary hover:text-white transition-all cursor-pointer"
                 >
@@ -235,25 +341,38 @@ export function DashboardResults() {
               {/* Table Header */}
               <div className="flex items-center px-8 py-4 text-[10px] font-black uppercase tracking-[0.25em] text-app-text-muted/50">
                 <div className="flex-[2]">{uiTexts.tableHeaders[0]}</div>
-                <div className="flex-1 text-center hidden sm:block">{uiTexts.tableHeaders[1]}</div>
-                <div className="flex-1 text-center">{uiTexts.tableHeaders[2]}</div>
+                <div className="flex-1 text-center hidden sm:block">
+                  {uiTexts.tableHeaders[1]}
+                </div>
+                <div className="flex-1 text-center">
+                  {uiTexts.tableHeaders[2]}
+                </div>
                 <div className="w-10" />
               </div>
 
-              {groupedSessions.map(([userName, userSessions]) => (
-                <UserSessionGroup
-                  key={userName}
-                  userName={userName}
-                  userSessions={userSessions}
-                  isExpanded={!!expandedUsers[userName]}
-                  onToggle={() => toggleUserExpansion(userName)}
-                  onOpenDetail={(id) => navigate(`/dashboard/sessions/${id}`)}
-                />
-              ))}
+              {groupedSessions.map(
+                ({ userName, patientEmail, sessions: userSessions }) => (
+                  <UserSessionGroup
+                    key={`${userName}\u0000${patientEmail ?? ""}`}
+                    userName={userName}
+                    patientEmail={patientEmail}
+                    userSessions={userSessions}
+                    isExpanded={
+                      !!expandedUsers[`${userName}\u0000${patientEmail ?? ""}`]
+                    }
+                    onToggle={() =>
+                      toggleUserExpansion(
+                        `${userName}\u0000${patientEmail ?? ""}`,
+                      )
+                    }
+                    onOpenDetail={(id) => navigate(`/dashboard/sessions/${id}`)}
+                  />
+                ),
+              )}
             </div>
           )}
         </div>
       </div>
     </div>
   );
-};
+}

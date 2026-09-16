@@ -106,6 +106,7 @@ function normalizeSession(session: SessionApi): SessionData {
   return {
     id: session.id,
     patientName: session.patientName,
+    patientEmail: session.patientEmail ?? null,
     hollandCode: hollandCode || "N/A",
     sessionDate: session.createdAt || new Date(0).toISOString(),
     totalTimeMs: Number(session.totalTimeMs) || 0,

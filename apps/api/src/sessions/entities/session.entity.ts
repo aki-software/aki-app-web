@@ -72,6 +72,14 @@ export class Session {
   @Column({ name: 'patient_name', type: 'varchar', length: 255 })
   patientName!: string;
 
+  @Column({
+    name: 'patient_email',
+    type: 'varchar',
+    length: 320,
+    nullable: true,
+  })
+  patientEmail!: string | null;
+
   @Column({ name: 'session_date', type: 'timestamptz' })
   sessionDate!: Date;
 

@@ -1,10 +1,10 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
 import { InMemoryQueueAdapter } from './in-memory-queue.adapter.js';
 import { applyQueueDefaults } from './queue-defaults.js';
+import { QueueAdapter, QueueJobOptions } from './queue.adapter.js';
 
 @Injectable()
 export class BullMQQueueAdapter implements QueueAdapter {
@@ -89,5 +89,19 @@ export class BullMQQueueAdapter implements QueueAdapter {
     }
 
     return jobOptions;
+  }
+
+  /**
+   * Returns the total number of failed jobs across the critical queues
+   * (email, pdf, send-report). Returns 0 when BullMQ is not enabled.
+   */
+  async getFailedJobsCount(): Promise<number> {
+    if (!this.isEnabled) return 0;
+    const counts = await Promise.all([
+      this.emailQueue.getFailedCount(),
+      this.pdfQueue.getFailedCount(),
+      this.sendReportQueue.getFailedCount(),
+    ]);
+    return counts.reduce((sum, c) => sum + c, 0);
   }
 }
