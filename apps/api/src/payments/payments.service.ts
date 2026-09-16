@@ -454,6 +454,43 @@ export class PaymentsService {
       throw error;
     }
 
+    // Record the Google Play financial event so it appears in the admin payment
+    // ledger and platform dashboard revenue metrics.
+    try {
+      const event = this.dataSource.manager.create(PaymentEvent, {
+        gateway: 'GOOGLE_PLAY',
+        externalPaymentId: dto.purchaseToken,
+        status: 'APPROVED',
+        sessionId: session.id,
+        voucherBatchId: null as unknown as string,
+        payloadDigest: null,
+        checkoutAttemptId: null,
+      });
+      await this.dataSource.manager.save(PaymentEvent, event);
+    } catch (error) {
+      // A duplicate-key error here means we already recorded this event (e.g.
+      // retry race). Log and continue — the unlock already succeeded above.
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === '23505'
+      ) {
+        this.logger.warn({
+          event: 'google_play_payment_event_duplicate',
+          sessionId: session.id,
+          purchaseToken: dto.purchaseToken,
+        });
+      } else {
+        this.logger.error({
+          event: 'google_play_payment_event_persist_failed',
+          sessionId: session.id,
+          errorClass:
+            error instanceof Error ? error.constructor.name : typeof error,
+        });
+      }
+    }
+
     return { success: true, valid: true };
   }
 }

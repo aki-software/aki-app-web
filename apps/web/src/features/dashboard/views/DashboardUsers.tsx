@@ -10,6 +10,7 @@ import { Pagination } from "../../../components/molecules/Pagination";
 import { CreateInstitutionModal } from "../components/users/CreateInstitutionModal";
 import { InstitutionTableRow } from "../components/users/InstitutionTableRow";
 import { InstitutionEditModal } from "../components/users/InstitutionEditModal";
+import { InstitutionDetailsModal } from "../components/users/InstitutionDetailsModal";
 import { type InstitutionOption } from "../api/dashboard";
 import { fetchTherapists, type TherapistOption } from "../api/users.api";
 const ITEMS_PER_PAGE = 6;
@@ -74,6 +75,7 @@ export function DashboardUsers() {
   const [currentPage, setCurrentPage] = useState(1);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editingInst, setEditingInst] = useState<InstitutionOption | null>(null);
+  const [viewingInst, setViewingInst] = useState<InstitutionOption | null>(null);
   const [activeAsyncId, setActiveAsyncId] = useState<string | null>(null);
 
   const [therapistSearchQuery, setTherapistSearchQuery] = useState("");
@@ -254,7 +256,7 @@ export function DashboardUsers() {
               </div>
             ) : (
               <div className="min-h-[400px] flex flex-col justify-between">
-                <div className="overflow-x-auto">
+                <div className="overflow-visible">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-app-border/60">
@@ -270,6 +272,7 @@ export function DashboardUsers() {
                           key={inst.id}
                           institution={inst}
                           onEdit={() => setEditingInst(inst)}
+                          onViewDetail={() => setViewingInst(inst)}
                           onToggleStatus={() => handleToggleStatus(inst)}
                           onDelete={() => onCardAction(handleDelete(inst), inst.id)}
                           onResendActivation={() => inst.responsibleTherapistUserId && onCardAction(handleResendActivation(inst.responsibleTherapistUserId), inst.id)}
@@ -306,6 +309,13 @@ export function DashboardUsers() {
               onClose={() => setEditingInst(null)}
               onSave={onSubmitUpdate}
               saving={saving}
+            />
+          )}
+
+          {viewingInst && (
+            <InstitutionDetailsModal
+              institution={viewingInst}
+              onClose={() => setViewingInst(null)}
             />
           )}
         </>

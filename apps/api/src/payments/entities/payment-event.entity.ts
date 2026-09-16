@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
 import { CheckoutAttempt } from './checkout-attempt.entity.js';
+import type { Session } from '../../sessions/entities/session.entity.js';
 
 @Entity('payment_event')
 @Index(
@@ -24,7 +25,7 @@ export class PaymentEvent {
   id!: string;
 
   @Column({ type: 'varchar' })
-  gateway!: 'MERCADO_PAGO' | 'STRIPE';
+  gateway!: 'MERCADO_PAGO' | 'STRIPE' | 'GOOGLE_PLAY';
 
   @Column({ type: 'varchar' })
   externalPaymentId!: string;
@@ -53,6 +54,15 @@ export class PaymentEvent {
   @ManyToOne(() => CheckoutAttempt, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'checkout_attempt_id' })
   checkoutAttempt!: CheckoutAttempt | null;
+
+  /** Set for B2C Google Play payments; links the event to the session whose
+   *  report was unlocked by this purchase. NULL for B2B voucher-batch payments. */
+  @Column({ name: 'session_id', type: 'uuid', nullable: true })
+  sessionId!: string | null;
+
+  @ManyToOne('Session', { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'session_id' })
+  session!: Session | null;
 
   @CreateDateColumn()
   createdAt!: Date;

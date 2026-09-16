@@ -1,13 +1,13 @@
+import type { DashboardStatsResponse } from "@akit/contracts";
 import { Building2, CircleDollarSign, Target, TicketCheck } from "lucide-react";
 import { type ReactNode } from "react";
 import { StatCard } from "../../../../components/atoms/StatCard";
 import type { PurchaseSummary } from "../../api/purchase-summary.api";
 import {
-  purchaseAmountComparison,
-  purchaseAmountPresentation,
-  purchaseComparison,
+    purchaseAmountComparison,
+    purchaseAmountPresentation,
+    purchaseComparison,
 } from "../../utils/purchase-summary-presenters";
-import type { DashboardStatsResponse } from "@akit/contracts";
 
 type PlatformPurchaseSummary = Extract<PurchaseSummary, { scope: "PLATFORM" }>;
 
@@ -28,13 +28,16 @@ export function PlatformDashboardSummary({
   adminStats,
   periodSelector,
 }: PlatformDashboardSummaryProps) {
-  const purchaseUnavailable = purchaseLoading || purchaseError !== null || purchaseData === null;
+  const purchaseUnavailable =
+    purchaseLoading || purchaseError !== null || purchaseData === null;
   const purchaseStatusDescription = purchaseLoading
     ? "Cargando compras…"
     : "Datos no disponibles.";
 
   const amount = purchaseData
-    ? purchaseAmountPresentation(purchaseData.current.accreditedAmountByCurrency)
+    ? purchaseAmountPresentation(
+        purchaseData.current.accreditedAmountByCurrency,
+      )
     : { value: "—", description: purchaseStatusDescription };
 
   const amountComparison = purchaseData
@@ -51,14 +54,25 @@ export function PlatformDashboardSummary({
       )
     : null;
 
+  let revenueDescription = purchaseUnavailable
+    ? purchaseStatusDescription
+    : (amountComparison ?? amount.description);
+  if (!purchaseUnavailable && adminStats?.channelBreakdown?.googlePlay) {
+    const b2cRevenue = adminStats.channelBreakdown.googlePlay.revenueUsd || 0;
+    revenueDescription = `${revenueDescription} · Incluye B2C (App Móvil): USD ${b2cRevenue.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
   return (
     <div className="space-y-8">
       <section aria-label="KPIs Principales" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
           <div>
-            <h3 className="text-sm font-bold text-app-text-main">Rendimiento del período</h3>
+            <h3 className="text-sm font-bold text-app-text-main">
+              Rendimiento del período
+            </h3>
             <p className="text-xs text-app-text-muted">
-              {adminStats ? adminStats.periodLabel : "Métricas en el rango seleccionado"}
+              {adminStats
+                ? adminStats.periodLabel
+                : "Métricas en el rango seleccionado"}
             </p>
           </div>
           {periodSelector}
@@ -68,7 +82,7 @@ export function PlatformDashboardSummary({
             icon={CircleDollarSign}
             label="Facturación Acreditada"
             value={amount.value}
-            description={purchaseUnavailable ? purchaseStatusDescription : amountComparison ?? amount.description}
+            description={revenueDescription}
             valueColor="text-app-primary"
           />
           <StatCard
@@ -92,14 +106,25 @@ export function PlatformDashboardSummary({
           <StatCard
             icon={Building2}
             label="Instituciones Activas"
-            value={purchaseUnavailable ? "—" : purchaseData.current.purchasingInstitutionCount}
-            description={purchaseUnavailable ? purchaseStatusDescription : institutionComparison ?? "En el período seleccionado."}
+            value={
+              purchaseUnavailable
+                ? "—"
+                : purchaseData.current.purchasingInstitutionCount
+            }
+            description={
+              purchaseUnavailable
+                ? purchaseStatusDescription
+                : (institutionComparison ?? "En el período seleccionado.")
+            }
             valueColor="text-app-primary"
           />
         </div>
 
         {purchaseError && (
-          <div role="alert" className="flex flex-col gap-2 rounded-2xl border border-status-warning/30 bg-status-warning/10 p-3 text-sm text-app-text-main sm:flex-row sm:items-center sm:justify-between">
+          <div
+            role="alert"
+            className="flex flex-col gap-2 rounded-2xl border border-status-warning/30 bg-status-warning/10 p-3 text-sm text-app-text-main sm:flex-row sm:items-center sm:justify-between"
+          >
             <span>Las métricas de compras no están disponibles.</span>
             <button
               type="button"

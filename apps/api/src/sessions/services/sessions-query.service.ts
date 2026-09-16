@@ -6,6 +6,7 @@ import {
   In,
   Not,
   IsNull,
+  Raw,
   SelectQueryBuilder,
 } from 'typeorm';
 import { Session } from '../entities/session.entity.js';
@@ -42,6 +43,10 @@ export class SessionsQueryService {
 
     if (role === UserRole.ADMIN) {
       where.voucherId = IsNull();
+      // Platform admins must not see B2C sessions unless they are the designated individual test owner
+      where.channel = Raw(
+        (alias) => `(${alias} != 'GOOGLE_PLAY' OR ${alias} IS NULL)`,
+      );
       return where;
     }
 
@@ -65,11 +70,48 @@ export class SessionsQueryService {
     return where;
   }
 
+  /** Returns true when the requesting user is the platform's designated viewer
+   *  for individual (non-voucher) B2C sessions.  The email is resolved from the
+   *  INDIVIDUAL_TEST_OWNER_EMAIL environment variable so that ownership can be
+   *  reassigned in the future without a database migration. */
+  private isIndividualTestOwner(email?: string): boolean {
+    const ownerEmail = process.env['INDIVIDUAL_TEST_OWNER_EMAIL'];
+    return (
+      !!ownerEmail &&
+      !!email &&
+      email.toLowerCase() === ownerEmail.toLowerCase()
+    );
+  }
+
   async findAll(
     page: number = SESSION_CONSTANTS.PAGINATION.DEFAULT_PAGE,
     limit: number = SESSION_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
     scope?: SessionScope,
   ): Promise<{ data: Session[]; count: number }> {
+    // When the requester is the designated individual-test owner, extend their
+    // normal therapist-scoped results to also include GOOGLE_PLAY sessions that
+    // have no therapist assigned (B2C mobile sessions).
+    if (
+      scope &&
+      this.isIndividualTestOwner(scope.email) &&
+      scope.therapistUserId
+    ) {
+      const qb = this.sessionRepository
+        .createQueryBuilder('session')
+        .leftJoinAndSelect('session.results', 'results')
+        .leftJoinAndSelect('session.voucher', 'voucher')
+        .where(
+          '(session.therapistUserId = :therapistUserId OR (session.channel = :channel AND session.therapistUserId IS NULL))',
+          { therapistUserId: scope.therapistUserId, channel: 'GOOGLE_PLAY' },
+        )
+        .orderBy('session.createdAt', 'DESC')
+        .skip((page - 1) * limit)
+        .take(limit);
+
+      const [data, count] = await qb.getManyAndCount();
+      return { data, count };
+    }
+
     const where = this.applyScope(scope);
 
     const [data, count] = await this.sessionRepository.findAndCount({
