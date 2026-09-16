@@ -1,20 +1,20 @@
+import {
+  AdminActivityItem,
+  BehavioralTrends,
+  DashboardStatsPayload,
+} from '@akit/contracts';
 import { Injectable } from '@nestjs/common';
 import { CategoriesService } from '../../categories/categories.service.js';
+import { BullMQQueueAdapter } from '../../common/adapters/bullmq-queue.adapter.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
 import { AdminDashboardRepository } from '../repositories/admin-dashboard.repository.js';
-import { BullMQQueueAdapter } from '../../common/adapters/bullmq-queue.adapter.js';
 import {
-  getPeriodStart,
   buildOverviewPayload,
   formatResultsDistribution,
   formatSessionActivity,
+  getPeriodStart,
   mergeActivity,
 } from '../utils/admin-dashboard-formatter.util.js';
-import {
-  DashboardStatsPayload,
-  AdminActivityItem,
-  BehavioralTrends,
-} from '@akit/contracts';
 
 const DEFAULT_ACTIVITY_LIMIT = 50;
 
