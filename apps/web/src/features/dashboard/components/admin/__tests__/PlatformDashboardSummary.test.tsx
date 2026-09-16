@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { PlatformDashboardSummary } from "../PlatformDashboardSummary";
@@ -39,11 +39,11 @@ function renderSummary(props: Partial<React.ComponentProps<typeof PlatformDashbo
 }
 
 describe("PlatformDashboardSummary", () => {
-  it("renders exactly four primary metrics and separate conditional alerts", () => {
+  it("renders exactly four primary metrics without duplicating operational alerts", () => {
     renderSummary();
     expect(screen.getAllByText(/Facturación Acreditada|Vouchers Canjeados|Tasa de Finalización|Instituciones Activas/)).toHaveLength(4);
-    expect(screen.getByText("1 pago(s) pendiente(s) de acreditación")).toBeDefined();
-    expect(screen.getByText("2 notificación(es) de pago fallida(s)")).toBeDefined();
+    expect(screen.queryByText("1 pago(s) pendiente(s) de acreditación")).toBeNull();
+    expect(screen.queryByText("2 notificación(es) de pago fallida(s)")).toBeNull();
   });
 
   it("does not combine multiple currencies", () => {
@@ -76,58 +76,8 @@ describe("PlatformDashboardSummary", () => {
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
-  it("dismisses alerts independently by type and exposes accessible close controls", () => {
+  it("keeps the summary free of technical alert copy", () => {
     renderSummary();
-    const closeButtons = screen.getAllByRole("button", { name: "Cerrar alerta" });
-    expect(closeButtons.length).toBe(2); // one for purchase, one for notification
-
-    for (const closeButton of closeButtons) {
-      expect(closeButton.className).toContain("min-h-11");
-      expect(closeButton.className).toContain("min-w-11");
-    }
-
-    fireEvent.click(closeButtons[0]);
-    expect(screen.queryByText("1 pago(s) pendiente(s) de acreditación")).toBeNull();
-  });
-
-  it("keeps a dismissed alert hidden at the same count but re-shows it when the count changes", () => {
-    const { rerender } = renderSummary();
-    const closeButtons = screen.getAllByRole("button", { name: "Cerrar alerta" });
-    fireEvent.click(closeButtons[0]);
-
-    rerender(
-      <MemoryRouter>
-        <PlatformDashboardSummary
-          purchaseData={purchaseData}
-          purchaseLoading={false}
-          purchaseError={null}
-          onRetry={vi.fn()}
-        />
-      </MemoryRouter>,
-    );
-    expect(screen.queryByText("1 pago(s) pendiente(s) de acreditación")).toBeNull();
-
-    rerender(
-      <MemoryRouter>
-        <PlatformDashboardSummary
-          purchaseData={{
-            ...purchaseData,
-            alerts: { ...purchaseData.alerts, paidButNotFulfilledCount: 2 },
-          }}
-          purchaseLoading={false}
-          purchaseError={null}
-          onRetry={vi.fn()}
-        />
-      </MemoryRouter>,
-    );
-    expect(screen.getByText("2 pago(s) pendiente(s) de acreditación")).toBeDefined();
-  });
-
-  it("uses text-based alert links with no technical copy", () => {
-    renderSummary();
-    for (const link of screen.getAllByRole("link")) {
-      expect(link.className).toContain("min-h-11");
-    }
     expect(screen.queryByText(/PLATFORM|FULFILLED|[0-9a-f]{8}-/i)).toBeNull();
   });
 });

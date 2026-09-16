@@ -1,4 +1,5 @@
 import { BarChart3, Calendar, Clock, Sparkles } from "lucide-react";
+import type { AdminAlert } from "@akit/contracts";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { getFormattedCurrentDate } from "../../../utils/date";
 import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashboard.constants";
@@ -16,6 +17,42 @@ import { PlatformDashboardSummary } from "../components/admin/PlatformDashboardS
 import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 import { useAdminDashboardStats } from "../hooks/useAdminDashboardStats";
 import { usePurchaseSummary, type PurchaseSummaryPeriod } from "../hooks/usePurchaseSummary";
+import type { PurchaseSummary } from "../api/purchase-summary.api";
+
+type PlatformPurchaseSummary = Extract<PurchaseSummary, { scope: "PLATFORM" }>;
+
+function getPurchaseAlerts(
+  purchaseData: PlatformPurchaseSummary | null,
+): AdminAlert[] {
+  if (!purchaseData) return [];
+
+  const alerts: AdminAlert[] = [];
+  const { alerts: purchaseAlerts } = purchaseData;
+
+  if (purchaseAlerts.paidButNotFulfilledCount > 0) {
+    alerts.push({
+      id: `pending-accreditation:${purchaseAlerts.paidButNotFulfilledCount}`,
+      severity: "warning",
+      title: "Acreditaciones pendientes",
+      description: `${purchaseAlerts.paidButNotFulfilledCount} pago(s) esperan la acreditación de sus vouchers.`,
+      actionLabel: "Revisar pagos",
+      actionPath: "/dashboard/payment-ledger?fulfillmentState=PENDING",
+    });
+  }
+
+  if (purchaseAlerts.notificationAttentionCount > 0) {
+    alerts.push({
+      id: `purchase-notifications:${purchaseAlerts.notificationAttentionCount}`,
+      severity: "critical",
+      title: "Notificaciones de pago fallidas",
+      description: `${purchaseAlerts.notificationAttentionCount} notificación(es) requieren revisión.`,
+      actionLabel: "Revisar notificaciones",
+      actionPath: "/dashboard/payment-ledger?notificationStatus=RETRYABLE_FAILED",
+    });
+  }
+
+  return alerts;
+}
 
 function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
   const { stats: adminStats, loading, periodDays, setPeriodDays } = useAdminDashboardStats();
@@ -43,6 +80,13 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
     displayStats.channelBreakdown.individual.completed -
       displayStats.channelBreakdown.individual.reportsUnlocked,
   );
+  const platformPurchaseData = purchaseSummary.data?.scope === "PLATFORM"
+    ? purchaseSummary.data
+    : null;
+  const operationalAlerts = [
+    ...displayStats.alerts,
+    ...getPurchaseAlerts(platformPurchaseData),
+  ];
 
   return (
     <div className="space-y-12 animate-in pb-20">
@@ -70,11 +114,11 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       <section aria-label="Requiere atención">
-        <AdminAlerts alerts={displayStats.alerts} />
+        <AdminAlerts alerts={operationalAlerts} />
       </section>
 
           <PlatformDashboardSummary
-            purchaseData={purchaseSummary.data?.scope === "PLATFORM" ? purchaseSummary.data : null}
+            purchaseData={platformPurchaseData}
             purchaseLoading={purchaseSummary.loading}
             purchaseError={purchaseSummary.error}
             onRetry={purchaseSummary.retry}
