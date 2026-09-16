@@ -219,8 +219,20 @@ export function DashboardResults() {
           />
         </div>
 
-        <div className="rounded-2xl border border-app-border bg-app-surface px-4 py-3 text-xs font-semibold text-app-text-muted">
-          Mostrando {filteredSessionsCount} test(s) de {sessions.length} total(es).
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-app-border bg-app-surface px-4 py-3 text-xs font-semibold text-app-text-muted">
+          <span>
+            Mostrando {filteredSessionsCount} test(s) de {sessions.length} total(es).
+            {sourceFilter === "DIRECT" && " Sólo sesiones directas."}
+          </span>
+          {sourceFilter === "DIRECT" && (
+            <button
+              type="button"
+              onClick={() => setSourceFilter("ALL")}
+              className="rounded-lg px-2 py-1 text-app-primary transition-colors hover:bg-app-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+            >
+              Quitar filtro
+            </button>
+          )}
         </div>
         <div className="min-h-[400px]">
           {loading ? (
