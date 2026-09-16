@@ -147,7 +147,7 @@ describe("DashboardOverview", () => {
         priorWindow: { from: "2026-02-24T00:00:00.000Z", to: "2026-03-03T00:00:00.000Z", days: 7 },
         current: { accreditedPurchaseCount: 1, accreditedVoucherCount: 10, purchasingInstitutionCount: 1, accreditedAmountByCurrency: [{ currency: "USD", amount: "25.00" }] },
         prior: { accreditedPurchaseCount: 0, accreditedVoucherCount: 0, purchasingInstitutionCount: 0, accreditedAmountByCurrency: [] },
-        alerts: { paidButNotFulfilledCount: 0, notificationAttentionCount: 0 },
+         alerts: { paidButNotFulfilledCount: 1, notificationAttentionCount: 2 },
         latestAccreditation: null,
       },
       loading: false,
@@ -253,13 +253,24 @@ describe("DashboardOverview", () => {
       expect(screen.getByRole("button", { name: "Ver" })).toBeDefined();
     });
 
+    it("centralizes purchase alerts without duplicating them in the KPI summary", () => {
+      renderWithRouter(<DashboardOverview />);
+
+      expect(screen.getByText("Acreditaciones pendientes")).toBeDefined();
+      expect(screen.getByText("Notificaciones de pago fallidas")).toBeDefined();
+      expect(screen.getByRole("button", { name: "Revisar pagos" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Revisar notificaciones" })).toBeDefined();
+      expect(screen.queryByText("1 pago(s) pendiente(s) de acreditación")).toBeNull();
+    });
+
+
     it("allows an operational alert to be dismissed", () => {
       renderWithRouter(<DashboardOverview />);
 
-      fireEvent.click(screen.getByRole("button", { name: "Descartar alerta" }));
+      fireEvent.click(screen.getAllByRole("button", { name: "Descartar alerta" })[0]);
 
       expect(screen.queryByText("Test alert")).toBeNull();
-      expect(screen.getByText("Operación estable")).toBeDefined();
+      expect(screen.getByText("2 incidencia(s)")).toBeDefined();
     });
 
     it("shows loading spinner with correct text when loading", async () => {

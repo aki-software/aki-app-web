@@ -1,6 +1,5 @@
-import { AlertTriangle, Building2, CircleDollarSign, Target, TicketCheck, X, Activity } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState, type ReactNode } from "react";
+import { Building2, CircleDollarSign, Target, TicketCheck } from "lucide-react";
+import { type ReactNode } from "react";
 import { StatCard } from "../../../../components/atoms/StatCard";
 import type { PurchaseSummary } from "../../api/purchase-summary.api";
 import {
@@ -21,41 +20,6 @@ interface PlatformDashboardSummaryProps {
   periodSelector?: ReactNode;
 }
 
-function AlertStrip({
-  children,
-  to,
-  closeLabel,
-  onDismiss,
-}: {
-  children: ReactNode;
-  to: string;
-  closeLabel?: string;
-  onDismiss?: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-2 rounded-2xl border border-status-warning/30 bg-status-warning/10">
-      <Link
-        to={to}
-        className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-2xl px-4 text-sm font-bold text-app-text-main transition-colors hover:bg-status-warning/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
-      >
-        <AlertTriangle className="h-5 w-5 shrink-0 text-status-warning" aria-hidden="true" />
-        <span>{children}</span>
-      </Link>
-      {onDismiss && closeLabel && (
-        <button
-          type="button"
-          aria-label={closeLabel}
-          onClick={onDismiss}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-app-text-main hover:bg-status-warning/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
-        >
-          <X className="h-5 w-5" aria-hidden="true" />
-          <span className="sr-only">{closeLabel}</span>
-        </button>
-      )}
-    </div>
-  );
-}
-
 export function PlatformDashboardSummary({
   purchaseData,
   purchaseLoading,
@@ -64,13 +28,6 @@ export function PlatformDashboardSummary({
   adminStats,
   periodSelector,
 }: PlatformDashboardSummaryProps) {
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(() => new Set());
-  const dismissAlert = (alertType: string, count: number) => {
-    setDismissedAlerts((current) => new Set(current).add(`${alertType}:${count}`));
-  };
-  const isAlertVisible = (alertType: string, count: number) =>
-    !dismissedAlerts.has(`${alertType}:${count}`);
-
   const purchaseUnavailable = purchaseLoading || purchaseError !== null || purchaseData === null;
   const purchaseStatusDescription = purchaseLoading
     ? "Cargando compras…"
@@ -94,61 +51,8 @@ export function PlatformDashboardSummary({
       )
     : null;
 
-  // Nivel 1: Alertas en Tiempo Real (Acción Requerida)
-  const expiringVoucherAlert = adminStats?.alerts?.find(a => a.id === 'vouchers-expiring');
-  
-  // Dummy check for BullMQ queue status as requested (can be improved later)
-  const hasQueueErrors = false; 
-
-  const hasAnyAlert = 
-    (purchaseData && purchaseData.alerts.paidButNotFulfilledCount > 0 && isAlertVisible("pending-accreditation", purchaseData.alerts.paidButNotFulfilledCount)) ||
-    (purchaseData && purchaseData.alerts.notificationAttentionCount > 0 && isAlertVisible("purchase-notifications", purchaseData.alerts.notificationAttentionCount)) ||
-    (expiringVoucherAlert) ||
-    (hasQueueErrors);
-
   return (
     <div className="space-y-8">
-      {/* Nivel 1: Alertas Operativas en Tiempo Real */}
-      {hasAnyAlert && (
-        <section aria-label="Requiere atención" className="rounded-2xl border border-status-warning/40 bg-status-warning/5 p-4 sm:p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="h-5 w-5 text-status-warning" />
-            <h3 className="font-bold text-status-warning">Requiere atención</h3>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {purchaseData && purchaseData.alerts.paidButNotFulfilledCount > 0 && isAlertVisible("pending-accreditation", purchaseData.alerts.paidButNotFulfilledCount) && (
-              <AlertStrip
-                to="/dashboard/payment-ledger"
-                closeLabel="Cerrar alerta"
-                onDismiss={() => dismissAlert("pending-accreditation", purchaseData.alerts.paidButNotFulfilledCount)}
-              >
-                {purchaseData.alerts.paidButNotFulfilledCount} pago(s) pendiente(s) de acreditación
-              </AlertStrip>
-            )}
-            {purchaseData && purchaseData.alerts.notificationAttentionCount > 0 && isAlertVisible("purchase-notifications", purchaseData.alerts.notificationAttentionCount) && (
-              <AlertStrip
-                to="/dashboard/payment-ledger"
-                closeLabel="Cerrar alerta"
-                onDismiss={() => dismissAlert("purchase-notifications", purchaseData.alerts.notificationAttentionCount)}
-              >
-                {purchaseData.alerts.notificationAttentionCount} notificación(es) de pago fallida(s)
-              </AlertStrip>
-            )}
-            {expiringVoucherAlert && (
-              <AlertStrip to="/dashboard/vouchers">
-                {expiringVoucherAlert.description}
-              </AlertStrip>
-            )}
-            {hasQueueErrors && (
-              <AlertStrip to="/dashboard/queues">
-                Estado crítico en colas BullMQ (generate-pdf / send-email)
-              </AlertStrip>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* Nivel 2: 4 KPIs Principales vinculados al período */}
       <section aria-label="KPIs Principales" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
           <div>
