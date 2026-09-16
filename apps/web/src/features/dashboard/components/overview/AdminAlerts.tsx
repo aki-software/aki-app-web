@@ -80,14 +80,15 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
                 key={alert.id}
                 className={`rounded-2xl border px-5 py-5 transition-all hover:scale-[1.01] relative group/alert ${getSeverityStyles(alert.severity)}`}
               >
-                <button 
+                <button
+                  type="button"
                   onClick={() => {
                     const next = new Set(dismissedIds);
                     next.add(alert.id);
                     setDismissedIds(next);
                   }}
                   aria-label="Descartar alerta"
-                  className="absolute top-2 right-2 p-1.5 rounded-full text-app-text-muted/50 opacity-0 group-hover/alert:opacity-100 hover:bg-app-text-main/5 hover:text-app-text-main transition-all"
+                  className="absolute right-2 top-2 rounded-full p-1.5 text-app-text-muted/50 opacity-100 transition-all hover:bg-app-text-main/5 hover:text-app-text-main focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary sm:opacity-0 sm:group-hover/alert:opacity-100"
                   title="Descartar alerta"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
