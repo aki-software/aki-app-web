@@ -11,7 +11,10 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { SessionPaymentStatus } from '../entities/session.entity.js';
+import {
+  SessionPaymentStatus,
+  SessionChannel,
+} from '../entities/session.entity.js';
 import {
   CreateSessionDto as ICreateSessionDto,
   SessionResultData,
@@ -111,6 +114,11 @@ export class CreateSessionDto implements ICreateSessionDto {
   @IsOptional()
   @IsEnum(SessionPaymentStatus)
   paymentStatus?: SessionPaymentStatus;
+
+  @ApiPropertyOptional({ enum: SessionChannel })
+  @IsOptional()
+  @IsEnum(SessionChannel)
+  channel?: SessionChannel;
 
   @ApiProperty()
   @IsString()

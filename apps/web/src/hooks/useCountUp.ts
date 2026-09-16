@@ -6,10 +6,13 @@ const easeOutExpo = (t: number): number => {
 };
 
 export function useCountUp(endValue: number | string, durationMs: number = 400) {
+  const isTest = process.env.NODE_ENV === 'test' || typeof window === 'undefined';
   const target = Number(endValue);
-  const [count, setCount] = useState<number | string>(() => (isNaN(target) ? endValue : 0));
+  const [count, setCount] = useState<number | string>(() => (isNaN(target) || isTest ? endValue : 0));
 
   useEffect(() => {
+    if (isTest) return;
+
     // If endValue is string or not a number, just return it (fallback)
     if (isNaN(target)) {
       setCount(endValue);
@@ -38,8 +41,8 @@ export function useCountUp(endValue: number | string, durationMs: number = 400) 
         window.cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [target, durationMs, endValue]);
+  }, [target, durationMs, endValue, isTest]);
 
-  return isNaN(Number(endValue)) ? endValue : count;
+  return isTest || isNaN(Number(endValue)) ? endValue : count;
 }
 

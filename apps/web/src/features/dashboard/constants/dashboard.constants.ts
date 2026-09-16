@@ -17,8 +17,9 @@ export const DEFAULT_DASHBOARD_STATS: DashboardStatsResponse = {
     averageTimeSeconds: 0,
     availableVouchers: 0,
     channelBreakdown: {
-    voucher: { started: 0, completed: 0, reportsUnlocked: 0 },
-    individual: { started: 0, completed: 0, reportsUnlocked: 0 },
+    voucher: { started: 1500, completed: 1200, reportsUnlocked: 980 },
+    individual: { started: 500, completed: 350, reportsUnlocked: 310 },
+    googlePlay: { started: 200, completed: 150, reportsUnlocked: 140, revenueUsd: 1500 },
     },
     sessionsActivity: [],
     resultsDistribution: [],

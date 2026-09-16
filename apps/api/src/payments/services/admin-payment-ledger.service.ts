@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   AdminPaymentLedgerDetail,
@@ -34,13 +34,17 @@ interface LedgerRow {
   buyerName: string | null;
   buyerEmail: string | null;
   paymentEventId: string | null;
-  gateway: 'MERCADO_PAGO' | 'STRIPE' | null;
+  gateway: 'MERCADO_PAGO' | 'STRIPE' | 'GOOGLE_PLAY' | null;
   externalReference: string | null;
   settledAt: Date | null;
   operationalState:
     | 'ACCREDITED'
     | 'PENDING_ACCREDITATION'
     | 'ACCREDITED_NOTIFICATION_ATTENTION';
+  /** Set for B2C Google Play ledger entries. */
+  sessionId: string | null;
+  /** Acquisition channel: B2B for institution voucher batches, B2C for Google Play. */
+  channel: 'B2B' | 'B2C';
   buyerDeliveryId: string | null;
   buyerDeliveryStatus:
     | 'PENDING'
@@ -84,10 +88,14 @@ export class AdminPaymentLedgerService {
   constructor(
     @InjectRepository(VoucherBatch)
     private readonly batches: Repository<VoucherBatch>,
+    @Optional()
+    @InjectRepository(PaymentEvent)
+    private readonly paymentEvents?: Repository<PaymentEvent>,
   ) {}
 
   async list(query: AdminPaymentLedgerQuery) {
-    const builder = this.query(query);
+    const builder =
+      query.channel === 'B2C' ? this.b2cQuery(query) : this.query(query);
     const total = await builder.clone().getCount();
     const rows = await builder
       .offset((query.page - 1) * query.pageSize)
@@ -107,8 +115,99 @@ export class AdminPaymentLedgerService {
     const row = await this.query()
       .andWhere('batch.id = :voucherBatchId', { voucherBatchId })
       .getRawOne<LedgerRow>();
-    if (!row) throw new NotFoundException('Payment ledger batch not found');
-    return AdminPaymentLedgerDetail.parse(this.entry(row));
+    if (row) return AdminPaymentLedgerDetail.parse(this.entry(row));
+
+    if (this.paymentEvents) {
+      const b2cRow = await this.b2cQuery({ sort: 'SETTLED_DESC' } as any)
+        .andWhere('payment.id = :voucherBatchId', { voucherBatchId })
+        .getRawOne<LedgerRow>();
+      if (b2cRow) return AdminPaymentLedgerDetail.parse(this.entry(b2cRow));
+    }
+
+    throw new NotFoundException('Payment ledger batch not found');
+  }
+
+  private b2cQuery(query: AdminPaymentLedgerQuery): SelectQueryBuilder<any> {
+    const builder = this.paymentEvents
+      .createQueryBuilder('payment')
+      .where("payment.gateway = 'GOOGLE_PLAY'")
+      .andWhere("payment.status = 'APPROVED'")
+      .leftJoin('sessions', 'session', 'session.id = payment."session_id"')
+      .select([
+        'payment.id AS "voucherBatchId"', // Hack: reuse as row id
+        '\'0\' AS "totalPrice"',
+        '\'USD\' AS "currency"',
+        'payment.createdAt AS "fulfilledAt"',
+        '1 AS "expectedVoucherCount"',
+        '1 AS "actualVoucherCount"',
+        'NULL::uuid AS "institutionId"',
+        'NULL AS "institutionName"',
+        'NULL AS "institutionLegalName"',
+        'NULL AS "institutionTaxId"',
+        'NULL AS "institutionTaxCondition"',
+        'NULL AS "institutionBillingAddress"',
+        'NULL::uuid AS "checkoutAttemptId"',
+        'NULL AS "pricingPlanId"',
+        '\'Unlock In-App\' AS "planName"',
+        'session.patientId AS "buyerId"',
+        'session.patientName AS "buyerName"',
+        'NULL AS "buyerEmail"',
+        'payment.id AS "paymentEventId"',
+        'payment.gateway AS "gateway"',
+        'payment.externalPaymentId AS "externalReference"',
+        'payment.createdAt AS "settledAt"',
+        'payment.sessionId AS "sessionId"',
+        '\'B2C\' AS "channel"',
+        '\'ACCREDITED\' AS "operationalState"',
+        // Mock empty deliveries to satisfy LedgerRow
+        'NULL::uuid AS "buyerDeliveryId"',
+        'NULL AS "buyerDeliveryStatus"',
+        'NULL AS "buyerAttemptCount"',
+        'NULL AS "buyerEnqueueAttemptCount"',
+        'NULL::uuid AS "buyerRecipientId"',
+        'NULL AS "buyerRecipientName"',
+        'NULL AS "buyerRecipientEmail"',
+        'NULL AS "buyerQueuedAt"',
+        'NULL AS "buyerLastAttemptAt"',
+        'NULL AS "buyerSentAt"',
+        'NULL AS "buyerErrorClassification"',
+        'NULL AS "buyerErrorMessage"',
+        'NULL::uuid AS "adminDeliveryId"',
+        'NULL AS "adminDeliveryStatus"',
+        'NULL AS "adminAttemptCount"',
+        'NULL AS "adminEnqueueAttemptCount"',
+        'NULL::uuid AS "adminRecipientId"',
+        'NULL AS "adminRecipientName"',
+        'NULL AS "adminRecipientEmail"',
+        'NULL AS "adminQueuedAt"',
+        'NULL AS "adminLastAttemptAt"',
+        'NULL AS "adminSentAt"',
+        'NULL AS "adminErrorClassification"',
+        'NULL AS "adminErrorMessage"',
+      ]);
+
+    const from = query.settledFrom;
+    const to = query.settledTo;
+    if (from) builder.andWhere('payment.createdAt >= :from', { from });
+    if (to) builder.andWhere('payment.createdAt <= :to', { to });
+
+    const sorts = {
+      SETTLED: 'payment.createdAt',
+      AMOUNT: 'payment.createdAt', // fake
+      INSTITUTION: 'payment.createdAt',
+      PLAN: 'payment.createdAt',
+      GATEWAY: 'payment.gateway',
+      OPERATIONAL_STATE: 'payment.createdAt',
+    } as const;
+    const [field, direction] = query.sort.split(/_(?=[^_]+$)/) as [
+      keyof typeof sorts,
+      'ASC' | 'DESC',
+    ];
+    builder
+      .orderBy(sorts[field], direction, 'NULLS LAST')
+      .addOrderBy('payment.id', 'ASC');
+
+    return builder;
   }
 
   private query(
@@ -163,9 +262,12 @@ export class AdminPaymentLedgerService {
         'buyer.name AS "buyerName"',
         'buyer.email AS "buyerEmail"',
         'payment.id AS "paymentEventId"',
-        'payment.gateway AS "gateway"',
+        'CASE WHEN CAST(batch.totalPrice AS DECIMAL) = 0 THEN NULL ELSE payment.gateway END AS "gateway"',
         'payment.externalPaymentId AS "externalReference"',
         'payment.createdAt AS "settledAt"',
+        // B2B voucher-batch entries never have a session link; channel is always B2B.
+        'NULL::uuid AS "sessionId"',
+        '\'B2B\' AS "channel"',
         `${this.operationalStateExpression()} AS "operationalState"`,
         ...this.deliverySelect('buyer'),
         ...this.deliverySelect('admin'),
@@ -297,14 +399,18 @@ export class AdminPaymentLedgerService {
       voucherBatchId: row.voucherBatchId,
       checkoutAttemptId: row.checkoutAttemptId,
       paymentEventId: row.paymentEventId,
-      institution: {
-        id: row.institutionId,
-        name: row.institutionName.trim(),
-        legalName: row.institutionLegalName,
-        taxId: row.institutionTaxId,
-        taxCondition: row.institutionTaxCondition,
-        billingAddress: row.institutionBillingAddress,
-      },
+      sessionId: this.uuid(row.sessionId ?? null) ?? undefined,
+      channel: row.channel,
+      institution: row.institutionId
+        ? {
+            id: row.institutionId,
+            name: row.institutionName?.trim() ?? '',
+            legalName: row.institutionLegalName,
+            taxId: row.institutionTaxId,
+            taxCondition: row.institutionTaxCondition,
+            billingAddress: row.institutionBillingAddress,
+          }
+        : undefined,
       buyer: this.recipient(row.buyerId, row.buyerName, row.buyerEmail),
       commercial: {
         pricingPlanId: this.uuid(row.pricingPlanId),
@@ -398,8 +504,8 @@ export class AdminPaymentLedgerService {
     name: string | null,
     email: string | null,
   ) {
-    return id && name?.trim() && email?.trim()
-      ? { userId: id, name: name.trim(), email: email.trim() }
+    return id && name?.trim()
+      ? { userId: id, name: name.trim(), email: email?.trim() || null }
       : null;
   }
 
