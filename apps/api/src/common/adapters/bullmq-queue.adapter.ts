@@ -90,4 +90,18 @@ export class BullMQQueueAdapter implements QueueAdapter {
 
     return jobOptions;
   }
+
+  /**
+   * Returns the total number of failed jobs across the critical queues
+   * (email, pdf, send-report). Returns 0 when BullMQ is not enabled.
+   */
+  async getFailedJobsCount(): Promise<number> {
+    if (!this.isEnabled) return 0;
+    const counts = await Promise.all([
+      this.emailQueue.getFailedCount(),
+      this.pdfQueue.getFailedCount(),
+      this.sendReportQueue.getFailedCount(),
+    ]);
+    return counts.reduce((sum, c) => sum + c, 0);
+  }
 }
