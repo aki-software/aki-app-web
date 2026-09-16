@@ -36,6 +36,7 @@ export function buildOverviewPayload(input: {
     voucherCompleted: string;
     voucherReportsUnlocked: string;
     individualCompleted: string;
+    individualPendingReports?: string;
   };
   dailyActivityRows: RawSessionsActivityRow[];
   resultsDistribution: DashboardStatsPayload['resultsDistribution'];
@@ -76,6 +77,9 @@ export function buildOverviewPayload(input: {
   const individualCompletedCount = parseIntSafe(
     input.periodSessionStats.individualCompleted,
   );
+  const individualPendingReports = parseIntSafe(
+    input.periodSessionStats.individualPendingReports ?? '0',
+  );
 
   const sessionsActivity = formatDailyActivity(
     input.dailyActivityRows,
@@ -113,6 +117,7 @@ export function buildOverviewPayload(input: {
           periodBasicStats.reportsUnlocked - periodVoucherStats.reportsUnlocked,
       },
     },
+    individualPendingReports,
     sessionsActivity,
     resultsDistribution: input.resultsDistribution,
     alerts,

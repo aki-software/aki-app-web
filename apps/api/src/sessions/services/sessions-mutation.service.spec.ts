@@ -140,6 +140,40 @@ describe('SessionsMutationService completion boundary', () => {
     },
   );
 
+  it('persists the authenticated email separately from the selected participant name', async () => {
+    const resolver = {
+      resolveContext: jest.fn().mockResolvedValue({
+        inferredPatientName: 'Nombre elegido',
+        voucher: null,
+        isTherapistUser: false,
+      }),
+    };
+    const service = Object.create(SessionsMutationService.prototype);
+    service.ownerResolver = resolver;
+    service.create = jest
+      .fn()
+      .mockResolvedValue({ session: { id: 'session-1' }, duplicated: false });
+
+    await service.completeSession(
+      {
+        patientName: 'Nombre elegido',
+        startedAt: new Date().toISOString(),
+        swipes: [],
+        resultPayload: {},
+      },
+      {
+        userId: 'patient-1',
+        email: 'Cuenta@Example.com',
+        role: 'PATIENT',
+      },
+    );
+
+    expect(service.create).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ patientEmail: 'cuenta@example.com' }),
+    );
+  });
+
   it('persists internal owner UUIDs for a Firebase therapist identity', async () => {
     const resolver = {
       resolveFirebaseUser: jest.fn().mockResolvedValue({

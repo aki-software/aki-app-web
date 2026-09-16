@@ -65,37 +65,56 @@ export function DashboardResults() {
       if (!term) return true;
 
       return [
-        session.patientName, session.hollandCode, session.paymentStatus,
+        session.patientName, session.patientEmail, session.hollandCode, session.paymentStatus,
         session.institutionName, session.therapistName, session.voucherCode,
       ].filter(Boolean).some((value) => String(value).toLowerCase().includes(term));
     });
 
-    const groups: Record<string, SessionData[]> = {};
+    const groups = new Map<string, {
+      userName: string;
+      patientEmail: string | null;
+      sessions: SessionData[];
+    }>();
     filtered.forEach((session) => {
-      if (!groups[session.patientName]) groups[session.patientName] = [];
-      groups[session.patientName].push(session);
+      const identityKey = `${session.patientName}\u0000${session.patientEmail ?? ""}`;
+      const group = groups.get(identityKey);
+      if (group) {
+        group.sessions.push(session);
+        return;
+      }
+      groups.set(identityKey, {
+        userName: session.patientName,
+        patientEmail: session.patientEmail ?? null,
+        sessions: [session],
+      });
     });
 
-    return Object.entries(groups).map(([name, list]) => {
-      return [name, list.sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime())] as const;
-    }).sort((a, b) => new Date(b[1][0].sessionDate).getTime() - new Date(a[1][0].sessionDate).getTime());
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        sessions: group.sessions.sort(
+          (a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime(),
+        ),
+      }))
+      .sort((a, b) => new Date(b.sessions[0].sessionDate).getTime() - new Date(a.sessions[0].sessionDate).getTime());
   }, [searchTerm, sessions, statusFilter]);
 
   const filteredSessionsCount = useMemo(
-    () => groupedSessions.reduce((acc, [, list]) => acc + list.length, 0),
+    () => groupedSessions.reduce((acc, group) => acc + group.sessions.length, 0),
     [groupedSessions]
   );
 
   const handleExportCSV = () => {
     const csvRows = [];
-    csvRows.push(['Paciente', 'Fecha', 'Codigo Vocacional', 'Voucher', 'Estado', 'Institucion', 'Terapeuta'].join(','));
+    csvRows.push(['Paciente', 'Email', 'Fecha', 'Codigo Vocacional', 'Voucher', 'Estado', 'Institucion', 'Terapeuta'].join(','));
 
-    groupedSessions.forEach(([, userSessions]) => {
+    groupedSessions.forEach(({ sessions: userSessions }) => {
       userSessions.forEach((session) => {
         const date = new Date(session.sessionDate).toLocaleDateString('es-AR');
         const status = session.reportUnlockedAt ? 'Reporte Desbloqueado' : (session.results?.length ? 'Completado' : 'Iniciado');
         csvRows.push([
           `"${session.patientName}"`,
+          `"${session.patientEmail || '-'}"`,
           `"${date}"`,
           `"${session.hollandCode}"`,
           `"${session.voucherCode || '-'}"`,
@@ -178,7 +197,7 @@ export function DashboardResults() {
              <SearchInput
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar paciente, código vocacional, terapeuta u organización..."
+              placeholder="Buscar paciente, email, código vocacional, terapeuta u organización..."
             />
           </div>
 
@@ -224,13 +243,14 @@ export function DashboardResults() {
                 <div className="w-10" />
               </div>
 
-              {groupedSessions.map(([userName, userSessions]) => (
+              {groupedSessions.map(({ userName, patientEmail, sessions: userSessions }) => (
                 <UserSessionGroup
-                  key={userName}
+                  key={`${userName}\u0000${patientEmail ?? ""}`}
                   userName={userName}
+                  patientEmail={patientEmail}
                   userSessions={userSessions}
-                  isExpanded={!!expandedUsers[userName]}
-                  onToggle={() => toggleUserExpansion(userName)}
+                  isExpanded={!!expandedUsers[`${userName}\u0000${patientEmail ?? ""}`]}
+                  onToggle={() => toggleUserExpansion(`${userName}\u0000${patientEmail ?? ""}`)}
                   onOpenDetail={(id) => navigate(`/dashboard/sessions/${id}`)}
                 />
               ))}
