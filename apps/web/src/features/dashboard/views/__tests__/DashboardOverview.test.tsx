@@ -107,6 +107,7 @@ const mockStats = {
   testsCompletedPeriod: 30,
   voucherRedemptionRatePeriod: 50,
   reportsUnlockedPeriod: 20,
+  individualPendingReports: 5,
   channelBreakdown: {
     voucher: { started: 20, completed: 15, reportsUnlocked: 10 },
     individual: { started: 20, completed: 15, reportsUnlocked: 10 },
@@ -239,9 +240,10 @@ describe("DashboardOverview", () => {
       expect(screen.getByText("Buscar sesiones")).toBeDefined();
     });
 
-    it("does NOT render ResultsDistributionChart", async () => {
+    it("renders direct-session results distribution and pending reports", async () => {
       renderWithRouter(<DashboardOverview />);
-      expect(screen.queryByText("Resultados predominantes")).toBeNull();
+      expect(screen.getByText("Resultados predominantes")).toBeDefined();
+      expect(screen.getByText("Sesiones directas pendientes")).toBeDefined();
     });
 
     it("does NOT render AdminAlerts component", async () => {

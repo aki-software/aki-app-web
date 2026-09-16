@@ -116,9 +116,16 @@ export class AdminDashboardRepository {
         (SELECT COUNT(*)
          FROM sessions
          WHERE created_at >= $1
-           AND status = 'COMPLETED'
-           AND voucher_id IS NULL
-           AND payment_status != $2) AS "individualCompleted"
+            AND status = 'COMPLETED'
+            AND voucher_id IS NULL
+             AND payment_status != $2) AS "individualCompleted",
+         (SELECT COUNT(*)
+          FROM sessions
+          WHERE created_at >= $1
+            AND status = 'COMPLETED'
+            AND voucher_id IS NULL
+            AND payment_status != $2
+            AND report_unlocked_at IS NULL) AS "individualPendingReports"
       `,
       [periodStart, SessionPaymentStatus.VOUCHER_REDEEMED],
     );
@@ -132,6 +139,7 @@ export class AdminDashboardRepository {
         voucherCompleted: '0',
         voucherReportsUnlocked: '0',
         individualCompleted: '0',
+        individualPendingReports: '0',
       }
     );
   }
@@ -164,7 +172,12 @@ export class AdminDashboardRepository {
               'ROW_NUMBER() OVER (PARTITION BY sr.session_id ORDER BY sr.percentage DESC)',
               'rn',
             )
-            .from('session_results', 'sr'),
+            .from('session_results', 'sr')
+            .innerJoin('sessions', 's', 's.id = sr.session_id')
+            .where('s.voucher_id IS NULL')
+            .andWhere('s.payment_status != :voucherRedeemed', {
+              voucherRedeemed: SessionPaymentStatus.VOUCHER_REDEEMED,
+            }),
         't',
       )
       .where('t.rn = 1')

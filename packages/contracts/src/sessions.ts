@@ -119,6 +119,7 @@ export interface BehavioralTrends extends z.infer<typeof behavioralTrendsSchema>
 export const sessionApiSchema = z.object({
   id: z.string().uuid(),
   patientName: z.string(),
+  patientEmail: z.string().email().nullable().optional(),
   createdAt: z.union([z.string(), z.instanceof(Date), z.number()]).optional(),
   totalTimeMs: z.union([z.string(), z.number()]).optional(),
   paymentStatus: z.string().optional(),
@@ -135,6 +136,7 @@ export type SessionApi = z.infer<typeof sessionApiSchema>;
 export interface SessionData {
   id: string;
   patientName: string;
+  patientEmail?: string | null;
   hollandCode: string;
   sessionDate: string | Date | number;
   totalTimeMs: number;

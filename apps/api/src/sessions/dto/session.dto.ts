@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
+import type {
   SessionData,
   SessionDetailData,
   SessionResultData,
@@ -35,6 +35,9 @@ export class SessionDto implements SessionData {
 
   @ApiProperty()
   patientName!: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  patientEmail!: string | null;
 
   @ApiProperty()
   hollandCode!: string;

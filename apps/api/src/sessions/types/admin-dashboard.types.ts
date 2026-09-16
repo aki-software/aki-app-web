@@ -23,4 +23,5 @@ export type AdminDashboardPeriodSessionStatsRow = {
   voucherCompleted: string;
   voucherReportsUnlocked: string;
   individualCompleted: string;
+  individualPendingReports: string;
 };

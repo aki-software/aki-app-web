@@ -13,6 +13,7 @@ export interface DashboardStatsResponse {
   testsCompletedPeriod: number;
   voucherRedemptionRatePeriod: number;
   reportsUnlockedPeriod: number;
+  individualPendingReports?: number;
   channelBreakdown: DashboardChannelBreakdown;
   sessionsActivity: SessionActivityData[];
   resultsDistribution: CategoryDistributionData[];

@@ -39,6 +39,7 @@ describe('admin-dashboard-formatter.util', () => {
         voucherCompleted: '1',
         voucherReportsUnlocked: '1',
         individualCompleted: '3',
+        individualPendingReports: '2',
       },
       dailyActivityRows: [{ day: '2024-01-31', count: '2' }],
       resultsDistribution: [{ categoryId: 'A', name: 'Alpha', count: 4 }],
@@ -61,6 +62,7 @@ describe('admin-dashboard-formatter.util', () => {
     expect(payload.channelBreakdown.voucher.started).toBe(2);
     expect(payload.channelBreakdown.individual.started).toBe(3);
     expect(payload.channelBreakdown.individual.completed).toBe(3);
+    expect(payload.individualPendingReports).toBe(2);
     expect(payload.sessionsActivity).toHaveLength(7);
   });
 

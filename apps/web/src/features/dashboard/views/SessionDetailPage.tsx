@@ -60,6 +60,7 @@ export function SessionDetailPage() {
       {/* Componente Extraído: Header */}
       <SessionDetailHeader 
         patientName={session.patientName}
+        patientEmail={session.patientEmail}
         sessionId={session.id}
         onBack={() => navigate(-1)}
         onDownloadPdf={handleDownloadPdf}

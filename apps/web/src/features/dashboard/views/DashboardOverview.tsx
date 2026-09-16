@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, Sparkles } from "lucide-react";
+import { BarChart3, Calendar, Clock, Sparkles } from "lucide-react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { getFormattedCurrentDate } from "../../../utils/date";
 import { DEFAULT_DASHBOARD_STATS, DASHBOARD_UI_TEXTS } from "../constants/dashboard.constants";
@@ -10,6 +10,7 @@ import { ActivityFeed } from "../components/overview/ActivityFeed";
 import { OverviewHighlights } from "../components/overview/OverviewHighlights";
 import { QuickActions } from "../components/overview/QuickActions";
 import { SessionsChart } from "../components/SessionsChart";
+import { ResultsDistributionChart } from "../components/ResultsDistributionChart";
 import { PlatformDashboardSummary } from "../components/admin/PlatformDashboardSummary";
 import { InstitutionDashboardOverview } from "./InstitutionDashboardOverview";
 import { useAdminDashboardStats } from "../hooks/useAdminDashboardStats";
@@ -35,6 +36,12 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
   }
   const displayStats = adminStats || DEFAULT_DASHBOARD_STATS;
   const uiTexts = DASHBOARD_UI_TEXTS;
+  const directResults = displayStats.resultsDistribution.filter((item) => item.count > 0);
+  const pendingDirectReports = displayStats.individualPendingReports ?? Math.max(
+    0,
+    displayStats.channelBreakdown.individual.completed -
+      displayStats.channelBreakdown.individual.reportsUnlocked,
+  );
 
   return (
     <div className="space-y-12 animate-in pb-20">
@@ -108,6 +115,49 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
           </div>
         )}
       </div>
+
+      <section className="space-y-4" aria-labelledby="direct-results-heading">
+        <div className="flex items-center gap-3 px-1">
+          <span className="app-label opacity-60 tracking-[0.2em]">Resultados de plataforma</span>
+        </div>
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <div className="xl:col-span-2">
+            <DashboardWidget
+              title="Resultados predominantes"
+              description="Distribución histórica de tests directos: Google Play y sesiones pendientes de desbloqueo, sin voucher."
+              icon={BarChart3}
+              iconColorClass="text-status-success"
+            >
+              <h3 id="direct-results-heading" className="sr-only">Resultados predominantes de sesiones directas</h3>
+              {directResults.length > 0 ? (
+                <div className="h-[240px] sm:h-[280px]">
+                  <ResultsDistributionChart data={directResults} />
+                </div>
+              ) : (
+                <EmptyState
+                  title="Sin resultados directos"
+                  description="Todavía no hay tests sin voucher con resultados para distribuir."
+                />
+              )}
+            </DashboardWidget>
+          </div>
+          <div className="rounded-2xl border border-status-warning/30 bg-status-warning/5 p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <Clock className="mt-0.5 h-5 w-5 shrink-0 text-status-warning" aria-hidden="true" />
+              <div>
+                <p className="app-label !text-[10px] text-status-warning">Seguimiento de informes</p>
+                <p className="mt-3 text-4xl font-black tracking-tight text-app-text-main">
+                  {pendingDirectReports}
+                </p>
+                <p className="mt-1 text-sm font-bold text-app-text-main">Sesiones directas pendientes</p>
+                <p className="mt-2 text-xs leading-relaxed text-app-text-muted">
+                  Tests completados sin voucher que todavía no tienen el informe desbloqueado.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="space-y-6">
         <div className="flex items-center gap-3 px-1">

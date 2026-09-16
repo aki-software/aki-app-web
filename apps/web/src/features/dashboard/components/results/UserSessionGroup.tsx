@@ -1,4 +1,4 @@
-import { Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard } from "lucide-react";
+import { Building2, Calendar, ChevronDown, ChevronRight, Clock, CreditCard, Mail } from "lucide-react";
 import { SessionPaymentStatus } from "../../api/dashboard";
 import type { SessionData } from "../../api/dashboard";
 import { formatDate, formatDuration } from "../../../../utils/date";
@@ -28,6 +28,7 @@ const voucherUsageLabel = (session: SessionData) =>
 
 interface Props {
   userName: string;
+  patientEmail: string | null;
   userSessions: SessionData[];
   isExpanded: boolean;
   onToggle: () => void;
@@ -36,6 +37,7 @@ interface Props {
 
 export function UserSessionGroup({
   userName,
+  patientEmail,
   userSessions,
   isExpanded,
   onToggle,
@@ -54,15 +56,27 @@ export function UserSessionGroup({
         onClick={onToggle}
         className="flex cursor-pointer items-center px-5 py-5 sm:px-10 sm:py-8 transition-colors hover:bg-app-bg/10 select-none"
       >
-        <div className="flex-[2] flex items-center">
+          <div className="min-w-0 flex-[2] flex items-center">
           <div className="mr-4 sm:mr-8 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-[1.5rem] bg-app-bg border border-app-border font-black text-app-primary shadow-sm text-lg sm:text-xl group-hover:scale-105 transition-transform duration-500 flex-shrink-0">
             {userName.charAt(0).toUpperCase()}
           </div>
-          <div className="min-w-0">
-            <div className="app-value !text-lg sm:!text-xl group-hover:text-app-primary transition-colors truncate">
+          <div className="min-w-0 flex-1">
+            <div
+              className="app-value !text-lg sm:!text-xl group-hover:text-app-primary transition-colors break-words"
+              title={userName}
+            >
               {userName}
             </div>
-            <div className="app-label mt-1 sm:mt-2 opacity-60 truncate">
+            <div
+              className="mt-1 sm:mt-2 flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-app-text-muted/80"
+              title={patientEmail ?? "Email no disponible"}
+            >
+              <Mail className="h-3 w-3 shrink-0 opacity-70" />
+              <span className="truncate">
+                {patientEmail ?? "Email no disponible"}
+              </span>
+            </div>
+            <div className="app-label mt-1 truncate opacity-60">
               {lastSession.paymentStatus === "PAID" && !lastSession.institutionName
                 ? "Pago individual / Sin asignación"
                 : sourceLabel(lastSession)}

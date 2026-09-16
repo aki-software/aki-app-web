@@ -15,13 +15,14 @@ export const SessionDetailHeader = ({
   onBack,
   onDownloadPdf,
   patientEmail,
-}: SessionDetailHeaderProps & { patientEmail?: string }) => {
+}: SessionDetailHeaderProps & { patientEmail?: string | null }) => {
   const hasEmailInName = patientName.includes('(') && patientName.includes('@');
   const nameParts = patientName.split('(');
   const displayName = hasEmailInName ? nameParts[0].trim() : patientName;
-  const displayEmail = hasEmailInName 
-    ? nameParts[1].replace(')', '').trim() 
-    : patientEmail;
+  const legacyEmail = hasEmailInName
+    ? nameParts[1].replace(')', '').trim()
+    : undefined;
+  const displayEmail = patientEmail || legacyEmail;
 
   return (
     <div className="flex flex-col gap-6 sm:gap-10 lg:flex-row lg:items-center lg:justify-between border-b border-app-border pb-8 sm:pb-12 mb-8 sm:mb-12">
