@@ -73,6 +73,7 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
     PDF_GENERATOR,
     STORAGE_ADAPTER,
     QUEUE_ADAPTER,
+    BullMQQueueAdapter,
     IdempotencyService,
   ],
 })

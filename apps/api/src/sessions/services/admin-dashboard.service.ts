@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CategoriesService } from '../../categories/categories.service.js';
 import { VouchersService } from '../../vouchers/vouchers.service.js';
 import { AdminDashboardRepository } from '../repositories/admin-dashboard.repository.js';
+import { BullMQQueueAdapter } from '../../common/adapters/bullmq-queue.adapter.js';
 import {
   getPeriodStart,
   buildOverviewPayload,
@@ -23,6 +24,7 @@ export class AdminDashboardService {
     private readonly categoriesService: CategoriesService,
     private readonly vouchersService: VouchersService,
     private readonly dashboardRepository: AdminDashboardRepository,
+    private readonly bullMQAdapter: BullMQQueueAdapter,
   ) {}
 
   async getAdminOverview(periodDays = 7): Promise<DashboardStatsPayload> {
@@ -40,6 +42,7 @@ export class AdminDashboardService {
       distributionRows,
       categories,
       activity,
+      failedJobsCount,
     ] = await Promise.all([
       this.dashboardRepository.getVoucherTotals(),
       this.dashboardRepository.getPeriodVoucherStats(periodStart),
@@ -51,6 +54,7 @@ export class AdminDashboardService {
       this.dashboardRepository.getTopResultsDistribution(),
       this.categoriesService.findAll(),
       this.getAdminActivity(10),
+      this.bullMQAdapter.getFailedJobsCount(),
     ]);
 
     const resultsDistribution = formatResultsDistribution(
@@ -71,6 +75,7 @@ export class AdminDashboardService {
       dailyActivityRows,
       resultsDistribution,
       activity,
+      failedJobsCount,
     });
   }
 
