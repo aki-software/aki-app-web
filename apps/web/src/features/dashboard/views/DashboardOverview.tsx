@@ -7,6 +7,7 @@ import { DashboardWidget } from "../../../components/molecules/DashboardWidget";
 import { PeriodSelector } from "../../../components/molecules/PeriodSelector";
 import { EmptyState } from "../../../components/molecules/EmptyState";
 import { ActivityFeed } from "../components/overview/ActivityFeed";
+import { AdminAlerts } from "../components/overview/AdminAlerts";
 import { OverviewHighlights } from "../components/overview/OverviewHighlights";
 import { QuickActions } from "../components/overview/QuickActions";
 import { SessionsChart } from "../components/SessionsChart";
@@ -67,6 +68,10 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
           </div>
         </div>
       </div>
+
+      <section aria-label="Requiere atención">
+        <AdminAlerts alerts={displayStats.alerts} />
+      </section>
 
           <PlatformDashboardSummary
             purchaseData={purchaseSummary.data?.scope === "PLATFORM" ? purchaseSummary.data : null}

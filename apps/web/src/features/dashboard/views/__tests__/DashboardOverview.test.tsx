@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { DashboardOverview } from "../DashboardOverview";
@@ -246,9 +246,20 @@ describe("DashboardOverview", () => {
       expect(screen.getByText("Sesiones directas pendientes")).toBeDefined();
     });
 
-    it("does NOT render AdminAlerts component", async () => {
+    it("renders operational alerts with an action", async () => {
       renderWithRouter(<DashboardOverview />);
-      expect(screen.queryByText("Alertas Operativas")).toBeNull();
+      expect(screen.getByText("Alertas Operativas")).toBeDefined();
+      expect(screen.getByText("Test alert")).toBeDefined();
+      expect(screen.getByRole("button", { name: "Ver" })).toBeDefined();
+    });
+
+    it("allows an operational alert to be dismissed", () => {
+      renderWithRouter(<DashboardOverview />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Descartar alerta" }));
+
+      expect(screen.queryByText("Test alert")).toBeNull();
+      expect(screen.getByText("Operación estable")).toBeDefined();
     });
 
     it("shows loading spinner with correct text when loading", async () => {
