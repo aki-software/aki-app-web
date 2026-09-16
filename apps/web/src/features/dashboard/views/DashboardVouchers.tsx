@@ -229,6 +229,31 @@ export function DashboardVouchers() {
       </Modal>
 
       <div className="space-y-8">
+        {expirationFilter !== "ALL" && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-status-warning/30 bg-status-warning/5 px-5 py-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <AlertTriangle
+                className="h-4 w-4 shrink-0 text-status-warning"
+                aria-hidden="true"
+              />
+              <p className="text-sm font-medium text-app-text-main leading-snug">
+                Filtrado por:{" "}
+                <span className="font-bold text-status-warning">
+                  {expirationFilter === "EXPIRING_7D"
+                    ? "Vencen en 7 días"
+                    : "Sin expiración"}
+                </span>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExpirationFilter("ALL")}
+              className="text-xs font-black uppercase tracking-widest text-app-text-muted hover:text-app-text-main transition-colors whitespace-nowrap"
+            >
+              Quitar filtro
+            </button>
+          </div>
+        )}
         <VouchersFilterBar
           isAdmin={isAdmin}
           viewMode={viewMode}
