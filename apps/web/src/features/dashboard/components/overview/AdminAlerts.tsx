@@ -38,7 +38,7 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
   const visibleAlerts = alerts.filter(alert => !dismissedIds.has(alert.id));
 
   return (
-    <div className="app-card !p-6 md:!p-8 space-y-4 flex flex-col">
+    <div className={`app-card flex flex-col space-y-4 ${visibleAlerts.length === 0 ? "!p-4 md:!p-5" : "!p-6 md:!p-8"}`}>
       {/* Header */}
       <div className="flex items-center justify-between gap-3 min-w-0 mb-2">
         <h3 className="app-label !text-xs opacity-70">Alertas Operativas</h3>
@@ -48,30 +48,16 @@ export function AdminAlerts({ alerts }: AdminAlertsProps) {
       </div>
 
       {/* Contenido */}
-      <div className="flex-1 overflow-y-auto max-h-[320px] pr-2">
+      <div className={visibleAlerts.length === 0 ? "" : "max-h-[320px] flex-1 overflow-y-auto pr-2"}>
         {visibleAlerts.length === 0 ? (
-          <div className="rounded-2xl border border-status-success/25 bg-status-success/5 px-5 py-6">
-            <div className="flex items-center gap-3 mb-2">
+          <div className="flex flex-col gap-1 rounded-xl border border-status-success/25 bg-status-success/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
               <div className="h-2 w-2 rounded-full bg-status-success animate-pulse" />
               <p className="text-sm font-bold tracking-wide text-status-success uppercase">
                 Operación estable
               </p>
             </div>
-            <p className="mt-1 text-sm text-app-text-muted">
-              No se detectaron incidencias relevantes en canje, vencimientos o
-              sesiones del periodo.
-            </p>
-            <ul className="mt-4 space-y-2 text-xs font-medium text-app-text-muted/70">
-              <li className="flex items-center gap-2">
-                <span className="text-status-success/50">✓</span> Sin vouchers con vencimiento cercano
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-status-success/50">✓</span> Sin sesiones demoradas para cierre
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-status-success/50">✓</span> Sin desvío crítico en la tasa de canje
-              </li>
-            </ul>
+            <p className="text-xs text-app-text-muted">No hay incidencias que requieran acción.</p>
           </div>
         ) : (
           <div className="space-y-3">
