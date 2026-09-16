@@ -87,6 +87,7 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
     ...displayStats.alerts,
     ...getPurchaseAlerts(platformPurchaseData),
   ];
+  const pendingPaymentCount = platformPurchaseData?.alerts.paidButNotFulfilledCount ?? 0;
 
   return (
     <div className="space-y-12 animate-in pb-20">
@@ -126,17 +127,14 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
             periodSelector={<PeriodSelector value={periodDays} onChange={setPeriodDays} />}
           />
 
-          <section
-            aria-labelledby="operational-detail-heading"
-            className="rounded-2xl border border-app-border bg-app-surface/50"
-          >
-            <h3 id="operational-detail-heading" className="px-5 py-3 text-sm font-bold text-app-text-main">
-              Detalle operativo de vouchers y canales
-            </h3>
+          <details className="rounded-2xl border border-app-border bg-app-surface/50">
+            <summary className="cursor-pointer list-none px-5 py-3 text-sm font-bold text-app-text-main focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary">
+              Ver detalle operativo de vouchers y canales
+            </summary>
             <div className="border-t border-app-border p-4 sm:p-6">
               <OverviewHighlights {...displayStats} />
             </div>
-          </section>
+          </details>
       <div className="grid grid-cols-1 gap-6 xl:gap-8">
         {isAdmin && adminStats ? (
           <DashboardWidget
@@ -214,7 +212,11 @@ function AdminDashboardOverview({ isAdmin }: { isAdmin: boolean }) {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-7 xl:col-span-8 space-y-6">
-            <QuickActions isAdmin={isAdmin} />
+            <QuickActions
+              isAdmin={isAdmin}
+              pendingPaymentCount={pendingPaymentCount}
+              pendingReportCount={pendingDirectReports}
+            />
           </div>
           <div className="lg:col-span-5 xl:col-span-4 h-full">
             <ActivityFeed events={adminStats?.activity ?? []} />

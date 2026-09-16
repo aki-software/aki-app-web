@@ -225,12 +225,10 @@ describe("DashboardOverview", () => {
       expect(screen.getByText("Volumen de Evaluaciones Diarias")).toBeDefined();
     });
 
-    it("keeps operational details permanently visible in a labelled section", () => {
+    it("keeps operational details available on demand", () => {
       const { container } = renderWithRouter(<DashboardOverview />);
-      expect(screen.getByRole("heading", { name: "Detalle operativo de vouchers y canales" })).toBeDefined();
-      expect(container.querySelector("details")).toBeNull();
-      expect(screen.getByText("Generados")).toBeDefined();
-      expect(screen.getByText("Canjeados")).toBeDefined();
+      expect(screen.getByText("Ver detalle operativo de vouchers y canales")).toBeDefined();
+      expect(container.querySelector("details")?.open).toBe(false);
     });
 
         it("renders QuickActions and ActivityFeed", async () => {
@@ -260,7 +258,15 @@ describe("DashboardOverview", () => {
       expect(screen.getByText("Notificaciones de pago fallidas")).toBeDefined();
       expect(screen.getByRole("button", { name: "Revisar pagos" })).toBeDefined();
       expect(screen.getByRole("button", { name: "Revisar notificaciones" })).toBeDefined();
+      expect(screen.getByText("1 acreditación(es) pendiente(s).")).toBeDefined();
       expect(screen.queryByText("1 pago(s) pendiente(s) de acreditación")).toBeNull();
+    });
+
+    it("prioritizes payment actions over report actions when both need attention", () => {
+      renderWithRouter(<DashboardOverview />);
+
+      expect(screen.getByRole("button", { name: "Revisar pagos" })).toBeDefined();
+      expect(screen.queryByText("Revisar informes")).toBeNull();
     });
 
 

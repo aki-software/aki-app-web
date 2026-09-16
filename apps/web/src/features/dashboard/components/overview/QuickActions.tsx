@@ -3,9 +3,42 @@ import { Link } from "react-router-dom";
 
 interface Props {
   isAdmin?: boolean;
+  pendingPaymentCount?: number;
+  pendingReportCount?: number;
 }
 
-export function QuickActions({ isAdmin }: Props) {
+export function QuickActions({
+  isAdmin,
+  pendingPaymentCount = 0,
+  pendingReportCount = 0,
+}: Props) {
+  const attentionAction = pendingPaymentCount > 0
+    ? {
+        id: "payments",
+        title: "Revisar pagos",
+        desc: `${pendingPaymentCount} acreditación(es) pendiente(s).`,
+        icon: HelpCircle,
+        color: "text-status-warning bg-status-warning/5 border-status-warning/10",
+        path: "/dashboard/payment-ledger?fulfillmentState=PENDING",
+      }
+    : pendingReportCount > 0
+    ? {
+        id: "reports",
+        title: "Revisar informes",
+        desc: `${pendingReportCount} sesión(es) directa(s) pendiente(s).`,
+        icon: HelpCircle,
+        color: "text-status-warning bg-status-warning/5 border-status-warning/10",
+        path: "/dashboard/results?status=COMPLETED&source=direct",
+      }
+    : {
+        id: "support",
+        title: isAdmin ? "Centro de soporte" : "Cambio de contraseña",
+        desc: isAdmin ? "Guías y ajustes del sistema." : "Cambiar contraseña y ajustes.",
+        icon: HelpCircle,
+        color: "text-status-warning bg-status-warning/5 border-status-warning/10",
+        path: "/dashboard/settings",
+      };
+
   const actions = [
     {
       id: "emit",
@@ -25,15 +58,7 @@ export function QuickActions({ isAdmin }: Props) {
       path: "/dashboard/results",
       show: true,
     },
-    {
-      id: "support",
-      title: isAdmin ? "Centro de soporte" : "Cambio de contraseña",
-      desc: isAdmin ? "Guías y ajustes del sistema." : "Cambiar contraseña y ajustes.",
-      icon: HelpCircle,
-      color: "text-status-warning bg-status-warning/5 border-status-warning/10",
-      path: "/dashboard/settings",
-      show: true,
-    },
+    { ...attentionAction, show: true },
   ].filter((a) => a.show);
 
   return (

@@ -1,11 +1,11 @@
 import { FileSpreadsheet, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { fetchSessionsList, type SessionData } from "../api/dashboard";
 import { fetchBehavioralTrends } from "../api/sessions.api";
 import type { BehavioralTrends } from "@akit/contracts";
-import { STATUS_OPTIONS, RESULTS_UI_TEXTS, type StatusFilter } from "../constants/results.constants";
+import { STATUS_OPTIONS, RESULTS_UI_TEXTS, type SourceFilter, type StatusFilter } from "../constants/results.constants";
 import { Button } from "../../../components/atoms/Button";
 import { Spinner } from "../../../components/atoms/Spinner";
 import { Select } from "../../../components/atoms/Select";
@@ -20,6 +20,7 @@ const isReportUnlocked = (s: SessionData) => Boolean(s.reportUnlockedAt);
 
 export function DashboardResults() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   
   const isInstitution = !!user?.institutionId && user.role?.toUpperCase() !== "ADMIN";
@@ -29,7 +30,14 @@ export function DashboardResults() {
   const [sessions, setSessions] = useState<SessionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const initialStatus = searchParams.get("status");
+  const initialSource = searchParams.get("source");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    initialStatus === "STARTED" || initialStatus === "COMPLETED" || initialStatus === "REPORT_UNLOCKED"
+      ? initialStatus
+      : "ALL",
+  );
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>(initialSource === "direct" ? "DIRECT" : "ALL");
   const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>({});
   const [trends, setTrends] = useState<BehavioralTrends | null>(null);
   const [trendsLoading, setTrendsLoading] = useState(false);
@@ -58,10 +66,12 @@ export function DashboardResults() {
     const filtered = sessions.filter((session) => {
       const completed = hasSessionResult(session);
       const unlocked = isReportUnlocked(session);
+      const direct = !session.voucherCode;
 
       if (statusFilter === "STARTED" && completed) return false;
       if (statusFilter === "COMPLETED" && !completed) return false;
       if (statusFilter === "REPORT_UNLOCKED" && !unlocked) return false;
+      if (sourceFilter === "DIRECT" && !direct) return false;
       if (!term) return true;
 
       return [
@@ -97,7 +107,7 @@ export function DashboardResults() {
         ),
       }))
       .sort((a, b) => new Date(b.sessions[0].sessionDate).getTime() - new Date(a.sessions[0].sessionDate).getTime());
-  }, [searchTerm, sessions, statusFilter]);
+  }, [searchTerm, sessions, sourceFilter, statusFilter]);
 
   const filteredSessionsCount = useMemo(
     () => groupedSessions.reduce((acc, group) => acc + group.sessions.length, 0),
@@ -221,11 +231,12 @@ export function DashboardResults() {
             <div className="flex h-64 flex-col items-center justify-center text-app-text-muted">
               <Search className="mb-4 h-10 w-10 text-app-text-muted/30" />
               <p className="text-sm font-bold uppercase tracking-widest mb-3">{uiTexts.emptyState}</p>
-              {(searchTerm || statusFilter !== "ALL") && (
-                <button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setStatusFilter("ALL");
+              {(searchTerm || statusFilter !== "ALL" || sourceFilter !== "ALL") && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStatusFilter("ALL");
+                      setSourceFilter("ALL");
                   }}
                   className="px-4 py-2 rounded-xl text-xs font-bold bg-app-primary/10 text-app-primary border border-app-primary/20 hover:bg-app-primary hover:text-white transition-all cursor-pointer"
                 >
