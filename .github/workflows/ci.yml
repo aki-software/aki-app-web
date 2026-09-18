@@ -105,15 +105,17 @@ jobs:
 
       - name: Validate migration uniqueness
         run: |
-          DUPES=$(ls apps/api/src/migrations/*.ts \
-            | sed 's|.*/||' \
-            | grep -oP '^\d+' \
-            | sort | uniq -d)
-          if [ -n "$DUPES" ]; then
-            echo "ERROR: Duplicate migration timestamps found: $DUPES"
-            exit 1
-          fi
-          echo "Migration timestamps: OK"
+          node -e "
+          const fs = require('fs');
+          const files = fs.readdirSync('apps/api/src/migrations').filter(f => f.endsWith('.ts'));
+          const timestamps = files.map(f => f.match(/^\d+/)?.[0]).filter(Boolean);
+          const dupes = timestamps.filter((t, i, arr) => arr.indexOf(t) !== i);
+          if (dupes.length > 0) {
+            console.error('ERROR: Duplicate migration timestamps found:', [...new Set(dupes)]);
+            process.exit(1);
+          }
+          console.log('Migration timestamps: OK');
+          "
 
   # ── API Docker image: build-only (no push on PR) ──────────────────
   build-image:
