@@ -1,0 +1,227 @@
+name: CI
+
+# Run only on PRs targeting main/dev, and on manual dispatch.
+# Feature branch pushes do NOT trigger CI — saves minutes on every WIP commit.
+on:
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+jobs:
+  # ── Detect which workspaces changed ───────────────────────────────
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+      site: ${{ steps.filter.outputs.site }}
+      contracts: ${{ steps.filter.outputs.contracts }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/contracts/**'
+              - 'packages/design-tokens/**'
+              - 'pnpm-lock.yaml'
+            web:
+              - 'apps/web/**'
+              - 'packages/contracts/**'
+              - 'packages/design-tokens/**'
+              - 'pnpm-lock.yaml'
+            site:
+              - 'apps/site/**'
+              - 'packages/design-tokens/**'
+              - 'pnpm-lock.yaml'
+            contracts:
+              - 'packages/contracts/**'
+
+  # ── Contracts: lint + test + build ────────────────────────────────
+  verify-contracts:
+    name: Verify Contracts
+    runs-on: ubuntu-latest
+    needs: [changes]
+    if: needs.changes.outputs.contracts == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm --filter @akit/contracts build
+
+      - name: Test contracts
+        run: pnpm --filter @akit/contracts test
+
+  # ── API: lint + test + build ───────────────────────────────────────
+  verify-api:
+    name: Verify API
+    runs-on: ubuntu-latest
+    needs: [changes]
+    if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm --filter @akit/contracts build
+
+      - name: Lint API
+        run: pnpm --filter api lint
+
+      - name: Test API (all specs)
+        run: pnpm --filter api test -- --runInBand --passWithNoTests
+
+      - name: Build API (TypeScript check)
+        run: pnpm --filter api build
+
+      - name: Validate migration uniqueness
+        run: |
+          DUPES=$(ls apps/api/src/migrations/*.ts \
+            | sed 's|.*/||' \
+            | grep -oP '^\d+' \
+            | sort | uniq -d)
+          if [ -n "$DUPES" ]; then
+            echo "ERROR: Duplicate migration timestamps found: $DUPES"
+            exit 1
+          fi
+          echo "Migration timestamps: OK"
+
+  # ── API Docker image: build-only (no push on PR) ──────────────────
+  build-image:
+    name: Build API Docker Image
+    runs-on: ubuntu-latest
+    needs: [verify-api]
+    if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: akit-api:pr-${{ github.sha }}
+
+  # ── Web: lint + test + build ───────────────────────────────────────
+  verify-web:
+    name: Verify Web
+    runs-on: ubuntu-latest
+    needs: [changes]
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm --filter @akit/contracts build
+
+      - name: Lint Web
+        run: pnpm --filter web lint
+
+      - name: Test Web (all specs)
+        run: pnpm --filter web test -- --passWithNoTests
+
+      - name: Build Web (with placeholder API URL)
+        env:
+          VITE_API_URL: https://api.akituvocacion.com.ar
+        run: pnpm --filter web build
+
+  # ── Site: lint + build ─────────────────────────────────────────────
+  verify-site:
+    name: Verify Site
+    runs-on: ubuntu-latest
+    needs: [changes]
+    if: needs.changes.outputs.site == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint Site
+        run: pnpm --filter @akit/site lint
+
+      - name: Build Site (with placeholder public vars)
+        env:
+          PUBLIC_API_URL: https://api.akituvocacion.com.ar
+          PUBLIC_WEB_URL: https://app.akituvocacion.com.ar
+        run: pnpm --filter @akit/site build
+
+  # ── Gate: all required jobs must pass ─────────────────────────────
+  ci-ok:
+    name: CI OK
+    runs-on: ubuntu-latest
+    needs: [verify-contracts, verify-api, build-image, verify-web, verify-site]
+    if: always()
+    steps:
+      - name: Check all jobs
+        run: |
+          results='${{ toJSON(needs) }}'
+          echo "$results"
+          # A job that was skipped (due to path filtering) counts as success.
+          # A job that failed or was cancelled counts as failure.
+          if echo "$results" | grep -q '"result": "failure"'; then
+            echo "One or more CI jobs failed."
+            exit 1
+          fi
+          if echo "$results" | grep -q '"result": "cancelled"'; then
+            echo "One or more CI jobs were cancelled."
+            exit 1
+          fi
+          echo "All CI checks passed."

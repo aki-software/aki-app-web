@@ -14,6 +14,7 @@ When a task changes architecture, contracts, migrations, environment variables, 
 
 Before starting any task, read:
 - [**akit-git-worktree**](.agents/skills/akit-git-worktree/SKILL.md) — mandatory if working in parallel with other agents
+- [**akit-observability**](.agents/skills/akit-observability/SKILL.md) — mandatory for observability, OpenTelemetry, logs, metrics, traces, dashboards, or alerts
 
 ### Repository Isolation Rules
 

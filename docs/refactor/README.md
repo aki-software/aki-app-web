@@ -25,6 +25,7 @@ El desglose ejecutable está en [pr-plan.md](pr-plan.md).
 | 4 | Migraciones y base de datos | Pendiente |
 | 5 | Web y Site | Pendiente |
 | 6 | Observabilidad y resiliencia | Pendiente |
+| CD | [Refactor CI/CD](ci-cd-plan.md) (Build Once, Deploy Many) | En progreso |
 
 ## Dependencias
 
