@@ -98,7 +98,7 @@ jobs:
         run: pnpm --filter api lint
 
       - name: Test API (all specs)
-        run: pnpm --filter api test -- --runInBand --passWithNoTests
+        run: pnpm --filter api test --runInBand --passWithNoTests
 
       - name: Build API (TypeScript check)
         run: pnpm --filter api build
@@ -166,7 +166,7 @@ jobs:
         run: pnpm --filter web lint
 
       - name: Test Web (all specs)
-        run: pnpm --filter web test -- --passWithNoTests
+        run: pnpm --filter web test --passWithNoTests
 
       - name: Build Web (with placeholder API URL)
         env:
