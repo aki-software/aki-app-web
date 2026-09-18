@@ -4,7 +4,9 @@
 
 Reducir la deuda técnica de documentación del monorepo hasta que un desarrollador nuevo pueda levantar el entorno, entender la arquitectura, ejecutar una tarea, desplegar cada aplicación y diagnosticar un fallo sin depender de conocimiento oral.
 
-Este documento es el plan de trabajo. La documentación operativa vigente está en [deployment-environment.md](deployment-environment.md).
+Este documento es el plan de trabajo. La documentación de continuidad vigente comienza en [README.md](README.md). La documentación operativa base está en [deployment-environment.md](deployment-environment.md).
+
+Toda nueva sesión de desarrollo o de agentes debe pasar por el índice, revisar [product-context.md](product-context.md) y consultar [project-status.md](project-status.md) antes de explorar nuevamente el repositorio.
 
 ## Diagnóstico verificado
 
