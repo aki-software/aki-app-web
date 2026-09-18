@@ -152,7 +152,7 @@ describe('payment security remediation', () => {
     try {
       const module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot({ isGlobal: true }),
+          ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
           PaymentGatewayModule,
         ],
       }).compile();
@@ -174,7 +174,7 @@ describe('payment security remediation', () => {
     try {
       const module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot({ isGlobal: true }),
+          ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
           PaymentGatewayModule,
         ],
       }).compile();
@@ -185,21 +185,21 @@ describe('payment security remediation', () => {
     }
   });
 
-  it('compiles PaymentGatewayModule before resolving its providers', async () => {
+  it('rejects compilation of PaymentGatewayModule if production configuration is invalid', async () => {
     const previousEnvironment = { ...process.env };
     Object.assign(process.env, productionEnvironment, {
       STRIPE_SECRET_KEY: 'sk_test_invalid',
       PAYMENT_SIMULATION: 'false',
     });
     try {
-      const module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot({ isGlobal: true }),
-          PaymentGatewayModule,
-        ],
-      }).compile();
-
-      await module.close();
+      await expect(
+        Test.createTestingModule({
+          imports: [
+            ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
+            PaymentGatewayModule,
+          ],
+        }).compile()
+      ).rejects.toThrow(PaymentConfigurationError);
     } finally {
       process.env = previousEnvironment;
     }
