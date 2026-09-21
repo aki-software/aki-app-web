@@ -90,12 +90,12 @@ export function resolvePaymentConfiguration(
 
   if (
     simulationEnabled &&
-    !['development', 'test'].includes(environment.NODE_ENV ?? '')
+    !['development', 'test', 'staging'].includes(environment.NODE_ENV ?? '')
   ) {
     throw new PaymentConfigurationError(
       isProduction
         ? 'PAYMENT_SIMULATION cannot be enabled in production'
-        : 'PAYMENT_SIMULATION is only allowed in test or development',
+        : 'PAYMENT_SIMULATION is only allowed in test, development, or staging',
     );
   }
 
