@@ -94,10 +94,19 @@ jobs:
             -d '[
               {"key": "NODE_ENV",            "value": "staging"},
               {"key": "PAYMENT_SIMULATION",  "value": "true"},
+              {"key": "PORT",                "value": "3000"},
               {"key": "DATABASE_URL",        "value": "${{ secrets.QA_DATABASE_URL }}"},
               {"key": "JWT_SECRET",          "value": "${{ secrets.QA_JWT_SECRET }}"},
               {"key": "REDIS_URL",           "value": "${{ secrets.QA_REDIS_URL }}"},
-              {"key": "FIREBASE_PROJECT_ID", "value": "${{ secrets.QA_FIREBASE_PROJECT_ID }}"}
+              {"key": "FIREBASE_PROJECT_ID", "value": "${{ secrets.QA_FIREBASE_PROJECT_ID }}"},
+              {"key": "WEB_APP_URL",         "value": "https://akit-web-qa.pages.dev"},
+              {"key": "FRONTEND_URL",        "value": "https://akit-web-qa.pages.dev"},
+              {"key": "API_URL",             "value": "https://akit-api-qa.onrender.com"},
+              {"key": "CORS_ORIGIN",         "value": "https://akit-web-qa.pages.dev"},
+              {"key": "MAIL_TRANSPORT_TYPE", "value": "smtp"},
+              {"key": "SMTP_HOST",           "value": "localhost"},
+              {"key": "SMTP_PORT",           "value": "1025"},
+              {"key": "JWT_EXPIRATION",      "value": "8h"}
             ]'
 
       - name: Trigger Render Deploy
