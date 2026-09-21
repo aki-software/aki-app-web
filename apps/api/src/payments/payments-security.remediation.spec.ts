@@ -6,12 +6,12 @@ import { SecurePaymentSettlement1787000000000 } from '../migrations/178700000000
 import { SimulationPaymentGatewayAdapter } from './adapters/simulation.adapter.js';
 import { StripeAdapter } from './adapters/stripe.adapter.js';
 import {
-    PaymentConfigurationError,
-    resolvePaymentConfiguration,
+  PaymentConfigurationError,
+  resolvePaymentConfiguration,
 } from './config/payment-configuration.js';
 import {
-    bindPaymentGatewayAdapter,
-    type PaymentGatewayName,
+  bindPaymentGatewayAdapter,
+  type PaymentGatewayName,
 } from './config/payment-gateway-binding.js';
 import { PAYMENT_GATEWAY_STRIPE } from './interfaces/payment-gateway.adapter.js';
 import { PaymentGatewayModule } from './payment-gateway.module.js';

@@ -59,5 +59,9 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Add a health check to inform orchestrators when the API is ready for traffic
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/ready || exit 1
+
 # Start the application
 CMD ["node", "apps/api/dist/main.js"]

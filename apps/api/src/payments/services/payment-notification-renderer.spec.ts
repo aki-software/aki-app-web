@@ -71,7 +71,9 @@ describe('mapPaymentNotificationRender', () => {
         planName: 'Plan anual',
         voucherQuantity: 12,
         chargedAmount: '$38.500 ARS',
-        fulfilledAt: expect.stringMatching(/2 de enero de 2025.+00:04.+Argentina/),
+        fulfilledAt: expect.stringMatching(
+          /2 de enero de 2025.+00:04.+Argentina/,
+        ),
         gateway: 'Mercado Pago',
       },
     });
@@ -93,7 +95,9 @@ describe('mapPaymentNotificationRender', () => {
         planName: 'Plan anual',
         voucherQuantity: 12,
         chargedAmount: '$38.500 ARS',
-        fulfilledAt: expect.stringMatching(/2 de enero de 2025.+00:04.+Argentina/),
+        fulfilledAt: expect.stringMatching(
+          /2 de enero de 2025.+00:04.+Argentina/,
+        ),
         gateway: 'Mercado Pago',
       },
     });
