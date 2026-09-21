@@ -2,6 +2,7 @@ services:
   - type: web
     name: akit-api-qa
     env: docker
+    registryCredential: github-packages
     region: ohio # Adjust if needed
     plan: free # Adjust based on Render plan
     image:
