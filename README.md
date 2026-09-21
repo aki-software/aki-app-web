@@ -25,16 +25,17 @@ graph TD
 
 ## Índice de Documentación Central
 
-Dado que este proyecto es un **Monorepo**, toda la documentación técnica detallada de cada aplicación ha sido centralizada en la carpeta `docs/` de la raíz, para que no tengas que navegar subcarpetas persiguiendo READMEs dispersos.
+Dado que este proyecto es un **Monorepo**, toda la documentación técnica y de continuidad está centralizada en `docs/`. El punto de entrada obligatorio es el [índice documental](docs/README.md).
 
 ### 📚 Documentos Core
 
 - 🐳 **[Setup del Entorno Local](docs/getting-started.md):** Cómo levantar Docker Compose (Postgres, Redis, Mailpit) y correr los scripts de inicialización.
-- ⚙️ **[Arquitectura Global y Agentes](docs/architecture.md):** Reglas base del proyecto y cómo interactuar con los Agentes AI (UX, UI, Code).
-- 🧩 **[Contratos (SSOT & Zod Pipeline)](docs/contracts.md):** Explicación de cómo usamos `zod` y `quicktype-core` para generar modelos hacia Android e inyectar tipos seguros en React y NestJS.
-- 📜 **[API Backend](docs/api.md):** Convenciones de controladores, seguridad y endpoints de la API.
-- 💰 **[Monetización del Informe sin Voucher](docs/report-unlock-monetization.md):** Plan de implementación del unlock pagado, contrato backend/Android y setup de Play Console.
-- 🎨 **[Web Frontend (React+Vite)](docs/web-frontend.md):** Detalles sobre Tailwind v4, Vitest, JSDOM y arquitectura Feature-first.
+- ⚙️ **[Arquitectura Global](docs/architecture.md):** Límites, flujos y reglas técnicas.
+- 🧩 **[Contratos](docs/contracts.md):** Schemas Zod, compatibilidad y generación Android.
+- 📜 **[API Backend](docs/api.md):** Convenciones de NestJS, seguridad, jobs y endpoints.
+- 🧭 **[Contexto de producto](docs/product-context.md):** Site, Web, API, roles y modelo B2C/B2B.
+- 🛠️ **[Plan de refactor](docs/refactor/README.md):** Fases, dependencias y criterios de salida.
+- 📊 **[Estado actual](docs/project-status.md):** Riesgos, evidencia QA y próximo trabajo.
 - *(Para la App Móvil, consultar el repositorio hermano `CotejoApp` que cuenta con su propia documentación `README.md` a profundidad).*
 
 ## Flujo de Git y GitHub

@@ -3,6 +3,7 @@ module.exports = {
   rootDir: '.',
   moduleNameMapper: {
     '^@akit/contracts$': '<rootDir>/../../packages/contracts/src/index',
+    '^@akit/design-tokens$': '<rootDir>/../../packages/design-tokens/src/index',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   testRegex: 'src/.*\\.spec\\.ts$',
@@ -13,6 +14,6 @@ module.exports = {
   coverageDirectory: './coverage',
   testEnvironment: 'node',
   transformIgnorePatterns: [
-    '/node_modules/(?!(@akit/contracts)/)',
+    '/node_modules/(?!(@akit/contracts|@akit/design-tokens)/)',
   ],
 };
