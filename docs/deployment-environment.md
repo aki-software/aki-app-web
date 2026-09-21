@@ -147,7 +147,7 @@ Estas variables se incorporan al bundle de Vite. **Nunca colocar secretos en una
 | `VITE_WHATSAPP_URL`    | Opcional                    | Pública | URL de contacto por WhatsApp. Tiene default `https://wa.me/`.                                                                  |
 | `VITE_ALLOWED_HOSTS`   | Opcional                    | Pública | Hosts de túneles de desarrollo, separados por comas. Si está ausente, Vite conserva su protección de hosts por defecto.       |
 
-Vercel sólo configura el rewrite de la SPA; las variables deben agregarse manualmente en Project Settings. En Docker deben estar disponibles durante el build de Vite, porque el bundle se genera antes de iniciar Nginx.
+Cloudflare Pages compila y sirve la SPA usando `public/_redirects` (`/* /index.html 200`) para el enrutamiento del lado del cliente. Las variables `VITE_*` deben configurarse en el panel de Cloudflare Pages (Settings > Environment variables) o ser inyectadas por el workflow de GitHub Actions durante el build. En Docker deben estar disponibles durante el build de Vite, porque el bundle se genera antes de iniciar Nginx.
 
 ## 3. Site público: `apps/site`
 
@@ -163,17 +163,17 @@ Astro genera un sitio estático. Todas las variables `PUBLIC_*` son públicas y 
 
 `PUBLIC_CONTACT_EMAIL` existe en las plantillas, pero actualmente el código usa una dirección fija. `PUBLIC_DASHBOARD_URL` aparece en el `.env` local, pero el código lee `PUBLIC_WEB_URL`; usar el nombre que consume el código.
 
-No se encontró un manifiesto propio de Vercel, Render o Docker para Site. El proveedor debe ejecutar el build de Astro con estas variables disponibles y publicar el resultado estático.
+Site se compila en Cloudflare Pages como sitio estático (`dist/`) ejecutando `astro build`.
 
 ## 4. Dónde configurar cada variable
 
-| Entorno          | API                                                                                         | Web                                      | Site                                   |
+| Entorno          | API                                                                                         | Web (Cloudflare Pages)                   | Site (Cloudflare Pages)                |
 | ---------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------- |
 | Desarrollo local | `apps/api/.env`                                                                             | `apps/web/.env.local`                    | `apps/site/.env`                       |
-| Render API       | Render Dashboard o `render.yaml`                                                            | No aplica                                | No aplica                              |
-| Vercel Web       | No aplica                                                                                   | Project Settings > Environment Variables | Sólo si se agrega un proyecto Site     |
+| Render API (QA)  | Inyectadas automáticamente por GitHub Actions (`cd-qa.yml`) vía Render REST API            | No aplica                                | No aplica                              |
+| Cloudflare Pages | No aplica                                                                                   | Settings > Environment Variables         | Settings > Environment Variables       |
 | Docker local     | `infra/docker/.env` para PostgreSQL/pgAdmin; API recibe variables al ejecutar el contenedor | Variables disponibles durante el build   | Variables disponibles durante el build |
-| CI previews      | GitHub Actions Secrets, especialmente `NEON_PROJECT_ID` y `NEON_API_KEY`                    | Variables del entorno del workflow       | Variables del entorno del workflow     |
+| CI / CD (GitHub) | GitHub Actions Repository Secrets                                                           | GitHub Actions Secrets (en build de CD)  | GitHub Actions Secrets (en build de CD) |
 
 El archivo `infra/docker/.env.example` documenta las variables de PostgreSQL y pgAdmin del entorno local. `scripts/.env.neon` contiene credenciales sensibles de Neon y nunca debe versionarse.
 
@@ -202,19 +202,117 @@ El archivo `infra/docker/.env.example` documenta las variables de PostgreSQL y p
 - [ ] Las URLs públicas no contienen tokens ni secretos.
 - [ ] Se ejecutó el build después de configurar las variables, porque Vite y Astro las incorporan durante la compilación.
 
-## 6. Hallazgos actuales del deploy
+## 6. Automatización de Despliegue en QA (GitHub Actions & Render REST API)
 
-Antes de usar `render.yaml` para producción, completar o revisar estas variables en Render:
+El pipeline de entrega continua para QA está completamente automatizado en el workflow `.github/workflows/cd-qa.yml` y se dispara en cada push o merge a la rama `dev`.
 
-- `API_URL`
-- `PAYMENT_IDEMPOTENCY_SECRET`
-- `MP_ACCESS_TOKEN`
-- `MP_WEBHOOK_SECRET`
-- `PAYMENT_GATEWAY`
+### Arquitectura del Pipeline de QA
 
-Render no declara actualmente `PAYMENT_GATEWAY`; como el código usa `STRIPE` por defecto, puede activar una validación de Stripe aunque la infraestructura esté preparada para Mercado Pago. Definir el gateway de forma explícita y agregar sólo las credenciales del proveedor elegido.
+```text
+[Push / Merge a 'dev']
+        │
+        ▼
+[Job 1: changes] (dorny/paths-filter)
+  Verifica si cambiaron archivos en apps/api, packages/contracts, etc.
+        │
+        ▼
+[Job 2: publish-api-image]
+  1. Build multi-stage optimizado con caché de Docker (gha).
+  2. Publica la imagen inmutable en GitHub Packages (GHCR):
+     - ghcr.io/aki-software/akit-api:qa-latest
+     - ghcr.io/aki-software/akit-api:qa-<short-sha>
+        │
+        ▼
+[Job 3: deploy-api-qa]
+  1. Inyección de variables de entorno vía Render REST API:
+     PUT https://api.render.com/v1/services/${RENDER_SERVICE_ID}/env-vars
+  2. Disparo de nuevo despliegue inmutable:
+     POST https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys
+```
 
-También conviene agregar `PUBLIC_FORM_ENDPOINT` a `apps/site/.env.example` y retirar o marcar como obsoletas las variables de plantillas que el código ya no consume.
+### Entorno Staging y Modo Simulación
+
+Para evitar bloquear el despliegue en QA con credenciales bancarias o de pago reales de producción, la API cuenta con soporte nativo para `NODE_ENV=staging`:
+
+- **`NODE_ENV=staging` + `PAYMENT_SIMULATION=true`:** Omite la validación estricta de credenciales de producción (`sk_live_...`, tokens de Mercado Pago, y certificados de Google Play) permitiendo que la API arranque en QA.
+- **Variables Stub de infraestructura:** El pipeline inyecta stubs para `S3_*` y `PUPPETEER_EXECUTABLE_PATH` de modo que los servicios de reportes no bloqueen el boot del contenedor.
+
+---
+
+## 7. Diccionario de Secretos de GitHub Actions
+
+Para que el pipeline de CD funcione, deben configurarse los siguientes **Repository Secrets** en GitHub (**Settings > Secrets and variables > Actions**):
+
+| Nombre del Secreto | Descripción | Dónde y cómo obtenerlo | Formato / Ejemplo |
+|---|---|---|---|
+| `RENDER_API_KEY` | Token de autenticación para la API REST de Render. | En Render: **Account Settings > API Keys > Create API Key**. Nombrarla "GitHub Actions CD". | `rnd_xxxxxxxxxxxxxxxxxxxxxxxx` |
+| `RENDER_QA_SERVICE_ID` | Identificador único del Web Service en Render. | En Render: abrir el servicio `akit-api-qa`. Mirar la URL del navegador (`/srv-cabc123...`) o en **Settings > Service ID**. | `srv-xxxxxxxxxxxxxxxxxxxx` |
+| `QA_DATABASE_URL` | String de conexión a la base de datos PostgreSQL de QA. | En Neon Console: seleccionar el proyecto, ir a la rama `qa` (o crearla desde `main`), y copiar el **Connection String**. | `postgresql://user:pass@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require` |
+| `QA_JWT_SECRET` | Clave secreta para firma y verificación de tokens JWT. | Generar una clave aleatoria de al menos 32 caracteres (ej: `openssl rand -base64 32`). | `qa_akit_jwt_super_secret_key_9f8e7d6c5b4a3` |
+| `QA_REDIS_URL` | URL de conexión al servidor Redis para colas y rate-limiting. | En Render: crear un **Redis Service** (plan Free) y copiar la **Internal Redis URL** o External URL. | `rediss://default:pass@red-xyz:6379` o `redis://...` |
+| `QA_FIREBASE_PROJECT_ID` | Project ID de Firebase para validar tokens de autenticación. | En Firebase Console: **Project Settings > General > Project ID**. | `akit-dev-12345` o `akit-qa` |
+
+> [!IMPORTANT]
+> Los secretos deben crearse como **Repository Secrets** (globales del repositorio), **NO** como Environment Secrets ni como Variables, ya que el workflow los referencia directamente mediante `${{ secrets.<NOMBRE> }}`.
+
+---
+
+## 8. Guía Operativa Paso a Paso
+
+### A. Guía para Nuevos Desarrolladores (Onboarding)
+
+1. **Clonar e instalar:**
+   ```bash
+   git clone https://github.com/aki-software/aki-app-web.git
+   cd aki-app-web
+   pnpm install
+   ```
+2. **Configurar variables locales:**
+   - Copiar `apps/api/.env.example` a `apps/api/.env`.
+   - Copiar `apps/web/.env.example` a `apps/web/.env.local` (`VITE_API_URL=http://localhost:3000/api/v1`).
+   - Copiar `apps/site/.env.example` a `apps/site/.env`.
+   - Copiar `infra/docker/.env.example` a `infra/docker/.env`.
+3. **Levantar dependencias locales:**
+   ```bash
+   cd infra/docker
+   docker compose up -d
+   ```
+4. **Flujo de ramas y Git:**
+   - Crear una rama desde `dev`: `git checkout -b feat/nombre-tarea`.
+   - Usar Conventional Commits (`feat:`, `fix:`, `chore:`, etc.).
+   - Correr lint y tests antes de subir: `pnpm lint && pnpm test`.
+   - Abrir Pull Request apuntando a **`dev`**.
+   - El CI (`ci.yml`) validará automáticamente el build, linting y pruebas.
+   - Al aprobarse y mergearse a `dev`, el CD (`cd-qa.yml`) compilará la imagen de Docker y desplegará automáticamente la API en Render QA.
+
+### B. Guía para Responsable de Despliegue / DevOps (Setup de QA desde Cero)
+
+Si se necesita recrear o reconfigurar el entorno QA desde cero:
+
+1. **Configurar acceso a GHCR en Render:**
+   - Render necesita permisos para descargar la imagen privada desde GitHub Packages (`ghcr.io`).
+   - En GitHub: generar un Personal Access Token (Classic) con alcance `read:packages`.
+   - En Render: ir a **Workspace Settings > Registry Credentials > Add Credential**.
+   - Nombre: `github-packages`, Registry: `ghcr.io`, Username: usuario de GitHub, Token: el PAT generado.
+2. **Crear el Web Service en Render (por única vez):**
+   - En Render: **New > Web Service > Deploy an existing image from a registry**.
+   - Image URL: `ghcr.io/aki-software/akit-api:qa-latest`.
+   - Registry Credential: `github-packages`.
+   - Name: `akit-api-qa`.
+   - Environment: `Image`.
+   - Plan: `Free`.
+   - Crear el servicio. Copiar el `Service ID` (`srv-...`) de la URL resultante.
+3. **Cargar los Secretos en GitHub:**
+   - Cargar los 6 secretos detallados en la sección 7 en **Settings > Secrets and variables > Actions**.
+4. **Configurar Cloudflare Pages (Frontend Web & Site):**
+   - Para evitar que los pushes a `dev` disparen previews en el proyecto de producción:
+   - Ir a Cloudflare Dashboard > Pages > Proyecto Web / Site.
+   - Ir a **Settings > Builds & deployments > Branch control**.
+   - Editar **Preview branch** y seleccionar: **None (Disable automatic branch deployments)**.
+5. **Ejecutar el despliegue inicial:**
+   - Hacer un push a `dev` o ir a la pestaña **Actions** en GitHub, seleccionar **CD QA** y hacer clic en **Run workflow**.
+
+---
 
 ## Reglas de seguridad
 
@@ -223,3 +321,4 @@ También conviene agregar `PUBLIC_FORM_ENDPOINT` a `apps/site/.env.example` y re
 - Las variables sin prefijo `VITE_` o `PUBLIC_` no deben enviarse al frontend.
 - Si un secreto real fue commiteado o compartido, revocarlo y generar uno nuevo; eliminarlo del archivo no invalida el secreto expuesto.
 - No imprimir variables de entorno completas en logs ni en tickets.
+
