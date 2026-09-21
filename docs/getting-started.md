@@ -204,6 +204,30 @@ pnpm test
 pnpm build
 ```
 
+## 8. Flujo de trabajo, Git y CI/CD
+
+El repositorio utiliza un flujo basado en ramas sobre **`dev`** (para QA) y **`main`** (para Producción):
+
+1. **Crear rama de trabajo:**
+   Toda funcionalidad o corrección se inicia desde `dev`:
+   ```bash
+   git checkout dev
+   git pull origin dev
+   git checkout -b feat/nombre-descriptivo # o fix/...
+   ```
+2. **Convención de commits:**
+   Se exige [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`). Nunca incluir menciones de IA ni "Co-Authored-By".
+3. **Apertura de Pull Request:**
+   Abrir el PR apuntando a la rama **`dev`**.
+   - El workflow **CI** (`.github/workflows/ci.yml`) se disparará automáticamente.
+   - Ejecuta verificación de tipos, linting, tests unitarios y dry-run de build de todas las aplicaciones (`apps/api`, `apps/web`, `apps/site`, `packages/contracts`).
+4. **Merge y Despliegue Automático en QA:**
+   Al aprobarse y fusionarse el PR a `dev`:
+   - El workflow **CD QA** (`.github/workflows/cd-qa.yml`) compila el contenedor Docker de la API optimizado con caché.
+   - Publica la imagen inmutable en GitHub Container Registry (`ghcr.io`).
+   - Sincroniza las variables de entorno con Render e inicia el despliegue automático del servicio `akit-api-qa`.
+   - La API queda disponible en: `https://akit-api-qa.onrender.com`.
+
 ## Problemas frecuentes
 
 ### Docker no inicia
@@ -232,6 +256,7 @@ La generación de PDFs necesita un navegador disponible. Revisá `PUPPETEER_EXEC
 
 ## Siguiente lectura
 
-- [Variables de entorno y credenciales](deployment-environment.md)
+- [Variables de entorno y credenciales (Guía de despliegue y secretos)](deployment-environment.md)
 - [Roadmap de documentación](documentation-roadmap.md)
 - [README principal](../README.md)
+
