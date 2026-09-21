@@ -90,7 +90,7 @@ export function resolvePaymentConfiguration(
 
   if (
     simulationEnabled &&
-    !['development', 'test'].includes(environment.NODE_ENV ?? '')
+    !['development', 'test', 'staging'].includes(environment.NODE_ENV ?? '')
   ) {
     throw new PaymentConfigurationError(
       isProduction
