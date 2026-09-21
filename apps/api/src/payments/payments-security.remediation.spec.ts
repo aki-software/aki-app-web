@@ -105,14 +105,14 @@ describe('payment security remediation', () => {
     ).toBe(false);
   });
 
-  it('rejects simulation outside test and development environments', () => {
+  it('rejects simulation outside test, development, and staging environments', () => {
     expect(() =>
       resolvePaymentConfiguration({
         ...productionEnvironment,
-        NODE_ENV: 'staging',
+        NODE_ENV: 'invalid-env',
         PAYMENT_SIMULATION: 'true',
       }),
-    ).toThrow('PAYMENT_SIMULATION is only allowed in test or development');
+    ).toThrow('PAYMENT_SIMULATION is only allowed in test, development, or staging');
   });
 
   it('binds the explicit simulation adapter only for a permitted environment', () => {
