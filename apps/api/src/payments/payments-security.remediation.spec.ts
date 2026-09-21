@@ -112,7 +112,9 @@ describe('payment security remediation', () => {
         NODE_ENV: 'invalid-env',
         PAYMENT_SIMULATION: 'true',
       }),
-    ).toThrow('PAYMENT_SIMULATION is only allowed in test, development, or staging');
+    ).toThrow(
+      'PAYMENT_SIMULATION is only allowed in test, development, or staging',
+    );
   });
 
   it('binds the explicit simulation adapter only for a permitted environment', () => {
