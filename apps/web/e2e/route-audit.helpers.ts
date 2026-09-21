@@ -22,7 +22,6 @@ const apiOrigin = "http://127.0.0.1:3000";
 const appOrigin = "http://127.0.0.1:4173";
 const localExternalOrigins = new Set([
   "https://fonts.googleapis.com",
-  "https://va.vercel-scripts.com",
 ]);
 
 function fakeJwt(role: AuditRole): string {
