@@ -92,9 +92,11 @@ jobs:
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
             -d '[
-              {"key": "DATABASE_URL",  "value": "${{ secrets.QA_DATABASE_URL }}"},
-              {"key": "JWT_SECRET",    "value": "${{ secrets.QA_JWT_SECRET }}"},
-              {"key": "REDIS_URL",     "value": "${{ secrets.QA_REDIS_URL }}"}
+              {"key": "NODE_ENV",           "value": "staging"},
+              {"key": "PAYMENT_SIMULATION", "value": "true"},
+              {"key": "DATABASE_URL",       "value": "${{ secrets.QA_DATABASE_URL }}"},
+              {"key": "JWT_SECRET",         "value": "${{ secrets.QA_JWT_SECRET }}"},
+              {"key": "REDIS_URL",          "value": "${{ secrets.QA_REDIS_URL }}"}
             ]'
 
       - name: Trigger Render Deploy
