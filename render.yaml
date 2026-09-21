@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: akit-api-qa
+    env: docker
+    region: ohio # Adjust if needed
+    plan: free # Adjust based on Render plan
+    image:
+      imagePath: ghcr.io/aki-software/akit-api:qa-latest
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      # Add other environment variables here, or manage them in the Render Dashboard
