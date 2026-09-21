@@ -12,4 +12,25 @@ services:
         value: production
       - key: PORT
         value: "3000"
-      # Add other environment variables here, or manage them in the Render Dashboard
+      - key: WEB_APP_URL
+        value: https://qa.akituvocacion.com.ar
+      - key: API_URL
+        value: https://akit-api-qa.onrender.com
+      - key: PAYMENT_IDEMPOTENCY_SECRET
+        value: qa_secret_12345
+      - key: STRIPE_SECRET_KEY
+        value: sk_test_123
+      - key: STRIPE_WEBHOOK_SECRET
+        value: whsec_123
+      - key: MP_ACCESS_TOKEN
+        value: TEST-12345
+      - key: MP_WEBHOOK_SECRET
+        value: test_secret
+      - key: GOOGLE_PLAY_PACKAGE_NAME
+        value: com.aki.app
+      - key: GOOGLE_PLAY_REPORT_SKU
+        value: qa_sku
+      - key: GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64
+        value: e30=
+      - key: REDIS_HOST
+        value: localhost
