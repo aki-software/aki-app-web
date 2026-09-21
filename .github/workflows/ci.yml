@@ -199,6 +199,9 @@ jobs:
       - name: Lint Site
         run: pnpm --filter @akit/site lint
 
+      - name: Build design tokens (required for Tailwind CSS)
+        run: pnpm --filter @akit/design-tokens build
+
       - name: Build Site (with placeholder public vars)
         env:
           PUBLIC_API_URL: https://api.akituvocacion.com.ar
