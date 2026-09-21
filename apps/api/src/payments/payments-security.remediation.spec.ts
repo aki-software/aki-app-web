@@ -1,10 +1,10 @@
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { DataSource } from 'typeorm';
 import { Test } from '@nestjs/testing';
-import { ConfigModule } from '@nestjs/config';
-import { PaymentGatewayModule } from './payment-gateway.module.js';
-import { PAYMENT_GATEWAY_STRIPE } from './interfaces/payment-gateway.adapter.js';
+import { DataSource } from 'typeorm';
+import { SecurePaymentSettlement1787000000000 } from '../migrations/1787000000000-SecurePaymentSettlement.js';
+import { SimulationPaymentGatewayAdapter } from './adapters/simulation.adapter.js';
+import { StripeAdapter } from './adapters/stripe.adapter.js';
 import {
   PaymentConfigurationError,
   resolvePaymentConfiguration,
@@ -13,10 +13,9 @@ import {
   bindPaymentGatewayAdapter,
   type PaymentGatewayName,
 } from './config/payment-gateway-binding.js';
-import { SimulationPaymentGatewayAdapter } from './adapters/simulation.adapter.js';
-import { StripeAdapter } from './adapters/stripe.adapter.js';
+import { PAYMENT_GATEWAY_STRIPE } from './interfaces/payment-gateway.adapter.js';
+import { PaymentGatewayModule } from './payment-gateway.module.js';
 import { WebhookProcessorService } from './services/webhook-processor.service.js';
-import { SecurePaymentSettlement1787000000000 } from '../migrations/1787000000000-SecurePaymentSettlement.js';
 
 const productionEnvironment = {
   NODE_ENV: 'production',
@@ -152,7 +151,7 @@ describe('payment security remediation', () => {
     try {
       const module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot({ isGlobal: true }),
+          ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
           PaymentGatewayModule,
         ],
       }).compile();
@@ -174,7 +173,7 @@ describe('payment security remediation', () => {
     try {
       const module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot({ isGlobal: true }),
+          ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
           PaymentGatewayModule,
         ],
       }).compile();
@@ -185,21 +184,21 @@ describe('payment security remediation', () => {
     }
   });
 
-  it('compiles PaymentGatewayModule before resolving its providers', async () => {
+  it('rejects compilation of PaymentGatewayModule if production configuration is invalid', async () => {
     const previousEnvironment = { ...process.env };
     Object.assign(process.env, productionEnvironment, {
       STRIPE_SECRET_KEY: 'sk_test_invalid',
       PAYMENT_SIMULATION: 'false',
     });
     try {
-      const module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot({ isGlobal: true }),
-          PaymentGatewayModule,
-        ],
-      }).compile();
-
-      await module.close();
+      await expect(
+        Test.createTestingModule({
+          imports: [
+            ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
+            PaymentGatewayModule,
+          ],
+        }).compile(),
+      ).rejects.toThrow(PaymentConfigurationError);
     } finally {
       process.env = previousEnvironment;
     }

@@ -1,9 +1,20 @@
 # Architecture Rules
 
+## Documentation Continuity
+
+Before starting any task, read:
+- [**Documentation index**](docs/README.md)
+- [**Product context**](docs/product-context.md)
+- [**Current project status**](docs/project-status.md)
+- The relevant phase in [**refactor plan**](docs/refactor/README.md)
+
+When a task changes architecture, contracts, migrations, environment variables, operational behavior, or product boundaries, update the related documentation in the same work unit. Do not repeat a full repository audit when the relevant evidence is already documented.
+
 ## Agent Workflow (read this first)
 
 Before starting any task, read:
 - [**akit-git-worktree**](.agents/skills/akit-git-worktree/SKILL.md) — mandatory if working in parallel with other agents
+- [**akit-observability**](.agents/skills/akit-observability/SKILL.md) — mandatory for observability, OpenTelemetry, logs, metrics, traces, dashboards, or alerts
 
 ### Repository Isolation Rules
 

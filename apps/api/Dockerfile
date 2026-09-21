@@ -21,7 +21,8 @@ COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
-RUN pnpm install --frozen-lockfile --config.manage-package-manager-versions=false
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --config.manage-package-manager-versions=false
 
 # Build the project
 COPY --from=pruner /app/out/full/ .
@@ -29,6 +30,11 @@ RUN pnpm turbo run build --filter=api...
 
 # Setup the production image
 FROM base AS runner
+
+# OCI Labels for GHCR and Package traceability
+LABEL org.opencontainers.image.source="https://github.com/aki-software/aki-app-web"
+LABEL org.opencontainers.image.description="A.kit Platform API"
+LABEL org.opencontainers.image.licenses="MIT"
 
 # Install Chromium for Puppeteer PDF generation
 RUN apk add --no-cache chromium
@@ -58,6 +64,10 @@ EXPOSE 3000
 
 ENV NODE_ENV=production
 ENV PORT=3000
+
+# Add a health check to inform orchestrators when the API is ready for traffic
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/ready || exit 1
 
 # Start the application
 CMD ["node", "apps/api/dist/main.js"]
