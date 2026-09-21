@@ -1,4 +1,10 @@
-import { Controller, Get, HttpCode, HttpStatus, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { getPaymentReadiness } from './payments/config/payment-configuration.js';
 
@@ -27,7 +33,7 @@ export class HealthController {
         status: 'ready',
         timestamp: new Date().toISOString(),
       };
-    } catch (error) {
+    } catch {
       throw new ServiceUnavailableException('Database connection is not ready');
     }
   }
