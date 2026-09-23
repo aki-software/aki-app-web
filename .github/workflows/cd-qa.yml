@@ -246,3 +246,52 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npx wrangler pages deploy apps/site/dist --project-name aki-site-qa --branch main
 
+
+  # ─── Smoke Tests ────────────────────────────────────────────────────────────
+  smoke-tests:
+    name: Provider-Neutral Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-api-qa, deploy-web-qa, deploy-site-qa]
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+
+    steps:
+      - name: Wait for API health (Render QA)
+        if: needs.deploy-api-qa.result == 'success'
+        run: |
+          echo "Waiting for Render API to boot and return HTTP 200..."
+          for i in {1..20}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://akit-api-qa-zrqz.onrender.com/health || true)
+            if [ "$STATUS" == "200" ]; then
+              echo "API is healthy!"
+              exit 0
+            fi
+            echo "API returned $STATUS. Retrying in 15 seconds... ($i/20)"
+            sleep 15
+          done
+          echo "API failed to become healthy in time."
+          exit 1
+
+      - name: Check Web Frontend (CF Pages QA)
+        if: needs.deploy-web-qa.result == 'success'
+        run: |
+          echo "Checking Web Frontend..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://aki-web-qa.pages.dev)
+          if [ "$STATUS" == "200" ]; then
+            echo "Web Frontend is up!"
+          else
+            echo "Web Frontend returned $STATUS"
+            exit 1
+          fi
+
+      - name: Check Site Frontend (CF Pages QA)
+        if: needs.deploy-site-qa.result == 'success'
+        run: |
+          echo "Checking Site Frontend..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://aki-site-qa.pages.dev)
+          if [ "$STATUS" == "200" ]; then
+            echo "Site Frontend is up!"
+          else
+            echo "Site Frontend returned $STATUS"
+            exit 1
+          fi
+
