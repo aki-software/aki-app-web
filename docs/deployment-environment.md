@@ -322,3 +322,17 @@ Si se necesita recrear o reconfigurar el entorno QA desde cero:
 - Si un secreto real fue commiteado o compartido, revocarlo y generar uno nuevo; eliminarlo del archivo no invalida el secreto expuesto.
 - No imprimir variables de entorno completas en logs ni en tickets.
 
+
+## 6. Troubleshooting y Errores Frecuentes (Runbook)
+
+### Falso error de CORS ("No Access-Control-Allow-Origin header is present")
+Si el frontend (Cloudflare Pages) tira un error de CORS al intentar comunicarse con la API (Render), **NO asumas inmediatamente que es un problema de código en NestJS**. 
+
+En la mayoría de los casos en esta infraestructura, es un error de proxy que enmascara el problema real:
+
+1. **La URL de la API es incorrecta (Sufijos de Render):** Render exige que las URLs sean únicas globalmente. Si el nombre `akit-api-qa` ya estaba en uso, Render le agregará un sufijo aleatorio (ej: `akit-api-qa-zrqz.onrender.com`). Si el frontend apunta a la URL vieja/errónea, Render devuelve un error `404 no-server`. Al no haber servidor, no se adjuntan los headers de CORS, lo que confunde al navegador. 
+   * **Solución:** Verificar la URL exacta en el panel de Render y actualizar los archivos de pipeline (`cd-qa.yml`, `cd-prod.yml`).
+2. **El servidor de la API se está reiniciando / Cold Start:** En los planes gratuitos de Render, un nuevo deploy apaga la instancia vieja y levanta una nueva (demora entre 3 a 5 minutos). Durante esa ventana de tiempo, el proxy de Render rechaza las peticiones de frontend sin headers de CORS.
+   * **Solución:** Entrar a Render, revisar los logs y esperar a que el estado vuelva a ser "Live".
+3. **Falta de sincronización en Pipeline:** Si actualizaste una variable de entorno en el YAML de GitHub Actions (ej: corregiste un typo en una URL), **debés disparar el pipeline manualmente (Run Workflow)** para que el frontend se recompile con la URL corregida y el backend reciba la nueva lista de orígenes permitidos.
+
