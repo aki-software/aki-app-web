@@ -21,7 +21,7 @@ La auditoría integral está completada y el refactor de infraestructura y CI/CD
 | P1 | Base de datos | Confirmado | Revisar índices duplicados y timestamps sin zona horaria |
 | P1 | Web | Confirmado | Matriz única de rol, scope, permiso, ruta y acción |
 | P1 | Site | Confirmado | Corregir marca, legal, claims y funnel B2B |
-| P1 | Operación | Confirmado | Métricas, alertas, backups, restore y runbooks |
+| P1 | Operación | En Progreso | Configurado DB Backup automatizado a R2. Faltan métricas/alertas. |
 
 ## Evidencia QA capturada
 
