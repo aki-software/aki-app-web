@@ -206,7 +206,7 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler pages deploy apps/web/dist --project-name aki-web-qa --branch dev
+        run: npx wrangler pages deploy apps/web/dist --project-name aki-web-qa --branch main
 
   # ─── Deploy Site to Cloudflare Pages (QA) ───────────────────────────────────
   deploy-site-qa:
@@ -244,5 +244,5 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler pages deploy apps/site/dist --project-name aki-site-qa --branch dev
+        run: npx wrangler pages deploy apps/site/dist --project-name aki-site-qa --branch main
 
