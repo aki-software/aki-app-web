@@ -198,7 +198,7 @@ jobs:
 
       - name: Build Web
         env:
-          VITE_API_URL: https://akit-api-qa-zrqz.onrender.com
+          VITE_API_URL: https://akit-api-qa-zrqz.onrender.com/api/v1
           VITE_PAYMENT_GATEWAY: MERCADO_PAGO
         run: pnpm --filter web build
 
@@ -236,7 +236,7 @@ jobs:
       - name: Build Site
         env:
           PUBLIC_WEB_URL: https://aki-web-qa.pages.dev
-          PUBLIC_API_URL: https://akit-api-qa-zrqz.onrender.com
+          PUBLIC_API_URL: https://akit-api-qa-zrqz.onrender.com/api/v1
           PUBLIC_MAINTENANCE_MODE: "false"
         run: pnpm --filter site build
 
