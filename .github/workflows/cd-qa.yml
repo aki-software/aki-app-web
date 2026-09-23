@@ -142,10 +142,10 @@ jobs:
               {"key": "JWT_SECRET",          "value": "${{ secrets.QA_JWT_SECRET }}"},
               {"key": "REDIS_URL",           "value": "${{ secrets.QA_REDIS_URL }}"},
               {"key": "FIREBASE_PROJECT_ID", "value": "${{ secrets.QA_FIREBASE_PROJECT_ID }}"},
-              {"key": "WEB_APP_URL",         "value": "https://akit-web-qa.pages.dev"},
-              {"key": "FRONTEND_URL",        "value": "https://akit-web-qa.pages.dev"},
+              {"key": "WEB_APP_URL",         "value": "https://aki-web-qa.pages.dev"},
+              {"key": "FRONTEND_URL",        "value": "https://aki-web-qa.pages.dev"},
               {"key": "API_URL",             "value": "https://akit-api-qa.onrender.com"},
-              {"key": "CORS_ORIGIN",         "value": "https://akit-web-qa.pages.dev"},
+              {"key": "CORS_ORIGIN",         "value": "https://aki-web-qa.pages.dev"},
               {"key": "MAIL_TRANSPORT_TYPE", "value": "smtp"},
               {"key": "SMTP_HOST",           "value": "localhost"},
               {"key": "SMTP_PORT",           "value": "1025"},
@@ -235,7 +235,7 @@ jobs:
 
       - name: Build Site
         env:
-          PUBLIC_WEB_URL: https://akit-web-qa.pages.dev
+          PUBLIC_WEB_URL: https://aki-web-qa.pages.dev
           PUBLIC_API_URL: https://akit-api-qa.onrender.com
           PUBLIC_MAINTENANCE_MODE: "false"
         run: pnpm --filter site build
