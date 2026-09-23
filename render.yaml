@@ -17,7 +17,7 @@ services:
       - key: WEB_APP_URL
         value: https://qa.akituvocacion.com.ar
       - key: API_URL
-        value: https://akit-api-qa.onrender.com
+        value: https://akit-api-qa-zrqz.onrender.com
       # Sensitive values are injected by GitHub Actions via Render API at deploy time.
       # See .github/workflows/cd-qa.yml and the repository secrets.
       - key: DATABASE_URL

@@ -226,7 +226,7 @@ El repositorio utiliza un flujo basado en ramas sobre **`dev`** (para QA) y **`m
    - El workflow **CD QA** (`.github/workflows/cd-qa.yml`) compila el contenedor Docker de la API optimizado con caché.
    - Publica la imagen inmutable en GitHub Container Registry (`ghcr.io`).
    - Sincroniza las variables de entorno con Render e inicia el despliegue automático del servicio `akit-api-qa`.
-   - La API queda disponible en: `https://akit-api-qa.onrender.com`.
+   - La API queda disponible en: `https://akit-api-qa-zrqz.onrender.com`.
 
 ## Problemas frecuentes
 
