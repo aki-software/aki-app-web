@@ -1,0 +1,40 @@
+name: Database Backup (Neon to R2)
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # Se ejecuta todos los días a las 3:00 AM UTC
+  workflow_dispatch:      # Permite ejecutarlo manualmente desde GitHub
+
+jobs:
+  backup:
+    name: Backup PostgreSQL to Cloudflare R2
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Set Backup Date
+        id: date
+        run: echo "DATE=$(date +%Y-%m-%d_%H-%M)" >> $GITHUB_ENV
+
+      - name: Install PostgreSQL Client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Dump Database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "Starting pg_dump..."
+          # Generamos un archivo SQL y lo comprimimos para ahorrar espacio
+          pg_dump "$DATABASE_URL" --no-owner --no-acl | gzip > backup_prod_${{ env.DATE }}.sql.gz
+
+      - name: Upload to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          # Reemplazar con el ID de cuenta cuando se configure
+          R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        run: |
+          echo "Uploading to Cloudflare R2..."
+          aws s3 cp backup_prod_${{ env.DATE }}.sql.gz s3://akit-db-backups/ \
+            --endpoint-url $R2_ENDPOINT
+
