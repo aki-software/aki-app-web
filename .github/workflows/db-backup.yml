@@ -20,7 +20,7 @@ jobs:
 
       - name: Dump Database
         env:
-          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "Starting pg_dump..."
           # Generamos un archivo SQL y lo comprimimos para ahorrar espacio
