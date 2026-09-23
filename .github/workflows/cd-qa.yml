@@ -144,7 +144,7 @@ jobs:
               {"key": "FIREBASE_PROJECT_ID", "value": "${{ secrets.QA_FIREBASE_PROJECT_ID }}"},
               {"key": "WEB_APP_URL",         "value": "https://aki-web-qa.pages.dev"},
               {"key": "FRONTEND_URL",        "value": "https://aki-web-qa.pages.dev"},
-              {"key": "API_URL",             "value": "https://akit-api-qa.onrender.com"},
+              {"key": "API_URL",             "value": "https://akit-api-qa-zrqz.onrender.com"},
               {"key": "CORS_ORIGIN",         "value": "https://aki-web-qa.pages.dev"},
               {"key": "MAIL_TRANSPORT_TYPE", "value": "smtp"},
               {"key": "SMTP_HOST",           "value": "localhost"},
@@ -198,7 +198,7 @@ jobs:
 
       - name: Build Web
         env:
-          VITE_API_URL: https://akit-api-qa.onrender.com
+          VITE_API_URL: https://akit-api-qa-zrqz.onrender.com
           VITE_PAYMENT_GATEWAY: MERCADO_PAGO
         run: pnpm --filter web build
 
@@ -236,7 +236,7 @@ jobs:
       - name: Build Site
         env:
           PUBLIC_WEB_URL: https://aki-web-qa.pages.dev
-          PUBLIC_API_URL: https://akit-api-qa.onrender.com
+          PUBLIC_API_URL: https://akit-api-qa-zrqz.onrender.com
           PUBLIC_MAINTENANCE_MODE: "false"
         run: pnpm --filter site build
 
