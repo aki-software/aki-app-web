@@ -74,11 +74,43 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # ─── Run Database Migrations on QA (Neon) ──────────────────────────────────
+  migrate-api-qa:
+    name: Run Migrations on Neon QA
+    runs-on: ubuntu-latest
+    needs: [changes]
+    if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build internal packages
+        run: |
+          pnpm --filter @akit/contracts build
+          pnpm --filter @akit/design-tokens build
+
+      - name: Run TypeORM migrations
+        env:
+          DATABASE_URL: ${{ secrets.QA_DATABASE_URL }}
+        run: pnpm --filter api migration:run
+
   # ─── Deploy API to Render (QA) via Render API ───────────────────────────────
   deploy-api-qa:
     name: Deploy API to Render (QA)
     runs-on: ubuntu-latest
-    needs: [changes, publish-api-image]
+    needs: [changes, publish-api-image, migrate-api-qa]
     if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
 
     steps:
