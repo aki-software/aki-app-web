@@ -34,6 +34,6 @@ import { RolesGuard } from './guards/roles.guard.js';
     AuthResponseFactory,
     AuthUserFactory,
   ],
-  exports: [],
+  exports: [AuthTokenService],
 })
 export class AuthModule {}
