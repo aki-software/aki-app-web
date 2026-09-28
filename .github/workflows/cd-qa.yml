@@ -3,7 +3,8 @@ name: CD QA
 on:
   push:
     branches:
-      - dev
+      - qa
+  workflow_dispatch: # Boton manual en GitHub UI
 
 permissions:
   contents: read
@@ -294,4 +295,6 @@ jobs:
             echo "Site Frontend returned $STATUS"
             exit 1
           fi
+
+
 
