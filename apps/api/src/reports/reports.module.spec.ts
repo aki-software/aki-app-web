@@ -1,4 +1,5 @@
 jest.mock('@akit/design-tokens', () => ({ colors: {} }), { virtual: true });
+jest.mock('@nestjs/schedule', () => ({ ScheduleModule: { forRoot: jest.fn() }, Cron: () => jest.fn() }), { virtual: true });
 
 import { Test } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bullmq';
