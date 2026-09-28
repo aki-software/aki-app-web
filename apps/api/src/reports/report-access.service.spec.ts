@@ -14,11 +14,11 @@ describe('ReportAccessService', () => {
     role: string,
     userId = 'firebase-patient-1',
     email = 'ada@example.com',
-  ) => ({
-    role,
-    userId,
-    email,
-  });
+  ): any => {
+    if (role === 'ADMIN') return { kind: 'system' };
+    if (role === 'PATIENT') return { kind: 'personal', userId, email, rawRole: role };
+    return { kind: 'institution', institutionId: 'inst-1', userId, email, rawRole: role };
+  };
   const setup = () => {
     const manager = {
       query: jest.fn((sql: string) =>
