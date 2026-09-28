@@ -41,6 +41,8 @@ describe('RequestContextBuilder', () => {
         kind: 'institution',
         userId: 'ia-1',
         institutionId: 'inst-42',
+        email: null,
+        rawRole: 'INSTITUTION_ADMIN',
       });
     });
 
@@ -66,6 +68,8 @@ describe('RequestContextBuilder', () => {
         kind: 'institution',
         userId: 'th-1',
         institutionId: 'inst-99',
+        email: null,
+        rawRole: 'THERAPIST',
       });
     });
   });
@@ -77,12 +81,15 @@ describe('RequestContextBuilder', () => {
           userId: 'pat-1',
           role: 'PATIENT',
           institutionId: 'inst-10',
+          email: 'test@example.com',
         }),
       );
       expect(ctx).toEqual({
         kind: 'institution',
         userId: 'pat-1',
         institutionId: 'inst-10',
+        email: 'test@example.com',
+        rawRole: 'PATIENT',
       });
     });
 
@@ -90,7 +97,12 @@ describe('RequestContextBuilder', () => {
       const ctx = builder.fromRequest(
         buildReq({ userId: 'pat-b2c', role: 'PATIENT' }),
       );
-      expect(ctx).toEqual({ kind: 'personal', userId: 'pat-b2c' });
+      expect(ctx).toEqual({
+        kind: 'personal',
+        userId: 'pat-b2c',
+        email: null,
+        rawRole: 'PATIENT',
+      });
     });
   });
 
