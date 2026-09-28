@@ -1,10 +1,11 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { RateLimit } from '../common/decorators/rate-limit.decorator.js';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { AUTH_RATE_LIMITS } from './auth.constants.js';
 import type { AuthenticatedRequest } from './auth.types.js';
 import { AuthLoginService } from './services/auth-login.service.js';
 import { AuthPasswordFlowService } from './services/auth-password-flow.service.js';
+import { AuthTokenService } from './services/auth-token.service.js';
 import { LoginDto } from './dto/auth-login.dto.js';
 import {
   ChangePasswordDto,
@@ -19,6 +20,7 @@ export class AuthController {
   constructor(
     private readonly authLoginService: AuthLoginService,
     private readonly authPasswordFlowService: AuthPasswordFlowService,
+    private readonly authTokenService: AuthTokenService,
   ) {}
 
   @Post('login')
@@ -92,7 +94,12 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout() {
+  async logout(@Req() req: AuthenticatedRequest): Promise<{ ok: true }> {
+    const rawToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!rawToken) {
+      throw new UnauthorizedException('No token provided');
+    }
+    await this.authTokenService.invalidateToken(rawToken);
     return { ok: true };
   }
 }
