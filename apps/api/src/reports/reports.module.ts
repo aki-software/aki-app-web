@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReportWorker } from './report.worker';
 import { ReportRendererService } from './report-renderer.service.js';
@@ -22,11 +23,13 @@ import {
   REPORT_CONSENT_POLICY,
   ReportAccessService,
 } from './report-access.service.js';
+import { ReportReconcilerService } from './report-reconciler.service.js';
 
 @Module({
   controllers: [ReportsController],
   imports: [
     NotificationsModule,
+    ScheduleModule.forRoot(),
     TypeOrmModule.forFeature([
       Report,
       ReportDelivery,
@@ -57,6 +60,7 @@ import {
     ReportAccessAuditService,
     ReportConsentPolicyService,
     ReportAccessService,
+    ReportReconcilerService,
     {
       provide: REPORT_CONSENT_POLICY,
       useExisting: ReportConsentPolicyService,

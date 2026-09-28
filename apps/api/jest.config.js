@@ -14,6 +14,6 @@ module.exports = {
   coverageDirectory: './coverage',
   testEnvironment: 'node',
   transformIgnorePatterns: [
-    '/node_modules/(?!(@akit/contracts|@akit/design-tokens)/)',
+    '/node_modules/(?!.*(@akit/contracts|@akit/design-tokens|@nestjs/schedule)/)',
   ],
 };
