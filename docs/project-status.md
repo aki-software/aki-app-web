@@ -21,7 +21,8 @@ La auditoría integral está completada y el refactor de infraestructura y CI/CD
 | P1 | Base de datos | Confirmado | Revisar índices duplicados y timestamps sin zona horaria |
 | P1 | Web | Confirmado | Matriz única de rol, scope, permiso, ruta y acción |
 | P1 | Site | Confirmado | Corregir marca, legal, claims y funnel B2B |
-| P1 | Operación | En Progreso | Configurado DB Backup automatizado a R2. Faltan métricas/alertas. |
+| P1 | Operación | Resuelto | Automatización y reconciliador de reportes listos (merge pendiente). Faltan métricas. |
+| P1 | Infraestructura | Pendiente | Cambiar origen de despliegue en Render y Cloudflare Pages de 'dev' a 'qa'. |
 
 ## Evidencia QA capturada
 
@@ -63,3 +64,5 @@ Hay tres reportes en `STORAGE_PENDING`, con edades aproximadas de 7 a 26 días, 
 ## Cómo actualizar este documento
 
 Cada PR debe cambiar el estado de sus tareas y enlazar la evidencia de validación. Si un hallazgo deja de ser válido, no se elimina: se marca como resuelto, obsoleto o refutado con explicación.
+
+
