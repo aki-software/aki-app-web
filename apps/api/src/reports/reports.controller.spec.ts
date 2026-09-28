@@ -17,10 +17,19 @@ describe('ReportsController', () => {
   };
   const storage = { get: jest.fn() };
   const reports = { enqueueDelivery: jest.fn() };
+  const contextBuilder = {
+    fromRequest: jest.fn().mockImplementation((r) => ({
+      kind: r.user.role === 'ADMIN' ? 'system' : 'personal',
+      userId: r.user.userId,
+      rawRole: r.user.role,
+      email: r.user.email ?? null,
+    })),
+  };
   const controller = new ReportsController(
     access as any,
     storage as any,
     reports as any,
+    contextBuilder as any,
   );
   const req = (role = 'PATIENT', userId = 'patient-1') =>
     ({ user: { role, userId } }) as any;
@@ -89,9 +98,9 @@ describe('ReportsController', () => {
     );
 
     expect(access.downloadForSession).toHaveBeenCalledWith('session-1', {
-      role: 'INSTITUTION_ADMIN',
+      rawRole: 'INSTITUTION_ADMIN', kind: 'personal', email: null,
       userId: 'patient-1',
-      institutionId: undefined,
+      
     });
     expect(access.download).not.toHaveBeenCalled();
     expect(storage.get).toHaveBeenCalledWith('private/reports/report-2.pdf');
@@ -120,9 +129,9 @@ describe('ReportsController', () => {
 
     expect(storage.get).toHaveBeenCalledWith('private/reports/report-1.pdf');
     expect(access.recordDownload).toHaveBeenCalledWith(report, {
-      role: 'PATIENT',
+      rawRole: 'PATIENT', kind: 'personal', email: null,
       userId: 'patient-1',
-      institutionId: undefined,
+      
     });
     expect(res.set).toHaveBeenCalledWith({
       'Cache-Control':
@@ -166,7 +175,7 @@ describe('ReportsController', () => {
       ).resolves.toEqual({ queued: true, idempotent: false });
       expect(access.authorizeDelivery).toHaveBeenCalledWith(
         'report-1',
-        expect.objectContaining({ role }),
+        expect.objectContaining({ rawRole: role }),
         'ada@example.com',
         'delivery-1',
       );

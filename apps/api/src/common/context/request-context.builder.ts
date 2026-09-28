@@ -40,6 +40,8 @@ export class RequestContextBuilder {
       return SYSTEM_CONTEXT;
     }
 
+    const email = user.email ?? null;
+
     // Institution staff — must have an institutionId in their JWT.
     if (INSTITUTION_ROLES.has(role)) {
       if (!user.institutionId) {
@@ -51,6 +53,8 @@ export class RequestContextBuilder {
         kind: 'institution',
         institutionId: user.institutionId,
         userId,
+        email,
+        rawRole: role,
       };
       this.logger.debug(
         `context=institution userId=${userId} institutionId=${user.institutionId}`,
@@ -65,6 +69,8 @@ export class RequestContextBuilder {
         kind: 'institution',
         institutionId: user.institutionId,
         userId,
+        email,
+        rawRole: role,
       };
       this.logger.debug(
         `context=institution(patient) userId=${userId} institutionId=${user.institutionId}`,
@@ -72,7 +78,7 @@ export class RequestContextBuilder {
       return ctx;
     }
 
-    const ctx: PersonalContext = { kind: 'personal', userId };
+    const ctx: PersonalContext = { kind: 'personal', userId, email, rawRole: role };
     this.logger.debug(`context=personal userId=${userId}`);
     return ctx;
   }

@@ -25,9 +25,11 @@ describe('ReportAccessService scope persistence', () => {
     await service.issue(
       'report-1',
       {
-        role: 'INSTITUTION_ADMIN',
+        kind: 'institution',
+        rawRole: 'INSTITUTION_ADMIN',
         userId: 'admin-1',
         institutionId: 'institution-1',
+        email: null,
       },
       'issue-1',
     );

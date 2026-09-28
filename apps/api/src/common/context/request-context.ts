@@ -24,12 +24,16 @@ export type InstitutionContext = {
   readonly kind: 'institution';
   readonly institutionId: string;
   readonly userId: string;
+  readonly email: string | null;
+  readonly rawRole: string;
 };
 
 /** Used by: PATIENT users who have no institution (B2C or legacy). */
 export type PersonalContext = {
   readonly kind: 'personal';
   readonly userId: string;
+  readonly email: string | null;
+  readonly rawRole: string;
 };
 
 export type RequestContext =
