@@ -8,6 +8,7 @@ import {
   QUEUE_ADAPTER,
   STORAGE_ADAPTER,
 } from './constants/adapters.constants.js';
+import { RequestContextBuilder } from './context/request-context.builder.js';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
 import { IdempotencyInterceptor } from './interceptors/idempotency.interceptor.js';
 import { GeneratePdfProcessor } from './jobs/handlers/generate-pdf.processor.js';
@@ -56,6 +57,7 @@ import { StorageService } from './services/storage.service.js';
       inject: [BullMQQueueAdapter, InMemoryQueueAdapter],
     },
     IdempotencyService,
+    RequestContextBuilder,
     {
       provide: APP_INTERCEPTOR,
       useClass: IdempotencyInterceptor,
@@ -75,6 +77,7 @@ import { StorageService } from './services/storage.service.js';
     QUEUE_ADAPTER,
     BullMQQueueAdapter,
     IdempotencyService,
+    RequestContextBuilder,
   ],
 })
 export class CommonModule {}
