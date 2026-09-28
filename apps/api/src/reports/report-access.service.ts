@@ -14,22 +14,19 @@ import { ReportStatus } from './entities/report.entity.js';
 import { Report } from './entities/report.entity.js';
 import type { ReportGrantScope } from './entities/report-grant.entity.js';
 import { ReportAccessAuditService } from './report-access-audit.service.js';
+import { RequestContext, isSystemContext } from '../common/context/request-context.js';
 
-export interface ReportAccessScope {
-  role: string;
-  userId?: string;
-  email?: string;
-  institutionId?: string;
-}
 export interface ConsentPolicyPort {
-  permits(scope: ReportAccessScope, reportId: string): Promise<boolean>;
+  permits(ctx: RequestContext, reportId: string): Promise<boolean>;
 }
 export const REPORT_CONSENT_POLICY = Symbol('REPORT_CONSENT_POLICY');
 
-function persistedScope(role: string): ReportGrantScope {
-  return role === 'INSTITUTION_ADMIN'
-    ? 'INSTITUTION'
-    : (role as ReportGrantScope);
+function contextToAuditScope(ctx: RequestContext): ReportGrantScope {
+  if (isSystemContext(ctx)) return 'SYSTEM';
+  if (ctx.kind === 'institution') {
+    return ctx.rawRole === 'INSTITUTION_ADMIN' ? 'INSTITUTION' : (ctx.rawRole as ReportGrantScope);
+  }
+  return ctx.rawRole as ReportGrantScope;
 }
 
 @Injectable()
@@ -40,15 +37,15 @@ export class ReportAccessService {
     @Inject(REPORT_CONSENT_POLICY) private readonly consent: ConsentPolicyPort,
   ) {}
 
-  async status(reportId: string, scope: ReportAccessScope) {
+  async status(reportId: string, ctx: RequestContext) {
     return this.data.transaction(async (manager) =>
-      this.authorize(manager, reportId, scope),
+      this.authorize(manager, reportId, ctx),
     );
   }
 
-  async download(reportId: string, scope: ReportAccessScope): Promise<Report> {
+  async download(reportId: string, ctx: RequestContext): Promise<Report> {
     return this.data.transaction(async (manager) => {
-      const report = await this.authorize(manager, reportId, scope);
+      const report = await this.authorize(manager, reportId, ctx);
       this.assertDownloadable(report);
       return report;
     });
@@ -56,7 +53,7 @@ export class ReportAccessService {
 
   async downloadForSession(
     sessionId: string,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
   ): Promise<Report> {
     return this.data.transaction(async (manager) => {
       const report = await manager.getRepository(Report).findOne({
@@ -65,7 +62,7 @@ export class ReportAccessService {
       });
       if (!report)
         throw new NotFoundException('No report exists for this session.');
-      await this.authorizeReport(manager, report, scope);
+      await this.authorizeReport(manager, report, ctx);
       this.assertDownloadable(report);
       return report;
     });
@@ -73,12 +70,12 @@ export class ReportAccessService {
 
   async authorizeDelivery(
     reportId: string,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
     recipientEmail: string,
     operationKey: string,
   ): Promise<Report> {
     return this.data.transaction(async (manager) => {
-      const report = await this.authorize(manager, reportId, scope);
+      const report = await this.authorize(manager, reportId, ctx);
       if (!report.availableUntil || report.availableUntil <= new Date())
         throw new ForbiddenException('Report is unavailable.');
       if (!report.objectKey) throw new NotFoundException('Report not found.');
@@ -86,8 +83,8 @@ export class ReportAccessService {
         eventType: ReportAccessAuditEvent.DELIVERY_AUTHORIZED,
         reportId: report.id,
         grantId: null,
-        actorUserId: scope.userId ?? null,
-        scope: persistedScope(scope.role),
+        actorUserId: (ctx.kind === 'system' ? null : ctx.userId) ?? null,
+        scope: contextToAuditScope(ctx),
         operationKey,
         occurredAt: new Date(),
         recipientEmail: recipientEmail.trim().toLowerCase(),
@@ -99,7 +96,7 @@ export class ReportAccessService {
 
   async recordDownload(
     report: Report,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
   ): Promise<void> {
     await this.data.transaction(async (manager) => {
       const occurredAt = new Date();
@@ -110,8 +107,8 @@ export class ReportAccessService {
         eventType: ReportAccessAuditEvent.DOWNLOAD_ACCESSED,
         reportId: report.id,
         grantId: null,
-        actorUserId: scope.userId ?? null,
-        scope: persistedScope(scope.role),
+        actorUserId: (ctx.kind === 'system' ? null : ctx.userId) ?? null,
+        scope: contextToAuditScope(ctx),
         operationKey: randomUUID(),
         occurredAt,
       });
@@ -120,12 +117,12 @@ export class ReportAccessService {
 
   async issue(
     reportId: string,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
     operationKey: string,
   ) {
     return this.grant(
       reportId,
-      scope,
+      ctx,
       operationKey,
       ReportAccessAuditEvent.GRANT_ISSUED,
     );
@@ -133,12 +130,12 @@ export class ReportAccessService {
 
   async renew(
     reportId: string,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
     operationKey: string,
   ) {
     return this.grant(
       reportId,
-      scope,
+      ctx,
       operationKey,
       ReportAccessAuditEvent.GRANT_RENEWED,
     );
@@ -146,14 +143,14 @@ export class ReportAccessService {
 
   private async grant(
     reportId: string,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
     operationKey: string,
     eventType:
       | ReportAccessAuditEvent.GRANT_ISSUED
       | ReportAccessAuditEvent.GRANT_RENEWED,
   ) {
     return this.data.transaction(async (manager) => {
-      const report = await this.authorize(manager, reportId, scope);
+      const report = await this.authorize(manager, reportId, ctx);
       if (!report.availableUntil || report.availableUntil <= new Date())
         throw new ForbiddenException('Report is unavailable.');
       const token = randomBytes(32).toString('hex');
@@ -163,7 +160,7 @@ export class ReportAccessService {
         [
           report.id,
           hash,
-          persistedScope(scope.role),
+          contextToAuditScope(ctx),
           new Date(
             Math.min(Date.now() + 15 * 60_000, report.availableUntil.getTime()),
           ),
@@ -173,8 +170,8 @@ export class ReportAccessService {
         eventType,
         reportId,
         grantId: rows[0]?.id ?? null,
-        actorUserId: scope.userId ?? null,
-        scope: persistedScope(scope.role),
+        actorUserId: (ctx.kind === 'system' ? null : ctx.userId) ?? null,
+        scope: contextToAuditScope(ctx),
         operationKey,
         occurredAt: new Date(),
       });
@@ -189,7 +186,7 @@ export class ReportAccessService {
 
   async consume(
     token: string,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
     operationKey: string,
   ): Promise<void> {
     await this.data.transaction(async (manager) => {
@@ -200,13 +197,13 @@ export class ReportAccessService {
       );
       const grant = rows[0];
       if (!grant) throw new NotFoundException('Grant is used or expired.');
-      await this.authorize(manager, grant.report_id, scope);
+      await this.authorize(manager, grant.report_id, ctx);
       await this.audit.append(manager, {
         eventType: ReportAccessAuditEvent.GRANT_CONSUMED,
         reportId: grant.report_id,
         grantId: grant.id,
-        actorUserId: scope.userId ?? null,
-        scope: persistedScope(scope.role),
+        actorUserId: (ctx.kind === 'system' ? null : ctx.userId) ?? null,
+        scope: contextToAuditScope(ctx),
         operationKey,
         occurredAt: new Date(),
       });
@@ -243,51 +240,57 @@ export class ReportAccessService {
   private async authorize(
     manager: EntityManager,
     reportId: string,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
   ): Promise<Report> {
     const report = await manager
       .getRepository(Report)
       .findOne({ where: { id: reportId } });
     if (!report || report.status !== ReportStatus.AVAILABLE)
       throw new NotFoundException('Report not found.');
-    return this.authorizeReport(manager, report, scope);
+    return this.authorizeReport(manager, report, ctx);
   }
 
   private async authorizeReport(
     manager: EntityManager,
     report: Report,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
   ): Promise<Report> {
-    if (scope.role === 'ADMIN') return report;
-    if (scope.role === 'PATIENT') {
-      const patientId = await this.resolvePatientId(manager, scope);
+    if (isSystemContext(ctx)) return report;
+
+    if (ctx.kind === 'personal' || (ctx.kind === 'institution' && ctx.rawRole === 'PATIENT')) {
+      const patientId = await this.resolvePatientId(manager, ctx);
       if (patientId && report.entitledPatientId === patientId) return report;
     }
+
     if (
-      (scope.role === 'THERAPIST' ||
-        scope.role === 'INSTITUTION_ADMIN' ||
-        scope.role === 'INSTITUTION') &&
-      (await this.consent.permits(scope, report.id))
-    )
+      ctx.kind === 'institution' &&
+      (ctx.rawRole === 'THERAPIST' || ctx.rawRole === 'INSTITUTION_ADMIN') &&
+      (await this.consent.permits(ctx, report.id))
+    ) {
       return report;
+    }
+
     throw new ForbiddenException('Report access is not permitted.');
   }
 
   private async resolvePatientId(
     manager: EntityManager,
-    scope: ReportAccessScope,
+    ctx: RequestContext,
   ): Promise<string | null> {
-    if (scope.userId) {
+    if (isSystemContext(ctx)) return null;
+
+    if (ctx.userId) {
       const patients = await manager.query(
         `SELECT "id" FROM "patients" WHERE "firebase_uid" = $1 LIMIT 1`,
-        [scope.userId],
+        [ctx.userId],
       );
       if (patients[0]?.id) return patients[0].id;
     }
-    if (scope.email) {
+
+    if (ctx.email) {
       const patients = await manager.query(
         `SELECT "id" FROM "patients" WHERE "email" = $1 LIMIT 1`,
-        [scope.email.trim().toLowerCase()],
+        [ctx.email.trim().toLowerCase()],
       );
       if (patients[0]?.id) return patients[0].id;
     }
