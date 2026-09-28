@@ -65,3 +65,4 @@ Hay tres reportes en `STORAGE_PENDING`, con edades aproximadas de 7 a 26 días, 
 
 Cada PR debe cambiar el estado de sus tareas y enlazar la evidencia de validación. Si un hallazgo deja de ser válido, no se elimina: se marca como resuelto, obsoleto o refutado con explicación.
 
+
