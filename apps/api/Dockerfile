@@ -21,8 +21,7 @@ COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --config.manage-package-manager-versions=false
+RUN pnpm install --frozen-lockfile --config.manage-package-manager-versions=false
 
 # Build the project
 COPY --from=pruner /app/out/full/ .
