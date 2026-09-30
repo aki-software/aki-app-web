@@ -6,8 +6,8 @@
 
 La auditoría integral está completada y el refactor de infraestructura y CI/CD está en curso activo:
 - **Fase 1 (Habilitadores CI/CD):** Completada (PR-01 al PR-05). CI unificado, TypeScript estricto, endpoints `/health/ready`, Dockerfile optimizado, migración de Vercel a Cloudflare Pages.
-- **Fase 2 (CD hacia QA):** En curso (PR-06 y PR-07 completados). La imagen se compila y publica en GHCR, y el despliegue automático en Render (`akit-api-qa`) vía Render REST API está 100% operativo y en verde.
-- **Siguiente entrega:** PR-08 (ejecución automática de migraciones TypeORM en el pipeline de QA).
+- **Fase 2 (CD hacia QA):** En curso. PR-06 al PR-09 completados. La imagen se compila y publica en GHCR, Render despliega la API automáticamente, las migraciones se corren en GitHub Actions antes del deploy (evitando la limitación del free tier de Render), y el frontend (Web y Site) se despliega en Cloudflare Pages.
+- **Siguiente entrega:** Verificar que el pipeline corre de punta a punta (smoke tests en verde) y resolver el fix manual del timestamp duplicado en la tabla `migrations` de QA.
 
 ## Hallazgos prioritarios
 
