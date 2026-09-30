@@ -22,6 +22,7 @@
     "typeorm": "node ./node_modules/typeorm/cli.js",
     "migration:generate": "pnpm build && pnpm typeorm migration:generate -d dist/config/typeorm.config.js src/migrations/",
     "migration:run": "pnpm build && pnpm typeorm migration:run -d dist/config/typeorm.config.js",
+    "migration:run:prod": "node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js",
     "seed:dictionary": "pnpm build && node dist/database/seeds/dictionary-seed.js",
     "seed:report-content": "pnpm build && node dist/database/seeds/report-content-seed.js",
     "seed:report-content:check": "pnpm build && node dist/database/seeds/report-content-seed.js --check",
