@@ -71,7 +71,10 @@ export class ReportsController {
     @Param('reportId') id: string,
     @Req() req: AuthenticatedRequest,
   ) {
-    const report = await this.access.status(id, this.contextBuilder.fromRequest(req));
+    const report = await this.access.status(
+      id,
+      this.contextBuilder.fromRequest(req),
+    );
     return {
       id: report.id,
       status: report.status,
@@ -117,20 +120,32 @@ export class ReportsController {
     @Body() dto: GrantDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.access.issue(id, this.contextBuilder.fromRequest(req), dto.operationKey);
+    return this.access.issue(
+      id,
+      this.contextBuilder.fromRequest(req),
+      dto.operationKey,
+    );
   }
   @Post(':reportId/grants/renew') renew(
     @Param('reportId') id: string,
     @Body() dto: GrantDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.access.renew(id, this.contextBuilder.fromRequest(req), dto.operationKey);
+    return this.access.renew(
+      id,
+      this.contextBuilder.fromRequest(req),
+      dto.operationKey,
+    );
   }
   @Post('grants/consume') async consume(
     @Body() dto: ConsumeDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    await this.access.consume(dto.token, this.contextBuilder.fromRequest(req), dto.operationKey);
+    await this.access.consume(
+      dto.token,
+      this.contextBuilder.fromRequest(req),
+      dto.operationKey,
+    );
     return { consumed: true };
   }
 }

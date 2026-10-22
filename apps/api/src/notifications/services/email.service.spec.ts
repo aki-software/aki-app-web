@@ -33,4 +33,40 @@ describe('EmailService', () => {
     expect(error.mock.calls.flat().join(' ')).not.toContain(recipient);
     expect(error.mock.calls.flat().join(' ')).not.toContain('provider secret');
   });
+
+  it('logs safe SMTP diagnostics without the provider message', async () => {
+    const error = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    const transportError = Object.assign(new Error('provider secret'), {
+      code: 'EAUTH',
+      responseCode: 535,
+    });
+    mailTransport.dispatchEmail.mockRejectedValueOnce(transportError);
+
+    await expect(
+      subject().sendEmail('recipient@example.com', 'Subject', '<p>body</p>'),
+    ).rejects.toEqual(new InternalServerErrorException('Email sending failed'));
+
+    expect(error).toHaveBeenCalledWith(
+      'Email delivery failed (code=EAUTH, responseCode=535)',
+    );
+    expect(error.mock.calls.flat().join(' ')).not.toContain('provider secret');
+  });
+
+  it('omits unrecognized provider-controlled error codes', async () => {
+    const error = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    const transportError = Object.assign(new Error('provider secret'), {
+      code: 'SMTP_PASSWORD=secret',
+      responseCode: 535,
+    });
+    mailTransport.dispatchEmail.mockRejectedValueOnce(transportError);
+
+    await expect(
+      subject().sendEmail('recipient@example.com', 'Subject', '<p>body</p>'),
+    ).rejects.toEqual(new InternalServerErrorException('Email sending failed'));
+
+    expect(error).toHaveBeenCalledWith(
+      'Email delivery failed (responseCode=535)',
+    );
+    expect(error.mock.calls.flat().join(' ')).not.toContain('SMTP_PASSWORD');
+  });
 });

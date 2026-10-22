@@ -15,9 +15,10 @@ interface VouchersIndividualTableProps {
   onViewSessions: (voucherId: string) => void;
   actionManager: {
     actionBusy: boolean;
-    copiedType: "CODE" | "MAIL" | null;
+    copiedType: "CODE" | "MESSAGE" | "MAIL" | null;
     handleWhatsApp: (v: VoucherData) => void;
     handleCopyCode: (c: string) => void;
+    handleCopyMessage: (v: VoucherData) => Promise<void>;
     handleSendEmail: (id: string, c: string, e: string, resend: boolean) => Promise<boolean>;
     handleRevokeAction: (id: string, c: string) => Promise<boolean>;
   };
@@ -57,6 +58,7 @@ export const VouchersIndividualTable = ({
             copiedType={actionManager.copiedType}
             onWhatsApp={() => actionManager.handleWhatsApp(voucher)}
             onCopyCode={() => actionManager.handleCopyCode(voucher.code)}
+            onCopyMessage={() => actionManager.handleCopyMessage(voucher)}
             onSendEmail={(email) =>
               actionManager.handleSendEmail(
                 voucher.id,
@@ -94,6 +96,7 @@ export const VouchersIndividualTable = ({
                   copiedType={actionManager.copiedType}
                   onWhatsApp={() => actionManager.handleWhatsApp(voucher)}
                   onCopyCode={() => actionManager.handleCopyCode(voucher.code)}
+                  onCopyMessage={() => actionManager.handleCopyMessage(voucher)}
                   onSendEmail={(email) => 
                     actionManager.handleSendEmail(
                       voucher.id, 

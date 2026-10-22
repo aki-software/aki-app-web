@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { RateLimit } from '../common/decorators/rate-limit.decorator.js';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { AUTH_RATE_LIMITS } from './auth.constants.js';
