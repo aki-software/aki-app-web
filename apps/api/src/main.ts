@@ -13,8 +13,11 @@ import { createCorsOptions } from './config/cors-policy.js';
 function assertProductionQueueConfig(): void {
   const isProduction = process.env.NODE_ENV === 'production';
   const bullMqEnabled = process.env.ENABLE_BULLMQ === 'true';
-  const redisConfigured =
-    !!(process.env.REDIS_URL ?? process.env.QUEUE_REDIS_URL ?? process.env.REDIS_HOST);
+  const redisConfigured = !!(
+    process.env.REDIS_URL ??
+    process.env.QUEUE_REDIS_URL ??
+    process.env.REDIS_HOST
+  );
 
   if (isProduction && !bullMqEnabled) {
     console.error(

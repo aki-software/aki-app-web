@@ -98,9 +98,10 @@ describe('ReportsController', () => {
     );
 
     expect(access.downloadForSession).toHaveBeenCalledWith('session-1', {
-      rawRole: 'INSTITUTION_ADMIN', kind: 'personal', email: null,
+      rawRole: 'INSTITUTION_ADMIN',
+      kind: 'personal',
+      email: null,
       userId: 'patient-1',
-      
     });
     expect(access.download).not.toHaveBeenCalled();
     expect(storage.get).toHaveBeenCalledWith('private/reports/report-2.pdf');
@@ -129,9 +130,10 @@ describe('ReportsController', () => {
 
     expect(storage.get).toHaveBeenCalledWith('private/reports/report-1.pdf');
     expect(access.recordDownload).toHaveBeenCalledWith(report, {
-      rawRole: 'PATIENT', kind: 'personal', email: null,
+      rawRole: 'PATIENT',
+      kind: 'personal',
+      email: null,
       userId: 'patient-1',
-      
     });
     expect(res.set).toHaveBeenCalledWith({
       'Cache-Control':

@@ -3,6 +3,7 @@ import {
   Building2,
   Calendar,
   Check,
+  ClipboardCopy,
   Copy,
   Eye,
   Mail,
@@ -35,10 +36,11 @@ function formatVoucherCode(code: string) {
 interface VoucherCardMobileProps {
   voucher: VoucherData;
   isAdmin?: boolean;
-  copiedType: "CODE" | "MAIL" | null;
+  copiedType: "CODE" | "MESSAGE" | "MAIL" | null;
   actionBusy: boolean;
   onWhatsApp: () => void;
   onCopyCode: () => void;
+  onCopyMessage: () => void;
   onSendEmail: (email?: string) => void;
   onRevoke: () => void;
   onViewSessions?: () => void;
@@ -51,6 +53,7 @@ export function VoucherCardMobile({
   actionBusy,
   onWhatsApp,
   onCopyCode,
+  onCopyMessage,
   onSendEmail,
   onRevoke,
   onViewSessions,
@@ -169,6 +172,19 @@ export function VoucherCardMobile({
           >
             <MessageCircle className="h-3.5 w-3.5" />
             <span>WhatsApp</span>
+          </button>
+
+          <button
+            onClick={onCopyMessage}
+            disabled={actionBusy}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer disabled:opacity-40 ${
+              copiedType === "MESSAGE"
+                ? "bg-status-success text-white border-status-success"
+                : "bg-app-bg border-app-border text-app-text-muted hover:text-app-text-main"
+            }`}
+          >
+            {copiedType === "MESSAGE" ? <Check className="h-3.5 w-3.5" /> : <ClipboardCopy className="h-3.5 w-3.5" />}
+            <span>Mensaje</span>
           </button>
 
           <button

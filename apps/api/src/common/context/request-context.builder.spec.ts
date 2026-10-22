@@ -2,9 +2,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { RequestContextBuilder } from './request-context.builder.js';
 import type { AuthenticatedRequest } from '../../auth/auth.types.js';
 
-const buildReq = (
-  user: AuthenticatedRequest['user'],
-): AuthenticatedRequest =>
+const buildReq = (user: AuthenticatedRequest['user']): AuthenticatedRequest =>
   ({
     user,
     headers: {},

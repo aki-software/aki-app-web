@@ -1,4 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VouchersModule } from '../vouchers/vouchers.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
@@ -28,6 +29,7 @@ import { ReportsModule } from '../reports/reports.module.js';
 
 @Module({
   imports: [
+    AuthModule,
     TypeOrmModule.forFeature([
       Session,
       SessionResult,

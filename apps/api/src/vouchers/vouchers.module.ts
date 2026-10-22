@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Voucher } from './entities/voucher.entity.js';
 import { VoucherBatch } from './entities/voucher-batch.entity.js';
@@ -20,6 +21,7 @@ import { VoucherAccessGuard } from './guards/voucher-access.guard.js';
 
 @Module({
   imports: [
+    AuthModule,
     TypeOrmModule.forFeature([Voucher, VoucherBatch, Session]),
     UsersModule,
     InstitutionsModule,
