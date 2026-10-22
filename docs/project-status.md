@@ -1,6 +1,6 @@
 # Estado actual del proyecto
 
-Última actualización: **2026-09-21**.
+Última actualización: **2026-10-22**.
 
 ## Estado general
 
@@ -8,6 +8,7 @@ La auditoría integral está completada y el refactor de infraestructura y CI/CD
 - **Fase 1 (Habilitadores CI/CD):** Completada (PR-01 al PR-05). CI unificado, TypeScript estricto, endpoints `/health/ready`, Dockerfile optimizado, migración de Vercel a Cloudflare Pages.
 - **Fase 2 (CD hacia QA):** En curso (PR-06 y PR-07 completados). La imagen se compila y publica en GHCR, y el despliegue automático en Render (`akit-api-qa`) vía Render REST API está 100% operativo y en verde.
 - **Siguiente entrega:** PR-08 (ejecución automática de migraciones TypeORM en el pipeline de QA).
+- **Entorno local:** SeaweedFS provee buckets privados para reportes y backups locales; crear el bucket de backups no activa un job de backup.
 
 ## Hallazgos prioritarios
 

@@ -107,6 +107,12 @@ Los webhooks deben apuntar a:
 | `PUPPETEER_EXECUTABLE_PATH` | Obligatoria en ejecución normal/Docker          | Privada     | Ruta al navegador Chromium/Chrome instalado.                                                     |
 | `PUPPETEER_CACHE_DIR`       | Configuración de Render                         | Privada     | Directorio de cache; actualmente lo configura Render, pero la aplicación no lo lee directamente. |
 
+### Desarrollo local con SeaweedFS
+
+El entorno Docker local proporciona SeaweedFS como almacenamiento S3-compatible. La API ejecutada desde el host debe usar `S3_ENDPOINT=http://localhost:8333`, `S3_REGION=auto` y las mismas credenciales definidas por `SEAWEEDFS_ACCESS_KEY` y `SEAWEEDFS_SECRET_KEY` en `infra/docker/.env`.
+
+El inicializador `seaweedfs/init-buckets.sh` crea `akit-private-reports` para los reportes y `akit-db-backups` como destino reservado para backups locales de PostgreSQL. Ningún job de backup se activa sólo por crear este segundo bucket.
+
 ### Email y notificaciones
 
 `MAIL_TRANSPORT_TYPE` puede ser `smtp`, `pro` o `resend`. Si no se configura, el código usa SMTP.
