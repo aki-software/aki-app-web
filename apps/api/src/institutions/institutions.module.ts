@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Institution } from './entities/institution.entity.js';
 import { InstitutionsController } from './institutions.controller.js';
@@ -13,6 +14,7 @@ import { Session } from '../sessions/entities/session.entity.js';
 
 @Module({
   imports: [
+    AuthModule,
     TypeOrmModule.forFeature([Institution, Voucher, Session]),
     UsersModule,
     CategoriesModule,
