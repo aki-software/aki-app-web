@@ -78,7 +78,12 @@ export class RequestContextBuilder {
       return ctx;
     }
 
-    const ctx: PersonalContext = { kind: 'personal', userId, email, rawRole: role };
+    const ctx: PersonalContext = {
+      kind: 'personal',
+      userId,
+      email,
+      rawRole: role,
+    };
     this.logger.debug(`context=personal userId=${userId}`);
     return ctx;
   }

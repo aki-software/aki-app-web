@@ -13,6 +13,7 @@
     "test": "turbo run test",
     "dev": "turbo run dev",
     "dev:site": "pnpm --filter @akit/site dev",
+    "dev:orientaki": "pnpm --filter @akit/orientaki-app dev",
     "dev:api": "pnpm --filter api dev",
     "dev:web": "pnpm --filter web dev",
     "dev:marketing": "turbo run dev --filter=@akit/site --filter=web",

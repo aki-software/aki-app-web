@@ -1,4 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module.js';
 import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -28,6 +29,7 @@ import { ReportReconcilerService } from './report-reconciler.service.js';
 @Module({
   controllers: [ReportsController],
   imports: [
+    AuthModule,
     NotificationsModule,
     ScheduleModule.forRoot(),
     TypeOrmModule.forFeature([

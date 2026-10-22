@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
@@ -14,10 +14,11 @@ import { AuthPasswordFlowService } from './services/auth-password-flow.service.j
 import { AuthTokenService } from './services/auth-token.service.js';
 import { FirebaseTokenService } from './services/firebase-token.service.js';
 import { RolesGuard } from './guards/roles.guard.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 
 @Module({
   imports: [
-    UsersModule,
+    forwardRef(() => UsersModule),
     PassportModule,
     AuthJwtModule,
     TypeOrmModule.forFeature([Patient]),
@@ -25,6 +26,7 @@ import { RolesGuard } from './guards/roles.guard.js';
   controllers: [AuthController],
   providers: [
     JwtStrategy,
+    JwtAuthGuard,
     RolesGuard,
     RateLimitGuard,
     FirebaseTokenService,
@@ -34,6 +36,6 @@ import { RolesGuard } from './guards/roles.guard.js';
     AuthResponseFactory,
     AuthUserFactory,
   ],
-  exports: [AuthTokenService],
+  exports: [AuthTokenService, JwtAuthGuard],
 })
 export class AuthModule {}

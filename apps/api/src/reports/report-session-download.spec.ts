@@ -41,7 +41,9 @@ describe('session report download', () => {
 
     await expect(
       service.downloadForSession('session-1', {
-        kind: 'personal', rawRole: 'PATIENT', email: null,
+        kind: 'personal',
+        rawRole: 'PATIENT',
+        email: null,
         userId: 'firebase-patient-1',
       }),
     ).resolves.toEqual(report);
@@ -56,7 +58,13 @@ describe('session report download', () => {
     'delegates %s institution authorization to the consent policy',
     async (role) => {
       const { service, consent } = accessService();
-      const scope = { kind: 'institution', rawRole: role, institutionId: 'institution-1', email: null, userId: 'any' };
+      const scope = {
+        kind: 'institution',
+        rawRole: role,
+        institutionId: 'institution-1',
+        email: null,
+        userId: 'any',
+      };
 
       await expect(
         service.downloadForSession('session-1', scope),
@@ -77,7 +85,9 @@ describe('session report download', () => {
 
     await expect(
       service.downloadForSession('session-1', {
-        kind: 'personal', rawRole: 'PATIENT', email: null,
+        kind: 'personal',
+        rawRole: 'PATIENT',
+        email: null,
         userId: 'firebase-patient-1',
       }),
     ).rejects.toThrow(message);
@@ -116,7 +126,12 @@ describe('session report download', () => {
       controller.downloadForSession(
         'session-1',
         {
-          user: { kind: 'institution', rawRole: 'INSTITUTION_ADMIN', email: null, institutionId: 'institution-1' },
+          user: {
+            kind: 'institution',
+            rawRole: 'INSTITUTION_ADMIN',
+            email: null,
+            institutionId: 'institution-1',
+          },
         } as any,
         response as any,
       ),
@@ -124,7 +139,9 @@ describe('session report download', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.end).toHaveBeenCalledWith(Buffer.from('pdf'));
     expect(access.downloadForSession).toHaveBeenCalledWith('session-1', {
-      kind: 'institution', rawRole: 'INSTITUTION_ADMIN', email: null,
+      kind: 'institution',
+      rawRole: 'INSTITUTION_ADMIN',
+      email: null,
       userId: 'admin',
       institutionId: 'institution-1',
     });

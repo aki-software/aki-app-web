@@ -28,7 +28,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     // A revoked token must be rejected even if it is cryptographically valid.
     const rawToken = req.headers?.authorization?.replace('Bearer ', '');
     if (rawToken) {
-      const isRevoked = await this.authTokenService.isTokenInvalidated(rawToken);
+      const isRevoked =
+        await this.authTokenService.isTokenInvalidated(rawToken);
       if (isRevoked) {
         this.logger.warn(
           `${AUTH_JWT_LOG_MESSAGES.failedPrefix} ${req.method} ${req.originalUrl || req.url}: token has been revoked`,

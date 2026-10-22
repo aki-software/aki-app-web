@@ -190,11 +190,14 @@ export class VouchersService {
     }
   }
 
-  private async createBatch(ownership: {
-    ownerType: VoucherOwnerType;
-    ownerUserId: string | null;
-    ownerInstitutionId: string | null;
-  }): Promise<VoucherBatch> {
+  private async createBatch(
+    ownership: {
+      ownerType: VoucherOwnerType;
+      ownerUserId: string | null;
+      ownerInstitutionId: string | null;
+    },
+    quantity: number,
+  ): Promise<VoucherBatch> {
     const shortCode = await this.codeGenerator.generateUniqueBatchCode();
     return await this.voucherBatchRepository.save(
       this.voucherBatchRepository.create({
