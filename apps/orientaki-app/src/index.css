@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@import "@akit/design-tokens/dist/theme.css";
+
+@theme {
+  --font-sans: "Lexend", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Lexend", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand Colors from Design Tokens */
+  --color-primary: var(--color-primary);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-dark: var(--color-primary-dark);
+
+  --color-secondary: var(--color-secondary);
+  --color-secondary-light: var(--color-secondary-light);
+  --color-secondary-dark: var(--color-secondary-dark);
+
+  --color-tertiary: var(--color-tertiary);
+  --color-tertiary-light: var(--color-tertiary-light);
+
+  --color-background-light: var(--color-background-light);
+  --color-background-dark: var(--color-background-dark);
+
+  --color-surface-light: var(--color-surface-light);
+  --color-surface-dark: var(--color-surface-dark);
+  --color-surface-variant: var(--color-surface-variant-light);
+
+  --color-on-background: var(--color-on-background-light);
+  --color-on-background-dark: var(--color-on-background-dark);
+
+  --color-outline: var(--color-outline-light);
+  --color-outline-dark: var(--color-outline-dark);
+
+  /* Swipe & Actions */
+  --color-swipe-success: var(--color-swipe-success);
+  --color-swipe-error: var(--color-swipe-error);
+  --color-confirm: var(--color-actions-confirm);
+  --color-destructive: var(--color-actions-destructive);
+  --color-warning: var(--color-actions-warning);
+
+  /* Glassmorphism */
+  --color-glass-10: var(--color-glass-white10);
+  --color-glass-20: var(--color-glass-white20);
+  --color-glass-50: var(--color-glass-white50);
+}
+
+/* Versalitas / Small-caps como en Android */
+.font-small-caps {
+  font-variant-caps: all-small-caps;
+}
+
+/* Interlineado amplio para accesibilidad cognitiva */
+.leading-accessible {
+  line-height: 1.85;
+}
+
+/* Optimizaciones para iOS PWA */
+html, body {
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Evitar gestos de navegación lateral de Safari en el contenedor de swipe */
+.swipe-arena {
+  touch-action: pan-y;
+}
