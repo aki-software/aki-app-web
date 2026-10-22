@@ -17,7 +17,9 @@ const PREFIX_MAP = {
   "radius": "--radius-",
   "shadow": "--shadow-",
   "typography.size": "--text-",
-  "typography.weight": "--font-"
+  "typography.weight": "--font-",
+  "components": "--component-",
+  "layout": "--layout-"
 };
 
 /**
