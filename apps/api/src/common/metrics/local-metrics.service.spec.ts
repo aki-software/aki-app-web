@@ -1,6 +1,27 @@
 import { LocalMetricsService } from './local-metrics.service.js';
 
 describe('LocalMetricsService', () => {
+  it('records only fixed domain transitions and attempt outcomes without identifiers', async () => {
+    const metrics = new LocalMetricsService();
+    metrics.recordDomainTransition('evaluation_completed');
+    metrics.recordDomainTransition('report_available');
+    metrics.recordDomainAttempt('payment_settlement', 'failure');
+    metrics.recordDomainAttempt('fulfillment', 'success');
+    const body = await metrics.scrape();
+    expect(body).toContain(
+      'akit_domain_transitions_total{transition="evaluation_completed"} 1',
+    );
+    expect(body).toContain(
+      'akit_domain_transitions_total{transition="report_available"} 1',
+    );
+    expect(body).toContain(
+      'akit_domain_attempts_total{operation="payment_settlement",outcome="failure"} 1',
+    );
+    expect(body).toContain(
+      'akit_domain_attempts_total{operation="fulfillment",outcome="success"} 1',
+    );
+    expect(body).not.toContain('session-1');
+  });
   it('records HTTP totals and duration with a bounded route template', async () => {
     const metrics = new LocalMetricsService();
     metrics.recordHttpRequest(

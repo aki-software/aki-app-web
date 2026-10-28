@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,6 +24,7 @@ import { mapToCreateDto } from '../utils/session-payload-mapper.util.js';
 import { buildSyncKey } from '../utils/session-sync-key.util.js';
 import { SessionPaymentStatus } from '@akit/contracts';
 import { SessionsQueryService } from './sessions-query.service.js';
+import { LocalMetricsService } from '../../common/metrics/local-metrics.service.js';
 
 const REPORT_UNLOCK_SKU = 'report_unlock_v2';
 
@@ -39,6 +41,7 @@ export class SessionsMutationService {
     private readonly ownerResolver: SessionOwnerResolverService,
     private readonly voucherRedemptionService: VoucherRedemptionService,
     private readonly sessionsQueryService: SessionsQueryService,
+    @Optional() private readonly localMetrics?: LocalMetricsService,
   ) {}
 
   async create(
@@ -99,6 +102,9 @@ export class SessionsMutationService {
       throw new ConflictException(
         `No se pudo crear la sesión: ${err instanceof Error ? err.message : String(err)}`,
       );
+    }
+    if (savedSession.status === SessionStatus.COMPLETED) {
+      this.localMetrics?.recordDomainTransition('evaluation_completed');
     }
     this.queueAdapter
       .enqueue(

@@ -21,6 +21,22 @@ export type OperationalMetric =
   | 'queue_oldest_waiting_age_seconds'
   | 'heartbeat_timestamp_seconds';
 
+export type DomainTransition =
+  | 'evaluation_completed'
+  | 'report_generating'
+  | 'report_available'
+  | 'report_storage_pending'
+  | 'report_failed'
+  | 'payment_paid'
+  | 'fulfillment_completed';
+
+export type DomainOperation =
+  | 'evaluation_calculation'
+  | 'report_generation'
+  | 'payment_settlement'
+  | 'fulfillment';
+export type DomainOutcome = 'success' | 'failure';
+
 @Injectable()
 export class LocalMetricsService {
   private readonly registry = new Registry();
@@ -44,6 +60,18 @@ export class LocalMetricsService {
     registers: [this.registry],
   });
   private readonly operational = new Map<OperationalMetric, Gauge<'queue'>>();
+  private readonly domainTransitions = new Counter({
+    name: 'akit_domain_transitions_total',
+    help: 'First persisted domain state transitions in the local process',
+    labelNames: ['transition'] as const,
+    registers: [this.registry],
+  });
+  private readonly domainAttempts = new Counter({
+    name: 'akit_domain_attempts_total',
+    help: 'Domain processing attempts by result in the local process',
+    labelNames: ['operation', 'outcome'] as const,
+    registers: [this.registry],
+  });
 
   constructor() {
     if (
@@ -93,6 +121,25 @@ export class LocalMetricsService {
 
   observePostgresProbe(durationSeconds: number): void {
     this.postgresProbeDuration.observe(durationSeconds);
+  }
+
+  recordDomainTransition(transition: DomainTransition): void {
+    try {
+      this.domainTransitions.inc({ transition });
+    } catch {
+      // Local telemetry must not change business outcomes.
+    }
+  }
+
+  recordDomainAttempt(
+    operation: DomainOperation,
+    outcome: DomainOutcome,
+  ): void {
+    try {
+      this.domainAttempts.inc({ operation, outcome });
+    } catch {
+      // Local telemetry must not change business outcomes.
+    }
   }
 
   recordHttpRequest(

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { Logger } from '@nestjs/common';
+import { Logger, Optional } from '@nestjs/common';
 import {
   InjectQueue,
   Processor,
@@ -14,6 +14,7 @@ import type { ReportDeliveryAudience } from '../events/domain-events.js';
 import { ReportDeliveryService } from './report-delivery.service.js';
 import { PrivateReportStorageService } from './private-report-storage.service.js';
 import { ReportRendererService } from './report-renderer.service.js';
+import { LocalMetricsService } from '../common/metrics/local-metrics.service.js';
 
 type ReportJobData = {
   reportId: string;
@@ -32,6 +33,7 @@ export class ReportWorker extends WorkerHost {
     private readonly storage: PrivateReportStorageService,
     private readonly delivery: ReportDeliveryService,
     @InjectQueue('reports') private readonly queue: Queue,
+    @Optional() private readonly localMetrics?: LocalMetricsService,
   ) {
     super();
   }
@@ -69,6 +71,7 @@ export class ReportWorker extends WorkerHost {
           report.status = ReportStatus.FAILED;
         }
         await this.reports.save(report);
+        this.localMetrics?.recordDomainTransition('report_failed');
       }
       this.logger.warn(
         JSON.stringify({
@@ -86,6 +89,7 @@ export class ReportWorker extends WorkerHost {
       if (report.status === ReportStatus.PENDING) {
         report.markGenerating();
         await this.reports.save(report);
+        this.localMetrics?.recordDomainTransition('report_generating');
       }
 
       const rendered = await this.renderer.render({
@@ -147,6 +151,7 @@ export class ReportWorker extends WorkerHost {
         generatedAt: new Date(report.inputSnapshot.generatedAt),
       });
       await this.reports.save(report);
+      this.localMetrics?.recordDomainTransition('report_available');
       if (job.data.targetEmail) {
         await this.queue.add(
           'deliver',
@@ -169,12 +174,14 @@ export class ReportWorker extends WorkerHost {
           },
         );
       }
+      this.localMetrics?.recordDomainAttempt('report_generation', 'success');
       return {
         inputHash: rendered.inputHash,
         byteLength: rendered.pdf.byteLength,
         storageAvailable: true,
       };
     } catch (error) {
+      this.localMetrics?.recordDomainAttempt('report_generation', 'failure');
       if (
         (report.status === ReportStatus.PENDING ||
           report.status === ReportStatus.GENERATING) &&
@@ -182,6 +189,7 @@ export class ReportWorker extends WorkerHost {
       ) {
         report.markFailed();
         await this.reports.save(report);
+        this.localMetrics?.recordDomainTransition('report_failed');
       }
       throw error;
     }
@@ -222,8 +230,11 @@ export class ReportWorker extends WorkerHost {
     force: boolean,
     audience: ReportDeliveryAudience,
   ): Promise<void> {
+    const firstPending = report.status !== ReportStatus.STORAGE_PENDING;
     report.markStoragePending();
     await this.reports.save(report);
+    if (firstPending)
+      this.localMetrics?.recordDomainTransition('report_storage_pending');
     if (audience === 'EVALUATOR') {
       await this.delivery.deliver(
         report,
