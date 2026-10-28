@@ -4,6 +4,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { createCorsOptions } from './config/cors-policy.js';
+import { LocalMetricsService } from './common/metrics/local-metrics.service.js';
+import { OperationalMetricsService } from './common/metrics/operational-metrics.service.js';
+import { startLocalMetricsServer } from './common/metrics/local-metrics-server.js';
 
 /**
  * Production guard: prevents the app from starting with the in-memory
@@ -81,9 +84,37 @@ async function bootstrap() {
     exclude: ['health', '/'],
   });
 
+  // Local metrics bind only on development/test environments and localhost.
+  const localMetricsEnabled =
+    process.env.NODE_ENV !== 'production' &&
+    process.env.ENABLE_LOCAL_METRICS === 'true';
+  const metricsPort = Number(process.env.LOCAL_METRICS_PORT ?? 9464);
+  if (
+    localMetricsEnabled &&
+    (!Number.isInteger(metricsPort) || metricsPort < 1 || metricsPort > 65535)
+  ) {
+    throw new Error('LOCAL_METRICS_PORT must be a valid TCP port');
+  }
+
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');
   console.log(`[Bootstrap] Application listening on 0.0.0.0:${port}`);
+
+  if (localMetricsEnabled) {
+    const metrics = app.get(LocalMetricsService);
+    const operational = app.get(OperationalMetricsService);
+    const metricsServer = await startLocalMetricsServer(
+      metrics,
+      operational,
+      metricsPort,
+    );
+    process.once('SIGINT', () => metricsServer.close());
+    process.once('SIGTERM', () => metricsServer.close());
+    app.enableShutdownHooks();
+    console.log(
+      `[Bootstrap] Local metrics listening on 127.0.0.1:${metricsPort}`,
+    );
+  }
 }
 
 void bootstrap().catch((error: unknown) => {

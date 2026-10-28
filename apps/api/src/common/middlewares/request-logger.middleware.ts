@@ -2,12 +2,14 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { PinoLogger } from 'nestjs-pino';
 import { RequestCorrelationContext } from '../context/request-correlation.context.js';
+import { LocalMetricsService } from '../metrics/local-metrics.service.js';
 
 @Injectable()
 export class RequestLoggerMiddleware implements NestMiddleware {
   constructor(
     private readonly logger: PinoLogger,
     private readonly correlationContext: RequestCorrelationContext,
+    private readonly metrics: LocalMetricsService,
   ) {
     this.logger.setContext(RequestLoggerMiddleware.name);
   }
@@ -25,6 +27,14 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     res.on('finish', () => {
       const { statusCode } = res;
       const duration = Date.now() - start;
+      try {
+        this.metrics.recordHttpRequest(req, statusCode, duration);
+      } catch {
+        this.logger.warn?.(
+          { event: 'metrics.record_failed' },
+          'HTTP metric recording failed',
+        );
+      }
       this.logger.info(
         {
           event: 'http.response',
