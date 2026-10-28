@@ -4,9 +4,9 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+import { PinoLogger } from 'nestjs-pino';
 
 export const DEFAULT_ERROR_MESSAGES = {
   SERVER_ERROR: 'Servicio temporalmente no disponible',
@@ -65,9 +65,12 @@ function extractExceptionDetails(exception: unknown): ExceptionDetails {
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  private readonly logger = new Logger(AllExceptionsFilter.name);
-
-  constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+  constructor(
+    private readonly httpAdapterHost: HttpAdapterHost,
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(AllExceptionsFilter.name);
+  }
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const { httpAdapter } = this.httpAdapterHost;
@@ -96,14 +99,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message: finalMessage,
     };
 
-    const logMessage = `Exception thrown at ${responseBody.path}`;
-    const logTrace =
-      exception instanceof Error ? exception.stack : String(exception);
+    const logFields = {
+      event: 'http.exception',
+      status: finalStatusCode,
+      errorClass:
+        exception instanceof Error
+          ? exception.constructor.name
+          : 'UnknownError',
+    };
 
     if (isServerError) {
-      this.logger.error(logMessage, logTrace);
+      this.logger.error(logFields, 'Request failed');
     } else {
-      this.logger.warn(`${logMessage} - ${finalStatusCode}: ${finalMessage}`);
+      this.logger.warn(logFields, 'Request rejected');
     }
 
     httpAdapter.reply(ctx.getResponse(), responseBody, finalStatusCode);
