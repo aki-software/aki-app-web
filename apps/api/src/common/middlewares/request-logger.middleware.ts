@@ -1,10 +1,14 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { PinoLogger } from 'nestjs-pino';
+import { RequestCorrelationContext } from '../context/request-correlation.context.js';
 
 @Injectable()
 export class RequestLoggerMiddleware implements NestMiddleware {
-  constructor(private readonly logger: PinoLogger) {
+  constructor(
+    private readonly logger: PinoLogger,
+    private readonly correlationContext: RequestCorrelationContext,
+  ) {
     this.logger.setContext(RequestLoggerMiddleware.name);
   }
 
@@ -12,8 +16,9 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     const start = Date.now();
     const method = req.method;
     const path = normalizePath(req.originalUrl);
+    const requestId = this.correlationContext.getRequestId();
     this.logger.info(
-      { event: 'http.request', method, path },
+      { event: 'http.request', request_id: requestId, method, path },
       'Incoming request',
     );
 
@@ -23,6 +28,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
       this.logger.info(
         {
           event: 'http.response',
+          request_id: requestId,
           method,
           path,
           status: statusCode,

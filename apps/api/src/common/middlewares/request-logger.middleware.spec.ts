@@ -1,11 +1,15 @@
 import { PinoLogger } from 'nestjs-pino';
+import { RequestCorrelationContext } from '../context/request-correlation.context.js';
 import { RequestLoggerMiddleware } from './request-logger.middleware.js';
 
 describe('RequestLoggerMiddleware', () => {
-  it('logs structured method and normalized path without query or request identifiers', () => {
+  it('logs structured method, request ID, and normalized path without sensitive values', () => {
     const info = jest.fn();
     const logger = { info, setContext: jest.fn() } as unknown as PinoLogger;
-    const middleware = new RequestLoggerMiddleware(logger);
+    const correlationContext = {
+      getRequestId: jest.fn().mockReturnValue('request-safe-123'),
+    } as unknown as RequestCorrelationContext;
+    const middleware = new RequestLoggerMiddleware(logger, correlationContext);
     const finishHandlers: Array<() => void> = [];
     const request = {
       method: 'GET',
@@ -30,6 +34,7 @@ describe('RequestLoggerMiddleware', () => {
     expect(logged).toContain('http.response');
     expect(logged).toContain('503');
     expect(logged).toContain('durationMs');
+    expect(logged).toContain('request-safe-123');
     expect(logged).not.toContain('secret');
     expect(logged).not.toContain('customer-123');
     expect(logged).not.toContain('123e4567-e89b-12d3-a456-426614174000');

@@ -29,6 +29,13 @@ describe('createCorsOptions', () => {
     ).toBe(true);
   });
 
+  it('allows and exposes the request correlation header', () => {
+    const options = createCorsOptions({ NODE_ENV: 'development' });
+
+    expect(options.allowedHeaders).toContain('X-Request-Id');
+    expect(options.exposedHeaders).toContain('X-Request-Id');
+  });
+
   it('allows localhost origins only outside production', () => {
     expect(
       isOriginAllowed({ NODE_ENV: 'development' }, 'http://localhost:5173'),

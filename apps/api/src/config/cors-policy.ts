@@ -45,7 +45,9 @@ export function createCorsOptions(
       'Content-Type',
       'Accept',
       'Authorization',
+      'X-Request-Id',
     ],
+    exposedHeaders: ['X-Request-Id'],
     credentials: true,
   };
 }

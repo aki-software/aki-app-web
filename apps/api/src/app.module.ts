@@ -17,6 +17,7 @@ import { HealthController } from './health.controller.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { BullModule } from '@nestjs/bullmq';
 import { RequestLoggerMiddleware } from './common/middlewares/request-logger.middleware.js';
+import { RequestCorrelationMiddleware } from './common/middlewares/request-correlation.middleware.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { ContactModule } from './contact/contact.module.js';
 import { resolvePaymentConfiguration } from './payments/config/payment-configuration.js';
@@ -144,6 +145,8 @@ void _migrations;
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+    consumer
+      .apply(RequestCorrelationMiddleware, RequestLoggerMiddleware)
+      .forRoutes('*');
   }
 }
