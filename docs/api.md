@@ -57,6 +57,10 @@ Excepciones:
 | `users` / `institutions` | Administración de identidades y ámbitos                     | PostgreSQL                                |
 | `stats` / `categories`   | Métricas y catálogo vocacional                              | PostgreSQL                                |
 
+## Logging operativo
+
+La API usa el Pino ya instalado para emitir eventos estructurados de request y excepción (con salida legible en desarrollo). Los eventos HTTP registran método, ruta normalizada, estado, duración y clase de error; no registran query strings, cuerpos, cabeceras de autenticación ni mensajes o stacks de errores. Pino aplica redacción defensiva a campos sensibles conocidos y el logging HTTP automático está desactivado para evitar serializar requests o responses completas. No se habilita exportación externa.
+
 La composición de módulos se concentra en `apps/api/src/app.module.ts`. Antes de agregar un módulo, definí qué caso de uso posee y qué dependencia externa necesita.
 
 ## Autenticación y autorización
