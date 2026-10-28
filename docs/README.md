@@ -24,6 +24,7 @@ Este es el punto de entrada para continuar el trabajo sin reconstruir el context
 | Trabajar en la API | [api.md](api.md) |
 | Cambiar contratos | [contracts.md](contracts.md) |
 | Configurar variables | [deployment-environment.md](deployment-environment.md) |
+| Consultar métricas locales de la API | [operations/local-metrics.md](operations/local-metrics.md) |
 | Resolver incidentes | [operations/incidents.md](operations/incidents.md) |
 | Registrar decisiones | [decisions/README.md](decisions/README.md) |
 
