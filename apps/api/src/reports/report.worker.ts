@@ -37,13 +37,13 @@ export class ReportWorker extends WorkerHost {
   }
 
   @OnWorkerEvent('failed')
-  onFailed(job: Job, error: Error) {
-    this.logger.error(`Job ${job.id} failed: ${error.message}`, error.stack);
+  onFailed() {
+    this.logger.error(JSON.stringify({ event: 'report.worker.job_failed' }));
   }
 
   @OnWorkerEvent('error')
-  onError(error: Error) {
-    this.logger.error(`Worker error: ${error.message}`, error.stack);
+  onError() {
+    this.logger.error(JSON.stringify({ event: 'report.worker.error' }));
   }
 
   async process(job: Job<ReportJobData, unknown, string>) {
@@ -71,7 +71,10 @@ export class ReportWorker extends WorkerHost {
         await this.reports.save(report);
       }
       this.logger.warn(
-        `Skipping legacy report ${report.id}: immutable input snapshot is unavailable.`,
+        JSON.stringify({
+          event: 'report.worker.skipped',
+          reason: 'missing_immutable_input_snapshot',
+        }),
       );
       return {
         skipped: true,
@@ -204,7 +207,7 @@ export class ReportWorker extends WorkerHost {
     } catch (error) {
       if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
         this.logger.error(
-          `Report delivery failed permanently for ${report.id}: ${(error as Error).message}`,
+          JSON.stringify({ event: 'report.delivery.failed_permanently' }),
         );
       }
       throw error;
@@ -215,7 +218,7 @@ export class ReportWorker extends WorkerHost {
     report: Report,
     targetEmail: string | undefined,
     pdfBuffer: Buffer,
-    storageError: unknown,
+    _storageError: unknown,
     force: boolean,
     audience: ReportDeliveryAudience,
   ): Promise<void> {
@@ -235,7 +238,7 @@ export class ReportWorker extends WorkerHost {
       await this.delivery.deliver(report, targetEmail, pdfBuffer);
     }
     this.logger.warn(
-      `Storage upload failed; report ${report.id} retained for retry: ${(storageError as Error).message}`,
+      JSON.stringify({ event: 'report.storage.retry_deferred' }),
     );
   }
 

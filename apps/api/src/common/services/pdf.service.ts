@@ -67,7 +67,7 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
       return Buffer.from(pdfBuffer);
     } catch (error) {
       const message = (error as Error)?.message ?? 'unknown error';
-      this.logger.error(`PDF generation failed: ${message}`);
+      this.logger.error(JSON.stringify({ event: 'report.pdf.render_failed' }));
 
       if (
         message.includes('Connection closed') ||
@@ -75,14 +75,20 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
         message.includes('Protocol error')
       ) {
         this.logger.warn(
-          'Destruyendo instancia corrupta de Puppeteer para forzar reinicio.',
+          JSON.stringify({
+            event: 'report.pdf.browser_reset',
+            reason: 'connection_lost',
+          }),
         );
         await this.closeBrowser().catch(() => {});
       }
 
       if (message.includes('Could not find Chrome')) {
         this.logger.error(
-          'Chrome for Puppeteer is missing. Run: pnpm exec puppeteer browsers install chrome',
+          JSON.stringify({
+            event: 'report.pdf.chrome_missing',
+            action: 'install_pinned_chrome',
+          }),
         );
       }
 
@@ -117,9 +123,9 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
 
     try {
       await page.goto('about:blank');
-    } catch (error) {
+    } catch {
       this.logger.warn(
-        `PDF page reset failed: ${(error as Error)?.message ?? 'unknown'}`,
+        JSON.stringify({ event: 'report.pdf.page_reset_failed' }),
       );
       try {
         await page.close();
@@ -136,9 +142,9 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
 
     try {
       await page.close();
-    } catch (error) {
+    } catch {
       this.logger.warn(
-        `PDF page close failed: ${(error as Error)?.message ?? 'unknown'}`,
+        JSON.stringify({ event: 'report.pdf.page_close_failed' }),
       );
     }
   }
@@ -194,9 +200,9 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
         }
         try {
           await page.close();
-        } catch (error) {
+        } catch {
           this.logger.warn(
-            `PDF idle page close failed: ${(error as Error)?.message ?? 'unknown'}`,
+            JSON.stringify({ event: 'report.pdf.idle_page_close_failed' }),
           );
         }
       }),
@@ -205,9 +211,9 @@ export class PdfService implements PdfGenerator, OnModuleDestroy {
     if (this.browser) {
       try {
         await this.browser.close();
-      } catch (error) {
+      } catch {
         this.logger.warn(
-          `PDF browser close failed: ${(error as Error)?.message ?? 'unknown'}`,
+          JSON.stringify({ event: 'report.pdf.browser_close_failed' }),
         );
       } finally {
         this.browser = undefined;

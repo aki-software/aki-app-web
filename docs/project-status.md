@@ -17,7 +17,7 @@ La auditoría integral está completada y el refactor de infraestructura y CI/CD
 
 | Prioridad | Área | Estado | Siguiente acción |
 |---|---|---|---|
-| P0 | Reportes | Confirmado | Recuperar y reconciliar tres `STORAGE_PENDING` antiguos |
+| P0 | Reportes | Histórico / no productivo | La captura de QA de 2026-09-16 correspondía a datos históricos no productivos; no tratarla como incidente vigente de producción. Ver [runbook de reportes](operations/reports.md). |
 | P0 | Auth | Confirmado por código | Diseñar revocación de tokens y validar TLS efectivo |
 | P0 | Idempotencia | Confirmado por código | Prohibir fallback de memoria en producción |
 | P0 | Multi-tenant | Riesgo alto | Definir `TenantContext` y pruebas cross-tenant |
@@ -43,9 +43,9 @@ La conexión fue read-only a Neon PostgreSQL 17.11, base `neondb`, con aislamien
 - 5 auditorías de acceso.
 - 48 migraciones aplicadas.
 
-### Riesgo operativo confirmado
+### Hallazgo histórico de QA
 
-Hay tres reportes en `STORAGE_PENDING`, con edades aproximadas de 7 a 26 días, sin `object_key` ni `content_hash`. Ver [runbook de reportes](operations/reports.md).
+La captura del 2026-09-16 sobre tres reportes en `STORAGE_PENDING` era histórica y no productiva; no constituye evidencia de una incidencia vigente en producción. Las filas preexistentes no tienen edad conocida, porque `storage_pending_since` no se retrocarga. Ver [runbook de reportes](operations/reports.md).
 
 ### Limitaciones
 

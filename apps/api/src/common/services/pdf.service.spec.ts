@@ -1,4 +1,5 @@
 import { DETERMINISTIC_PDF_OPTIONS, PdfService } from './pdf.service';
+import { Logger } from '@nestjs/common';
 
 const mockLaunch = jest.fn();
 
@@ -147,5 +148,55 @@ describe('PdfService deterministic rendering boundary', () => {
       'release',
     ]);
     expect((service as any).releasePage).toHaveBeenCalledWith(page);
+  });
+
+  it('does not log raw browser or rendering failure details', async () => {
+    const errorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+    const page = createPage(
+      jest
+        .fn()
+        .mockRejectedValue(
+          new Error('patient@example.test private report result'),
+        ),
+    );
+    const service = new PdfService();
+    (service as any).acquirePage = jest.fn().mockResolvedValue(page);
+    (service as any).releasePage = jest.fn().mockResolvedValue(undefined);
+
+    await expect(service.generateFromHtml('<html/>')).rejects.toThrow(
+      'Error al generar el documento PDF.',
+    );
+
+    const capturedLogs = JSON.stringify(errorSpy.mock.calls);
+    expect(capturedLogs).not.toContain('patient@example.test');
+    expect(capturedLogs).not.toContain('private report result');
+    errorSpy.mockRestore();
+  });
+
+  it('does not log raw errors while resetting PDF pages or closing the browser', async () => {
+    const warnSpy = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
+    const service = new PdfService();
+    const page = createPage();
+    Object.assign(page, {
+      isClosed: jest.fn().mockReturnValue(false),
+      goto: jest.fn().mockRejectedValue(new Error('private page state')),
+      close: jest.fn().mockRejectedValue(new Error('private close state')),
+    });
+    await (service as any).releasePage(page);
+
+    (service as any).browser = {
+      close: jest.fn().mockRejectedValue(new Error('private browser state')),
+    };
+    await (service as any).closeBrowser();
+
+    const capturedLogs = JSON.stringify(warnSpy.mock.calls);
+    expect(capturedLogs).not.toContain('private page state');
+    expect(capturedLogs).not.toContain('private close state');
+    expect(capturedLogs).not.toContain('private browser state');
+    warnSpy.mockRestore();
   });
 });
