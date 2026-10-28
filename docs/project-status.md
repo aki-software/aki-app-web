@@ -1,13 +1,13 @@
 # Estado actual del proyecto
 
-Última actualización: **2026-10-22**.
+Última actualización: **2026-10-28**.
 
 ## Estado general
 
 La auditoría integral está completada y el refactor de infraestructura y CI/CD está en curso activo:
 - **Fase 1 (Habilitadores CI/CD):** Completada (PR-01 al PR-05). CI unificado, TypeScript estricto, endpoints `/health/ready`, Dockerfile optimizado, migración de Vercel a Cloudflare Pages.
-- **Fase 2 (CD hacia QA):** En curso (PR-06 y PR-07 completados). La imagen se compila y publica en GHCR, y el despliegue automático en Render (`akit-api-qa`) vía Render REST API está 100% operativo y en verde.
-- **Siguiente entrega:** PR-08 (ejecución automática de migraciones TypeORM en el pipeline de QA).
+- **Fase 2 (CD hacia QA):** En curso. PR-06 al PR-09 completados. El pipeline publica la imagen en GHCR, ejecuta las migraciones TypeORM en GitHub Actions antes del despliegue de la API en Render (`akit-api-qa`) y despliega Web y Site en Cloudflare Pages. Falta comprobar su ejecución completa en QA.
+- **Siguiente entrega:** Verificar el pipeline de punta a punta (incluidos los smoke tests) y resolver el timestamp duplicado en la tabla `migrations` de QA.
 - **Entorno local:** SeaweedFS provee buckets privados para reportes y backups locales; crear el bucket de backups no activa un job de backup.
 - **Diagnóstico de email:** los fallos SMTP registran `code` y `responseCode` seguros, sin exponer el mensaje crudo del proveedor.
 - **Creación de vouchers:** corregida la persistencia de `quantity` en lotes creados manualmente y cubierta con pruebas de cantidad explícita, valor predeterminado y validación previa.
@@ -25,7 +25,7 @@ La auditoría integral está completada y el refactor de infraestructura y CI/CD
 | P1 | Base de datos | Confirmado | Revisar índices duplicados y timestamps sin zona horaria |
 | P1 | Web | Confirmado | Matriz única de rol, scope, permiso, ruta y acción |
 | P1 | Site | Confirmado | Corregir marca, legal, claims y funnel B2B |
-| P1 | Operación | Resuelto | Automatización y reconciliador de reportes listos (merge pendiente). Faltan métricas. |
+| P1 | Operación | Implementado en dev | Automatización, reconciliador y métricas locales de reportes integrados; verificar despliegue y scraping en QA. |
 | P1 | Infraestructura | Pendiente | Cambiar origen de despliegue en Render y Cloudflare Pages de 'dev' a 'qa'. |
 
 ## Evidencia QA capturada

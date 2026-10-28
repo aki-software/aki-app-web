@@ -30,6 +30,8 @@ const databaseUrl = process.env.DATABASE_URL;
 const isLocalDatabaseUrl = databaseUrl
   ? ['localhost', '127.0.0.1', '::1'].includes(new URL(databaseUrl).hostname) ||
     new URL(databaseUrl).hostname.includes('railway.internal')
+  : false;
+
 export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
   ? {
       type: 'postgres',
