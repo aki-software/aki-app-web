@@ -1,4 +1,42 @@
 import { SessionsMutationService } from './sessions-mutation.service';
+import { SessionStatus } from '../entities/session.entity';
+import { LocalMetricsService } from '../../common/metrics/local-metrics.service';
+
+describe('SessionsMutationService local domain metrics', () => {
+  it('counts only a first committed completion, not an idempotent replay', async () => {
+    const metrics = new LocalMetricsService();
+    const service = Object.create(SessionsMutationService.prototype);
+    const saved = { id: 'session-private', status: SessionStatus.COMPLETED };
+    service.localMetrics = metrics;
+    service.sessionRepository = {
+      findOne: jest
+        .fn()
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(saved),
+    };
+    service.dataSource = {
+      transaction: jest.fn((callback) =>
+        callback({
+          create: jest.fn((_type, fields) => fields),
+          save: jest.fn().mockResolvedValue(saved),
+        }),
+      ),
+    };
+    service.queueAdapter = { enqueue: jest.fn().mockResolvedValue(undefined) };
+    await service.create({ results: [{}] } as never, {
+      idempotencyKey: 'sync-private',
+    });
+    await service.create({ results: [{}] } as never, {
+      idempotencyKey: 'sync-private',
+    });
+    const body = await metrics.scrape();
+    expect(body).toContain(
+      'akit_domain_transitions_total{transition="evaluation_completed"} 1',
+    );
+    expect(body).not.toContain('session-private');
+    expect(body).not.toContain('sync-private');
+  });
+});
 
 describe('SessionsMutationService report unlock entitlement', () => {
   const createService = (affected = 1) => {

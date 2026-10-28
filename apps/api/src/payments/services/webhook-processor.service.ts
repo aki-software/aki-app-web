@@ -21,6 +21,7 @@ import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity.js';
 import { VoucherBatchStatus } from '../../vouchers/entities/voucher.enums.js';
 import { VoucherFulfillmentDispatcherService } from './voucher-fulfillment-dispatcher.service.js';
 import { toPaymentEvent } from './payment-safe-persistence.js';
+import { LocalMetricsService } from '../../common/metrics/local-metrics.service.js';
 
 export interface WebhookParams {
   gateway: 'MERCADO_PAGO' | 'STRIPE';
@@ -44,6 +45,7 @@ export class WebhookProcessorService {
     @InjectDataSource() private dataSource: DataSource,
     @Optional()
     private readonly fulfillmentDispatcher?: VoucherFulfillmentDispatcherService,
+    @Optional() private readonly localMetrics?: LocalMetricsService,
   ) {}
 
   async processWebhook(
@@ -113,6 +115,7 @@ export class WebhookProcessorService {
       });
       if (existingEvent) {
         await queryRunner.rollbackTransaction();
+        this.localMetrics?.recordDomainAttempt('payment_settlement', 'success');
         return;
       }
       const voucherBatch = await queryRunner.manager.findOne(VoucherBatch, {
@@ -162,6 +165,8 @@ export class WebhookProcessorService {
       });
       await queryRunner.manager.save(PaymentFulfillmentOutbox, outbox);
       await queryRunner.commitTransaction();
+      this.localMetrics?.recordDomainTransition('payment_paid');
+      this.localMetrics?.recordDomainAttempt('payment_settlement', 'success');
       if (outbox.id)
         void this.fulfillmentDispatcher
           ?.dispatchAfterCommit(outbox)
@@ -177,6 +182,7 @@ export class WebhookProcessorService {
         checkoutAttempt?.buyerUser?.email,
       );
     } catch (err) {
+      this.localMetrics?.recordDomainAttempt('payment_settlement', 'failure');
       await queryRunner.rollbackTransaction();
       if (!params.hasRetriedSerialization && isSerializationFailure(err)) {
         return this.settleVerifiedPayment({

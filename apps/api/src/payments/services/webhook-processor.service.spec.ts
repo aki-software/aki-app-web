@@ -13,6 +13,7 @@ import { PaymentEvent } from '../entities/payment-event.entity';
 import { CheckoutAttempt } from '../entities/checkout-attempt.entity';
 import { VoucherBatch } from '../../vouchers/entities/voucher-batch.entity';
 import { VoucherBatchStatus } from '../../vouchers/entities/voucher.enums';
+import { LocalMetricsService } from '../../common/metrics/local-metrics.service';
 
 const paymentGatewayAdapterMock = (): jest.Mocked<PaymentGatewayAdapter> => ({
   createCheckout: jest.fn(),
@@ -54,6 +55,8 @@ describe('WebhookProcessorService', () => {
   });
 
   it('emits the checkout buyer email for an institution-owned batch after settlement commits', async () => {
+    const metrics = new LocalMetricsService();
+    let settled = false;
     const eventEmitter = { emit: jest.fn() };
     const voucherBatch = Object.assign(new VoucherBatch(), {
       id: 'batch-id',
@@ -67,7 +70,8 @@ describe('WebhookProcessorService', () => {
     });
     const manager = {
       findOne: jest.fn((entity) => {
-        if (entity === PaymentEvent) return Promise.resolve(null);
+        if (entity === PaymentEvent)
+          return Promise.resolve(settled ? { id: 'existing-event' } : null);
         if (entity === VoucherBatch) return Promise.resolve(voucherBatch);
         if (entity === CheckoutAttempt)
           return Promise.resolve({ buyerUser: { email: 'buyer@akit.test' } });
@@ -79,7 +83,10 @@ describe('WebhookProcessorService', () => {
     const queryRunner = {
       connect: jest.fn().mockResolvedValue(undefined),
       startTransaction: jest.fn().mockResolvedValue(undefined),
-      commitTransaction: jest.fn().mockResolvedValue(undefined),
+      commitTransaction: jest.fn(() => {
+        settled = true;
+        return Promise.resolve();
+      }),
       rollbackTransaction: jest.fn().mockResolvedValue(undefined),
       release: jest.fn().mockResolvedValue(undefined),
       manager,
@@ -98,6 +105,8 @@ describe('WebhookProcessorService', () => {
       paymentGatewayAdapterMock(),
       stripeAdapter,
       { createQueryRunner: jest.fn(() => queryRunner) } as never,
+      undefined,
+      metrics,
     );
 
     await service.processWebhook({
@@ -118,6 +127,20 @@ describe('WebhookProcessorService', () => {
       'payment.completed',
       expect.objectContaining({ buyerEmail: 'buyer@akit.test' }),
     );
+    await service.processWebhook({
+      gateway: 'STRIPE',
+      rawBody: Buffer.from('{}'),
+      headers: {},
+      body: { id: 'payment-id' },
+    });
+    const body = await metrics.scrape();
+    expect(body).toContain(
+      'akit_domain_transitions_total{transition="payment_paid"} 1',
+    );
+    expect(body).toContain(
+      'akit_domain_attempts_total{operation="payment_settlement",outcome="success"} 2',
+    );
+    expect(body).not.toContain('batch-id');
   });
 
   it('rejects Stripe webhooks before processing when Mercado Pago is active', async () => {

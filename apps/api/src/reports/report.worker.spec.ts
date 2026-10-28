@@ -1,9 +1,11 @@
 import { ReportWorker } from './report.worker';
 import { ReportStatus } from './entities/report.entity';
 import { Logger } from '@nestjs/common';
+import { LocalMetricsService } from '../common/metrics/local-metrics.service';
 
 describe('ReportWorker', () => {
   const setup = (status = ReportStatus.PENDING) => {
+    const metrics = new LocalMetricsService();
     const report = {
       id: 'report-1',
       sessionId: 'session-1',
@@ -56,6 +58,7 @@ describe('ReportWorker', () => {
         storage as any,
         delivery as any,
         queue as any,
+        metrics,
       ),
       report,
       reports,
@@ -63,6 +66,7 @@ describe('ReportWorker', () => {
       storage,
       delivery,
       queue,
+      metrics,
     };
   };
   const job = (attemptsMade = 0) =>
@@ -71,6 +75,24 @@ describe('ReportWorker', () => {
       attemptsMade,
       opts: { attempts: 3 },
     }) as any;
+
+  it('counts persisted report transitions once across storage retries', async () => {
+    const { worker, report, storage, metrics } = setup();
+    storage.put.mockRejectedValue(new Error('storage unavailable'));
+    await expect(worker.process(job())).rejects.toThrow('storage unavailable');
+    await expect(worker.process(job(1))).rejects.toThrow('storage unavailable');
+    const body = await metrics.scrape();
+    expect(body).toContain(
+      'akit_domain_transitions_total{transition="report_generating"} 1',
+    );
+    expect(body).toContain(
+      'akit_domain_transitions_total{transition="report_storage_pending"} 1',
+    );
+    expect(body).toContain(
+      'akit_domain_attempts_total{operation="report_generation",outcome="failure"} 2',
+    );
+    expect(body).not.toContain(report.id);
+  });
 
   it('does not log worker or job identifiers or raw failure messages', () => {
     const errorSpy = jest
