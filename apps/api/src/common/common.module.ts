@@ -20,6 +20,8 @@ import { IdempotencyService } from './services/idempotency.service.js';
 import { PdfService } from './services/pdf.service.js';
 import { RateLimitService } from './services/rate-limit.service.js';
 import { StorageService } from './services/storage.service.js';
+import { LocalMetricsService } from './metrics/local-metrics.service.js';
+import { OperationalMetricsService } from './metrics/operational-metrics.service.js';
 
 @Global()
 @Module({
@@ -34,6 +36,8 @@ import { StorageService } from './services/storage.service.js';
   ],
   providers: [
     PdfService,
+    LocalMetricsService,
+    OperationalMetricsService,
     StorageService,
     CryptoService,
     RateLimitService,
@@ -71,6 +75,8 @@ import { StorageService } from './services/storage.service.js';
   ],
   exports: [
     PdfService,
+    LocalMetricsService,
+    OperationalMetricsService,
     StorageService,
     CryptoService,
     RateLimitService,
