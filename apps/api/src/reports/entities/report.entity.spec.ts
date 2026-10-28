@@ -108,6 +108,37 @@ describe('Report', () => {
     });
   });
 
+  it('tracks the first storage-pending transition across retries and clears it on recovery', () => {
+    const report = Report.createPending({
+      sessionId: 'session-storage-pending',
+      entitlementSource: ReportEntitlementSource.GOOGLE_PLAY,
+      entitledUserId: 'user-storage-pending',
+      generatedAt: new Date('2026-08-11T00:00:00.000Z'),
+    });
+    report.status = ReportStatus.GENERATING;
+
+    const firstAttemptAt = new Date('2026-10-26T12:00:00.000Z');
+    const retryAt = new Date('2026-10-26T13:00:00.000Z');
+    jest.useFakeTimers().setSystemTime(firstAttemptAt);
+    try {
+      report.markStoragePending();
+      expect(report.storagePendingSince).toEqual(firstAttemptAt);
+
+      jest.setSystemTime(retryAt);
+      report.markStoragePending();
+      expect(report.storagePendingSince).toEqual(firstAttemptAt);
+
+      report.markAvailable({
+        objectKey: 'reports/session-storage-pending/v1.pdf',
+        contentHash: 'sha256:storage-pending',
+        generatedAt: new Date('2026-10-26T11:00:00.000Z'),
+      });
+      expect(report.storagePendingSince).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('clamps leap-day availability to the last day of the twelfth month', () => {
     const report = Report.createPending({
       sessionId: 'session-3',

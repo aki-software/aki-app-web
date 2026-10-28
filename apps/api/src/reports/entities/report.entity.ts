@@ -102,6 +102,13 @@ export class Report {
   @Column({ type: 'enum', enum: ReportStatus, default: ReportStatus.PENDING })
   status: ReportStatus = ReportStatus.PENDING;
 
+  @Column({
+    name: 'storage_pending_since',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  storagePendingSince!: Date | null;
+
   @Column({ type: 'integer', default: 1 })
   version: number = 1;
 
@@ -150,6 +157,7 @@ export class Report {
     report.entitledPatientId = entitledPatientId;
     report.voucherId = voucherId;
     report.inputSnapshot = input.inputSnapshot ?? null;
+    report.storagePendingSince = null;
     report.generatedAt = null;
     report.objectKey = null;
     report.contentHash = null;
@@ -181,6 +189,7 @@ export class Report {
       ),
     );
     this.status = ReportStatus.AVAILABLE;
+    this.storagePendingSince = null;
   }
 
   markStoragePending(): void {
@@ -189,6 +198,7 @@ export class Report {
       throw new Error('Only generating reports can await storage.');
     }
     this.status = ReportStatus.STORAGE_PENDING;
+    this.storagePendingSince = new Date();
   }
 
   markGenerating(): void {
