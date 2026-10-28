@@ -9,6 +9,7 @@ import {
   STORAGE_ADAPTER,
 } from './constants/adapters.constants.js';
 import { RequestContextBuilder } from './context/request-context.builder.js';
+import { RequestCorrelationContext } from './context/request-correlation.context.js';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter.js';
 import { IdempotencyInterceptor } from './interceptors/idempotency.interceptor.js';
 import { GeneratePdfProcessor } from './jobs/handlers/generate-pdf.processor.js';
@@ -19,6 +20,8 @@ import { IdempotencyService } from './services/idempotency.service.js';
 import { PdfService } from './services/pdf.service.js';
 import { RateLimitService } from './services/rate-limit.service.js';
 import { StorageService } from './services/storage.service.js';
+import { LocalMetricsService } from './metrics/local-metrics.service.js';
+import { OperationalMetricsService } from './metrics/operational-metrics.service.js';
 
 @Global()
 @Module({
@@ -33,6 +36,8 @@ import { StorageService } from './services/storage.service.js';
   ],
   providers: [
     PdfService,
+    LocalMetricsService,
+    OperationalMetricsService,
     StorageService,
     CryptoService,
     RateLimitService,
@@ -58,6 +63,7 @@ import { StorageService } from './services/storage.service.js';
     },
     IdempotencyService,
     RequestContextBuilder,
+    RequestCorrelationContext,
     {
       provide: APP_INTERCEPTOR,
       useClass: IdempotencyInterceptor,
@@ -69,6 +75,8 @@ import { StorageService } from './services/storage.service.js';
   ],
   exports: [
     PdfService,
+    LocalMetricsService,
+    OperationalMetricsService,
     StorageService,
     CryptoService,
     RateLimitService,
@@ -78,6 +86,7 @@ import { StorageService } from './services/storage.service.js';
     BullMQQueueAdapter,
     IdempotencyService,
     RequestContextBuilder,
+    RequestCorrelationContext,
   ],
 })
 export class CommonModule {}

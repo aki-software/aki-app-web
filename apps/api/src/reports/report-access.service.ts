@@ -14,7 +14,10 @@ import { ReportStatus } from './entities/report.entity.js';
 import { Report } from './entities/report.entity.js';
 import type { ReportGrantScope } from './entities/report-grant.entity.js';
 import { ReportAccessAuditService } from './report-access-audit.service.js';
-import { RequestContext, isSystemContext } from '../common/context/request-context.js';
+import {
+  RequestContext,
+  isSystemContext,
+} from '../common/context/request-context.js';
 
 export interface ConsentPolicyPort {
   permits(ctx: RequestContext, reportId: string): Promise<boolean>;
@@ -24,7 +27,9 @@ export const REPORT_CONSENT_POLICY = Symbol('REPORT_CONSENT_POLICY');
 function contextToAuditScope(ctx: RequestContext): ReportGrantScope {
   if (isSystemContext(ctx)) return 'SYSTEM';
   if (ctx.kind === 'institution') {
-    return ctx.rawRole === 'INSTITUTION_ADMIN' ? 'INSTITUTION' : (ctx.rawRole as ReportGrantScope);
+    return ctx.rawRole === 'INSTITUTION_ADMIN'
+      ? 'INSTITUTION'
+      : (ctx.rawRole as ReportGrantScope);
   }
   return ctx.rawRole as ReportGrantScope;
 }
@@ -94,10 +99,7 @@ export class ReportAccessService {
     });
   }
 
-  async recordDownload(
-    report: Report,
-    ctx: RequestContext,
-  ): Promise<void> {
+  async recordDownload(report: Report, ctx: RequestContext): Promise<void> {
     await this.data.transaction(async (manager) => {
       const occurredAt = new Date();
       await manager.getRepository(Report).update(report.id, {
@@ -115,11 +117,7 @@ export class ReportAccessService {
     });
   }
 
-  async issue(
-    reportId: string,
-    ctx: RequestContext,
-    operationKey: string,
-  ) {
+  async issue(reportId: string, ctx: RequestContext, operationKey: string) {
     return this.grant(
       reportId,
       ctx,
@@ -128,11 +126,7 @@ export class ReportAccessService {
     );
   }
 
-  async renew(
-    reportId: string,
-    ctx: RequestContext,
-    operationKey: string,
-  ) {
+  async renew(reportId: string, ctx: RequestContext, operationKey: string) {
     return this.grant(
       reportId,
       ctx,
@@ -257,7 +251,10 @@ export class ReportAccessService {
   ): Promise<Report> {
     if (isSystemContext(ctx)) return report;
 
-    if (ctx.kind === 'personal' || (ctx.kind === 'institution' && ctx.rawRole === 'PATIENT')) {
+    if (
+      ctx.kind === 'personal' ||
+      (ctx.kind === 'institution' && ctx.rawRole === 'PATIENT')
+    ) {
       const patientId = await this.resolvePatientId(manager, ctx);
       if (patientId && report.entitledPatientId === patientId) return report;
     }

@@ -1,19 +1,23 @@
 # Estado actual del proyecto
 
-Última actualización: **2026-09-21**.
+Última actualización: **2026-10-22**.
 
 ## Estado general
 
 La auditoría integral está completada y el refactor de infraestructura y CI/CD está en curso activo:
 - **Fase 1 (Habilitadores CI/CD):** Completada (PR-01 al PR-05). CI unificado, TypeScript estricto, endpoints `/health/ready`, Dockerfile optimizado, migración de Vercel a Cloudflare Pages.
-- **Fase 2 (CD hacia QA):** En curso. PR-06 al PR-09 completados. La imagen se compila y publica en GHCR, Render despliega la API automáticamente, las migraciones se corren en GitHub Actions antes del deploy (evitando la limitación del free tier de Render), y el frontend (Web y Site) se despliega en Cloudflare Pages.
-- **Siguiente entrega:** Verificar que el pipeline corre de punta a punta (smoke tests en verde) y resolver el fix manual del timestamp duplicado en la tabla `migrations` de QA.
+- **Fase 2 (CD hacia QA):** En curso (PR-06 y PR-07 completados). La imagen se compila y publica en GHCR, y el despliegue automático en Render (`akit-api-qa`) vía Render REST API está 100% operativo y en verde.
+- **Siguiente entrega:** PR-08 (ejecución automática de migraciones TypeORM en el pipeline de QA).
+- **Entorno local:** SeaweedFS provee buckets privados para reportes y backups locales; crear el bucket de backups no activa un job de backup.
+- **Diagnóstico de email:** los fallos SMTP registran `code` y `responseCode` seguros, sin exponer el mensaje crudo del proveedor.
+- **Creación de vouchers:** corregida la persistencia de `quantity` en lotes creados manualmente y cubierta con pruebas de cantidad explícita, valor predeterminado y validación previa.
+- **Compartir vouchers:** WhatsApp y copiado usan un mensaje contextual con institución, código, vencimiento y una alternativa para destinatarios sin Gmail.
 
 ## Hallazgos prioritarios
 
 | Prioridad | Área | Estado | Siguiente acción |
 |---|---|---|---|
-| P0 | Reportes | Confirmado | Recuperar y reconciliar tres `STORAGE_PENDING` antiguos |
+| P0 | Reportes | Histórico / no productivo | La captura de QA de 2026-09-16 correspondía a datos históricos no productivos; no tratarla como incidente vigente de producción. Ver [runbook de reportes](operations/reports.md). |
 | P0 | Auth | Confirmado por código | Diseñar revocación de tokens y validar TLS efectivo |
 | P0 | Idempotencia | Confirmado por código | Prohibir fallback de memoria en producción |
 | P0 | Multi-tenant | Riesgo alto | Definir `TenantContext` y pruebas cross-tenant |
@@ -39,9 +43,9 @@ La conexión fue read-only a Neon PostgreSQL 17.11, base `neondb`, con aislamien
 - 5 auditorías de acceso.
 - 48 migraciones aplicadas.
 
-### Riesgo operativo confirmado
+### Hallazgo histórico de QA
 
-Hay tres reportes en `STORAGE_PENDING`, con edades aproximadas de 7 a 26 días, sin `object_key` ni `content_hash`. Ver [runbook de reportes](operations/reports.md).
+La captura del 2026-09-16 sobre tres reportes en `STORAGE_PENDING` era histórica y no productiva; no constituye evidencia de una incidencia vigente en producción. Las filas preexistentes no tienen edad conocida, porque `storage_pending_since` no se retrocarga. Ver [runbook de reportes](operations/reports.md).
 
 ### Limitaciones
 

@@ -17,10 +17,12 @@ import { HealthController } from './health.controller.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { BullModule } from '@nestjs/bullmq';
 import { RequestLoggerMiddleware } from './common/middlewares/request-logger.middleware.js';
+import { RequestCorrelationMiddleware } from './common/middlewares/request-correlation.middleware.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { ContactModule } from './contact/contact.module.js';
 import { resolvePaymentConfiguration } from './payments/config/payment-configuration.js';
 import { requireFirebaseProjectId } from './auth/config/firebase-project-id.js';
+import { SAFE_LOG_REDACTION_PATHS } from './common/logging/safe-log-redaction.js';
 
 const { migrations: _migrations, ...applicationTypeOrmConfig } = typeOrmConfig;
 void _migrations;
@@ -29,6 +31,11 @@ void _migrations;
   imports: [
     LoggerModule.forRoot({
       pinoHttp: {
+        autoLogging: false,
+        redact: {
+          paths: SAFE_LOG_REDACTION_PATHS,
+          censor: '[REDACTED]',
+        },
         transport:
           process.env.NODE_ENV !== 'production'
             ? { target: 'pino-pretty', options: { colorize: true } }
@@ -138,6 +145,8 @@ void _migrations;
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+    consumer
+      .apply(RequestCorrelationMiddleware, RequestLoggerMiddleware)
+      .forRoutes('*');
   }
 }

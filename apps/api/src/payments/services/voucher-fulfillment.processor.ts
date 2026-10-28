@@ -1,5 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { Job } from 'bullmq';
 import { DataSource } from 'typeorm';
@@ -12,6 +12,7 @@ import { VoucherBatchStatus } from '../../vouchers/entities/voucher.enums.js';
 import { VoucherCodeGenerator } from '../../vouchers/services/voucher-code-generator.service.js';
 import { PaymentFulfillmentOutbox } from '../entities/payment-fulfillment-outbox.entity.js';
 import { PaymentNotificationIntentService } from './payment-notification-intent.service.js';
+import { LocalMetricsService } from '../../common/metrics/local-metrics.service.js';
 import {
   PAYMENT_NOTIFICATION_DISPATCHER,
   type PaymentNotificationDispatcher,
@@ -40,6 +41,7 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
     >,
     @Inject(PAYMENT_NOTIFICATION_DISPATCHER)
     private readonly paymentNotificationDispatcher: PaymentNotificationDispatcher,
+    @Optional() private readonly localMetrics?: LocalMetricsService,
   ) {
     super();
   }
@@ -65,6 +67,7 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
       });
       if (!outbox || outbox.processedAt) {
         await queryRunner.rollbackTransaction();
+        this.localMetrics?.recordDomainAttempt('fulfillment', 'success');
         this.logger.debug(
           `stage=processing_idempotent_noop outboxId=${job.data.outboxId}`,
         );
@@ -82,6 +85,7 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
         outbox.processedAt = new Date();
         await queryRunner.manager.save(PaymentFulfillmentOutbox, outbox);
         await queryRunner.commitTransaction();
+        this.localMetrics?.recordDomainAttempt('fulfillment', 'success');
         this.logger.log(
           `stage=processing_completed outboxId=${job.data.outboxId}`,
         );
@@ -129,10 +133,13 @@ export class VoucherFulfillmentProcessor extends WorkerHost {
       await queryRunner.manager.save(VoucherBatch, batch);
       await queryRunner.manager.save(PaymentFulfillmentOutbox, outbox);
       await queryRunner.commitTransaction();
+      this.localMetrics?.recordDomainTransition('fulfillment_completed');
+      this.localMetrics?.recordDomainAttempt('fulfillment', 'success');
       this.logger.log(
         `stage=processing_completed outboxId=${job.data.outboxId}`,
       );
     } catch (error) {
+      this.localMetrics?.recordDomainAttempt('fulfillment', 'failure');
       await queryRunner.rollbackTransaction();
       this.logger.error(
         `stage=processing_rolled_back outboxId=${job.data.outboxId}`,

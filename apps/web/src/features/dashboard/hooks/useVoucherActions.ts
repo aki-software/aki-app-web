@@ -3,12 +3,45 @@ import { resendVoucherEmail, revokeVoucher } from "../api/dashboard";
 import { WHATSAPP_BASE_URL } from "../../../config/app-config";
 import type { VoucherData } from "../api/dashboard";
 
+const formatVoucherCode = (code: string) => code.match(/.{1,4}/g)?.join("-") || code;
+
+const formatExpiryDate = (expiresAt: VoucherData["expiresAt"]) => {
+  if (!expiresAt) return null;
+  const date = new Date(expiresAt);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+};
+
+export const buildVoucherShareMessage = (voucher: VoucherData) => {
+  const recipientName = voucher.assignedPatientName?.trim();
+  const institutionName = voucher.ownerInstitutionName?.trim() || "A.kit";
+  const expiryDate = formatExpiryDate(voucher.expiresAt);
+  const lines = [
+    recipientName ? `Hola ${recipientName},` : "Hola,",
+    "",
+    `${institutionName} te compartió un voucher para realizar tu orientación vocacional en A.kit.`,
+    "",
+    `Código de acceso: ${formatVoucherCode(voucher.code)}`,
+  ];
+
+  if (expiryDate) lines.push(`Vence: ${expiryDate}`);
+
+  lines.push("", "Ingresá a A.kit y cargá este código para comenzar.");
+  return lines.join("\n");
+};
+
 export const useVoucherActions = (onActionSuccess?: (message: string) => void, onActionError?: (message: string) => void) => {
   const [actionBusy, setActionBusy] = useState(false);
-  const [copiedType, setCopiedType] = useState<"CODE" | "MAIL" | null>(null);
+  const [copiedType, setCopiedType] = useState<"CODE" | "MESSAGE" | "MAIL" | null>(null);
 
   const handleWhatsApp = (voucher: VoucherData) => {
-    const message = encodeURIComponent(voucher.code);
+    const message = encodeURIComponent(buildVoucherShareMessage(voucher));
     window.open(`${WHATSAPP_BASE_URL}?text=${message}`, "_blank");
   };
 
@@ -16,6 +49,17 @@ export const useVoucherActions = (onActionSuccess?: (message: string) => void, o
     navigator.clipboard.writeText(code);
     setCopiedType("CODE");
     setTimeout(() => setCopiedType(null), 2000);
+  };
+
+  const handleCopyMessage = async (voucher: VoucherData) => {
+    try {
+      await navigator.clipboard.writeText(buildVoucherShareMessage(voucher));
+      setCopiedType("MESSAGE");
+      onActionSuccess?.("Mensaje del voucher copiado.");
+      setTimeout(() => setCopiedType(null), 2000);
+    } catch {
+      onActionError?.("No se pudo copiar el mensaje del voucher.");
+    }
   };
 
   const handleSendEmail = async (voucherId: string, code: string, email: string, isResend: boolean): Promise<boolean> => {
@@ -68,6 +112,7 @@ export const useVoucherActions = (onActionSuccess?: (message: string) => void, o
     copiedType,
     handleWhatsApp,
     handleCopyCode,
+    handleCopyMessage,
     handleSendEmail,
     handleRevokeAction,
   };

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module.js';
 import { BullModule } from '@nestjs/bullmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentsController } from './payments.controller.js';
@@ -42,6 +43,7 @@ import {
 
 @Module({
   imports: [
+    AuthModule,
     TypeOrmModule.forFeature([
       PricingPlan,
       PaymentEvent,

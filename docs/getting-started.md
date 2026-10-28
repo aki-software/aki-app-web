@@ -7,7 +7,7 @@ Esta guía permite levantar A.kit Platform en una máquina nueva. Está pensada 
 - **API:** NestJS en `http://localhost:3000`.
 - **Web:** dashboard React/Vite, normalmente en `http://localhost:5173`.
 - **Site:** sitio público Astro, normalmente en `http://localhost:4321`.
-- **Infraestructura local:** PostgreSQL, Redis, Mailpit, pgAdmin y Jaeger mediante Docker Compose.
+- **Infraestructura local:** PostgreSQL, Redis, Mailpit, pgAdmin, Jaeger y SeaweedFS mediante Docker Compose.
 
 ## 1. Prerequisitos
 
@@ -71,7 +71,7 @@ Docker Compose lee sus variables desde `infra/docker/.env`, no desde `apps/api/.
 Copy-Item infra/docker/.env.example infra/docker/.env
 ```
 
-Revisá especialmente `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `PGADMIN_DEFAULT_EMAIL` y `PGADMIN_DEFAULT_PASSWORD`. La API debe usar los mismos datos de PostgreSQL.
+Revisá especialmente `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `PGADMIN_DEFAULT_EMAIL` y `PGADMIN_DEFAULT_PASSWORD`. La API debe usar los mismos datos de PostgreSQL. SeaweedFS crea dos buckets privados: `akit-private-reports` para reportes y `akit-db-backups` como destino local de backups de base de datos.
 
 ### Web y Site
 
@@ -89,6 +89,20 @@ VITE_API_URL=http://localhost:3000/api/v1
 ```
 
 Nunca pongas contraseñas, tokens o API keys en variables `VITE_*` o `PUBLIC_*`: esos valores terminan en el navegador o en el HTML generado.
+
+### Storage local de reportes
+
+Para no usar R2 durante el desarrollo local, configurá `apps/api/.env` con las credenciales de SeaweedFS definidas en `infra/docker/.env`:
+
+```dotenv
+S3_ENDPOINT=http://localhost:8333
+S3_BUCKET=akit-private-reports
+S3_REGION=auto
+S3_ACCESS_KEY=akit_local
+S3_SECRET_KEY=akit_local_seaweedfs_password
+```
+
+El bucket `akit-db-backups` queda creado para backups locales, pero crear el bucket no agenda ni ejecuta backups automáticos.
 
 ## 4. Levantar servicios locales
 
@@ -115,6 +129,7 @@ URLs útiles:
 | Mailpit UI   | `http://localhost:8025`  |
 | pgAdmin      | `http://localhost:5050`  |
 | Jaeger       | `http://localhost:16686` |
+| SeaweedFS S3 | `http://localhost:8333` |
 
 Para detenerlos sin borrar datos:
 
@@ -194,6 +209,7 @@ Confirmá lo siguiente:
 - Site abre en `http://localhost:4321`.
 - Un correo de prueba aparece en `http://localhost:8025`.
 - PostgreSQL y Redis aparecen como `running` en `docker compose ps`.
+- SeaweedFS aparece como `running` y los buckets `akit-private-reports` y `akit-db-backups` están disponibles en el endpoint S3 local.
 - No hay secretos reales en los archivos locales modificados.
 
 Antes de abrir una PR, ejecutá:

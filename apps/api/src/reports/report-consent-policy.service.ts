@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import type { ConsentPolicyPort } from './report-access.service.js';
-import { RequestContext, isSystemContext } from '../common/context/request-context.js';
+import {
+  RequestContext,
+  isSystemContext,
+} from '../common/context/request-context.js';
 
 @Injectable()
 export class ReportConsentPolicyService implements ConsentPolicyPort {

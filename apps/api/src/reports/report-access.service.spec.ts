@@ -16,8 +16,15 @@ describe('ReportAccessService', () => {
     email = 'ada@example.com',
   ): any => {
     if (role === 'ADMIN') return { kind: 'system' };
-    if (role === 'PATIENT') return { kind: 'personal', userId, email, rawRole: role };
-    return { kind: 'institution', institutionId: 'inst-1', userId, email, rawRole: role };
+    if (role === 'PATIENT')
+      return { kind: 'personal', userId, email, rawRole: role };
+    return {
+      kind: 'institution',
+      institutionId: 'inst-1',
+      userId,
+      email,
+      rawRole: role,
+    };
   };
   const setup = () => {
     const manager = {

@@ -107,6 +107,12 @@ Los webhooks deben apuntar a:
 | `PUPPETEER_EXECUTABLE_PATH` | Obligatoria en ejecución normal/Docker          | Privada     | Ruta al navegador Chromium/Chrome instalado.                                                     |
 | `PUPPETEER_CACHE_DIR`       | Configuración de Render                         | Privada     | Directorio de cache; actualmente lo configura Render, pero la aplicación no lo lee directamente. |
 
+### Desarrollo local con SeaweedFS
+
+El entorno Docker local proporciona SeaweedFS como almacenamiento S3-compatible. La API ejecutada desde el host debe usar `S3_ENDPOINT=http://localhost:8333`, `S3_REGION=auto` y las mismas credenciales definidas por `SEAWEEDFS_ACCESS_KEY` y `SEAWEEDFS_SECRET_KEY` en `infra/docker/.env`.
+
+El inicializador `seaweedfs/init-buckets.sh` crea `akit-private-reports` para los reportes y `akit-db-backups` como destino reservado para backups locales de PostgreSQL. Ningún job de backup se activa sólo por crear este segundo bucket.
+
 ### Email y notificaciones
 
 `MAIL_TRANSPORT_TYPE` puede ser `smtp`, `pro` o `resend`. Si no se configura, el código usa SMTP.
@@ -322,6 +328,12 @@ Si se necesita recrear o reconfigurar el entorno QA desde cero:
 - Si un secreto real fue commiteado o compartido, revocarlo y generar uno nuevo; eliminarlo del archivo no invalida el secreto expuesto.
 - No imprimir variables de entorno completas en logs ni en tickets.
 
+
+## Health checks manuales para Railway (futuro)
+
+Railway no se configura desde este repositorio ni como parte de este cambio. Si Railway se adopta posteriormente, un operador puede configurar manualmente el health check del servicio API con la ruta `/health/ready` y confirmar que el servicio escucha en el puerto asignado. Esta ruta ejecuta un único `SELECT 1` contra PostgreSQL y responde HTTP `503` cuando la base de datos no está disponible; `/health` es el alias de liveness y no consulta PostgreSQL. Se conservan también `/api/v1/health` y `/api/v1/health/ready`.
+
+Para revertir una configuración futura, restaurar en el panel de Railway el valor anterior del health check (o dejarlo sin configurar) y volver a desplegar la última versión estable. Confirmar estado y health check antes de cerrar el incidente. No revertir migraciones como parte del rollback de aplicación.
 
 ## 6. Troubleshooting y Errores Frecuentes (Runbook)
 

@@ -1,38 +1,50 @@
-import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { randomUUID } from 'node:crypto';
+import { PinoLogger } from 'nestjs-pino';
+import { RequestCorrelationContext } from '../context/request-correlation.context.js';
+import { LocalMetricsService } from '../metrics/local-metrics.service.js';
 
 @Injectable()
 export class RequestLoggerMiddleware implements NestMiddleware {
-  private readonly logger = new Logger('IncomingRequest');
+  constructor(
+    private readonly logger: PinoLogger,
+    private readonly correlationContext: RequestCorrelationContext,
+    private readonly metrics: LocalMetricsService,
+  ) {
+    this.logger.setContext(RequestLoggerMiddleware.name);
+  }
 
   use(req: Request, res: Response, next: NextFunction) {
     const start = Date.now();
     const method = req.method;
     const path = normalizePath(req.originalUrl);
-    const correlationId = correlationIdFrom(req);
-
-    this.logger.log(
-      JSON.stringify({
-        event: 'http.request',
-        correlationId,
-        method,
-        path,
-      }),
+    const requestId = this.correlationContext.getRequestId();
+    this.logger.info(
+      { event: 'http.request', request_id: requestId, method, path },
+      'Incoming request',
     );
 
     res.on('finish', () => {
       const { statusCode } = res;
       const duration = Date.now() - start;
-      this.logger.log(
-        JSON.stringify({
+      try {
+        this.metrics.recordHttpRequest(req, statusCode, duration);
+      } catch {
+        this.logger.warn?.(
+          { event: 'metrics.record_failed' },
+          'HTTP metric recording failed',
+        );
+      }
+      this.logger.info(
+        {
           event: 'http.response',
-          correlationId,
+          request_id: requestId,
           method,
           path,
           status: statusCode,
           durationMs: duration,
-        }),
+        },
+        'Request completed',
       );
     });
 
@@ -41,17 +53,23 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 }
 
 function normalizePath(originalUrl: string): string {
-  const path = originalUrl.split('?')[0];
-  return path.replace(
+  const path = originalUrl.split('?')[0].split('#')[0];
+  const normalized = path.replace(
     /\/webhooks\/payments\/(stripe|mercado_pago)/i,
     (_match, gateway: string) => `/webhooks/payments/${gateway.toLowerCase()}`,
   );
+  return normalized
+    .split('/')
+    .map((segment) => (isSensitivePathSegment(segment) ? ':id' : segment))
+    .join('/');
 }
 
-function correlationIdFrom(req: Request): string {
-  const value = req.headers['x-request-id'];
-  const candidate = Array.isArray(value) ? value[0] : value;
-  return candidate && /^[A-Za-z0-9._-]{1,128}$/.test(candidate)
-    ? candidate
-    : randomUUID();
+function isSensitivePathSegment(segment: string): boolean {
+  return (
+    /^\d+$/.test(segment) ||
+    /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(segment) ||
+    /^[0-9a-f]{32,}$/i.test(segment) ||
+    /^[^/\s@]+@[^/\s@]+\.[^/\s@]+$/.test(segment) ||
+    (segment.length >= 24 && /[a-z]/i.test(segment) && /\d/.test(segment))
+  );
 }

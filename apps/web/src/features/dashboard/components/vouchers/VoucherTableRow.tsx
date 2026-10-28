@@ -4,6 +4,7 @@ import {
     Calendar,
     Check,
     Copy,
+    ClipboardCopy,
     Eye,
     Mail,
     MessageCircle,
@@ -33,10 +34,11 @@ function formatVoucherCode(code: string) {
 interface Props {
   voucher: VoucherData;
   isAdmin?: boolean;
-  copiedType: "CODE" | "MAIL" | null;
+  copiedType: "CODE" | "MESSAGE" | "MAIL" | null;
   actionBusy: boolean;
   onWhatsApp: () => void;
   onCopyCode: () => void;
+  onCopyMessage: () => void;
   onSendEmail: (email?: string) => void;
   onRevoke: () => void;
   onViewSessions?: () => void;
@@ -49,6 +51,7 @@ export function VoucherTableRow({
   actionBusy,
   onWhatsApp,
   onCopyCode,
+  onCopyMessage,
   onSendEmail,
   onRevoke,
   onViewSessions 
@@ -166,6 +169,15 @@ export function VoucherTableRow({
                 title="WhatsApp"
               >
                 <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+              <button
+                onClick={onCopyMessage}
+                disabled={actionBusy}
+                aria-label="Copiar mensaje del voucher"
+                className={`flex items-center justify-center p-2 rounded-lg border border-app-border transition-all disabled:opacity-40 ${copiedType === "MESSAGE" ? "bg-status-success text-white border-status-success" : "bg-app-bg text-app-text-muted hover:text-app-primary hover:border-app-primary/20 shadow-sm"}`}
+                title="Copiar mensaje"
+              >
+                {copiedType === "MESSAGE" ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />}
               </button>
               <button
                 onClick={() => (voucher.assignedPatientEmail ? onSendEmail() : setShowEmailInput(true))}
