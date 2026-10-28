@@ -2,6 +2,8 @@ import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { EventEmitter } from 'node:events';
+import { PinoLogger } from 'nestjs-pino';
+import { RequestCorrelationContext } from '../common/context/request-correlation.context.js';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard.js';
 import { RequestLoggerMiddleware } from '../common/middlewares/request-logger.middleware.js';
 import { RateLimitService } from '../common/services/rate-limit.service.js';
@@ -188,12 +190,12 @@ describe('payments security refactor phase 5 RED', () => {
   });
 
   it('redacts payment secrets and PII while preserving request correlation, method, path, status, and duration', () => {
-    const middleware = new RequestLoggerMiddleware();
-    const logger = (
-      middleware as unknown as { logger: { log: jest.Mock; debug: jest.Mock } }
-    ).logger;
-    const log = jest.spyOn(logger, 'log');
-    const debug = jest.spyOn(logger, 'debug');
+    const info = jest.fn();
+    const logger = { info, setContext: jest.fn() } as unknown as PinoLogger;
+    const correlationContext = {
+      getRequestId: jest.fn().mockReturnValue('req-safe-123'),
+    } as unknown as RequestCorrelationContext;
+    const middleware = new RequestLoggerMiddleware(logger, correlationContext);
     const response = new EventEmitter() as EventEmitter & {
       statusCode: number;
     };
@@ -237,7 +239,7 @@ describe('payments security refactor phase 5 RED', () => {
     );
     response.emit('finish');
 
-    const recorded = [...log.mock.calls, ...debug.mock.calls].flat().join(' ');
+    const recorded = JSON.stringify(info.mock.calls);
     for (const sensitiveValue of sensitiveValues) {
       expect(recorded).not.toContain(sensitiveValue);
     }
