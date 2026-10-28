@@ -5,15 +5,20 @@ jest.mock('@nestjs/schedule', () => ({
 
 import { ReportReconcilerService } from './report-reconciler.service';
 import { ReportStatus } from './entities/report.entity';
+import { Logger } from '@nestjs/common';
 
 describe('ReportReconcilerService', () => {
   const makeReport = (
     overrides: Partial<{
+      id: string;
+      sessionId: string;
+      version: number;
       status: ReportStatus;
       inputSnapshot: unknown;
       objectKey: string | null;
       contentHash: string | null;
       generatedAt: Date | null;
+      storagePendingSince: Date | null;
     }> = {},
   ) => ({
     id: 'report-1',
@@ -23,6 +28,7 @@ describe('ReportReconcilerService', () => {
     objectKey: null,
     contentHash: null,
     generatedAt: null,
+    storagePendingSince: new Date('2026-10-26T00:00:00.000Z'),
     inputSnapshot: {
       generatedAt: '2026-01-02T00:00:00.000Z',
       assessmentAt: '2026-01-01T00:00:00.000Z',
@@ -109,6 +115,88 @@ describe('ReportReconcilerService', () => {
 
     expect(storage.put).not.toHaveBeenCalled();
     expect(report.markAvailable).toHaveBeenCalled();
+  });
+
+  it.each([
+    ['hash', { contentHash: 'different-hash', version: '1' }],
+    ['version', { contentHash: 'hash-1', version: '2' }],
+  ])(
+    'does not mark a report available when an immutable object %s mismatches',
+    async (_mismatch, metadata) => {
+      const report = makeReport();
+      const errorSpy = jest
+        .spyOn(Logger.prototype, 'error')
+        .mockImplementation(() => undefined);
+      const logSpy = jest
+        .spyOn(Logger.prototype, 'log')
+        .mockImplementation(() => undefined);
+      const { service, repository, storage } = setup([report]);
+      storage.head.mockResolvedValue(metadata);
+
+      await service.reconcileStoragePending();
+
+      expect(storage.put).not.toHaveBeenCalled();
+      expect(report.markAvailable).not.toHaveBeenCalled();
+      expect(repository.save).not.toHaveBeenCalled();
+      const capturedLogs = JSON.stringify([
+        ...errorSpy.mock.calls,
+        ...logSpy.mock.calls,
+      ]);
+      expect(capturedLogs).not.toContain('report-1');
+      expect(capturedLogs).not.toContain('session-1');
+      expect(capturedLogs).not.toContain(metadata.contentHash);
+      expect(capturedLogs).toContain('immutable_object_mismatch');
+      errorSpy.mockRestore();
+      logSpy.mockRestore();
+    },
+  );
+
+  it('logs aggregate storage-pending age buckets without loading identifiers into the event', async () => {
+    const logSpy = jest
+      .spyOn(Logger.prototype, 'log')
+      .mockImplementation(() => undefined);
+    const now = Date.now();
+    const recent = makeReport({
+      id: 'recent-report-id',
+      sessionId: 'recent-session-id',
+      storagePendingSince: new Date(now - 30 * 60 * 1000),
+    });
+    const sameDay = makeReport({
+      id: 'same-day-report-id',
+      sessionId: 'same-day-session-id',
+      storagePendingSince: new Date(now - 12 * 60 * 60 * 1000),
+    });
+    const old = makeReport({
+      id: 'old-report-id',
+      sessionId: 'old-session-id',
+      storagePendingSince: new Date(now - 36 * 60 * 60 * 1000),
+    });
+    const unknown = makeReport({
+      id: 'unknown-report-id',
+      sessionId: 'unknown-session-id',
+      storagePendingSince: null,
+    });
+    const { service } = setup([recent, sameDay, old, unknown]);
+
+    await service.reconcileStoragePending();
+
+    const startEvent = logSpy.mock.calls
+      .map(([message]) => JSON.parse(String(message)))
+      .find(({ event }) => event === 'reconciler.start');
+    expect(startEvent).toMatchObject({
+      storagePendingAgeBuckets: {
+        underOneHour: 1,
+        oneToTwentyFourHours: 1,
+        overTwentyFourHours: 1,
+        unknown: 1,
+      },
+    });
+    const capturedLogs = JSON.stringify(logSpy.mock.calls);
+    expect(capturedLogs).not.toContain('recent-report-id');
+    expect(capturedLogs).not.toContain('same-day-session-id');
+    expect(capturedLogs).not.toContain('old-report-id');
+    expect(capturedLogs).not.toContain('unknown-report-id');
+    logSpy.mockRestore();
   });
 
   it('skips reports with no inputSnapshot', async () => {
