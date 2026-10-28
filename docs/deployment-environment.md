@@ -329,6 +329,12 @@ Si se necesita recrear o reconfigurar el entorno QA desde cero:
 - No imprimir variables de entorno completas en logs ni en tickets.
 
 
+## Health checks manuales para Railway (futuro)
+
+Railway no se configura desde este repositorio ni como parte de este cambio. Si Railway se adopta posteriormente, un operador puede configurar manualmente el health check del servicio API con la ruta `/health/ready` y confirmar que el servicio escucha en el puerto asignado. Esta ruta ejecuta un único `SELECT 1` contra PostgreSQL y responde HTTP `503` cuando la base de datos no está disponible; `/health` es el alias de liveness y no consulta PostgreSQL. Se conservan también `/api/v1/health` y `/api/v1/health/ready`.
+
+Para revertir una configuración futura, restaurar en el panel de Railway el valor anterior del health check (o dejarlo sin configurar) y volver a desplegar la última versión estable. Confirmar estado y health check antes de cerrar el incidente. No revertir migraciones como parte del rollback de aplicación.
+
 ## 6. Troubleshooting y Errores Frecuentes (Runbook)
 
 ### Falso error de CORS ("No Access-Control-Allow-Origin header is present")

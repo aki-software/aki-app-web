@@ -11,7 +11,7 @@ Branch: feat/observability-clean-foundations -> feat/observability-clean-metrics
 ## Tasks
 - T1 -> S1,S4 | inline reconstructed T01; focused tests 3 suites/4 tests, API build 407 files, scoped ESLint pass; independent verifier found no blocker | committed cdd77ff.
 - T2 -> S1,S4 | inline reconstructed T02; focused tests 4 suites/18 tests, API build 410 files, scoped ESLint pass; independent verifier passed including concurrent ALS isolation | commit pending.
-- T3 -> S1,S2 | inline verification of rebuilt candidate, independent check for high-risk items, local dev integration | pending.
+- T3 -> S1,S2 | inline reconstructed health semantics regression coverage and deployment guidance; health controller test 1 suite/4 tests passed | commit pending.
 - T4 -> S3,S4 | inline proof of merged ancestry and deletion of only merged local branches | pending.
 
 ## Log
@@ -20,3 +20,4 @@ Branch: feat/observability-clean-foundations -> feat/observability-clean-metrics
 - L3 2026-10-27: Clean worktree created from local dev 35a8de6. Original branch remains at 4ef1705 and clean; its setup edits are user-authored. The baseline predates documentation restructuring, so docs must be adapted without importing unrelated history. No remote operation performed.
 - L4 2026-10-28: T01 privacy-safe logging reconstructed on the dev baseline. The partial api-guide path from the old branch was excluded; relevant logging guidance was adapted into docs/api.md. Focused tests passed 3 suites/4 tests, API build compiled 407 files, and scoped check-only ESLint passed. Independent review confirmed omission of supplied IDs is intentional: the original T01 tests assert no customer/report IDs in logs; T02 adds validated request_id separately. Commit cdd77ff; commit-hook lint passed with zero errors and 1,612 existing warnings.
 - L5 2026-10-28: T02 adds validated `x-request-id` generation/echo via AsyncLocalStorage, distinct from authorization context, with CORS allow/expose headers. Four focused suites/18 tests, SWC build (410 files), check-only scoped ESLint, and independent verification passed, including concurrent request isolation. Relevant architecture guidance was adapted into docs/api.md because docs/01-architecture/overview.md does not exist on the dev baseline.
+- L6 2026-10-28: T03 adds regression tests pinning liveness/readiness aliases, single lightweight readiness query, and HTTP 503 on database failure without changing runtime code. Health test passed 1 suite/4 tests. Railway guidance was adapted into docs/deployment-environment.md; no remote configuration was performed.
