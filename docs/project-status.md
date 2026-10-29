@@ -65,8 +65,16 @@ La captura del 2026-09-16 sobre tres reportes en `STORAGE_PENDING` era históric
 6. Web y Site.
 7. Observabilidad y resiliencia.
 
+## Observabilidad MVP local (2026-10-29)
+
+El MVP de observabilidad local incluye métricas de API, un stack privado y desechable de Prometheus/Grafana y alertas consultables sin notificaciones externas. El scraping se limita a la red interna de Docker y las interfaces de usuario se publican solo en loopback. QA/producción y exportación externa siguen fuera de alcance. Ver [guía y runbook local](operations/local-metrics.md#stack-local-unificado).
+
 ## Cómo actualizar este documento
 
 Cada PR debe cambiar el estado de sus tareas y enlazar la evidencia de validación. Si un hallazgo deja de ser válido, no se elimina: se marca como resuelto, obsoleto o refutado con explicación.
 
 
+
+## Stack local unificado
+
+Un solo Compose integra API, dependencias y observabilidad sobre datos locales. Validacion estatica completa; arranque manual pendiente. Sin exportacion cloud.

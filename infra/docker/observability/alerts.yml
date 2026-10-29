@@ -1,0 +1,86 @@
+groups:
+  - name: akit-local-observability
+    rules:
+      - alert: AkitApiMetricsUnavailable
+        expr: up{job="akit-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Local API metrics endpoint is unavailable
+          description: Prometheus has failed to scrape the API metrics endpoint for two minutes.
+          runbook: docs/operations/local-metrics.md#local-alerts
+
+      - alert: AkitApiHigh5xxRate
+        expr: |
+          sum(rate(akit_http_requests_total{status=~"5.."}[5m]))
+          /
+          clamp_min(sum(rate(akit_http_requests_total[5m])), 1)
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than five percent of local API requests return 5xx
+          description: Inspect recent API logs and reproduce the affected route with synthetic data.
+          runbook: docs/operations/local-metrics.md#local-alerts
+
+      - alert: AkitApiHighP95Latency
+        expr: histogram_quantile(0.95, sum by (le) (rate(akit_http_request_duration_seconds_bucket[5m]))) > 2.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Local API p95 request latency exceeds 2.5 seconds
+          description: Check API logs, PostgreSQL readiness, and local queue health before changing limits.
+          runbook: docs/operations/local-metrics.md#local-alerts
+
+      - alert: AkitPostgresProbeDown
+        expr: akit_postgres_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Local PostgreSQL metrics probe failed
+          description: Readiness and the read-only operational probe may both be affected.
+          runbook: docs/operations/local-metrics.md#local-alerts
+
+      - alert: AkitRedisUnavailable
+        expr: (akit_queue_enabled == 1) and on() (akit_redis_up == 0)
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: BullMQ is enabled but its local Redis probe failed
+          description: Confirm the local Redis container is healthy before retrying queued work.
+          runbook: docs/operations/local-metrics.md#local-alerts
+
+      - alert: AkitQueueReadFailed
+        expr: (akit_queue_up{queue!=""} == 0) and on() (akit_queue_enabled == 1)
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: A local BullMQ queue could not be sampled
+          description: Queue counts are set to zero after a failed sample and must not be treated as actual backlog.
+          runbook: docs/operations/local-metrics.md#local-alerts
+
+      - alert: AkitQueueOldestJobTooOld
+        expr: (akit_queue_oldest_waiting_age_seconds{queue!=""} > 300) and on() (akit_queue_enabled == 1)
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: A local queue has a waiting job older than five minutes
+          description: Identify the affected queue and inspect worker logs; do not purge jobs as a first response.
+          runbook: docs/operations/local-metrics.md#local-alerts
+
+      - alert: AkitQueueHasFailedJobs
+        expr: (akit_queue_failed{queue!=""} > 0) and on() (akit_queue_enabled == 1)
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: A local BullMQ queue has failed jobs
+          description: Inspect failed-job diagnostics and retry only after confirming idempotency.
+          runbook: docs/operations/local-metrics.md#local-alerts

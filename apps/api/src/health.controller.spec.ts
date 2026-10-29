@@ -1,5 +1,9 @@
 import { PATH_METADATA } from '@nestjs/common/constants';
+import { DataSource } from 'typeorm';
+import { Test } from '@nestjs/testing';
+import request from 'supertest';
 import { HealthController } from './health.controller.js';
+import { configureApiGlobalPrefix } from './config/api-routing.js';
 
 describe('HealthController', () => {
   const dataSource = { query: jest.fn() };
@@ -45,5 +49,46 @@ describe('HealthController', () => {
     await expect(controller.checkReady()).rejects.toMatchObject({
       status: 503,
     });
+  });
+
+  it('serves readiness at both documented paths without a duplicated prefix', async () => {
+    const module = await Test.createTestingModule({
+      controllers: [HealthController],
+      providers: [
+        {
+          provide: DataSource,
+          useValue: { query: jest.fn().mockResolvedValue([]) },
+        },
+      ],
+    }).compile();
+    const app = module.createNestApplication();
+    configureApiGlobalPrefix(app);
+    await app.init();
+
+    try {
+      expect(
+        (await request(app.getHttpServer()).get('/health/ready')).status,
+      ).toBe(200);
+      expect(
+        (await request(app.getHttpServer()).get('/api/v1/health/ready')).status,
+      ).toBe(200);
+      expect(
+        (await request(app.getHttpServer()).get('/api/v1/api/v1/health/ready'))
+          .status,
+      ).toBe(404);
+      expect((await request(app.getHttpServer()).get('/health')).status).toBe(
+        200,
+      );
+      expect(
+        (await request(app.getHttpServer()).get('/api/v1/health')).status,
+      ).toBe(200);
+      expect(
+        (await request(app.getHttpServer()).get('/api/v1/api/v1/health'))
+          .status,
+      ).toBe(404);
+      expect((await request(app.getHttpServer()).get('/')).status).toBe(200);
+    } finally {
+      await app.close();
+    }
   });
 });

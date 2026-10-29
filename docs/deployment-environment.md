@@ -37,6 +37,7 @@ Usar **una** de estas estrategias:
 | `DATABASE_USER`     | Obligatoria si no existe `DATABASE_URL`         | Secreto | Usuario de PostgreSQL.                                                        |
 | `DATABASE_PASSWORD` | Obligatoria si no existe `DATABASE_URL`         | Secreto | Contraseña de PostgreSQL.                                                     |
 | `DATABASE_NAME`     | Obligatoria si no existe `DATABASE_URL`         | Privada | Nombre de la base.                                                            |
+| `DATABASE_SSL`      | Opcional                                        | Privada | `false` desactiva SSL con `DATABASE_URL` o `DATABASE_HOST` (ej. servicio `postgres` de Docker Compose). Por defecto, cualquier host distinto de `localhost` usa SSL. |
 
 Para CI de previews también se usan `NEON_PROJECT_ID` y `NEON_API_KEY` como secretos de GitHub Actions. El workflow genera `DATABASE_URL` para la rama temporal.
 
@@ -59,6 +60,7 @@ Para CI de previews también se usan `NEON_PROJECT_ID` y `NEON_API_KEY` como sec
 | Variable                     | Estado                        | Tipo        | Uso                                               |
 | ---------------------------- | ----------------------------- | ----------- | ------------------------------------------------- |
 | `REDIS_URL`                  | **Obligatoria en producción** | **Secreto** | Conexión Redis preferida.                         |
+| `ENABLE_BULLMQ`              | **Obligatoria en producción** | Privada     | Debe ser `true` con `NODE_ENV=production`; si no, la API aborta el arranque (`assertProductionQueueConfig` en `main.ts`). La imagen Docker fija `NODE_ENV=production`, por lo que todo contenedor necesita `ENABLE_BULLMQ=true` y Redis configurado. QA lo define en `cd-qa.yml`. |
 | `QUEUE_REDIS_URL`            | Alternativa heredada          | **Secreto** | Fallback compatible con configuraciones antiguas. |
 | `REDIS_HOST`                 | Fallback                      | Privada     | Host cuando no se usa una URL completa.           |
 | `REDIS_PORT`                 | Fallback                      | Privada     | Default habitual: `6379`.                         |

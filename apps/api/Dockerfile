@@ -52,6 +52,10 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./apps/api/package.json
 
+# Canonical data is required by category and three-area seeds in every environment.
+# Copy from the build context because turbo prune only includes workspace sources.
+COPY --chown=nestjs:nodejs docs/orienta_ki_material_teorico.json docs/orienta_ki_220_combinaciones.json ./docs/
+
 # Copy internal workspace packages (contracts, design-tokens) required by symlinks
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 
