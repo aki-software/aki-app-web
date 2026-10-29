@@ -62,10 +62,7 @@ services:
     entrypoint: ["/bin/sh", "/init-buckets.sh"]
     restart: "no"
 
-  # ── Application stack ──────────────────────────────────────────────────────
-  # Opt-in via the `app` profile so `docker compose up -d` keeps starting only
-  # the infrastructure (the API can still run from the host on port 3000).
-  #   docker compose --profile app up -d --build
+
   api-migrate:
     profiles: ["app"]
     build:
@@ -95,9 +92,6 @@ services:
       dockerfile: apps/api/Dockerfile
     image: akit-api:local
     container_name: akit-api
-    # Values below override anything coming from apps/api/.env, whose hosts
-    # point to localhost and are only valid when the API runs on the host.
-    # DATABASE_URL takes precedence over the DATABASE_HOST/PORT/... variables.
     env_file:
       - path: ../../apps/api/.env
         required: false
