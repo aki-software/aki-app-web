@@ -148,6 +148,7 @@ jobs:
               {"key": "DATABASE_URL",        "value": "${{ secrets.QA_DATABASE_URL }}"},
               {"key": "JWT_SECRET",          "value": "${{ secrets.QA_JWT_SECRET }}"},
               {"key": "REDIS_URL",           "value": "${{ secrets.QA_REDIS_URL }}"},
+              {"key": "ENABLE_BULLMQ",       "value": "true"},
               {"key": "FIREBASE_PROJECT_ID", "value": "${{ secrets.QA_FIREBASE_PROJECT_ID }}"},
               {"key": "WEB_APP_URL",         "value": "https://aki-web-qa.pages.dev"},
               {"key": "FRONTEND_URL",        "value": "https://aki-web-qa.pages.dev"},
