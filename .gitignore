@@ -45,6 +45,7 @@ lerna-debug.log*
 keystore.properties
 *.pem
 *.key
+*.dump
 
 # ── Tmp / local runtime state ─────────────────────────────────────
 tmp/

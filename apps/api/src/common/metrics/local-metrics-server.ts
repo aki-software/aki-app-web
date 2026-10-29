@@ -6,6 +6,7 @@ export async function startLocalMetricsServer(
   metrics: LocalMetricsService,
   operational: OperationalMetricsService,
   port: number,
+  bindAddress = '127.0.0.1',
 ): Promise<Server> {
   const server = createServer((request, response) => {
     if (request.method !== 'GET' || request.url !== '/metrics') {
@@ -24,7 +25,7 @@ export async function startLocalMetricsServer(
   });
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject);
-    server.listen(port, '127.0.0.1', resolve);
+    server.listen(port, bindAddress, resolve);
   });
   return server;
 }

@@ -27,6 +27,8 @@ El desglose ejecutable está en [pr-plan.md](pr-plan.md).
 | 6 | Observabilidad y resiliencia | Pendiente |
 | CD | [Refactor CI/CD](ci-cd-plan.md) (Build Once, Deploy Many) | En progreso |
 
+La Fase 6 tiene un MVP local de observabilidad implementado; la validación en QA/producción y el trabajo de resiliencia quedan pendientes.
+
 ## Dependencias
 
 ```text

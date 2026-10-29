@@ -27,9 +27,15 @@ dotenv.config();
 
 const databaseHost = process.env.DATABASE_HOST || 'localhost';
 const databaseUrl = process.env.DATABASE_URL;
+// Explicit opt-out for databases reachable by a non-localhost name that do not
+// speak SSL (e.g. the `postgres` service in infra/docker/docker-compose.yml).
+// Applies to both DATABASE_URL and DATABASE_HOST connection strategies.
+const isDatabaseSslDisabled = process.env.DATABASE_SSL === 'false';
 const isLocalDatabaseUrl = databaseUrl
   ? ['localhost', '127.0.0.1', '::1'].includes(new URL(databaseUrl).hostname) ||
     new URL(databaseUrl).hostname.includes('railway.internal')
+  : false;
+
 export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
   ? {
       type: 'postgres',
@@ -59,7 +65,10 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
       migrations: ['dist/migrations/[0-9]*.js'],
       migrationsTransactionMode: 'each',
       synchronize: false,
-      ssl: isLocalDatabaseUrl ? false : { rejectUnauthorized: false },
+      ssl:
+        isLocalDatabaseUrl || isDatabaseSslDisabled
+          ? false
+          : { rejectUnauthorized: false },
     }
   : {
       type: 'postgres',
@@ -93,7 +102,10 @@ export const typeOrmConfig: PostgresConnectionOptions = databaseUrl
       migrations: ['dist/migrations/[0-9]*.js'],
       migrationsTransactionMode: 'each',
       synchronize: false,
-      ssl: databaseHost !== 'localhost' ? { rejectUnauthorized: false } : false,
+      ssl:
+        databaseHost !== 'localhost' && !isDatabaseSslDisabled
+          ? { rejectUnauthorized: false }
+          : false,
     };
 
 export default new DataSource(typeOrmConfig);

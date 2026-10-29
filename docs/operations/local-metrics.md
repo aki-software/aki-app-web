@@ -1,6 +1,48 @@
 # Métricas locales de la API
 
-Esta instrumentación es un piloto local de T05–T07. No exporta datos ni habilita un endpoint público en el puerto de la API.
+## Stack local unificado
+
+Un único Compose levanta API, migraciones, PostgreSQL, Redis, SeaweedFS, Jaeger, Prometheus y Grafana. La observabilidad usa los mismos datos locales de desarrollo, no otra API ni otra base.
+
+Desde la raíz, con las variables locales configuradas:
+
+```powershell
+docker compose --env-file infra/docker/.env -f infra/docker/docker-compose.yml config --quiet
+docker compose --env-file infra/docker/.env -f infra/docker/docker-compose.yml up -d --build
+```
+
+La API conserva la imagen con Chromium, pero Compose establece `NODE_ENV=development` para las métricas. PostgreSQL, Redis y S3 apuntan a los servicios locales. Revise las otras variables de `apps/api/.env`: correo y proveedores externos no quedan aislados automáticamente. No use credenciales de QA o producción.
+
+### Validación manual
+
+1. Confirme `api-migrate` terminado con código 0 y API healthy.
+2. Consulte `http://127.0.0.1:3000/health/ready`: debe responder 200.
+3. En `http://127.0.0.1:9090/targets`, confirme `api:9464` UP.
+4. Abra `http://127.0.0.1:3001` y el dashboard `A.kit Local Observability`; genere solicitudes a `/health` y confirme actividad.
+5. Confirme con `docker compose ps` que 9464 no tiene puerto publicado.
+6. Reinicie normalmente y compruebe persistencia de datos.
+
+Grafana es anónimo Viewer y solo local. No hay exportación ni notificaciones externas. Los umbrales de las alertas son heurísticos de desarrollo, no SLOs de producción. Consulte `/alerts` en Prometheus; ante fallos, revise salud de API y dependencias, sin purgar colas ni borrar volúmenes.
+
+Antes del primer arranque, identifique y detenga los contenedores del antiguo stack si siguen ocupando 3001/9090. No elimine sus volúmenes.
+
+```powershell
+docker compose --env-file infra/docker/.env -f infra/docker/docker-compose.yml down
+```
+
+**Ahora `down` detiene todo el entorno local**, no solo observabilidad. Conserva los volúmenes. No ejecute `down -v` salvo que quiera eliminar los datos.
+
+| Alerta | Umbral | Respuesta inicial |
+|---|---|---|
+| `AkitApiMetricsUnavailable` | scrape fallido durante 2 min | Revisar `docker compose logs api` y readiness. |
+| `AkitApiHigh5xxRate` | >5% durante 5 min | Revisar logs y reproducir con datos sintéticos. |
+| `AkitApiHighP95Latency` | p95 >2.5 s durante 5 min | Revisar probes de PostgreSQL/Redis y logs antes de cambiar límites. |
+| `AkitPostgresProbeDown`, `AkitRedisUnavailable` | probe fallido durante 2 min | Confirmar salud del servicio local; no borrar volúmenes como primer paso. |
+| `AkitQueueReadFailed` | muestra de cola fallida durante 2 min | `queue_up=0` invalida conteos muestreados; recuperar el acceso antes de interpretar backlog. |
+| `AkitQueueOldestJobTooOld` | job en espera >5 min durante 5 min | Identificar la cola y revisar logs del worker; no purgar jobs primero. |
+| `AkitQueueHasFailedJobs` | jobs fallidos >0 durante 10 min | Inspeccionar diagnóstico seguro e idempotencia antes de reintentar. |
+
+Las métricas HTTP usan método, plantilla de ruta y estado; las de dominio usan enums. No agregue IDs, correos, URLs completas, query strings, tokens ni payloads. Las pruebas unitarias verifican que rutas desconocidas no filtren URLs y que errores de sondeo marquen dependencias como no saludables sin propagar fallos de telemetría al tráfico de negocio.
 
 ## Activación
 
