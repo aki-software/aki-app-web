@@ -4,9 +4,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { createCorsOptions } from './config/cors-policy.js';
+import { configureApiGlobalPrefix } from './config/api-routing.js';
 import { LocalMetricsService } from './common/metrics/local-metrics.service.js';
 import { OperationalMetricsService } from './common/metrics/operational-metrics.service.js';
-import { startLocalMetricsServer } from './common/metrics/local-metrics-server.js';
+import { startApiListeners } from './startup/startup-listeners.js';
 
 /**
  * Production guard: prevents the app from starting with the in-memory
@@ -80,9 +81,7 @@ async function bootstrap() {
     }),
   );
 
-  app.setGlobalPrefix('api/v1', {
-    exclude: ['health', '/'],
-  });
+  configureApiGlobalPrefix(app);
 
   // Local metrics bind only on development/test environments and localhost.
   const localMetricsEnabled =
@@ -97,17 +96,16 @@ async function bootstrap() {
   }
 
   const port = process.env.PORT ?? 3000;
-  await app.listen(port, '0.0.0.0');
+  const metricsServer = await startApiListeners(app, {
+    port,
+    localMetricsEnabled,
+    metricsPort,
+    metrics: app.get(LocalMetricsService),
+    operational: app.get(OperationalMetricsService),
+  });
   console.log(`[Bootstrap] Application listening on 0.0.0.0:${port}`);
 
-  if (localMetricsEnabled) {
-    const metrics = app.get(LocalMetricsService);
-    const operational = app.get(OperationalMetricsService);
-    const metricsServer = await startLocalMetricsServer(
-      metrics,
-      operational,
-      metricsPort,
-    );
+  if (metricsServer) {
     process.once('SIGINT', () => metricsServer.close());
     process.once('SIGTERM', () => metricsServer.close());
     app.enableShutdownHooks();
