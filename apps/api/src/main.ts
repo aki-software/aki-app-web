@@ -5,6 +5,7 @@ import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { createCorsOptions } from './config/cors-policy.js';
 import { configureApiGlobalPrefix } from './config/api-routing.js';
+import { resolveLocalMetricsBindAddress } from './config/local-metrics.js';
 import { LocalMetricsService } from './common/metrics/local-metrics.service.js';
 import { OperationalMetricsService } from './common/metrics/operational-metrics.service.js';
 import { startApiListeners } from './startup/startup-listeners.js';
@@ -83,23 +84,27 @@ async function bootstrap() {
 
   configureApiGlobalPrefix(app);
 
-  // Local metrics bind only on development/test environments and localhost.
+  // Local metrics are opt-in, loopback-only by default, and bindable to a private container network.
   const localMetricsEnabled =
     process.env.NODE_ENV !== 'production' &&
     process.env.ENABLE_LOCAL_METRICS === 'true';
   const metricsPort = Number(process.env.LOCAL_METRICS_PORT ?? 9464);
+  const metricsBindAddress = resolveLocalMetricsBindAddress(
+    process.env.LOCAL_METRICS_BIND_ADDRESS,
+    localMetricsEnabled,
+  );
   if (
     localMetricsEnabled &&
     (!Number.isInteger(metricsPort) || metricsPort < 1 || metricsPort > 65535)
   ) {
     throw new Error('LOCAL_METRICS_PORT must be a valid TCP port');
   }
-
   const port = process.env.PORT ?? 3000;
   const metricsServer = await startApiListeners(app, {
     port,
     localMetricsEnabled,
     metricsPort,
+    metricsBindAddress,
     metrics: app.get(LocalMetricsService),
     operational: app.get(OperationalMetricsService),
   });
@@ -110,7 +115,7 @@ async function bootstrap() {
     process.once('SIGTERM', () => metricsServer.close());
     app.enableShutdownHooks();
     console.log(
-      `[Bootstrap] Local metrics listening on 127.0.0.1:${metricsPort}`,
+      `[Bootstrap] Local metrics listening on ${metricsBindAddress}:${metricsPort}`,
     );
   }
 }

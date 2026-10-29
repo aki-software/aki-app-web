@@ -8,6 +8,7 @@ interface ApiListenerOptions {
   port: string | number;
   localMetricsEnabled: boolean;
   metricsPort: number;
+  metricsBindAddress?: string;
   metrics: LocalMetricsService;
   operational: OperationalMetricsService;
 }
@@ -21,6 +22,7 @@ export async function startApiListeners(
         options.metrics,
         options.operational,
         options.metricsPort,
+        options.metricsBindAddress,
       )
     : undefined;
 

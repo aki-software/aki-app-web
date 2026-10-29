@@ -1,0 +1,130 @@
+services:
+  observability-postgres:
+    profiles: [observability]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${LOCAL_OBSERVABILITY_POSTGRES_USER:-akit_observability}
+      POSTGRES_PASSWORD: ${LOCAL_OBSERVABILITY_POSTGRES_PASSWORD:-local-observability-only-change-me}
+      POSTGRES_DB: ${LOCAL_OBSERVABILITY_POSTGRES_DB:-akit_observability}
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - observability_postgres_data:/var/lib/postgresql/data
+    networks:
+      - observability
+
+  observability-redis:
+    profiles: [observability]
+    image: redis:7.2.5-alpine
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - observability_redis_data:/data
+    networks:
+      - observability
+
+  observability-api:
+    profiles: [observability]
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+      target: builder
+    command: [node, apps/api/dist/main.js]
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_HOST: observability-postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USER: ${LOCAL_OBSERVABILITY_POSTGRES_USER:-akit_observability}
+      DATABASE_PASSWORD: ${LOCAL_OBSERVABILITY_POSTGRES_PASSWORD:-local-observability-only-change-me}
+      DATABASE_NAME: ${LOCAL_OBSERVABILITY_POSTGRES_DB:-akit_observability}
+      DATABASE_SSL: "false"
+      JWT_SECRET: ${LOCAL_OBSERVABILITY_JWT_SECRET:-local-observability-only-change-me-32-chars}
+      FIREBASE_PROJECT_ID: local-observability
+      S3_ENDPOINT: http://s3-disabled.invalid
+      S3_BUCKET: local-observability-placeholder
+      S3_REGION: auto
+      S3_ACCESS_KEY: local-only-placeholder
+      S3_SECRET_KEY: local-observability-placeholder-secret
+      PAYMENT_GATEWAY: MERCADO_PAGO
+      PAYMENT_SIMULATION: "true"
+      ENABLE_BULLMQ: "true"
+      REDIS_URL: redis://observability-redis:6379
+      ENABLE_LOCAL_METRICS: "true"
+      LOCAL_METRICS_PORT: "9464"
+      LOCAL_METRICS_BIND_ADDRESS: 0.0.0.0
+    expose:
+      - "9464"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health/ready').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    depends_on:
+      observability-postgres:
+        condition: service_healthy
+      observability-redis:
+        condition: service_healthy
+    networks:
+      - observability
+
+  prometheus:
+    profiles: [observability]
+    image: prom/prometheus:v3.15.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=24h
+    ports:
+      - "127.0.0.1:${LOCAL_OBSERVABILITY_PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - observability_prometheus_data:/prometheus
+    depends_on:
+      observability-api:
+        condition: service_healthy
+    networks:
+      - observability-ui
+      - observability
+
+  grafana:
+    profiles: [observability]
+    image: grafana/grafana:13.3.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_DEFAULT_THEME: light
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+    ports:
+      - "127.0.0.1:${LOCAL_OBSERVABILITY_GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - observability_grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - observability-ui
+
+networks:
+  observability:
+    internal: true
+  observability-ui:
+
+volumes:
+  observability_postgres_data:
+  observability_redis_data:
+  observability_prometheus_data:
+  observability_grafana_data:
