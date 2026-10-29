@@ -24,8 +24,6 @@
     "migration:run": "pnpm build && pnpm typeorm migration:run -d dist/config/typeorm.config.js",
     "migration:run:prod": "node ./node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.config.js",
     "seed:dictionary": "pnpm build && node dist/database/seeds/dictionary-seed.js",
-    "seed:report-content": "pnpm build && node dist/database/seeds/report-content-seed.js",
-    "seed:report-content:check": "pnpm build && node dist/database/seeds/report-content-seed.js --check",
     "verify:report-content": "pnpm build && node dist/database/seeds/report-content-verify.js",
     "report:preview": "pnpm build && node ./node_modules/@swc/cli/bin/swc.js scripts -d dist -C module.type=commonjs && node dist/scripts/preview-report.js",
     "seed:admin": "pnpm build && node dist/database/seeds/admin-seed.js",

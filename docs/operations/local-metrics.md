@@ -1,52 +1,40 @@
 # Métricas locales de la API
 
-Esta instrumentación es un piloto local de T05–T07. No exporta datos ni habilita un endpoint público en el puerto de la API.
+## Stack local unificado
 
-## Dashboard desechable
+Un único Compose levanta API, migraciones, PostgreSQL, Redis, SeaweedFS, Jaeger, Prometheus y Grafana. La observabilidad usa los mismos datos locales de desarrollo, no otra API ni otra base.
 
-Requiere Docker Compose. Este perfil levanta PostgreSQL y Redis efímeros con volúmenes propios; no lee `infra/docker/.env`, ni comparte bases, colas o credenciales del entorno habitual. Desde la raíz del repositorio, valide la configuración:
-
-```powershell
-docker compose --env-file infra/docker/.env.example -f infra/docker/docker-compose.observability.yml --profile observability config --quiet
-```
-
-Inicie el stack aislado:
+Desde la raíz, con las variables locales configuradas:
 
 ```powershell
-docker compose --env-file infra/docker/.env.example -f infra/docker/docker-compose.observability.yml --profile observability up -d --build
+docker compose --env-file infra/docker/.env -f infra/docker/docker-compose.yml config --quiet
+docker compose --env-file infra/docker/.env -f infra/docker/docker-compose.yml up -d --build
 ```
 
-La primera ejecución construye la API y puede descargar imágenes y dependencias públicas. El contenedor API consulta una base de datos local vacía; no use este stack para pruebas de negocio que requieran migraciones o datos existentes. S3 usa valores de placeholder con un dominio `.invalid` y no tiene almacenamiento real detrás. Las contraseñas son valores locales de desarrollo y pueden cambiarse con variables `LOCAL_OBSERVABILITY_POSTGRES_*`; nunca las reutilice en QA o producción.
+La API conserva la imagen con Chromium, pero Compose establece `NODE_ENV=development` para las métricas. PostgreSQL, Redis y S3 apuntan a los servicios locales. Revise las otras variables de `apps/api/.env`: correo y proveedores externos no quedan aislados automáticamente. No use credenciales de QA o producción.
 
-| Servicio | URL local |
-|---|---|
-| API | Sin puerto publicado; readiness se valida desde el contenedor |
-| Prometheus y alertas | `http://127.0.0.1:9090` |
-| Grafana (solo Viewer) | `http://127.0.0.1:3001` |
-| Métricas API | Solo red interna Docker, `observability-api:9464/metrics` |
-| PostgreSQL / Redis | Solo red interna Docker; no publican puertos del host |
+### Validación manual
 
-Solo Prometheus y Grafana publican puertos, ambos ligados a loopback. API, PostgreSQL y Redis solo usan `observability`, marcada `internal: true`; Prometheus se conecta además a la red `observability-ui` para habilitar la interfaz local y hacer scraping por la red privada. No hay configuración de remote-write ni de notificaciones externas. El puerto 9464 no se publica. Grafana permite acceso anónimo de solo lectura porque es una herramienta desechable local; no reutilice esta configuración en QA o producción.
+1. Confirme `api-migrate` terminado con código 0 y API healthy.
+2. Consulte `http://127.0.0.1:3000/health/ready`: debe responder 200.
+3. En `http://127.0.0.1:9090/targets`, confirme `api:9464` UP.
+4. Abra `http://127.0.0.1:3001` y el dashboard `A.kit Local Observability`; genere solicitudes a `/health` y confirme actividad.
+5. Confirme con `docker compose ps` que 9464 no tiene puerto publicado.
+6. Reinicie normalmente y compruebe persistencia de datos.
 
-Genere tráfico sintético y revise el dashboard `A.kit Local Observability` en Grafana. Compruebe readiness, scrape y alertas:
+Grafana es anónimo Viewer y solo local. No hay exportación ni notificaciones externas. Los umbrales de las alertas son heurísticos de desarrollo, no SLOs de producción. Consulte `/alerts` en Prometheus; ante fallos, revise salud de API y dependencias, sin purgar colas ni borrar volúmenes.
+
+Antes del primer arranque, identifique y detenga los contenedores del antiguo stack si siguen ocupando 3001/9090. No elimine sus volúmenes.
 
 ```powershell
-Invoke-WebRequest 'http://127.0.0.1:9090/targets'
-Invoke-WebRequest 'http://127.0.0.1:9090/alerts'
-docker compose --env-file infra/docker/.env.example -f infra/docker/docker-compose.observability.yml --profile observability exec -T observability-api node -e "fetch('http://127.0.0.1:3000/health/ready').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+docker compose --env-file infra/docker/.env -f infra/docker/docker-compose.yml down
 ```
 
-Para detener y quitar únicamente los servicios de observabilidad sin detener PostgreSQL/Redis compartidos ni borrar datos:
-
-```powershell
-docker compose --env-file infra/docker/.env.example -f infra/docker/docker-compose.observability.yml --profile observability down
-```
-
-`down` quita los contenedores y la red, pero conserva los volúmenes. No use `down -v` salvo que quiera borrar la base, la serie temporal y los datos de Grafana de este perfil. Las reglas no envían notificaciones y sus umbrales son heurísticos para desarrollo, no SLOs de producción.
+**Ahora `down` detiene todo el entorno local**, no solo observabilidad. Conserva los volúmenes. No ejecute `down -v` salvo que quiera eliminar los datos.
 
 | Alerta | Umbral | Respuesta inicial |
 |---|---|---|
-| `AkitApiMetricsUnavailable` | scrape fallido durante 2 min | Revisar `docker compose logs observability-api` y readiness. |
+| `AkitApiMetricsUnavailable` | scrape fallido durante 2 min | Revisar `docker compose logs api` y readiness. |
 | `AkitApiHigh5xxRate` | >5% durante 5 min | Revisar logs y reproducir con datos sintéticos. |
 | `AkitApiHighP95Latency` | p95 >2.5 s durante 5 min | Revisar probes de PostgreSQL/Redis y logs antes de cambiar límites. |
 | `AkitPostgresProbeDown`, `AkitRedisUnavailable` | probe fallido durante 2 min | Confirmar salud del servicio local; no borrar volúmenes como primer paso. |

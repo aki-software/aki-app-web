@@ -131,13 +131,13 @@ URLs útiles:
 | Jaeger       | `http://localhost:16686` |
 | SeaweedFS S3 | `http://localhost:8333` |
 
-Para levantar también la API dockerizada (build de imagen, migraciones y contenedor), usá el perfil `app`:
+El stack completo incluye API, migraciones y observabilidad, sin perfiles adicionales.
 
 ```powershell
-docker compose --profile app up -d --build
+docker compose up -d --build
 ```
 
-Esto ejecuta `api-migrate` (migraciones TypeORM, una sola vez) y luego `api` en `http://localhost:3000`. La API lee `apps/api/.env` (secretos como `JWT_SECRET`) y Compose sobreescribe los hosts de PostgreSQL, Redis y SeaweedFS con los nombres de servicio usando el mismo contrato que producción: `DATABASE_URL` y `REDIS_URL` (si la contraseña de PostgreSQL tiene caracteres especiales, debe ir URL-encoded), además de `ENABLE_BULLMQ=true` y `DATABASE_SSL=false`. La imagen corre con `NODE_ENV=production`, por eso `ENABLE_BULLMQ` es obligatorio. Sin el perfil, `docker compose up -d` sigue levantando sólo la infraestructura.
+Esto ejecuta `api-migrate` (migraciones TypeORM, una sola vez) y luego `api` en `http://localhost:3000`. La API lee `apps/api/.env` (secretos como `JWT_SECRET`) y Compose sobreescribe los hosts de PostgreSQL, Redis y SeaweedFS con los nombres de servicio usando el mismo contrato que producción: `DATABASE_URL` y `REDIS_URL` (si la contraseña de PostgreSQL tiene caracteres especiales, debe ir URL-encoded), además de `ENABLE_BULLMQ=true` y `DATABASE_SSL=false`. Compose establece `NODE_ENV=development` para métricas locales y levanta también Prometheus/Grafana. No requiere perfiles.
 
 Para detenerlos sin borrar datos:
 
@@ -285,3 +285,15 @@ La generación de PDFs necesita un navegador disponible. Revisá `PUPPETEER_EXEC
 - [Roadmap de documentación](documentation-roadmap.md)
 - [README principal](../README.md)
 
+
+### Seeds dentro de Docker
+
+La imagen incluye los dos JSON canónicos de `docs/`. Después de cambiar el Dockerfile, reconstruya la imagen antes de ejecutar los seeds. Desde `infra/docker`:
+
+```powershell
+docker compose build api
+docker compose run --rm --no-deps api-migrate node dist/database/seeds/dictionary-seed.js
+docker compose run --rm --no-deps api-migrate node dist/database/seeds/admin-seed.js
+```
+
+El diccionario agrupa únicamente categorías y combinaciones de tres áreas en una transacción. El seed duplicado `seed:report-content` y su comando `--check` fueron retirados; se conservan el loader validado y `verify:report-content` para comparar la base con los datos canónicos. El admin usa `ADMIN_USER`, `ADMIN_NAME` y `ADMIN_PASS` de la configuración local; si existe, actualiza contraseña, rol y asociación institucional. No ejecute estos comandos contra QA o producción sin autorización específica.

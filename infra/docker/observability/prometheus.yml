@@ -9,4 +9,4 @@ scrape_configs:
   - job_name: akit-api
     metrics_path: /metrics
     static_configs:
-      - targets: [observability-api:9464]
+      - targets: [api:9464]
