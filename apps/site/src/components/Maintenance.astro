@@ -69,7 +69,7 @@ const { locale, t } = Astro.props;
           // Highlight key words in gradient (e.g. "futuro", "orientación", "future", "vocational")
           const isHighlight = ['futuro', 'orientación', 'future', 'vocational', 'guidance', 'vocacional'].includes(word.toLowerCase().replace(/[^a-záéíóúüñ]/g, ''));
           if (isHighlight) {
-            return <span class="bg-gradient-to-r from-primary-light via-primary-light to-secondary-light bg-clip-text text-transparent">{word} </span>;
+            return <span class="text-primary-light">{word} </span>;
           }
           return <span>{word} </span>;
         })}
@@ -101,9 +101,6 @@ const { locale, t } = Astro.props;
     <p class="text-xs text-dark-muted/60">
       {t.maintenance.footer}
     </p>
-    <div class="text-[10px] uppercase tracking-widest text-dark-muted/30 font-mono">
-      Made with AI
-    </div>
   </footer>
 </div>
 

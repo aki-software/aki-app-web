@@ -1,0 +1,9 @@
+---
+import LegalPage from '../../components/LegalPage.astro';
+import { translations } from '../../i18n/translations';
+
+const locale = 'en';
+const t = translations[locale];
+---
+
+<LegalPage locale={locale} t={t} docKey="deleteAccount" />

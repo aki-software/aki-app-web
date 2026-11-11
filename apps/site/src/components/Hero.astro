@@ -11,20 +11,14 @@ const playStoreUrl = import.meta.env.PUBLIC_PLAY_STORE_URL || 'https://play.goog
 const cardData = t.hero.cards;
 ---
 
-<section class="min-h-screen flex flex-col justify-center bg-dark-bg text-dark-text relative overflow-hidden" id="hero">
+<section class="min-h-screen pt-32 pb-16 flex flex-col justify-center bg-dark-bg text-dark-text relative overflow-hidden" id="hero">
   <div class="container relative z-10">
     <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
       <!-- Left: Bold typography + CTA -->
       <div class="flex-1 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 reveal shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-          <p class="text-[11px] font-medium text-white/80 tracking-widest uppercase">
-            {t.hero.badge}
-          </p>
-        </div>
-
-        <h1 class="font-display font-bold text-5xl sm:text-6xl md:text-7xl lg:text-[5rem] leading-[1.05] tracking-tight mb-6 reveal reveal-delay-1">
+        <h1 class="font-display font-bold text-4xl sm:text-5xl lg:text-6xl leading-[1.05] tracking-tight mb-6 reveal reveal-delay-1">
           {t.hero.title}<br />
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-light to-confirm">
+          <span class="text-primary-light">
             {t.hero.titleAccent}
           </span>
         </h1>
@@ -33,40 +27,21 @@ const cardData = t.hero.cards;
           {t.hero.subtitle}
         </p>
 
-        <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start reveal reveal-delay-3">
-          <a href={playStoreUrl} target="_blank" rel="noopener noreferrer" class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-semibold text-dark-bg bg-white rounded-xl hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-primary to-primary-light opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            <svg aria-hidden="true" class="w-5 h-5 text-dark-bg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 010 1.38l-2.302 2.302L15.396 12l2.302-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302L5.864 2.658z"/>
-            </svg>
-            {t.hero.ctaPrimary}
-          </a>
-          <a href="#instituciones" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-sm font-semibold text-white bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 backdrop-blur-md transition-all duration-300">
-            {t.hero.ctaSecondary}
-          </a>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start reveal reveal-delay-3">
+          <a href="#instituciones" data-access-cta class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-primary rounded-xl hover:bg-primary-dark transition-colors">{t.hero.ctaPrimary}</a>
+          <a href="#como-funciona" class="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white underline underline-offset-4">{t.hero.ctaSecondary}</a>
         </div>
-
-        <!-- Prominent QR Box for Desktop / Mobile -->
-        <div class="mt-8 pt-6 border-t border-white/10 flex items-center gap-4 justify-center lg:justify-start reveal reveal-delay-3">
-          <div class="w-32 h-32 sm:w-40 sm:h-40 bg-white p-3 rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.15)] flex-shrink-0 flex items-center justify-center">
-            <img src="/qr-playstore.png" alt={t.hero.qrLabel} class="w-full h-full object-contain" />
-          </div>
-          <div class="text-left">
-            <p class="text-xs sm:text-sm font-bold text-white tracking-wide">{t.hero.qrLabel}</p>
-            <p class="text-[11px] sm:text-xs text-dark-muted font-medium mt-0.5">{t.hero.qrSublabel}</p>
-          </div>
-        </div>
-
-        <p class="text-xs text-dark-muted/60 mt-4 reveal reveal-delay-3 font-mono">
-          {locale === 'es' ? 'APP MÓVIL · TEST EN 10 MIN MÁX · INFORME DETALLADO' : 'MOBILE APP · 10 MIN MAX TEST · DETAILED REPORT'}
-        </p>
+        <p class="mt-6 text-sm text-dark-muted">{locale === 'es' ? 'El acceso se coordina con nuestro equipo.' : 'Access is arranged with our team.'}</p>
+        <a href={playStoreUrl} target="_blank" rel="noopener noreferrer" class="inline-block mt-6 py-3 text-sm text-primary-light underline underline-offset-4">
+          {locale === 'es' ? '¿Buscás realizar el test? Descargá la app' : 'Looking to take the assessment? Download the app'}
+        </a>
       </div>
 
       <!-- Right: Phone mockup with carousel -->
-      <div class="flex-shrink-0 w-full max-w-sm lg:max-w-none lg:w-[400px] reveal reveal-delay-2 mt-12 lg:mt-0">
+      <div id="hero-phone-widget" class="flex-shrink-0 w-full max-w-sm lg:max-w-none lg:w-[400px] reveal reveal-delay-2 mt-12 lg:mt-0">
         <div class="h-[520px] bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-[40px] p-8 shadow-[0_30px_60px_rgba(0,0,0,0.4)] backdrop-blur-2xl flex flex-col overflow-hidden">
           <!-- App UI Header Mockup -->
-          <div class="flex justify-between items-center flex-shrink-0 mb-6">
+          <div class="flex justify-between items-center flex-shrink-0 mb-4">
             <div class="flex items-center gap-2">
               <div class="w-2 h-2 rounded-full bg-primary"></div>
               <span class="text-[10px] font-mono tracking-widest text-white/40 uppercase">A.KI - Orient</span>
@@ -80,20 +55,18 @@ const cardData = t.hero.cards;
           </div>
 
           <!-- Phone Instruction Title -->
-          <div class="text-center flex-shrink-0 mb-4">
-            <span class="text-[11px] font-bold text-white/40 uppercase tracking-widest">{t.hero.phoneTitle}</span>
+          <div class="text-center flex-shrink-0 mb-3">
+            <span class="text-[11px] font-bold text-white/60 uppercase tracking-widest">{t.hero.phoneTitle}</span>
           </div>
 
           <!-- Card sorting space -->
-          <div class="flex-1 min-h-0 relative mb-6">
+          <div class="flex-1 min-h-0 relative mb-4">
             <div class="absolute w-[94%] h-[94%] top-[3%] left-[3%] bg-white/5 border border-white/10 rounded-3xl -rotate-3 scale-95 opacity-40 blur-[0.5px]"></div>
 
             <!-- Active sorting Card -->
-            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-6 flex flex-col justify-between shadow-[0_15px_30px_rgba(0,0,0,0.3)] backdrop-blur-md overflow-hidden group/card hover:border-primary/50 transition-all duration-500">
-              <div class="absolute top-0 right-0 w-16 h-16 bg-primary/20 rounded-full blur-xl opacity-60 pointer-events-none"></div>
-
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-3xl p-5 flex flex-col justify-between shadow-[0_15px_30px_rgba(0,0,0,0.3)] backdrop-blur-md overflow-hidden group/card hover:border-primary/50 transition-all duration-500">
               <div class="flex justify-between items-start flex-shrink-0">
-                <span id="card-badge" class="text-[9px] font-bold tracking-wider px-2 py-0.5 rounded bg-primary/20 text-primary-light border border-primary/30 uppercase">
+                <span id="card-badge" class="text-[10px] font-bold tracking-wider px-2.5 py-0.5 rounded bg-primary/25 text-primary-light border border-primary/30 uppercase">
                   {cardData[0].code}
                 </span>
                 <div class="flex gap-1 items-center opacity-60">
@@ -103,36 +76,55 @@ const cardData = t.hero.cards;
                 </div>
               </div>
 
-              <div class="flex-1 min-h-0 flex items-center justify-center my-3 overflow-hidden rounded-2xl relative">
+              <div class="flex-1 min-h-0 flex items-center justify-center my-2.5 overflow-hidden rounded-2xl relative">
                 {cardData.map((card, i) => (
                   <img
                     src={card.image}
-                    alt=""
+                    alt={card.title.replace(/\n/g, ' ')}
                     data-code={card.code}
+                    data-title={card.title.replace(/\n/g, ' ')}
+                    data-sub={card.sub}
                     class="card-slide absolute inset-0 w-full h-full object-cover rounded-2xl transition-opacity duration-500"
                     style={`opacity: ${i === 0 ? 1 : 0}; ${i > 0 ? 'pointer-events: none;' : ''}`}
                   />
                 ))}
               </div>
+
+              <!-- Activity title & subtitle from translations.ts -->
+              <div class="flex-shrink-0 pt-1">
+                <p id="card-title" class="font-display font-bold text-sm text-white leading-snug truncate">
+                  {cardData[0].title.replace(/\n/g, ' ')}
+                </p>
+                <p id="card-sub" class="text-xs text-white/70 leading-snug line-clamp-1 mt-0.5">
+                  {cardData[0].sub}
+                </p>
+              </div>
             </div>
           </div>
 
-          <!-- Carousel dots -->
-          <div class="flex items-center justify-center gap-2 flex-shrink-0 mb-3">
-            {cardData.map((_, i) => (
-              <button class={`carousel-dot h-1.5 rounded-full transition-all duration-300 ${i === 0 ? 'bg-white/80 w-3' : 'bg-white/30 w-1.5'}`} data-index={i} aria-label={`Card ${i + 1}`}></button>
+          <!-- Carousel dots (expanded touch target wrapper) -->
+          <div class="flex items-center justify-center gap-1 flex-shrink-0 mb-2">
+            {cardData.map((card, i) => (
+              <button
+                type="button"
+                class="carousel-dot p-2 flex items-center justify-center cursor-pointer"
+                data-index={i}
+                aria-label={`${locale === 'es' ? 'Tarjeta' : 'Card'} ${i + 1}: ${card.code}`}
+              >
+                <span class={`carousel-dot-pill block h-1.5 rounded-full transition-all duration-300 ${i === 0 ? 'bg-white/80 w-4' : 'bg-white/30 w-1.5'}`}></span>
+              </button>
             ))}
           </div>
 
           <!-- Action buttons -->
           <div class="grid grid-cols-2 gap-3 flex-shrink-0">
-            <button id="btn-phone-discard" type="button" class="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white/50 hover:bg-destructive/15 hover:text-destructive hover:border-destructive/30 active:scale-95 transition-all duration-300 cursor-pointer text-xs font-semibold select-none group/btn shadow-[0_2px_10px_rgba(0,0,0,0.1)]">
-              <svg aria-hidden="true" class="w-4 h-4 text-white/40 group-hover/btn:text-destructive group-hover/btn:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <button id="btn-phone-discard" type="button" class="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:bg-destructive/15 hover:text-destructive hover:border-destructive/30 active:scale-95 transition-all duration-300 cursor-pointer text-xs font-semibold select-none group/btn">
+              <svg aria-hidden="true" class="w-4 h-4 text-white/50 group-hover/btn:text-destructive group-hover/btn:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
               {t.hero.phoneActions.discard}
             </button>
-            <button id="btn-phone-select" type="button" class="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-gradient-to-r from-primary/90 to-primary-light/90 border border-primary/20 text-white hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer text-xs font-bold select-none group/btn">
+            <button id="btn-phone-select" type="button" class="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-primary border border-primary-light/30 text-white hover:bg-primary-dark hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer text-xs font-bold select-none group/btn">
               <svg aria-hidden="true" class="w-4 h-4 text-white/90 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
               </svg>
@@ -168,14 +160,24 @@ const cardData = t.hero.cards;
 (function() {
   var slides = document.querySelectorAll('.card-slide');
   var badge = document.getElementById('card-badge');
+  var titleEl = document.getElementById('card-title');
+  var subEl = document.getElementById('card-sub');
   var dots = document.querySelectorAll('.carousel-dot');
   var btnDiscard = document.getElementById('btn-phone-discard');
   var btnSelect = document.getElementById('btn-phone-select');
+  var phoneWidget = document.getElementById('hero-phone-widget');
   var cardContainer = badge ? badge.closest('.group\\/card') : null;
+  var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if (!slides.length || !badge) return;
   var codes = [];
-  for (var s = 0; s < slides.length; s++) codes.push(slides[s].getAttribute('data-code'));
+  var titles = [];
+  var subs = [];
+  for (var s = 0; s < slides.length; s++) {
+    codes.push(slides[s].getAttribute('data-code'));
+    titles.push(slides[s].getAttribute('data-title') || '');
+    subs.push(slides[s].getAttribute('data-sub') || '');
+  }
   var current = 0;
   var interval;
   var isSwiping = false;
@@ -185,18 +187,31 @@ const cardData = t.hero.cards;
       slides[i].style.opacity = i === index ? '1' : '0';
     }
     badge.textContent = codes[index];
+    if (titleEl) titleEl.textContent = titles[index];
+    if (subEl) subEl.textContent = subs[index];
     for (var j = 0; j < dots.length; j++) {
-      if (j === index) { dots[j].classList.add('bg-white/80', 'w-3'); dots[j].classList.remove('bg-white/30', 'w-1.5'); }
-      else { dots[j].classList.remove('bg-white/80', 'w-3'); dots[j].classList.add('bg-white/30', 'w-1.5'); }
+      var pill = dots[j].querySelector('.carousel-dot-pill') || dots[j];
+      if (j === index) { pill.classList.add('bg-white/80', 'w-4'); pill.classList.remove('bg-white/30', 'w-1.5'); }
+      else { pill.classList.remove('bg-white/80', 'w-4'); pill.classList.add('bg-white/30', 'w-1.5'); }
     }
     current = index;
   }
 
   function nextCard() { showCard((current + 1) % slides.length); }
-  function resetInterval() { clearInterval(interval); interval = setInterval(nextCard, 4000); }
+  function stopInterval() { if (interval) clearInterval(interval); }
+  function resetInterval() {
+    stopInterval();
+    if (!prefersReducedMotion && slides.length > 1) {
+      interval = setInterval(nextCard, 4000);
+    }
+  }
 
   function triggerSwipe(direction) {
     if (isSwiping || !cardContainer) return;
+    if (prefersReducedMotion) {
+      nextCard();
+      return;
+    }
     isSwiping = true;
     var animClass = direction === 'left' ? 'card-swiping-left' : 'card-swiping-right';
     cardContainer.classList.add(animClass);
@@ -222,6 +237,13 @@ const cardData = t.hero.cards;
     })(parseInt(dots[k].dataset.index)));
   }
 
-  if (slides.length > 1) interval = setInterval(nextCard, 4000);
+  if (phoneWidget) {
+    phoneWidget.addEventListener('mouseenter', stopInterval);
+    phoneWidget.addEventListener('mouseleave', resetInterval);
+    phoneWidget.addEventListener('focusin', stopInterval);
+    phoneWidget.addEventListener('focusout', resetInterval);
+  }
+
+  resetInterval();
 })();
 </script>
