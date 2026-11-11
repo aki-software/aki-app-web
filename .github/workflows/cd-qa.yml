@@ -25,6 +25,8 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # Compare this QA push with its previous commit, not QA's divergence from main.
+          base: ${{ github.ref }}
           filters: |
             api:
               - 'apps/api/**'

@@ -78,3 +78,7 @@ Cada PR debe cambiar el estado de sus tareas y enlazar la evidencia de validaci√
 ## Stack local unificado
 
 Un solo Compose integra API, dependencias y observabilidad sobre datos locales. Validacion estatica completa; arranque manual pendiente. Sin exportacion cloud.
+
+## QA deployment isolation (2026-11-11)
+
+The QA CD change detector now compares each push with the prior commit on `qa`, rather than accumulated divergence from `main`. A separate fix PR is required before the Site-only promotion. Existing app/shared-file filters and manual all-service dispatch are retained. Regression coverage and operational boundaries are documented in [the CI/CD plan](refactor/ci-cd-plan.md#qa-push-isolation-2026-11-11). No live QA/production deployment or migration was performed; provider-side isolation remains a separate prerequisite.
