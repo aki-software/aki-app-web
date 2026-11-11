@@ -47,3 +47,19 @@ Este documento describe la secuencia de Pull Requests para implementar la arquit
 | PR        | Título                                         | Descripción                                                                                  |
 | --------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | **PR-13** | `docs: update deployment docs, runbooks, ADRs` | Documenta cómo hacer rollback en Render, Railway y CF Pages. Añade interfaz futura para AWS. |
+
+## QA push isolation (2026-11-11)
+
+`cd-qa.yml` watches pushes to `qa`. Its `dorny/paths-filter@v3` base is explicitly `${{ github.ref }}`, so a push is compared with the previous commit on the same branch. Without this base, the action defaults to the repository's default branch (`main`) and can select API/Web changes already present in QA when the new push changes only Site.
+
+The app filters, migration/deployment gates, QA destinations and credentials are unchanged. Site-only pushes select Site; API-only and Web-only pushes retain their existing jobs. Shared design-token and lockfile changes continue to select all three apps. Manual `workflow_dispatch` intentionally retains its existing all-service behavior and must **not** be used to test a Site-only deployment.
+
+Regression checks:
+
+```sh
+node --test scripts/tests/qa-deploy-isolation.test.mjs
+```
+
+The configuration checks run without dependencies. To execute the real-action probes too, set `PATHS_FILTER_ACTION` to an external, trusted local copy of the official `dorny/paths-filter@v3` `dist/index.js`, then run the same command. Without that variable, the action probe is explicitly skipped; this is not full behavioral proof. The probes use temporary local Git repositories with a local-only remote, no deployment credentials, and no provider calls. They print their scratch paths for cleanup by the caller.
+
+Before promoting Site, review and merge this isolation fix separately from the Site PR. This change does not configure Cloudflare/Railway native Git integrations, does not deploy anything by itself, and does not establish production isolation. No workflow dispatch, migration or live deployment was run as part of its local verification.
