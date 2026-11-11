@@ -8,37 +8,72 @@ interface Props {
 
 const { locale, t } = Astro.props;
 const isEn = locale === 'en';
-const formEndpoint = import.meta.env.PUBLIC_FORM_ENDPOINT || 'https://formsubmit.co/contacto@orientaki.com';
+const defaultApiUrl = import.meta.env.DEV ? 'http://localhost:3000/api/v1' : '';
+const rawApiUrl = (import.meta.env.PUBLIC_API_URL || defaultApiUrl).replace(/\/$/, '');
+const apiContactEndpoint = rawApiUrl
+  ? (rawApiUrl.endsWith('/api/v1') ? `${rawApiUrl}/contact` : `${rawApiUrl}/api/v1/contact`)
+  : '';
+const formEndpoint = import.meta.env.PUBLIC_FORM_ENDPOINT || apiContactEndpoint || 'https://formsubmit.co/contacto@orientaki.com';
+const defaultInstitution = isEn ? 'Independent practice' : 'Práctica particular';
 ---
 
 <section class="bg-surface rounded-3xl border border-border/60 shadow-md p-8 sm:p-10 max-w-xl mx-auto reveal">
-  <h3 class="font-display font-bold text-2xl text-text mb-6 text-center">
-    {isEn ? 'Request an institutional demo' : 'Solicitá una demo institucional'}
+  <h3 class="font-display font-bold text-2xl text-text mb-3 text-center">
+    {t.hero.ctaPrimary}
   </h3>
 
-  <form action={formEndpoint || '#'} method="POST" class="flex flex-col gap-4" id="contact-form">
+  <p class="text-sm text-text-muted mb-6 text-center">{isEn ? 'Tell us how to contact you. Our team will discuss access with you; submitting this form does not activate an account.' : 'Dejanos tus datos de contacto. Nuestro equipo conversará con vos sobre el acceso; enviar este formulario no activa una cuenta.'}</p>
+  <form
+    action={formEndpoint || '#'}
+    method="POST"
+    data-locale={locale}
+    data-default-institution={defaultInstitution}
+    class="flex flex-col gap-4"
+    id="contact-form"
+  >
     <input type="hidden" name="_captcha" value="false">
     <input type="hidden" name="_template" value="table">
-    <input type="hidden" name="_subject" value="Nueva Solicitud de Demo / Plan Institucional">
-    <input type="hidden" name="selected_plan" id="selected-plan-input" value="" />
+    <input type="hidden" name="_subject" value={isEn ? 'Access request - Orient A.KI' : 'Solicitud de acceso - Orient A.KI'}>
+    <div>
+      <div class="flex items-center justify-between gap-2 mb-1.5">
+        <label for="selected-plan-input" class="block text-xs font-semibold text-text uppercase tracking-wider">{isEn ? "Plan or interest (optional)" : "Plan o interés (opcional)"}</label>
+        <span id="plan-selected-badge" class="hidden text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
+          {isEn ? "✓ Plan selected" : "✓ Plan seleccionado"}
+        </span>
+      </div>
+      <select id="selected-plan-input" name="selected_plan" class="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all">
+        <option value="">{isEn ? "General inquiry / Access request" : "Consulta general / Solicitud de acceso"}</option>
+        <option value="demo">{isEn ? "Demo Plan (Guided trial)" : "Plan Demo (Prueba guiada)"}</option>
+        <option value="basic">{isEn ? "Δ-AKI Plan (25 vouchers)" : "Plan Δ-AKI (25 vouchers)"}</option>
+        <option value="pro">{isEn ? "Σ-AKI Plan (50 vouchers)" : "Plan Σ-AKI (50 vouchers)"}</option>
+        <option value="enterprise">{isEn ? "Π-AKI Plan (1000 vouchers)" : "Plan Π-AKI (1000 vouchers)"}</option>
+      </select>
+    </div>
     <div>
       <label for="contact-name" class="block text-xs font-semibold text-text uppercase tracking-wider mb-1.5">{t.institutions.form.name}</label>
-      <input type="text" id="contact-name" name="name" required placeholder={isEn ? "Your name" : "Tu nombre"} class="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
+      <input type="text" id="contact-name" name="name" autocomplete="name" required placeholder={isEn ? "Your full name" : "Tu nombre y apellido"} class="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
     </div>
     <div>
       <label for="contact-email" class="block text-xs font-semibold text-text uppercase tracking-wider mb-1.5">{t.institutions.form.email}</label>
-      <input type="email" id="contact-email" name="email" required placeholder="correo@institucion.edu" class="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
+      <input type="email" id="contact-email" name="email" autocomplete="email" required placeholder={isEn ? "name@example.com" : "nombre@ejemplo.com"} class="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
     </div>
     <div>
       <label for="contact-institution" class="block text-xs font-semibold text-text uppercase tracking-wider mb-1.5">{t.institutions.form.institution}</label>
-      <input type="text" id="contact-institution" name="institution" placeholder={isEn ? "School / Organization" : "Colegio / Consultorio / Organización"} class="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
+      <input type="text" id="contact-institution" name="institution" autocomplete="organization" aria-describedby="institution-hint" placeholder={isEn ? "School, practice, or organization" : "Colegio, consultorio u organización"} class="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
+      <p id="institution-hint" class="mt-1.5 text-xs text-text-muted">
+        {isEn ? "If you work in independent private practice, you can leave this blank." : "Si trabajás de forma particular en tu consultorio, podés dejarlo vacío."}
+      </p>
     </div>
-    <button type="submit" id="contact-submit-btn" class="w-full py-4 text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary-dark transition-all hover:scale-[1.01] shadow-sm cursor-pointer mt-2">
+    <button type="submit" id="contact-submit-btn" data-default-label={t.institutions.form.submit} data-loading-label={isEn ? 'Sending...' : 'Enviando...'} class="w-full py-4 text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary-dark transition-all hover:scale-[1.01] shadow-sm cursor-pointer mt-2">
       {t.institutions.form.submit}
     </button>
     <div id="form-success" class="p-4 rounded-xl bg-primary/10 border border-primary/30 text-primary text-sm font-medium text-center hidden" role="alert">
       <p class="font-bold mb-1">✓ {isEn ? 'Request received' : 'Solicitud recibida'}</p>
       <p>{t.institutions.form.success}</p>
+    </div>
+    <div id="form-error" class="hidden p-4 rounded-xl bg-destructive/5 border border-destructive/30 text-text text-sm" role="alert">
+      <p>{isEn ? 'We could not send your request. Your details are preserved. Try again or send the request from your email app.' : 'No pudimos enviar tu solicitud. Conservamos tus datos. Intentá nuevamente o enviá la solicitud desde tu aplicación de correo.'}</p>
+      <a id="form-email-alternative" class="inline-block py-3 font-semibold text-primary underline underline-offset-4" href="mailto:contacto@orientaki.com">{isEn ? 'Open email draft' : 'Abrir borrador de correo'}</a>
     </div>
   </form>
 </section>
@@ -51,33 +86,61 @@ const formEndpoint = import.meta.env.PUBLIC_FORM_ENDPOINT || 'https://formsubmit
 
   const form = document.getElementById('contact-form') as HTMLFormElement | null;
   const success = document.getElementById('form-success');
+  const error = document.getElementById('form-error');
+  const emailAlternative = document.getElementById('form-email-alternative') as HTMLAnchorElement | null;
   const submitBtn = document.getElementById('contact-submit-btn') as HTMLButtonElement | null;
-  const planInput = document.getElementById('selected-plan-input') as HTMLInputElement | null;
+  const planInput = document.getElementById('selected-plan-input') as HTMLSelectElement | HTMLInputElement | null;
+  const planBadge = document.getElementById('plan-selected-badge');
   const nameInput = document.getElementById('contact-name') as HTMLInputElement | null;
 
   // Listen for plan selection from Pricing section
   window.addEventListener('akit:select-plan', ((e: CustomEvent) => {
     const plan = e.detail?.plan;
-    if (planInput) planInput.value = plan || '';
-    nameInput?.focus();
+    if (planInput) {
+      planInput.value = plan || '';
+      planInput.classList.toggle('border-primary', Boolean(plan));
+      planInput.classList.toggle('ring-2', Boolean(plan));
+      planInput.classList.toggle('ring-primary/30', Boolean(plan));
+    }
+    if (planBadge) {
+      planBadge.classList.toggle('hidden', !plan);
+    }
+    nameInput?.focus({ preventScroll: true });
   }) as EventListener);
+
+  planInput?.addEventListener('change', () => {
+    const hasPlan = Boolean(planInput.value);
+    planInput.classList.toggle('border-primary', hasPlan);
+    planInput.classList.toggle('ring-2', hasPlan);
+    planInput.classList.toggle('ring-primary/30', hasPlan);
+    if (planBadge) {
+      planBadge.classList.toggle('hidden', !hasPlan);
+    }
+  });
 
   if (form && success) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      success.classList.add('hidden');
+      error?.classList.add('hidden');
       const endpoint = form.getAttribute('action');
       const data = new FormData(form);
+      const isEnLocale = form.dataset.locale === 'en';
+      const fallbackInst = form.dataset.defaultInstitution || (isEnLocale ? 'Independent practice' : 'Práctica particular');
 
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.style.opacity = '0.7';
+        if (submitBtn.dataset.loadingLabel) {
+          submitBtn.textContent = submitBtn.dataset.loadingLabel;
+        }
       }
 
       if (endpoint && endpoint !== '#') {
         const payload = {
           name: data.get('name'),
           email: data.get('email'),
-          institution: data.get('institution'),
+          institution: String(data.get('institution') || '').trim() || fallbackInst,
           selected_plan: data.get('selected_plan') || 'General'
         };
 
@@ -91,35 +154,46 @@ const formEndpoint = import.meta.env.PUBLIC_FORM_ENDPOINT || 'https://formsubmit
           if (!response.ok) throw new Error('API Error');
           
           form.reset();
+          if (planInput) planInput.value = '';
+          planInput?.classList.remove('border-primary', 'ring-2', 'ring-primary/30');
+          planBadge?.classList.add('hidden');
           success.classList.remove('hidden');
         } catch (_) {
-          fallbackMailto(data);
+          fallbackMailto(data, isEnLocale, fallbackInst);
         }
       } else {
-        fallbackMailto(data);
+        fallbackMailto(data, isEnLocale, fallbackInst);
       }
 
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.style.opacity = '1';
+        if (submitBtn.dataset.defaultLabel) {
+          submitBtn.textContent = submitBtn.dataset.defaultLabel;
+        }
       }
     });
 
-    function fallbackMailto(data: FormData) {
+    function fallbackMailto(data: FormData, isEnLocale: boolean, fallbackInst: string) {
       const name = data.get('name') || '';
       const email = data.get('email') || '';
-      const institution = data.get('institution') || '';
+      const institution = String(data.get('institution') || '').trim() || fallbackInst;
       const plan = data.get('selected_plan') || 'General';
       
-      const subject = encodeURIComponent(`Solicitud de Demo - ${institution}`);
-      const body = encodeURIComponent(`Nombre: ${name}\nEmail: ${email}\nInstitución: ${institution}\nPlan interesado: ${plan}\n\nHola, me gustaría solicitar una demo institucional de Orient A.KI.`);
+      const subject = encodeURIComponent(
+        isEnLocale
+          ? `Access request - ${institution}`
+          : `Solicitud de acceso - ${institution}`
+      );
+      const body = encodeURIComponent(
+        isEnLocale
+          ? `Name: ${name}\nEmail: ${email}\nPractice / Institution: ${institution}\nSelected plan: ${plan}\n\nHello, I would like to request access to the Orient A.KI platform.`
+          : `Nombre: ${name}\nEmail: ${email}\nInstitución: ${institution}\nPlan interesado: ${plan}\n\nHola, me gustaría solicitar acceso a la plataforma de Orient A.KI.`
+      );
       
-      window.location.href = `mailto:contacto@orientaki.com?subject=${subject}&body=${body}`;
+      if (emailAlternative) emailAlternative.href = `mailto:contacto@orientaki.com?subject=${subject}&body=${body}`;
       
-      setTimeout(() => {
-        form?.reset();
-        success?.classList.remove('hidden');
-      }, 500);
+      error?.classList.remove('hidden');
     }
   }
 </script>

@@ -15,6 +15,10 @@ const { locale, title, description = locale === 'es'
 
 const siteUrl = 'https://orientaki.com';
 const ogImage = '/og-image.png';
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const canonicalUrl = new URL(currentPath, siteUrl).toString();
+const ogLocale = locale === 'en' ? 'en_US' : 'es_AR';
+const skipLabel = locale === 'en' ? 'Skip to main content' : 'Saltar al contenido principal';
 ---
 
 <!doctype html>
@@ -29,17 +33,19 @@ const ogImage = '/og-image.png';
 		<title>{title}</title>
 		<meta name="title" content={title} />
 		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalUrl} />
 
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
-		<meta property="og:url" content={siteUrl} />
+		<meta property="og:locale" content={ogLocale} />
+		<meta property="og:url" content={canonicalUrl} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		<meta property="og:image" content={new URL(ogImage, siteUrl)} />
 
 		<!-- Twitter -->
 		<meta property="twitter:card" content="summary_large_image" />
-		<meta property="twitter:url" content={siteUrl} />
+		<meta property="twitter:url" content={canonicalUrl} />
 		<meta property="twitter:title" content={title} />
 		<meta property="twitter:description" content={description} />
 		<meta property="twitter:image" content={new URL(ogImage, siteUrl)} />
@@ -48,7 +54,8 @@ const ogImage = '/og-image.png';
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 	</head>
-	<body class="bg-white text-text antialiased selection:bg-primary/20 selection:text-primary">
+	<body class="bg-bg text-text antialiased selection:bg-primary/20 selection:text-primary">
+		<a href="#main" class="skip-link">{skipLabel}</a>
 		<slot />
 	</body>
 </html>

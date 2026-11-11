@@ -9,67 +9,66 @@ interface Props {
 const { locale, t } = Astro.props;
 const categories = t.methodology.categories;
 
-interface BadgeStyle {
-  code: string;
+interface DimensionStyle {
+  x: number;
+  y: number;
+  lx: number;
+  ly: number;
+  shortLabel: string;
+  color: string;
+  dot: string;
   border: string;
   text: string;
   bg: string;
-  dot: string;
 }
 
-const badgeStyles: BadgeStyle[] = [
-  { code: 'ART', border: 'border-violet-200', text: 'text-violet-700', bg: 'bg-violet-50', dot: '#a78bfa' },
-  { code: 'HUM', border: 'border-fuchsia-200', text: 'text-fuchsia-700', bg: 'bg-fuchsia-50', dot: '#d946ef' },
-  { code: 'SERV', border: 'border-teal-200', text: 'text-teal-700', bg: 'bg-teal-50', dot: '#0d9488' },
-  { code: 'PROT', border: 'border-slate-200', text: 'text-slate-700', bg: 'bg-slate-50', dot: '#64748b' },
-  { code: 'FÍS', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50', dot: '#f43f5e' },
-  { code: 'IND', border: 'border-zinc-200', text: 'text-zinc-700', bg: 'bg-zinc-50', dot: '#52525b' },
-  { code: 'MEC', border: 'border-orange-200', text: 'text-orange-700', bg: 'bg-orange-50', dot: '#ea580c' },
-  { code: 'NAT', border: 'border-green-200', text: 'text-green-700', bg: 'bg-green-50', dot: '#22c55e' },
-  { code: 'LÍD', border: 'border-indigo-200', text: 'text-indigo-700', bg: 'bg-indigo-50', dot: '#6366f1' },
-  { code: locale === 'es' ? 'CIE' : 'SCI', border: 'border-indigo-300', text: 'text-indigo-800', bg: 'bg-indigo-100', dot: '#4338ca' },
-  { code: 'VENT', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50', dot: '#f43f5e' },
-  { code: locale === 'es' ? 'NEG' : 'BUS', border: 'border-indigo-200', text: 'text-indigo-800', bg: 'bg-indigo-50', dot: '#312e81' },
+const dimensionStyles: DimensionStyle[] = [
+  { x: 50, y: 20, lx: 50, ly: 6, shortLabel: locale === 'es' ? 'Artística' : 'Arts', color: '#7c3aed', dot: '#a78bfa', border: 'border-violet-200', text: 'text-violet-700', bg: 'bg-violet-50' },
+  { x: 63, y: 25, lx: 70, ly: 16, shortLabel: locale === 'es' ? 'Humanidades' : 'Humanities', color: '#c026d3', dot: '#d946ef', border: 'border-fuchsia-200', text: 'text-fuchsia-700', bg: 'bg-fuchsia-50' },
+  { x: 72, y: 35, lx: 86, ly: 30, shortLabel: locale === 'es' ? 'Servicios' : 'Services', color: '#0f766e', dot: '#0d9488', border: 'border-teal-200', text: 'text-teal-700', bg: 'bg-teal-50' },
+  { x: 78, y: 50, lx: 91, ly: 50, shortLabel: locale === 'es' ? 'Protección' : 'Protection', color: '#475569', dot: '#64748b', border: 'border-slate-200', text: 'text-slate-700', bg: 'bg-slate-50' },
+  { x: 72, y: 60, lx: 86, ly: 70, shortLabel: locale === 'es' ? 'Deportes' : 'Sports', color: '#dc2626', dot: '#f43f5e', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50' },
+  { x: 62, y: 72, lx: 70, ly: 84, shortLabel: locale === 'es' ? 'Industria' : 'Industry', color: '#525252', dot: '#52525b', border: 'border-zinc-200', text: 'text-zinc-700', bg: 'bg-zinc-50' },
+  { x: 50, y: 78, lx: 50, ly: 92, shortLabel: locale === 'es' ? 'Mecánica' : 'Mechanics', color: '#c2410c', dot: '#ea580c', border: 'border-orange-200', text: 'text-orange-700', bg: 'bg-orange-50' },
+  { x: 38, y: 72, lx: 30, ly: 84, shortLabel: locale === 'es' ? 'Naturaleza' : 'Nature', color: '#16a34a', dot: '#22c55e', border: 'border-green-200', text: 'text-green-700', bg: 'bg-green-50' },
+  { x: 28, y: 60, lx: 14, ly: 70, shortLabel: locale === 'es' ? 'Liderazgo' : 'Leadership', color: '#4f46e5', dot: '#6366f1', border: 'border-indigo-200', text: 'text-indigo-700', bg: 'bg-indigo-50' },
+  { x: 24, y: 50, lx: 9, ly: 50, shortLabel: locale === 'es' ? 'Ciencia' : 'Science', color: '#3730a3', dot: '#4338ca', border: 'border-indigo-300', text: 'text-indigo-800', bg: 'bg-indigo-100' },
+  { x: 28, y: 38, lx: 14, ly: 30, shortLabel: locale === 'es' ? 'Ventas' : 'Sales', color: '#dc2626', dot: '#f43f5e', border: 'border-red-200', text: 'text-red-700', bg: 'bg-red-50' },
+  { x: 38, y: 25, lx: 30, ly: 16, shortLabel: locale === 'es' ? 'Negocios' : 'Business', color: '#1e1b4b', dot: '#312e81', border: 'border-indigo-200', text: 'text-indigo-800', bg: 'bg-indigo-50' },
 ];
 
-const categoryDimensions = [
-  { x: 50, y: 20, lx: 50, ly: 6, code: 'ART', fullName: locale === 'es' ? 'Artística' : 'Arts', color: '#7c3aed', dotColor: '#a78bfa' },
-  { x: 63, y: 25, lx: 70, ly: 16, code: 'HUM', fullName: locale === 'es' ? 'Humanidades' : 'Humanities', color: '#c026d3', dotColor: '#d946ef' },
-  { x: 72, y: 35, lx: 86, ly: 30, code: 'SERV', fullName: locale === 'es' ? 'Servicios y acomodación' : 'Services & Accommodation', color: '#0f766e', dotColor: '#0d9488' },
-  { x: 78, y: 50, lx: 91, ly: 50, code: 'PROT', fullName: locale === 'es' ? 'Protección' : 'Protection', color: '#475569', dotColor: '#64748b' },
-  { x: 72, y: 60, lx: 86, ly: 70, code: 'FÍS', fullName: locale === 'es' ? 'Deportes' : 'Sports', color: '#dc2626', dotColor: '#f43f5e' },
-  { x: 62, y: 72, lx: 70, ly: 84, code: 'IND', fullName: locale === 'es' ? 'Industria' : 'Industry', color: '#525252', dotColor: '#52525b' },
-  { x: 50, y: 78, lx: 50, ly: 92, code: 'MEC', fullName: locale === 'es' ? 'Mecánica' : 'Mechanics', color: '#c2410c', dotColor: '#ea580c' },
-  { x: 38, y: 72, lx: 30, ly: 84, code: 'NAT', fullName: locale === 'es' ? 'Naturaleza' : 'Nature', color: '#16a34a', dotColor: '#22c55e' },
-  { x: 28, y: 60, lx: 14, ly: 70, code: 'LÍD', fullName: locale === 'es' ? 'Liderazgo' : 'Leadership', color: '#4f46e5', dotColor: '#6366f1' },
-  { x: 24, y: 50, lx: 9, ly: 50, code: locale === 'es' ? 'CIE' : 'SCI', fullName: locale === 'es' ? 'Ciencia' : 'Science', color: '#3730a3', dotColor: '#4338ca' },
-  { x: 28, y: 38, lx: 14, ly: 30, code: 'VENT', fullName: locale === 'es' ? 'Ventas' : 'Sales', color: '#dc2626', dotColor: '#f43f5e' },
-  { x: 38, y: 25, lx: 30, ly: 16, code: locale === 'es' ? 'NEG' : 'BUS', fullName: locale === 'es' ? 'Negocios' : 'Business', color: '#1e1b4b', dotColor: '#312e81' },
-];
+const categoryDimensions = dimensionStyles.map((style, index) => {
+  const cat = categories[index];
+  return {
+    ...style,
+    code: cat.code,
+    fullName: cat.name,
+  };
+});
 ---
 
-<section class="py-24 md:py-32 relative bg-bg overflow-hidden" id="metodologia">
+<section class="py-24 md:py-32 relative bg-surface border-y border-border/40 overflow-hidden" id="metodologia">
   <div class="container relative z-10">
-    <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+    <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
       <!-- Radar Visualization Card -->
-      <div class="flex-1 relative w-full max-w-[460px] mx-auto lg:mx-0">
-        <div id="radar-card" class="bg-surface border border-border/60 p-6 sm:p-8 md:p-10 rounded-[2.5rem] sm:rounded-[3rem] shadow-md overflow-hidden relative group">
+      <div class="flex-1 relative w-full max-w-[400px] sm:max-w-[440px] mx-auto lg:mx-0">
+        <div id="radar-card" class="bg-bg border border-border/60 p-5 sm:p-8 rounded-[2.5rem] sm:rounded-[3rem] shadow-md overflow-hidden relative group">
           
           <!-- Floating live badge over the radar -->
-          <div id="radar-floating-info" class="absolute top-4 left-6 right-6 flex items-center justify-between pointer-events-none opacity-0 translate-y-1 transition-all duration-300 z-10">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/95 border border-border shadow-sm backdrop-blur-md">
-              <span id="radar-info-dot" class="w-2.5 h-2.5 rounded-full transition-colors duration-200"></span>
-              <span id="radar-info-code" class="font-display font-bold text-xs text-text"></span>
-              <span class="text-border/60">·</span>
-              <span id="radar-info-name" class="text-xs text-text-muted font-medium truncate max-w-[140px] sm:max-w-none"></span>
+          <div id="radar-floating-info" class="absolute top-4 left-5 right-5 flex items-center justify-between pointer-events-none opacity-0 translate-y-1 transition-all duration-300 z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/95 border border-border shadow-sm backdrop-blur-md min-w-0">
+              <span id="radar-info-dot" class="w-2.5 h-2.5 rounded-full transition-colors duration-200 shrink-0"></span>
+              <span id="radar-info-code" class="font-display font-bold text-xs text-text shrink-0"></span>
+              <span class="text-border/60 shrink-0">·</span>
+              <span id="radar-info-name" class="text-xs text-text-muted font-medium truncate max-w-[160px] sm:max-w-[220px]"></span>
             </div>
-            <span class="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold tracking-wider uppercase">
+            <span class="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold tracking-wider uppercase shrink-0">
               {locale === 'es' ? 'Dimensión' : 'Dimension'}
             </span>
           </div>
 
-          <div class="radar-svg-wrapper pt-4" style="transform: scale(0.8); opacity: 0; transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;">
-            <svg aria-hidden="true" viewBox="0 0 100 100" class="w-full h-auto overflow-visible select-none">
+          <div class="radar-svg-wrapper pt-6">
+            <svg aria-hidden="true" viewBox="-18 -6 136 112" class="w-full h-auto overflow-visible select-none">
               <defs>
                 <linearGradient id="radarFillRecharts" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="5%" stop-color="var(--color-primary)" stop-opacity="0.55" />
@@ -112,41 +111,39 @@ const categoryDimensions = [
                 points="50,20 63,25 72,35 78,50 72,60 62,72 50,78 38,72 28,60 24,50 28,38 38,25"
                 fill="url(#radarFillRecharts)"
                 stroke="var(--color-primary)"
-                stroke-width="1.8"
+                stroke-width="0.55"
                 stroke-linejoin="round"
                 stroke-dasharray="400"
                 stroke-dashoffset="400"
-                filter="url(#dot-glow-recharts)"
               />
 
               <!-- Vertex dots with generous hit-targets for bidirectional hover -->
-              {categoryDimensions.map(({ x, y, dotColor, code, fullName }) => (
+              {categoryDimensions.map(({ x, y, dot, code, fullName }) => (
                 <g
                   class="radar-interactive-target cursor-pointer"
                   data-code={code}
                   data-fullname={fullName}
-                  data-color={dotColor}
+                  data-color={dot}
                   tabindex="0"
                   role="button"
-                  aria-label={`Categoría ${code}: ${fullName}`}
+                  aria-label={`${locale === 'es' ? 'Categoría' : 'Category'} ${code}: ${fullName}`}
                 >
                   <circle cx={`${x}`} cy={`${y}`} r="7" fill="transparent" class="radar-hit-target" />
                   <circle
                     id={`v-${code}`}
                     cx={`${x}`}
                     cy={`${y}`}
-                    r="3"
-                    fill={dotColor}
+                    r="1.3"
+                    fill={dot}
                     stroke="white"
-                    stroke-width="1"
-                    filter="url(#dot-glow-recharts)"
+                    stroke-width="0.45"
                     class="radar-dot-recharts pointer-events-none"
                   />
                 </g>
               ))}
 
               <!-- Category labels (interactive) -->
-              {categoryDimensions.map(({ lx, ly, code, fullName, color, dotColor }) => {
+              {categoryDimensions.map(({ lx, ly, code, fullName, shortLabel, color, dot }) => {
                 const isLeft = lx < 50;
                 const anchor = lx === 50 ? 'middle' : isLeft ? 'end' : 'start';
                 const labelX = lx === 50 ? lx : isLeft ? lx - 3 : lx + 3;
@@ -155,10 +152,10 @@ const categoryDimensions = [
                     class="radar-interactive-target cursor-pointer"
                     data-code={code}
                     data-fullname={fullName}
-                    data-color={dotColor}
+                    data-color={dot}
                     tabindex="0"
                     role="button"
-                    aria-label={`Categoría ${code}: ${fullName}`}
+                    aria-label={`${locale === 'es' ? 'Categoría' : 'Category'} ${code}: ${fullName}`}
                   >
                     <text
                       id={`lbl-code-${code}`}
@@ -169,7 +166,7 @@ const categoryDimensions = [
                       font-size="4.2"
                       font-weight="800"
                       font-family="Sora, sans-serif"
-                      letter-spacing="1.5"
+                      letter-spacing="1.2"
                       class="radar-label-code transition-all duration-200"
                     >
                       {code}
@@ -179,13 +176,13 @@ const categoryDimensions = [
                       x={`${labelX}`}
                       y={`${ly + 4.5}`}
                       text-anchor={anchor}
-                      fill="rgba(0,0,0,0.35)"
-                      font-size="2.5"
+                      fill="rgba(0,0,0,0.45)"
+                      font-size="2.6"
                       font-weight="500"
                       font-family="Sora, sans-serif"
                       class="radar-label-full transition-all duration-200"
                     >
-                      {fullName}
+                      {shortLabel}
                     </text>
                   </g>
                 );
@@ -196,39 +193,32 @@ const categoryDimensions = [
       </div>
 
       <!-- Right: Description + Interactive Badge Grid -->
-      <div class="flex-1 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-secondary/20 mb-6 reveal reveal-delay-1 shadow-sm">
-          <p class="text-[11px] font-medium text-secondary tracking-widest uppercase">
-            METODOLOGÍA CIENTÍFICA
-          </p>
-        </div>
+      <div class="flex-1 text-center lg:text-left min-w-0">
         <h2 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-text mb-6 reveal reveal-delay-1 tracking-tight">
           {locale === 'es' ? '12 categorías ocupacionales' : '12 occupational categories'}
         </h2>
         <p class="text-lg text-text-muted leading-relaxed mb-10 reveal reveal-delay-2 max-w-2xl mx-auto lg:mx-0">
           {locale === 'es'
-            ? 'Orient A.KI mapea tus intereses mediante un enfoque estructurado de orientación ocupacional validado profesionalmente. Identificamos tu afinidad en doce categorías ocupacionales para trazar el mapa de tu futuro.'
-            : 'Orient A.KI maps your interests using a structured occupational guidance framework. We identify your affinity across twelve occupational categories to chart your future.'}
+            ? 'Orient A.KI mapea intereses mediante un enfoque estructurado de orientación ocupacional validado profesionalmente. Identificamos la afinidad en doce categorías ocupacionales para respaldar cada proceso de orientación.'
+            : 'Orient A.KI maps interests using a structured, professionally validated occupational guidance framework. We identify affinity across twelve occupational categories to support every guidance process.'}
         </p>
 
         <!-- Interactive badge grid -->
-        <div id="badge-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 reveal reveal-delay-3" role="group" aria-label={locale === 'es' ? 'Categorías ocupacionales' : 'Occupational categories'}>
-          {badgeStyles.map((type) => {
-            const cat = categories.find((c) => c.code === type.code);
-            return (
-              <button
-                type="button"
-                data-code={type.code}
-                data-fullname={cat?.name || type.code}
-                data-color={type.dot}
-                aria-label={`Categoría ${cat?.name || type.code}`}
-                class={`badge-chip flex items-center gap-2 p-2.5 rounded-xl bg-surface border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer text-left ${type.border}`}
-              >
-                <span class={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${type.bg} border ${type.border}`} style={`background: ${type.dot}`}></span>
-                <span class={`font-display font-bold text-xs tracking-wider ${type.text}`}>{type.code}</span>
-              </button>
-            );
-          })}
+        <div id="badge-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 reveal reveal-delay-3" role="group" aria-label={locale === 'es' ? 'Categorías ocupacionales' : 'Occupational categories'}>
+          {categoryDimensions.map((item) => (
+            <button
+              type="button"
+              data-code={item.code}
+              data-fullname={item.fullName}
+              data-color={item.dot}
+              aria-label={`${locale === 'es' ? 'Categoría' : 'Category'} ${item.code}: ${item.fullName}`}
+              class={`badge-chip flex items-center gap-2 p-2.5 rounded-xl bg-bg border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer text-left min-w-0 ${item.border}`}
+            >
+              <span class={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${item.bg} border ${item.border}`} style={`background: ${item.dot}`}></span>
+              <span class={`font-display font-bold text-xs tracking-wider shrink-0 ${item.text}`}>{item.code}</span>
+              <span class="text-xs text-text-muted font-medium truncate min-w-0">{item.fullName}</span>
+            </button>
+          ))}
         </div>
 
         <!-- Active category tooltip -->
@@ -242,12 +232,11 @@ const categoryDimensions = [
 
 <style>
   .radar-dot-recharts {
-    transition: r 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease, stroke-width 0.25s ease;
+    transition: r 0.3s cubic-bezier(0.22, 1, 0.36, 1), filter 0.25s ease, stroke-width 0.25s ease;
   }
   .radar-dot-recharts.active {
-    r: 5.5;
-    stroke-width: 1.5;
-    filter: drop-shadow(0 0 8px currentColor);
+    r: 2.6;
+    stroke-width: 0.7;
   }
   .badge-chip.active {
     transform: translateY(-2px);
@@ -266,9 +255,20 @@ const categoryDimensions = [
   .radar-result-animate {
     animation: radar-draw 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards, radar-fill 1.5s ease-out forwards;
   }
+  .radar-svg-wrapper {
+    transition: transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #radar-card:hover .radar-svg-wrapper,
+  #radar-card:focus-within .radar-svg-wrapper {
+    transform: scale(1.025);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .radar-svg-wrapper { transition: none; }
+    #radar-card:hover .radar-svg-wrapper,
+    #radar-card:focus-within .radar-svg-wrapper { transform: none; }
+  }
   #radar-card:hover #radar-result {
-    stroke-width: 2.2;
-    filter: drop-shadow(0 0 10px var(--color-primary));
+    stroke-width: 0.7;
   }
   @keyframes radar-draw {
     from { stroke-dashoffset: 400; }
@@ -302,8 +302,6 @@ const categoryDimensions = [
   const radarObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting && svgWrapper) {
-        svgWrapper.style.transform = 'scale(1)';
-        svgWrapper.style.opacity = '1';
         const poly = document.getElementById('radar-result');
         if (poly) poly.classList.add('radar-result-animate');
         
@@ -434,5 +432,5 @@ const categoryDimensions = [
       if (entry.isIntersecting) entry.target.classList.add('visible');
     });
   }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
+  document.querySelectorAll('#metodologia .reveal').forEach((el) => revealObserver.observe(el));
 </script>
