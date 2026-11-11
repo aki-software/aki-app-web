@@ -36,7 +36,7 @@ const featureIcons = [
 ];
 ---
 
-<section class="py-16 md:py-24 bg-surface" id="features">
+<section class="py-16 md:py-24 bg-bg" id="features">
   <div class="container">
     <div class="text-center mb-12">
       <h2 class="font-display font-bold text-2xl md:text-3xl text-text mb-3 reveal">
@@ -47,7 +47,7 @@ const featureIcons = [
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
       {t.features.items.map((feature, i) => (
         <div
-          class="group bg-bg rounded-2xl border border-border/60 p-6 reveal transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_12px_24px_rgba(0,0,0,0.06)]"
+          class="group bg-surface rounded-2xl border border-border/60 p-6 reveal transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_12px_24px_rgba(0,0,0,0.06)]"
           style={`transition-delay: ${i * 0.08}s;`}
         >
           <div class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/15 transition-transform duration-300">
@@ -69,5 +69,5 @@ const featureIcons = [
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
   }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  document.querySelectorAll('#features .reveal').forEach((el) => observer.observe(el));
 </script>

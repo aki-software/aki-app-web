@@ -10,10 +10,9 @@ interface Props {
 const { locale, t } = Astro.props;
 ---
 
-<section class="py-24 md:py-32 bg-bg" id="instituciones">
+<section class="py-24 md:py-32 bg-primary-50/60 border-y border-primary/15" id="instituciones" style="scroll-margin-top: 6rem">
   <div class="container">
     <div class="max-w-2xl mx-auto text-center mb-12">
-      <span class="text-xs font-medium text-secondary tracking-wider uppercase reveal">{t.institutions.badge}</span>
       <h2 class="font-display font-bold text-2xl md:text-3xl text-text mt-3 mb-4 reveal reveal-delay-1 whitespace-pre-line">
         {t.institutions.title}
       </h2>
@@ -41,5 +40,5 @@ const { locale, t } = Astro.props;
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
   }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  document.querySelectorAll('#instituciones .reveal').forEach((el) => observer.observe(el));
 </script>

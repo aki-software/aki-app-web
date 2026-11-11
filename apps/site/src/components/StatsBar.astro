@@ -9,7 +9,7 @@ interface Props {
 const { t } = Astro.props;
 ---
 
-<section class="bg-bg py-12 md:py-16 border-t border-secondary/20 border-b border-secondary/20" id="stats-bar">
+<section class="bg-surface py-12 md:py-16 border-t border-b border-border/50" id="stats-bar">
   <div class="container">
     <div class="flex flex-wrap justify-center gap-8 md:gap-16 items-center reveal">
       {t.statsBar.items.map((item, index) => (
@@ -60,5 +60,5 @@ const { t } = Astro.props;
     });
   }, { threshold: 0.2 });
 
-  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  document.querySelectorAll('#stats-bar .reveal').forEach((el) => observer.observe(el));
 </script>

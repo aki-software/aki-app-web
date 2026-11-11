@@ -5,6 +5,7 @@ import Hero from '../../components/Hero.astro';
 import HowItWorks from '../../components/HowItWorks.astro';
 import StatsBar from '../../components/StatsBar.astro';
 import Radar from '../../components/Radar.astro';
+import Features from '../../components/Features.astro';
 import SocialProof from '../../components/SocialProof.astro';
 import Institutions from '../../components/Institutions.astro';
 import Pricing from '../../components/Pricing.astro';
@@ -20,7 +21,7 @@ const t = translations[locale];
 const isMaintenance = import.meta.env.PUBLIC_MAINTENANCE_MODE === 'true';
 ---
 
-<BaseLayout locale={locale} t={t} title="ORIENT A.KI — Discover your occupational profile in 10 minutes">
+<BaseLayout locale={locale} t={t} title={`ORIENT A.KI — ${t.hero.title}`} description={t.hero.subtitle}>
   {isMaintenance ? (
     <Maintenance locale={locale} t={t} />
   ) : (
@@ -30,13 +31,13 @@ const isMaintenance = import.meta.env.PUBLIC_MAINTENANCE_MODE === 'true';
       <StatsBar locale={locale} t={t} />
       <HowItWorks locale={locale} t={t} />
       <Radar locale={locale} t={t} />
+      <Features locale={locale} t={t} />
       <SocialProof locale={locale} t={t} />
-      <Institutions locale={locale} t={t} />
       <Pricing locale={locale} t={t} />
+      <Institutions locale={locale} t={t} />
       <FAQ locale={locale} t={t} />
       <FinalCta locale={locale} t={t} />
       <Footer locale={locale} t={t} />
     </main>
   )}
 </BaseLayout>
-
